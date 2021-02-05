@@ -31,7 +31,7 @@ from surmise.emulation import emulator
 # ## Computer model experiments
 
 # %% [markdown]
-# In this example, a large ball is dropped from a tower, and its height is recorded at discrete time points until it hits the ground. We will consider two simple models for this physical process. The physics of both models are outlined in \ref{}.
+# In this example, a large ball is dropped from a tower, and its height is recorded at discrete time points until it hits the ground. We will consider two simple models for this physical process.
 
 # %% [markdown]
 # ### Model 1 ($M_1$)
