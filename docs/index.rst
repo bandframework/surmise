@@ -6,7 +6,7 @@
 Welcome to surmise's documentation!
 ====================================
 
-The code can be found on our `Github project page <https://bandframework.github.io>`_. It is open source and provided under the MIT license.
+The code can be found on our `Github project page <https://github.com/surmising/surmise>`_. It is open source and provided under the MIT license.
 
 .. toctree::
    :caption: User Guide:
