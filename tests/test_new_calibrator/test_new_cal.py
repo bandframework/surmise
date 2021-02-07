@@ -36,21 +36,18 @@ def timedrop(x, theta, hr, gr):
 class prior_balldrop:
     """ This defines the class instance of priors provided to the method. """
     def lpdf(theta):
-        if theta.ndim > 1.5:
-            return np.squeeze(sps.uniform.logpdf(theta[:, 0], 0, 1))
-        else:
-            return np.squeeze(sps.uniform.logpdf(theta, 0, 1))
+        return (sps.uniform.logpdf(theta[:, 0], 0, 1)).reshape((len(theta), 1))
 
     def rnd(n):
         return np.vstack((sps.uniform.rvs(0, 1, size=n)))
-    
-    
+
+
 # Draw 100 random parameters from uniform prior
 n = 100
 theta = prior_balldrop.rnd(n)
 theta_range = np.array([1, 30])
 
-# Standardize 
+# Standardize
 x_range = np.array([min(x), max(x)])
 x_std = (x - min(x))/(max(x) - min(x))
 
@@ -95,7 +92,7 @@ def test_prediction_var(cmdopt2):
         pred.var()
     except:
         pytest.fail('var() functionality does not exist in the method')
-        
+
 # test to check the prediction.rnd()
 def test_prediction_rnd(cmdopt2):
     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
@@ -125,7 +122,7 @@ def test_prediction_lpdf(cmdopt2):
         pred.lpdf()
     except:
         pytest.fail('lpdf() functionality does not exist in the method')
-        
+
 # test to check the theta.mean()
 def test_prediction_thetamean(cmdopt2):
     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
@@ -139,7 +136,7 @@ def test_prediction_thetamean(cmdopt2):
         cal.theta.mean()
     except:
         pytest.fail('theta.mean() functionality does not exist in the method')
-        
+
 # test to check the theta.var()
 def test_prediction_thetavar(cmdopt2):
     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
@@ -180,4 +177,4 @@ def test_prediction_thetalpdf(cmdopt2):
     try:
         cal.theta.lpdf()
     except:
-        pytest.fail('theta.lpdf() functionality does not exist in the method')           
+        pytest.fail('theta.lpdf() functionality does not exist in the method')

@@ -3,7 +3,7 @@
 utilities module
 =======================
 
-.. automodule:: utilities
+.. automodule:: surmise.utilities
     :members:
     :undoc-members:
     :show-inheritance:

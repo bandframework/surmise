@@ -76,6 +76,6 @@ Evaluating performance of the calibrated model
 
 Do after-calibration sensitivity analysis
 
-- How can we know which calibration strategy is appropriate for a given data set?
+.. - How can we know which calibration strategy is appropriate for a given data set?
 
-- What are the strategies that we use to understand the predictive accuracy and uncertainty on the simulation outputs after calibration?
+.. - What are the strategies that we use to understand the predictive accuracy and uncertainty on the simulation outputs after calibration?

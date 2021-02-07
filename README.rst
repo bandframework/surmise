@@ -1,3 +1,14 @@
+
+|
+
+.. image:: https://readthedocs.org/projects/surmise/badge/?version=latest
+   :target: https://surmise.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
+
+|
+
+.. after_badges_rst_tag
+
 ===========================
 Introduction to surmise
 ===========================
@@ -70,7 +81,7 @@ The HTML files are then stored in ``docs/_build/html``
      author      = {Matthew Plumlee and Özge Sürer and Stefan M. Wild},
      title       = {surmise Users Manual},
      institution = {NAISE},
-     number      = {Revision 0.1},
+     number      = {Revision 0.1.0},
      year        = {2021},
      url         = {}
    }
