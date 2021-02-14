@@ -79,11 +79,11 @@ The HTML files are then stored in ``docs/_build/html``
 
    @techreport{surmise2021,
      author      = {Matthew Plumlee and Özge Sürer and Stefan M. Wild},
-     title       = {surmise Users Manual},
+     title       = {Surmise Users Manual},
      institution = {NAISE},
-     number      = {Revision 0.1.0},
+     number      = {Version 0.1.0},
      year        = {2021},
-     url         = {}
+     url         = {https://surmise.readthedocs.io}
    }
 
 Examples
