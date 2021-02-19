@@ -1,0 +1,10 @@
+*__pycache__
+*.pyc
+surmise_applications/
+*.o
+cov_*
+.cov_*
+.cache
+surmise.egg-info
+docs/_build
+x.log

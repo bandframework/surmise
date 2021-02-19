@@ -44,4 +44,4 @@ Example 5
 
 This example illustrates how to use GPy (an external package) as an emulator within surmise’s framework.
 
-`Link to Example 5 <https://nbviewer.jupyter.org/github/surmising/surmise/blob/master/examples/Example4/Example4_nb.ipynb>`_.
+`Link to Example 5 <https://nbviewer.jupyter.org/github/surmising/surmise/blob/master/examples/Example5/Example5_nb.ipynb`_.
