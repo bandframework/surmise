@@ -56,7 +56,7 @@ x_std = (x - min(x))/(max(x) - min(x))
 f = timedrop(x_std, theta, x_range, theta_range)
 
 # Fit an emulator via non-filtered data
-emulator_nf_1 = emulator(x=x_std, theta=theta, f=f, method='PCGPwM')
+emulator_nf_1 = emulator(x=x_std, theta=theta, f=f, method='PCGP')
 pred_nf = emulator_nf_1.predict(x=x_std, theta=theta)
 pred_nf_mean = pred_nf.mean()
 
@@ -68,8 +68,8 @@ theta_f = theta[ys > 0.5]
 f_f = timedrop(x_std, theta_f, x_range, theta_range)
 
 # Fit an emulator via filtered data
-emulator_f_1 = emulator(x=x_std, theta=theta_f, f=f_f, method='PCGPwM')
-emulator_f_2 = emulator(x=x_std, theta=theta_f, f=f_f, method='PCGP')
+emulator_f_1 = emulator(x=x_std, theta=theta_f, f=f_f, method='PCGP')
+#emulator_f_2 = emulator(x=x_std, theta=theta_f, f=f_f, method='PCGP')
 
 args2 = {'theta0': np.array([[0.4]]),
          'numsamp': 20,

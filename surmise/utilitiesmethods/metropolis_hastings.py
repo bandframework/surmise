@@ -59,13 +59,13 @@ def sampler(logpostfunc, options={}):
         raise ValueError('Unknown theta0')
 
     p = thetastart.shape[1]
-    lposterior = np.zeros(2*n)
-    theta = np.zeros((2*n, thetastart.shape[1]))
+    lposterior = np.zeros(1000 + n)
+    theta = np.zeros((1000 + n, thetastart.shape[1]))
     lposterior[0] = logpostfunc(thetastart)
     theta[0, :] = thetastart
     n_acc = 0
 
-    for i in range(1, 2*n):
+    for i in range(1, 1000 + n):
         # Candidate theta
         if stepType == 'normal':
             theta_cand = [theta[i-1, :][k] + stepParam[k] *
@@ -96,6 +96,6 @@ def sampler(logpostfunc, options={}):
             theta[i, :] = theta[i-1, :]
             lposterior[i] = lposterior[i-1]
 
-    theta = theta[(1*n):(2*n), :]
+    theta = theta[(1000):(1000 + n), :]
     sampler_info = {'theta': theta, 'acc_rate': n_acc/n}
     return sampler_info

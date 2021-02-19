@@ -115,7 +115,7 @@ def does_not_raise():
 def test_passfunction(expectation):
     with expectation:
         assert emulator(passthroughfunc=borehole_model,
-                        method='PCGPwM') is not None
+                        method='PCGP') is not None
 
 
 # test to check the emulator predict with a passed function
@@ -128,5 +128,5 @@ def test_passfunction(expectation):
 def test_passfunction_predict(expectation):
     with expectation:
         emu = emulator(passthroughfunc=borehole_model,
-                       method='PCGPwM')
+                       method='PCGP')
         assert emu.predict(x=x, theta=thetatot) is not None

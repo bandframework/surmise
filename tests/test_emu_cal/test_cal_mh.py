@@ -83,7 +83,7 @@ def balldroptrue(x):
 
 obsvar = 4*np.ones(x.shape[0])
 y = balldroptrue(xv)
-emu_test = emulator(x=x, theta=theta_lin, f=f_lin, method='PCGPwM')
+emu_test = emulator(x=x, theta=theta_lin, f=f_lin, method='PCGP')
 
 
 # Additional examples

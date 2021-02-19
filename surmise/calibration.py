@@ -1,6 +1,7 @@
 import numpy as np
 import importlib
 import copy
+import warnings
 
 
 class calibrator(object):
@@ -73,6 +74,11 @@ class calibrator(object):
 
         '''
 
+        if ('warnings' in args.keys()) and args['warnings']:
+            warnings.resetwarnings()
+        else:
+            warnings.simplefilter('ignore')
+
         self.args = args
         if y is None:
             raise ValueError('You have not provided any y.')
@@ -125,17 +131,18 @@ class calibrator(object):
         else:
             prednotfinite = np.logical_not(np.isfinite(predtry()))
             if np.any(prednotfinite):
-                print('We have received some non-finite values from'
-                      ' emulation.')
+                warnings.warn('Some non-finite values from emulation '
+                              'received.')
                 fracfail = np.mean(prednotfinite, 1)
                 if np.sum(fracfail <= 10**(-3)) < 5:
                     raise ValueError('Your emulator failed enough places to '
                                      'give up.')
                 else:
-                    print('Current protocol is to remove observations that '
-                          'have nonfinite values.')
+                    warnings.warn('Current protocol is to remove observations'
+                                  ' that have nonfinite values.')
                     whichrm = np.where(fracfail > 10**(-3))[0]
-                    print('Removing values at %s.' % np.array2string(whichrm))
+                    warnings.warn('Removing values at %s.'
+                                  % np.array2string(whichrm))
                     whichkeep = np.where(fracfail <= 10**(-3))[0]
                     if x is not None:
                         self.x = self.x[whichkeep, :]
@@ -279,11 +286,11 @@ class prediction(object):
             return self.rnd(s, args)
 
     def __methodnotfoundstr(self, pfstr, opstr):
-        print(pfstr + opstr + ' functionality not in method... \n' +
-              ' Key labeled ' + opstr + ' not ' +
-              'provided in ' + pfstr + '.info... \n' +
-              ' Key labeled rnd not ' +
-              'provided in ' + pfstr + '.info...')
+        warnings.warn(pfstr + opstr + ' functionality not in method... \n' +
+                      ' Key labeled ' + opstr + ' not ' +
+                      'provided in ' + pfstr + '.info... \n' +
+                      ' Key labeled rnd not ' +
+                      'provided in ' + pfstr + '.info...')
         return 'Could not reconsile a good way to compute this value'
     ' in current method.'
 
@@ -379,11 +386,11 @@ class thetadist(object):
             return self.rnd(s, args)
 
     def __methodnotfoundstr(self, pfstr, opstr):
-        print(pfstr + opstr + 'functionality not in method... \n' +
-              ' Key labeled ' + (pfstr+opstr) + ' not ' +
-              'provided in cal.info... \n' +
-              ' Key labeled ' + pfstr + 'rnd not ' +
-              'provided in cal.info...')
+        warnings.warn(pfstr + opstr + 'functionality not in method... \n' +
+                      ' Key labeled ' + (pfstr+opstr) + ' not ' +
+                      'provided in cal.info... \n' +
+                      ' Key labeled ' + pfstr + 'rnd not ' +
+                      'provided in cal.info...')
         return 'Could not reconsile a good way to compute this value in'
     ' current method.'
 

@@ -1,5 +1,4 @@
 """Emulator PCGP"""
-
 import numpy as np
 import scipy.optimize as spo
 
@@ -10,7 +9,7 @@ def fit(fitinfo, x, theta, f, args=None):
     information into fitinfo, which is a python dictionary.
 
     .. note::
-       This is an application of the method proposed by Higdon et al..
+       This is an application of the method proposed by Higdon et al., 2008.
        The idea is to use PCA to project the original simulator outputs
        onto a lower-dimensional space spanned by an orthogonal basis. The main
        steps are
@@ -66,7 +65,7 @@ def fit(fitinfo, x, theta, f, args=None):
 
     # Find the best size of the reduced space
 
-    numVals = 1 + np.sum(np.cumsum(Valssq) < 0.9995*np.sum(Valssq))
+    numVals = 1 + np.sum(np.cumsum(Valssq) < 0.999*np.sum(Valssq))
     numVals = np.maximum(np.minimum(2, fstand.shape[1]), numVals)
 
     #
@@ -81,8 +80,6 @@ def fit(fitinfo, x, theta, f, args=None):
 
     # create a dictionary to save the emu info for each PC
     emulist = [dict() for x in range(0, numVals)]
-
-    print(fitinfo['method'], 'considering ', numVals, 'PCs')
 
     # fit an emulator for each pc
     for pcanum in range(0, numVals):
@@ -136,16 +133,23 @@ def predict(predinfo, fitinfo, x, theta, args=None):
         predvars[:, k] = infos[k]['sigma2hat'] * \
             (1 + np.exp(infos[k]['hypnug']) - np.sum(r.T * (Rinv @ r.T), 0))
 
+    pctscale = (fitinfo['PCs'].T * fitinfo['scale']).T
+
     # Transfer back the PCs into the original space
-    predmean = (predvecs @ fitinfo['PCs'][xind, :].T) * \
-        fitinfo['scale'][xind] + fitinfo['offset'][xind]
+    predmean = (predvecs @ pctscale[xind, :].T + fitinfo['offset'][xind]).T
+    predvar = (fitinfo['extravar'][xind] +
+               (predvars @ pctscale[xind, :].T ** 2)).T
 
-    predvar = fitinfo['extravar'][xind] + \
-        (predvars @ (fitinfo['PCs'][xind, :] ** 2).T) * \
-        (fitinfo['scale'][xind] ** 2)
+    # CH = (np.sqrt(predvars)[:, :, None] * (pctscale[xind, :].T)[None, :, :])
 
-    predinfo['mean'] = predmean.T
-    predinfo['var'] = predvar.T
+    # predinfo['covxhalf'] = np.full((theta.shape[0],
+    #                                 CH.shape[1],
+    #                                 x.shape[0]), np.nan)
+    # predinfo['covxhalf'][:, :, xind] = CH
+    # predinfo['covxhalf'] = predinfo['covxhalf'].transpose((2, 0, 1))
+
+    predinfo['mean'] = predmean
+    predinfo['var'] = predvar
 
     return
 
@@ -162,9 +166,9 @@ def emulation_covmat(theta1, theta2, gammav, returndir=False):
     '''
     Parameters
     ----------
-    theta1 : Array
+    theta1 : numpy.ndarray
         An n1-by-d array of parameters.
-    theta2 : Array
+    theta2 : numpy.ndarray
        An n2-by-d array of parameters.
     gammav : Array
         A length d array.
@@ -173,7 +177,7 @@ def emulation_covmat(theta1, theta2, gammav, returndir=False):
 
     Returns
     -------
-    Array
+    numpy.ndarray
         A n1-by-n2 array of covariance between theta1 and theta2 given
         parameter gammav.
 
@@ -185,6 +189,8 @@ def emulation_covmat(theta1, theta2, gammav, returndir=False):
     n2 = theta2.shape[0]
     V = np.zeros([n1, n2])
     R = np.ones([n1, n2])
+
+    # Matern covariance structure, that is, R = (1 + S)*exp(-S)
     if returndir:
         dR = np.zeros([n1, n2, d])
     for k in range(0, d):
@@ -209,13 +215,13 @@ def emulation_negloglik(hyperparameters, fitinfo):
     ----------
     hyperparameters : TYPE
         DESCRIPTION.
-    fitinfo : TYPE
+    fitinfo : dict
         DESCRIPTION.
 
     Returns
     -------
     negloglik : TYPE
-           Negative log-likelihood of single demensional GP model.
+           Negative log-likelihood of single dimensional GP model.
 
     '''
     # Obtain the hyperparameter values
@@ -231,7 +237,8 @@ def emulation_negloglik(hyperparameters, fitinfo):
     R = emulation_covmat(theta, theta, covhyp)
     R = R + np.exp(nughyp)*np.diag(np.ones(n))
 
-    #
+    # Consider matrix inverse via eigendecomposition
+    # R^-1 = V (1/W) V^T (V: eigenvector, W: eigenvalues)
     W, V = np.linalg.eigh(R)
     fspin = V.T @ f
     onespin = V.T @ np.ones(f.shape)
@@ -336,10 +343,6 @@ def emulation_fit(theta, pcaval, hypstarts=None, hypinds=None):
     covhyp0 = np.log(np.std(theta, 0)*3) + 1
     covhypLB = covhyp0 - 2
     covhypUB = covhyp0 + 3
-
-    # nughyp0 = -6
-    # nughypLB = -8
-    # nughypUB = 1
 
     nughyp0 = -6
     nughypLB = -15

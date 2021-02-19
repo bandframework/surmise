@@ -114,7 +114,7 @@ def does_not_raise():
      ],
     )
 def test_predict_multi(input1, input2, expectation):
-    emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
+    emu = emulator(x=x, theta=theta, f=f, method='PCGP')
     with expectation:
         assert emu.predict(x=input1, theta=input2) is not None
 
@@ -127,7 +127,7 @@ def test_predict_multi(input1, input2, expectation):
      ],
     )
 def test_predict_repr(expectation):
-    emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
+    emu = emulator(x=x, theta=theta, f=f, method='PCGP')
     emu_pred = emu.predict(x=x, theta=theta)
     with expectation:
         assert repr(emu_pred) is not None
@@ -141,7 +141,7 @@ def test_predict_repr(expectation):
      ],
     )
 def test_predict_call(expectation):
-    emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
+    emu = emulator(x=x, theta=theta, f=f, method='PCGP')
     emu_pred = emu.predict(x=x, theta=theta)
     with expectation:
         assert emu_pred(s=10) is not None
@@ -151,7 +151,6 @@ def test_predict_call(expectation):
 @pytest.mark.parametrize(
     "input1,expectation",
     [
-     ('PCGPwM', does_not_raise()),
      ('PCGP', does_not_raise()),
      ],
     )
@@ -163,25 +162,25 @@ def test_prediction_mean(input1, expectation):
 
 
 # test to check the prediction.mean_gradtheta()
-@pytest.mark.parametrize(
-    "input1,input2,expectation",
-    [
-     ('PCGPwM', False, pytest.raises(ValueError)),
-     ('PCGPwM', True, does_not_raise()),
-     ],
-    )
-def test_prediction_mean_gradtheta(input1, input2, expectation):
-    emu = emulator(x=x, theta=theta, f=f, method=input1)
-    pred = emu.predict(x=x, theta=theta, args={'return_grad': input2})
-    with expectation:
-        assert pred.mean_gradtheta() is not None
+# @pytest.mark.parametrize(
+#     "input1,input2,expectation",
+#     [
+#      ('PCGP', False, pytest.raises(ValueError)),
+#      ('PCGP', True, does_not_raise()),
+#      ],
+#     )
+# def test_prediction_mean_gradtheta(input1, input2, expectation):
+#     emu = emulator(x=x, theta=theta, f=f, method=input1)
+#     pred = emu.predict(x=x, theta=theta, args={'return_grad': input2})
+#     with expectation:
+#         assert pred.mean_gradtheta() is not None
 
 
 # test to check the prediction.var()
 @pytest.mark.parametrize(
     "input1,expectation",
     [
-     ('PCGPwM', does_not_raise()),
+     # ('PCGPwM', does_not_raise()),
      ('PCGP', does_not_raise()),
      ],
     )
@@ -196,7 +195,7 @@ def test_prediction_var(input1, expectation):
 @pytest.mark.parametrize(
     "input1,expectation",
     [
-     ('PCGPwM', does_not_raise()),
+     # ('PCGPwM', does_not_raise()),
      ('PCGP', pytest.raises(ValueError)),
      ],
     )
@@ -211,7 +210,7 @@ def test_prediction_covx(input1, expectation):
 @pytest.mark.parametrize(
     "input1,expectation",
     [
-     ('PCGPwM', does_not_raise()),
+     # ('PCGPwM', does_not_raise()),
      ('PCGP', pytest.raises(ValueError)),
      ],
     )
@@ -223,25 +222,25 @@ def test_prediction_covxhalf(input1, expectation):
 
 
 # test to check the prediction.covxhalf_gradtheta()
-@pytest.mark.parametrize(
-    "input1,input2,expectation",
-    [
-     ('PCGPwM', False, pytest.raises(ValueError)),
-     ('PCGPwM', True, does_not_raise()),
-     ],
-    )
-def test_prediction_covxhalf_gradtheta(input1, input2, expectation):
-    emu = emulator(x=x, theta=theta, f=f, method=input1)
-    pred = emu.predict(x=x, theta=theta, args={'return_grad': input2})
-    with expectation:
-        assert pred.covxhalf_gradtheta() is not None
+# @pytest.mark.parametrize(
+#     "input1,input2,expectation",
+#     [
+#      ('PCGP', False, pytest.raises(ValueError)),
+#      ('PCGP', True, does_not_raise()),
+#      ],
+#     )
+# def test_prediction_covxhalf_gradtheta(input1, input2, expectation):
+#     emu = emulator(x=x, theta=theta, f=f, method=input1)
+#     pred = emu.predict(x=x, theta=theta, args={'return_grad': input2})
+#     with expectation:
+#         assert pred.covxhalf_gradtheta() is not None
 
 
 # test to check the prediction.rnd()
 @pytest.mark.parametrize(
     "input1,expectation",
     [
-     ('PCGPwM', pytest.raises(ValueError)),
+     ('PCGP', pytest.raises(ValueError)),
      ],
     )
 def test_prediction_rnd(input1, expectation):
@@ -255,7 +254,7 @@ def test_prediction_rnd(input1, expectation):
 @pytest.mark.parametrize(
     "input1,expectation",
     [
-     ('PCGPwM', pytest.raises(ValueError)),
+     ('PCGP', pytest.raises(ValueError)),
      ],
     )
 def test_prediction_lpdf(input1, expectation):

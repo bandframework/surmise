@@ -43,10 +43,10 @@ xrep = np.reshape(ball[:, 0], (m, 1))
 x = xrep[0:21]
 # time
 y = np.reshape(ball[:, 1], ((m, 1)))
-
+y = y[0:21]
 # %%
 # Observe the data
-plt.scatter(xrep, y, color='red')
+plt.scatter(x, y, color='red')
 plt.xlabel("height (meters)")
 plt.ylabel("time (seconds)")
 plt.show()
@@ -121,7 +121,6 @@ theta_range = np.array([6, 15])
 # Standardize 
 x_range = np.array([min(x), max(x)])
 x_std = (x - min(x))/(max(x) - min(x))
-xrep_std = (xrep - min(xrep))/(max(xrep) - min(xrep))
 
 # Obtain computer model output
 f = timedrop(x_std, theta, x_range, theta_range)
@@ -137,10 +136,7 @@ print(np.shape(f))
 # Let's build an emulator for computer model runs:
 
 # %%
-emulator_1 = emulator(x=x_std, theta=theta, f=f, method='PCGPwM')
-
-# %%
-emulator_2 = emulator(x=x_std, theta=theta, f=f, method='PCGP')
+emulator_1 = emulator(x=x_std, theta=theta, f=f, method='PCGP')
 
 # %% [markdown]
 # ### Comparison of emulation methodologies
@@ -161,31 +157,11 @@ print(np.shape(f_test))
 #Predict
 p_1 = emulator_1.predict(x_std, theta_test)
 p_1_mean, p_1_var = p_1.mean(), p_1.var()
-p_2 = emulator_2.predict(x_std, theta_test)
-p_2_mean, p_2_var = p_2.mean(), p_2.var()
-
-print('SSE PCGPwM = ', np.sum((p_1_mean - f_test)**2))
-print('SSE PCGP = ', np.sum((p_2_mean - f_test)**2))
-
-print('Rsq PCGPwM = ', 1 - np.sum(np.square(p_1_mean - f_test))/np.sum(np.square(f_test.T - np.mean(f_test, axis = 1))))
-print('Rsq PCGP = ', 1 - np.sum(np.square(p_2_mean - f_test))/np.sum(np.square(f_test.T - np.mean(f_test, axis = 1))))
 
 
-# %%
-# compare emulators
-def plot_residuals(f, pred_mean, pred_var):
-    fig, axs = plt.subplots(1, figsize=(5, 5))
-    t1 = (pred_mean - f)/np.sqrt(pred_var)
-    p1_ub = np.percentile(t1, 97.5, axis = 1)
-    p1_lb = np.percentile(t1, 2.5, axis = 1)
-    plt.fill_between(range(21), p1_lb, p1_ub, color = 'grey', alpha=0.25)
-    plt.hlines(0, 0, 21, linestyles = 'dashed', colors = 'black')
-    plt.show()
+print('SSE PCGP = ', np.round(np.sum((p_1_mean - f_test)**2), 2))
 
-
-# %%
-plot_residuals(f_test, p_1_mean, p_1_var) 
-plot_residuals(f_test, p_2_mean, p_2_var) 
+print('Rsq PCGP = ', 1 - np.round(np.sum(np.square(p_1_mean - f_test))/np.sum(np.square(f_test.T - np.mean(f_test, axis = 1))), 2))
 
 
 # %% [markdown]
@@ -221,7 +197,7 @@ obsvar = np.maximum(0.2*y, 0.1)
 # Fit a calibrator with emulator 1 via via method = 'directbayes' and 'sampler' = 'metropolis_hastings' 
 cal_1 = calibrator(emu=emulator_1,
                    y=y,
-                   x=xrep_std,
+                   x=x_std,
                    thetaprior=prior_balldrop, 
                    method='directbayes',
                    yvar=obsvar, 
@@ -230,27 +206,16 @@ cal_1 = calibrator(emu=emulator_1,
                          'stepType' : 'normal', 
                          'stepParam' : [0.3]})
 
-plot_pred(x_std, xrep, y, cal_1, theta_range)
+plot_pred(x_std, x, y, cal_1, theta_range)
 
 # %%
 # Fit a calibrator via method = 'directbayes' and 'sampler' : 'LMC'
 cal_2 = calibrator(emu=emulator_1,
                    y=y,
-                   x=xrep_std,
+                   x=x_std,
                    thetaprior=prior_balldrop, 
                    method='directbayes',
                    yvar=obsvar, 
                    args={'sampler' : 'LMC'})
 
-plot_pred(x_std, xrep, y, cal_2, theta_range)
-
-# %%
-# Fit a calibrator via method = 'directbayes' and 'sampler' : 'LMC'
-cal_3 = calibrator(emu=emulator_1,
-                   y=y,
-                   x=xrep_std,
-                   thetaprior=prior_balldrop, 
-                   method='directbayes',
-                   yvar=obsvar)
-
-plot_pred(x_std, xrep, y, cal_3, theta_range)
+plot_pred(x_std, x, y, cal_2, theta_range)
