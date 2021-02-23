@@ -32,9 +32,10 @@ setup(
     ],
     python_requires='>=3.5',
     install_requires=[
-                      'numpy>=1.13',
-                      'scipy>=1.4'
+                      'numpy',
+                      'scipy'
                       ],
-    extras_require=['GPy'],
+    extras_require={'extras': ['GPy'],
+                    'docs': ['sphinx', 'sphinxcontrib.bibtex', 'sphinx_rtd_theme']},
     cmdclass={'test': Run_TestSuite}
 )
