@@ -908,17 +908,12 @@ class prediction(object):
             return self.rnd(s, args)
 
     def __methodnotfoundstr(self, pfstr, opstr):
-        # print(pfstr + opstr + ' functionality not in method... \n' +
-        #       ' Key labeled ' + opstr + ' not ' +
-        #       'provided in ' + pfstr + '._info... \n' +
-        #       ' Key labeled rnd not ' +
-        #       'provided in ' + pfstr + '._info...')
         msg = (pfstr + opstr + ' functionality not in method... \n' +
-              ' Key labeled ' + opstr + ' not ' +
-              'provided in ' + pfstr + '._info... \n' +
-              ' Key labeled rnd not ' +
-              'provided in ' + pfstr + '._info...')
-        
+               ' Key labeled ' + opstr + ' not ' +
+               'provided in ' + pfstr + '._info... \n' +
+               ' Key labeled rnd not ' +
+               'provided in ' + pfstr + '._info...')
+
         return msg
 
     def mean(self, args=None):
