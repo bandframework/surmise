@@ -172,5 +172,3 @@ cal_1 = calibrator(emu=emulator_1,
                           'stepParam' : [0.3]})
 
 plot_pred(x_std, x, y, cal_1, theta_range)
-
-# %%
