@@ -193,8 +193,8 @@ def loglik(fitinfo, emu, theta, y, x, args):
     # Obtain emulator results
     emupredict = emu.predict(x, theta)
     emumean = emupredict.mean()
-    emucov = emupredict.var()
-    is_cov = False
+    emucov = emupredict.covx()
+    is_cov = True
 
     p = emumean.shape[1]
     n = emumean.shape[0]

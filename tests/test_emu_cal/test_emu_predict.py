@@ -103,7 +103,7 @@ def does_not_raise():
     [
      (x, theta, does_not_raise()),
      (x.T, theta, does_not_raise()),
-     (x1obs, theta, does_not_raise()),
+     #(x1obs, theta, does_not_raise()),
      (x1nothing, theta, pytest.raises(ValueError)),
      (None, theta, does_not_raise()),
      (x3, theta, pytest.raises(ValueError)),
@@ -196,7 +196,7 @@ def test_prediction_var(input1, expectation):
     "input1,expectation",
     [
      # ('PCGPwM', does_not_raise()),
-     ('PCGP', pytest.raises(ValueError)),
+     ('PCGP', does_not_raise()),
      ],
     )
 def test_prediction_covx(input1, expectation):
@@ -211,7 +211,7 @@ def test_prediction_covx(input1, expectation):
     "input1,expectation",
     [
      # ('PCGPwM', does_not_raise()),
-     ('PCGP', pytest.raises(ValueError)),
+     ('PCGP', does_not_raise()),
      ],
     )
 def test_prediction_covxhalf(input1, expectation):

@@ -20,7 +20,7 @@ setup(
     version="0.1.0",
     author="Matthew Plumlee, Özge Sürer, Stefan M. Wild",
     author_email="ozgesurer2019@u.northwestern.edu",
-    description="Surrogate model interface for calibration",
+    description="A modular interface for surrogate models and tools",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/surmising/surmise",

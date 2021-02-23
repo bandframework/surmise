@@ -220,13 +220,23 @@ cal_grav_2 = calibrator(emu=emu_grav,
                               'theta0': priorphys_grav.rnd(1000)}) 
 
 # %%
-plot_theta(cal_grav_1, 0)
-plot_theta(cal_grav_2, 0)
+cal_grav_3 = calibrator(emu=emu_grav,
+                        y=y,
+                        x=x,
+                        thetaprior=priorphys_grav, 
+                        method='directbayeswoodbury',
+                        yvar=obsvar)
 
 # %%
-fig, axs = plt.subplots(1, 2, figsize=(10, 4))
+plot_theta(cal_grav_1, 0)
+plot_theta(cal_grav_2, 0)
+plot_theta(cal_grav_3, 0)
+
+# %%
+fig, axs = plt.subplots(1, 3, figsize=(15, 4))
 axs[0] = plot_preds(cal_grav_1, axs[0])
 axs[1] = plot_preds(cal_grav_2, axs[1])
+axs[2] = plot_preds(cal_grav_3, axs[2])
 plt.show()
 
 # %% [markdown]
@@ -258,12 +268,22 @@ cal_lin_2 = calibrator(emu=emu_lin,
                              'theta0': priorphys_lin.rnd(1000)})  
 
 # %%
+cal_lin_3 = calibrator(emu=emu_lin,
+                       y=y,
+                       x=x,
+                       thetaprior=priorphys_lin, 
+                       method='directbayeswoodbury',
+                       yvar=obsvar)  
+
+# %%
 # visualize posterior draws for the calibration parameter
 plot_theta(cal_lin_1, 0)
 plot_theta(cal_lin_2, 0)
+plot_theta(cal_lin_3, 0)
 
 # %%
-fig, axs = plt.subplots(1, 2, figsize=(10, 4))
+fig, axs = plt.subplots(1, 3, figsize=(15, 4))
 axs[0] = plot_preds(cal_lin_1, axs[0])
 axs[1] = plot_preds(cal_lin_2, axs[1])
+axs[2] = plot_preds(cal_lin_3, axs[2])
 plt.show()

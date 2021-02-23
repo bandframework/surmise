@@ -44,10 +44,12 @@ def predict(predinfo, fitinfo, x, theta, args=None):
         _mean = p[0].T
         _var = (p[1]**2).T
     else:
-        shape_flatten = x.shape[0]*theta.shape[0]
+        row_flat = x.shape[0]*theta.shape[0]
+        col_flat = x.shape[1] + theta.shape[1]
+
         xtheta = np.array([(x_item, t_item)
                            for t_item in theta
-                           for x_item in x]).reshape(shape_flatten, 2)
+                           for x_item in x]).reshape(row_flat, col_flat)
         p = emulator.predict(xtheta)
 
         _mean = p[0].reshape(-1, x.shape[0]).T
