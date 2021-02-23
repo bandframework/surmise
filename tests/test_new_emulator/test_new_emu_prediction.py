@@ -126,12 +126,16 @@ def test_accuracy(cmdopt1):
 
     print('mean((f-fhat)**2/var)(should be close to 1):' )
     print(np.round(np.mean((ftest - pred_test.mean())**2/pred_test.var()), 2))
-    
-    # print('average normalized value (should be close to 1)):' )
-    # residstand = np.empty([100, pred_test.covxhalf().shape[2]])
-    # for k in range(0,100):
-    #     residstand[k,:] = np.linalg.pinv(pred_test.covxhalf()[:,k,:]) @ (ftest[:,k] -pred_test.mean()[:,k])
-    # print(np.mean(residstand ** 2))
+
+    try:
+        residstand = np.empty([50, pred_test.covxhalf().shape[2]])
+        for k in range(0, 50):
+            residstand[k,:] = np.linalg.pinv(pred_test.covxhalf()[:,k,:]) @ (ftest[:,k] -pred_test.mean()[:,k])
+        print('average normalized value (should be close to 1)):' )
+        print(np.mean(residstand ** 2))
+    except:
+        print('covxhalf is not provided.')
+        
 
 
 

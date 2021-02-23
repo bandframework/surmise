@@ -214,8 +214,7 @@ cal_2 = calibrator(emu=emulator_1,
                    y=y,
                    x=x_std,
                    thetaprior=prior_balldrop, 
-                   method='directbayes',
-                   yvar=obsvar, 
-                   args={'sampler' : 'LMC'})
+                   method='directbayeswoodbury',
+                   yvar=obsvar)
 
 plot_pred(x_std, x, y, cal_2, theta_range)

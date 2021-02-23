@@ -908,13 +908,18 @@ class prediction(object):
             return self.rnd(s, args)
 
     def __methodnotfoundstr(self, pfstr, opstr):
-        print(pfstr + opstr + ' functionality not in method... \n' +
+        # print(pfstr + opstr + ' functionality not in method... \n' +
+        #       ' Key labeled ' + opstr + ' not ' +
+        #       'provided in ' + pfstr + '._info... \n' +
+        #       ' Key labeled rnd not ' +
+        #       'provided in ' + pfstr + '._info...')
+        msg = (pfstr + opstr + ' functionality not in method... \n' +
               ' Key labeled ' + opstr + ' not ' +
               'provided in ' + pfstr + '._info... \n' +
               ' Key labeled rnd not ' +
               'provided in ' + pfstr + '._info...')
-        return 'Could not reconsile a good way to compute this value in'
-    ' current method.'
+        
+        return msg
 
     def mean(self, args=None):
         '''

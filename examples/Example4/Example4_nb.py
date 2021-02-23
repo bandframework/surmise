@@ -211,3 +211,14 @@ cal_2 = calibrator(emu=emulator_1,
                     args={'sampler': 'LMC'})
 
 plot_pred_interval(cal_2) 
+
+# %%
+# Calibrator 3
+cal_3 = calibrator(emu=emulator_1,
+                    y=real_data,
+                    x=x,
+                    thetaprior=prior_covid, 
+                    method='directbayeswoodbury',
+                    yvar=obsvar)
+
+plot_pred_interval(cal_3) 

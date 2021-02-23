@@ -25,6 +25,11 @@ Required dependencies:
 * NumPy_
 * SciPy_
 
+Example 5 requires the optional dependency
+
+* GPy_
+
+
 Installation
 ~~~~~~~~~~~~
 
