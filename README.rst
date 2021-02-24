@@ -21,9 +21,15 @@ Dependencies
 
 Required dependencies:
 
-* Python_ 3.5 or above
-* NumPy_
-* SciPy_
+=======  ======================  ======
+Python_   NumPy_                 SciPy_
+------   ----------------------  ------
+3.5      1.16, 1.17, 1.18        1.4
+3.6      1.16, 1.17, 1.18, 1.19  1.4
+3.7      1.16, 1.17, 1.18, 1.19  1.4
+3.8      1.18, 1.19              1.4
+3.9      1.19                    1.4
+=====   ======================  ======
 
 Example 5 requires the optional dependency
 
@@ -102,3 +108,4 @@ of surmise.
 .. _pytest: https://pypi.org/project/pytest/
 .. _Python: http://www.python.org
 .. _SciPy: http://www.scipy.org
+.. _GPy: https://gpy.readthedocs.io/en/deploy/
