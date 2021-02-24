@@ -208,7 +208,7 @@ cal_1 = calibrator(emu=emulator_1,
 plot_pred(x_std, xrep, y, cal_1, theta_range)
 
 # %%
-# Fit a calibrator via method = 'directbayes' and 'sampler' : 'LMC'
+# Fit a calibrator via method = 'directbayeswoodbury' and 'sampler' : 'LMC'
 cal_2 = calibrator(emu=emulator_1,
                    y=y,
                    x=xrep_std,
@@ -217,3 +217,16 @@ cal_2 = calibrator(emu=emulator_1,
                    yvar=obsvar)
 
 plot_pred(x_std, xrep, y, cal_2, theta_range)
+
+# %%
+# Fit a calibrator via method = 'directbayes' and 'sampler' : 'LMC'
+cal_3 = calibrator(emu=emulator_1,
+                   y=y,
+                   x=xrep_std,
+                   thetaprior=prior_balldrop, 
+                   method='directbayes',
+                   yvar=obsvar, 
+                   args={'sampler': 'LMC',
+                         'theta0': prior_balldrop.rnd(1000)}) 
+
+plot_pred(x_std, xrep, y, cal_3, theta_range)
