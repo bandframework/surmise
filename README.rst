@@ -21,30 +21,30 @@ Dependencies
 
 Required dependencies:
 
-  .. list-table:: 
+.. list-table::
      :widths: 25 50 50
      :header-rows: 1
 
-     * - Python_
-       - NumPy_
-       - SciPy_
-     * - 3.5
-       - 1.16, 1.17, 1.18
-       - 1.4
-     * - 3.6
-       - 1.16, 1.17, 1.18, 1.19
-       - 1.4
-     * - 3.7
-       - 1.16, 1.17, 1.18, 1.19
-       - 1.4
-     * - 3.8
-       - 1.18, 1.19
-       - 1.4
-     * - 3.9
-       - 1.20
-       - 1.6
+    * - Python_
+      - NumPy_
+      - SciPy_
+    * - 3.5
+      - 1.16, 1.17, 1.18
+      - 1.4
+    * - 3.6
+      - 1.16, 1.17, 1.18, 1.19
+      - 1.4
+    * - 3.7
+      - 1.16, 1.17, 1.18, 1.19
+      - 1.4
+    * - 3.8
+      - 1.18, 1.19
+      - 1.4
+    * - 3.9
+      - 1.20
+      - 1.6
 
-Example 5 requires the optional dependency
+Some examples require the optional dependency
 
 * GPy_
 

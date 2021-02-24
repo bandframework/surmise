@@ -38,7 +38,7 @@ class calibrator(object):
             subset of "emu.x". The default is None.
 
         thetaprior : class, optional
-            class instance with two built in functions. The default is None.
+            class instance with two built-in functions. The default is None.
 
             .. important::
                 If a calibration method requires sampling, then
@@ -46,9 +46,21 @@ class calibrator(object):
                 into the calibrator. In this case, thetaprior class
                 should include two methods:
                     - ``lpdf(theta)``
-                        Returns the log of the pdf of a given theta
+                        Returns the log of the pdf of a given theta with size
+                        ``(len(theta), 1)``
                     - ``rnd(n)``
                         Generates n random variable from a prior distribution.
+
+            :Example:
+                .. code-block:: python
+
+                    class prior_example:
+                        def lpdf(theta):
+                            return sps.uniform.logpdf(
+                                theta[:, 0], 0, 1).reshape((len(theta), 1))
+
+                        def rnd(n):
+                            return np.vstack((sps.uniform.rvs(0, 1, size=n)))
 
         yvar : numpy.ndarray, optional
             The vector of observation variances at y. The default is None.
