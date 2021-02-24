@@ -18,7 +18,7 @@ jobs:
         os: [macos-latest]
         python-version: [3.9]
         numpy-version: [1.19]
-        scipy-version: [1.4]
+        scipy-version: [1.5]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
