@@ -100,7 +100,25 @@ def predict(predinfo, fitinfo, x, theta, args=None):
     predvecs = np.zeros((theta.shape[0], len(infos)))
     predvars = np.zeros((theta.shape[0], len(infos)))
 
-    xind = range(0, fitinfo['x'].shape[0])
+    # xind = range(0, fitinfo['x'].shape[0])
+    try:
+        if x is None or np.all(np.equal(x, fitinfo['x'])) or \
+                np.allclose(x, fitinfo['x']):
+            xind = np.arange(0, x.shape[0])
+            xnewind = np.arange(0, x.shape[0])
+        else:
+            raise
+    except Exception:
+        matchingmatrix = np.ones((x.shape[0], fitinfo['x'].shape[0]))
+        for k in range(0, x[0].shape[0]):
+            try:
+                matchingmatrix *= np.isclose(x[:, k][:, None],
+                                             fitinfo['x'][:, k])
+            except Exception:
+                matchingmatrix *= np.equal(x[:, k][:, None],
+                                           fitinfo['x'][:, k])
+        xind = np.argwhere(matchingmatrix > 0.5)[:, 1]
+        xnewind = np.argwhere(matchingmatrix > 0.5)[:, 0]
 
     # For each PC, obtain the mean and variance
     for k in range(0, len(infos)):
@@ -113,19 +131,19 @@ def predict(predinfo, fitinfo, x, theta, args=None):
     pctscale = (fitinfo['pct'].T * fitinfo['scale']).T
 
     # transfer back the PCs into the original space
-    predmean = (predvecs @ pctscale[xind, :].T + fitinfo['offset'][xind]).T
-    predvar = (fitinfo['extravar'][xind] +
-               (predvars @ pctscale[xind, :].T ** 2)).T
+    predinfo['mean'] = np.full((x.shape[0], theta.shape[0]), np.nan)
+    predinfo['var'] = np.full((x.shape[0], theta.shape[0]), np.nan)
+    predinfo['mean'][xnewind, :] = (predvecs @ pctscale[xind, :].T +
+                                    fitinfo['offset'][xind]).T
+    predinfo['var'][xnewind, :] = (fitinfo['extravar'][xind] +
+                                   (predvars @ pctscale[xind, :].T ** 2)).T
 
     CH = (np.sqrt(predvars)[:, :, None] * (pctscale[xind, :].T)[None, :, :])
-
     predinfo['covxhalf'] = np.full((theta.shape[0],
                                     CH.shape[1],
                                     x.shape[0]), np.nan)
-    predinfo['covxhalf'][:, :, xind] = CH
+    predinfo['covxhalf'][:, :, xnewind] = CH
     predinfo['covxhalf'] = predinfo['covxhalf'].transpose((2, 0, 1))
-    predinfo['mean'] = predmean
-    predinfo['var'] = predvar
 
     return
 

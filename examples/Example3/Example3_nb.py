@@ -43,10 +43,9 @@ xrep = np.reshape(ball[:, 0], (m, 1))
 x = xrep[0:21]
 # time
 y = np.reshape(ball[:, 1], ((m, 1)))
-y = y[0:21]
 # %%
 # Observe the data
-plt.scatter(x, y, color='red')
+plt.scatter(xrep, y, color='red')
 plt.xlabel("height (meters)")
 plt.ylabel("time (seconds)")
 plt.show()
@@ -121,6 +120,7 @@ theta_range = np.array([6, 15])
 # Standardize 
 x_range = np.array([min(x), max(x)])
 x_std = (x - min(x))/(max(x) - min(x))
+xrep_std = (xrep - min(xrep))/(max(xrep) - min(xrep))
 
 # Obtain computer model output
 f = timedrop(x_std, theta, x_range, theta_range)
@@ -193,11 +193,10 @@ def plot_pred(x_std, xrep, y, cal, theta_range):
 
 # %%
 obsvar = np.maximum(0.2*y, 0.1)
-
 # Fit a calibrator with emulator 1 via via method = 'directbayes' and 'sampler' = 'metropolis_hastings' 
 cal_1 = calibrator(emu=emulator_1,
                    y=y,
-                   x=x_std,
+                   x=xrep_std,
                    thetaprior=prior_balldrop, 
                    method='directbayes',
                    yvar=obsvar, 
@@ -206,15 +205,15 @@ cal_1 = calibrator(emu=emulator_1,
                          'stepType' : 'normal', 
                          'stepParam' : [0.3]})
 
-plot_pred(x_std, x, y, cal_1, theta_range)
+plot_pred(x_std, xrep, y, cal_1, theta_range)
 
 # %%
 # Fit a calibrator via method = 'directbayes' and 'sampler' : 'LMC'
 cal_2 = calibrator(emu=emulator_1,
                    y=y,
-                   x=x_std,
+                   x=xrep_std,
                    thetaprior=prior_balldrop, 
                    method='directbayeswoodbury',
                    yvar=obsvar)
 
-plot_pred(x_std, x, y, cal_2, theta_range)
+plot_pred(x_std, xrep, y, cal_2, theta_range)

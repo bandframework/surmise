@@ -103,7 +103,7 @@ def does_not_raise():
     [
      (x, theta, does_not_raise()),
      (x.T, theta, does_not_raise()),
-     #(x1obs, theta, does_not_raise()),
+     (x1obs, theta, does_not_raise()),
      (x1nothing, theta, pytest.raises(ValueError)),
      (None, theta, does_not_raise()),
      (x3, theta, pytest.raises(ValueError)),
