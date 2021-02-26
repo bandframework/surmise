@@ -8,6 +8,9 @@
    :target: https://surmise.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
 
+.. image:: https://github.com/surmising/surmise/actions/workflows/python-package.yml/badge.svg
+    :target: https://github.com/surmising/surmise/actions/workflows/python-package.yml
+
 |
 
 .. after_badges_rst_tag
