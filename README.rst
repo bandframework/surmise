@@ -1,9 +1,15 @@
 
 |
 
+.. image:: https://badge.fury.io/py/surmise.svg
+    :target: https://badge.fury.io/py/surmise
+
 .. image:: https://readthedocs.org/projects/surmise/badge/?version=latest
    :target: https://surmise.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
+
+.. image:: https://github.com/surmising/surmise/actions/workflows/python-package.yml/badge.svg
+    :target: https://github.com/surmising/surmise/actions/workflows/python-package.yml
 
 |
 
@@ -52,7 +58,7 @@ Installation
 
 From the command line, use the following command to install surmise::
 
- pip install git+git://github.com/surmising/surmise.git
+ pip install surmise==0.1.0
 
 
 Alternatively, the source code can be downloaded to the local folder, and the
