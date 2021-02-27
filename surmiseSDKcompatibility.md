@@ -13,8 +13,11 @@
 
 
 
-**Website:** https://github.com/surmising/surmise
-**Contact:** ozgesurer2019@u.northwestern.edu
+**Website:** https://github.com/surmising/surmise\
+**Contact:** ozgesurer2019@u.northwestern.edu\
+**Icon:** https://avatars.githubusercontent.com/u/77858356?s=200&v=4\
+**Description:** surmise is a Python package that is designed to provide a surrogate model interface for calibration, uncertainty quantification, and other tools.
+
 
 ### Mandatory Policies
 
