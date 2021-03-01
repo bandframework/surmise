@@ -1,0 +1,12 @@
+
+.spyproject/
+
+surmise/__pycache__/
+
+surmise/emulationmethods/__pycache__/
+
+surmise/utilitiesmethods/__pycache__/
+
+tests/test_new_emulator/__pycache__/
+
+surmise/calibrationmethods/__pycache__/

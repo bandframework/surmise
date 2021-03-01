@@ -4,7 +4,7 @@ import scipy.linalg as spla
 import copy
 
 
-def fit(fitinfo, x, theta, f, args):
+def fit(fitinfo, x, theta, f, args=None):
     r"""
     Fits a emulation model.
 
@@ -29,6 +29,8 @@ def fit(fitinfo, x, theta, f, args):
         A dictionary containing options passed to you.
     """
     f = f.T
+
+    # Check for missing or failed values
     if not np.all(np.isfinite(f)):
         fitinfo['mof'] = np.logical_not(np.isfinite(f))
         fitinfo['mofrows'] = np.where(np.any(fitinfo['mof'] > 0.5, 1))[0]
@@ -40,55 +42,21 @@ def fit(fitinfo, x, theta, f, args):
     hyp1 = args['hypregmean'] if 'hypregmean' in args.keys() else -10
     hyp2 = args['hypregLB'] if 'hypregLB' in args.keys() else -20
 
-    # Storing these values for future reference
-    fitinfo['x'] = x
     fitinfo['theta'] = theta
     fitinfo['f'] = f
+    fitinfo['x'] = x
 
-    # The double underline should be used to represent my local functions
+    # Standardize the function evaluations f
     __standardizef(fitinfo)
+
+    # Construct principle components
     __PCs(fitinfo)
     numpcs = fitinfo['pc'].shape[1]
 
     print(fitinfo['method'], 'considering ', numpcs, 'PCs')
 
-    if 'emulist' in fitinfo.keys():
-        hypstarts = np.zeros((numpcs, fitinfo['emulist'][0]['hyp'].shape[0]))
-        hypinds = -1*np.ones(numpcs)
-        for pcanum in range(0, min(numpcs, len(fitinfo['emulist']))):
-            hypstarts[pcanum, :] = fitinfo['emulist'][pcanum]['hyp']
-            hypinds[pcanum] = fitinfo['emulist'][pcanum]['hypind']
-        emulist = [dict() for x in range(0, numpcs)]
-    else:
-        hypinds = -1 * np.ones(numpcs)
-        emulist = [dict() for x in range(0, numpcs)]
-
-    for iters in range(0, 3):
-        for pcanum in range(0, numpcs):
-            if np.sum(hypinds == np.array(range(0, numpcs))) > 0.5:
-                hypwhere = np.where(hypinds == np.array(range(0, numpcs)))[0]
-                emulist[pcanum] = __fitGP1d(theta=theta,
-                                            g=fitinfo['pc'][:, pcanum],
-                                            hyp1=hyp1,
-                                            hyp2=hyp2,
-                                            gvar=fitinfo['pcstdvar'][:,
-                                                                     pcanum],
-                                            hypstarts=hypstarts[hypwhere, :],
-                                            hypinds=hypwhere)
-            else:
-                emulist[pcanum] = __fitGP1d(theta=theta,
-                                            g=fitinfo['pc'][:, pcanum],
-                                            hyp1=hyp1,
-                                            hyp2=hyp2,
-                                            gvar=fitinfo['pcstdvar'][:,
-                                                                     pcanum])
-                hypstarts = np.zeros((numpcs,
-                                      emulist[pcanum]['hyp'].shape[0]))
-            emulist[pcanum]['hypind'] = min(pcanum, emulist[pcanum]['hypind'])
-            hypstarts[pcanum, :] = emulist[pcanum]['hyp']
-            if emulist[pcanum]['hypind'] < -0.5:
-                emulist[pcanum]['hypind'] = 1*pcanum
-            hypinds[pcanum] = 1*emulist[pcanum]['hypind']
+    # Fit emulators for all PCs
+    emulist = __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2)
     fitinfo['emulist'] = emulist
 
     return
@@ -435,12 +403,12 @@ def __standardizef(fitinfo, offset=None, scale=None):
             scale[k] = np.nanstd(f[:, k])
             if scale[k] == 0:
                 scale[k] = 0.0001
-        # scale = 0.999* scale + 0.001*np.mean(scale)
-    # Initializing values
+
     fs = np.zeros(f.shape)
     if mof is None:
         fs = (f - offset) / scale
     else:
+    # Imputes missing values
         for k in range(0, f.shape[1]):
             fs[:, k] = (f[:, k] - offset[k]) / scale[k]
             if np.sum(mof[:, k]) > 0:
@@ -448,6 +416,7 @@ def __standardizef(fitinfo, offset=None, scale=None):
                 a[::2] = 2
                 a[1::2] = -2
                 fs[np.where(mof[:, k])[0], k] = (a - np.mean(a))
+
         for iters in range(0, 40):
             U, S, _ = np.linalg.svd(fs.T, full_matrices=False)
             Sp = S ** 2 - epsilon
@@ -509,7 +478,7 @@ def __PCs(fitinfo):
     fitinfo['extravar'] = np.mean((fs - fitinfo['pc'] @
                                    fitinfo['pct'].T) ** 2, 0) *\
         (fitinfo['scale'] ** 2)
-    fitinfo['pcstdvar'] = 10*pcstdvar
+    fitinfo['pcstdvar'] = 10*pcstdvar  # ??? constant 10
     return
 
 
@@ -532,6 +501,48 @@ def __getnewvar(fitinfo, pending):
         term3 = np.diag(H) - np.sum(H * spla.solve(Qmat, H, assume_a='pos'), 0)
         pcstdvar[rv, :] = 1 - (pcw**2 / epsilon + 1) * term3
     return (10*pcstdvar)
+
+
+def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2):
+    """Fit emulators for all principle components."""
+    if 'emulist' in fitinfo.keys():
+        hypstarts = np.zeros((numpcs, fitinfo['emulist'][0]['hyp'].shape[0]))
+        hypinds = -1*np.ones(numpcs)
+        for pcanum in range(0, min(numpcs, len(fitinfo['emulist']))):
+            hypstarts[pcanum, :] = fitinfo['emulist'][pcanum]['hyp']
+            hypinds[pcanum] = fitinfo['emulist'][pcanum]['hypind']
+    else:
+        hypstarts = None
+        hypinds = -1 * np.ones(numpcs)
+
+    emulist = [dict() for x in range(0, numpcs)]
+    for iters in range(0, 3):
+        for pcanum in range(0, numpcs):
+            if np.sum(hypinds == np.array(range(0, numpcs))) > 0.5:
+                hypwhere = np.where(hypinds == np.array(range(0, numpcs)))[0]
+                emulist[pcanum] = __fitGP1d(theta=theta,
+                                            g=fitinfo['pc'][:, pcanum],
+                                            hyp1=hyp1,
+                                            hyp2=hyp2,
+                                            gvar=fitinfo['pcstdvar'][:,
+                                                                     pcanum],
+                                            hypstarts=hypstarts[hypwhere, :],
+                                            hypinds=hypwhere)
+            else:
+                emulist[pcanum] = __fitGP1d(theta=theta,
+                                            g=fitinfo['pc'][:, pcanum],
+                                            hyp1=hyp1,
+                                            hyp2=hyp2,
+                                            gvar=fitinfo['pcstdvar'][:,
+                                                                     pcanum])
+                hypstarts = np.zeros((numpcs,
+                                      emulist[pcanum]['hyp'].shape[0]))
+            emulist[pcanum]['hypind'] = min(pcanum, emulist[pcanum]['hypind'])
+            hypstarts[pcanum, :] = emulist[pcanum]['hyp']
+            if emulist[pcanum]['hypind'] < -0.5:
+                emulist[pcanum]['hypind'] = 1*pcanum
+            hypinds[pcanum] = 1*emulist[pcanum]['hypind']
+    return emulist
 
 
 def __fitGP1d(theta, g, hyp1, hyp2, gvar=None, hypstarts=None, hypinds=None,
