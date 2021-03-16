@@ -1,3 +1,4 @@
+breakpoint()
 import numpy as np
 import scipy.stats as sps
 
@@ -90,7 +91,7 @@ def sampler(logpostfunc, options={}):
             # Update position
             theta[i, :] = theta_cand
             lposterior[i] = logpost
-            if i >= n:
+            if i >= 1000:
                 n_acc += 1
         else:
             theta[i, :] = theta[i-1, :]
@@ -98,4 +99,6 @@ def sampler(logpostfunc, options={}):
 
     theta = theta[(1000):(1000 + n), :]
     sampler_info = {'theta': theta, 'acc_rate': n_acc/n}
+    
+    print('acc rate:', n_acc/n)
     return sampler_info

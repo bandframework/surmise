@@ -97,6 +97,8 @@ def fit(fitinfo, emu, x, y, args=None):
                 logpost += ml_logprobability
             else:
                 logpost = np.inf
+            # print(theta)
+            # print(ml_probability)
         return logpost
 
     # Call the sampler
