@@ -17,18 +17,17 @@ description = np.loadtxt('observation_description.csv', delimiter=',',dtype='obj
 param_values = np.loadtxt('param_values.csv', delimiter=',')
 func_eval = np.loadtxt('func_eval.csv', delimiter=',')
 
-print('N:', func_eval.shape[0])
-print('D:', param_values.shape[1])
-print('M:', real_data.shape[0])
-print('P:', description.shape[1])
-
 # Get the random sample of 500
-rndsample = sample(range(0, 2000), 2000)
+rndsample = sample(range(0, 100), 100)
 func_eval_rnd = func_eval[rndsample, :]
 param_values_rnd = param_values[rndsample, :]
 
+print('N:', func_eval_rnd.shape[0])
+print('D:', param_values_rnd.shape[1])
+print('M:', real_data.shape[0])
+print('P:', description.shape[1])
 
-# (No Filter) Observe computer model outputs      
+# (No Filter) Observe computer model outputs
 plot_model_data(description, func_eval_rnd, real_data, param_values_rnd)
 
 # Filter out the data
@@ -36,24 +35,19 @@ plot_model_data(description, func_eval_rnd, real_data, param_values_rnd)
 par_in = param_values_rnd[np.logical_and.reduce((func_eval_rnd[:, 100] > 100, func_eval_rnd[:, 100] < 1000)), :]
 func_eval_in = func_eval_rnd[np.logical_and.reduce((func_eval_rnd[:, 100] > 100,  func_eval_rnd[:, 100] < 1000)), :]
 
-# (Filter) Observe computer model outputs  
+# (Filter) Observe computer model outputs
 plot_model_data(description, func_eval_in, real_data, par_in)
 
 x = np.hstack((np.reshape(np.tile(range(192), 3), (576, 1)),
               np.reshape(np.tile(np.array(('tothosp', 'icu', 'totadmiss')), 192), (576, 1))))
 x =  np.array(x, dtype='object')
 
-# (No filter) Fit an emulator via 'PCGP'
-emulator_1 = emulator(x = x,
-                      theta = param_values_rnd,
-                      f = func_eval_rnd.T,
-                      method = 'PCGPwM') 
-
 # (Filter) Fit an emulator via 'PCGP'
-emulator_f_1 = emulator(x = x,
-                        theta = par_in,
-                        f = func_eval_in.T,
-                        method = 'PCGPwM') 
+emulator_f_1 = emulator(x=x,
+                        theta=param_values_rnd,
+                        f=np.sqrt(func_eval_rnd),
+                        method='PCGPwM')
+print("built the emulator")
 
 # Define a class for prior of 10 parameters
 class prior_covid:
@@ -96,39 +90,16 @@ y = np.concatenate((y_0, y_1), axis=0)
 Xtest = np.concatenate((X_0test, X_1test), axis=0)
 ytest = np.concatenate((y_0test, y_1test), axis=0)
 
-# Fit the classification model
-model = RandomForestClassifier(n_estimators = 100, random_state = 42)
-model.fit(X, y)
-
-# Training accuracy
-print(model.score(X, y))
-print(confusion_matrix(y, model.predict(X)))
-
-# Test accuracy
-print(confusion_matrix(ytest, model.predict(Xtest)))
-print(model.score(Xtest, ytest))
 ##### ##### ##### ##### #####
-obsvar = np.maximum(0.2*real_data, 5) 
+obsvar = np.maximum(0.01*np.sqrt(real_data), 1)
 
 cal_f = calibrator(emu = emulator_f_1,
-                   y = real_data,
+                   y = np.sqrt(real_data),
                    x = x,
                    thetaprior = prior_covid,
                    method = 'directbayeswoodbury',
                    yvar = obsvar)
 
-plot_pred_interval(cal_f, x, real_data)
-cal_f_theta = cal_f.theta.rnd(500) 
+plot_pred_interval(cal_f, x, np.sqrt(real_data))
+cal_f_theta = cal_f.theta.rnd(500)
 boxplot_param(cal_f_theta)
-
-cal_f_ml = calibrator(emu = emulator_f_1,
-                      y = real_data,
-                      x = x,
-                      thetaprior = prior_covid,
-                      method = 'mlbayes',
-                      yvar = obsvar, 
-                      args = {'clf_method': model})
-
-plot_pred_interval(cal_f_ml, x, real_data)
-cal_f_ml_theta = cal_f_ml.theta.rnd(500) 
-boxplot_param(cal_f_ml_theta)
