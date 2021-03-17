@@ -163,6 +163,7 @@ def sampler(logpostfunc, options):
                                      options={'maxiter': 4, 'maxfun': 100})
                 thetaop[k, :] = thetac + thetas * opval.x
 
+    Lsave = logpostf_nograd(thetaop)
     for k in range(0, thetaop.shape[0]):
         LB, UB = test1dboundarys(thetaop[k, :], logpostf_nograd, thetas)
         thetas = np.maximum(thetas, 0.5 * (UB - LB))
@@ -301,10 +302,10 @@ def test1dboundarys(theta0, logpostfunchere, thetas):
             if (L0-L1) < 3:
                 eps = eps*2
                 notfarenough += 1
+                thetamaxsave[k] = 1 * thetaadj[k]
             else:
                 eps = eps/2
                 farenough += 1
-                thetamaxsave[k] = 1 * thetaadj[k]
             if notfarenough > 1.5 and farenough > 1.5:
                 keepgoing = False
                 epsnorm = eps/thetas[k]
@@ -318,10 +319,10 @@ def test1dboundarys(theta0, logpostfunchere, thetas):
             if (L0-L1) < 3:
                 eps = eps*2
                 notfarenough += 1
+                thetaminsave[k] = 1 * thetaadj[k]
             else:
                 eps = eps/2
                 farenough += 1
-                thetaminsave[k] = 1 * thetaadj[k]
             if notfarenough > 1.5 and farenough > 1.5:
                 keepgoing = False
                 epsnorm = eps/thetas[k]
