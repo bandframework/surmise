@@ -109,6 +109,7 @@ def sampler(logpostfunc, options):
 
     def neglogpostf_nograd(thetap):
         theta = thetac + thetas * thetap
+        ##print(theta)
         return -logpostf_nograd(theta.reshape((1, len(theta))))[0]
 
     if logpostf_grad is not None:

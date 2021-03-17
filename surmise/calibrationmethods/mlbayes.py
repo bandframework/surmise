@@ -1,4 +1,3 @@
-breakpoint()
 import numpy as np
 from surmise.utilities import sampler
 
@@ -90,15 +89,11 @@ def fit(fitinfo, emu, x, y, args=None):
         inds = np.where(np.isfinite(logpost))[0]
         logpost[inds] += loglik(fitinfo, emu, theta[inds, :], y, x, args)
         if clf_method is not None:
-            ml_probability = clf_method.predict_proba(theta)[0][1]
-            ml_logprobability = np.log(ml_probability) \
-                if ml_probability > 0 else np.inf
-            if np.isfinite(ml_logprobability):
-                logpost += ml_logprobability
-            else:
-                logpost = np.inf
-            #print(theta)
-            #print(ml_probability)
+            ml_probability = clf_method.predict_proba(theta)[:, 1]
+            ml_logprobability = np.reshape(np.log(ml_probability),
+                                           (len(theta), 1))
+            logpost += ml_logprobability
+
         return logpost
 
     # Call the sampler

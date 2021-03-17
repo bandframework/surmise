@@ -90,6 +90,17 @@ y = np.concatenate((y_0, y_1), axis=0)
 Xtest = np.concatenate((X_0test, X_1test), axis=0)
 ytest = np.concatenate((y_0test, y_1test), axis=0)
 
+# Fit the classification model
+model = RandomForestClassifier(n_estimators = 100, random_state = 42)
+model.fit(X, y)
+
+#Training accuracy
+print(model.score(X, y))
+print(confusion_matrix(y, model.predict(X)))
+
+#Test accuracy
+print(confusion_matrix(ytest, model.predict(Xtest)))
+print(model.score(Xtest, ytest))
 ##### ##### ##### ##### #####
 obsvar = np.maximum(0.01*np.sqrt(real_data), 1)
 
@@ -97,9 +108,47 @@ cal_f = calibrator(emu = emulator_f_1,
                    y = np.sqrt(real_data),
                    x = x,
                    thetaprior = prior_covid,
-                   method = 'directbayeswoodbury',
-                   yvar = obsvar)
+                   method = 'mlbayes',
+                   yvar = obsvar,
+                   args = {'clf_method': model, 
+                           'sampler':'LMC'})
 
 plot_pred_interval(cal_f, x, np.sqrt(real_data))
 cal_f_theta = cal_f.theta.rnd(500)
 boxplot_param(cal_f_theta)
+
+cal_f = calibrator(emu = emulator_f_1,
+                   y = np.sqrt(real_data),
+                   x = x,
+                   thetaprior = prior_covid,
+                   method = 'mlbayes',
+                   yvar = obsvar,
+                   args = {'sampler':'LMC'})
+
+plot_pred_interval(cal_f, x, np.sqrt(real_data))
+cal_f_theta = cal_f.theta.rnd(500)
+boxplot_param(cal_f_theta)
+
+
+# cal_f = calibrator(emu = emulator_f_1,
+#                    y = np.sqrt(real_data),
+#                    x = x,
+#                    thetaprior = prior_covid,
+#                    method = 'directbayeswoodbury',
+#                    yvar = obsvar)
+
+# plot_pred_interval(cal_f, x, np.sqrt(real_data))
+# cal_f_theta = cal_f.theta.rnd(500)
+# boxplot_param(cal_f_theta)
+
+
+# cal_f = calibrator(emu = emulator_f_1,
+#                    y = np.sqrt(real_data),
+#                    x = x,
+#                    thetaprior = prior_covid,
+#                    method = 'mlbayes',
+#                    yvar = obsvar)
+
+# plot_pred_interval(cal_f, x, np.sqrt(real_data))
+# cal_f_theta = cal_f.theta.rnd(500)
+# boxplot_param(cal_f_theta)
