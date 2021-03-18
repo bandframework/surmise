@@ -13,16 +13,20 @@ def sampler(logpostfunc, options):
     ----------
     logpostfunc : function
         A function call describing the log of the posterior distribution.
-            If no gradient, logpostfunc should take a value of an m by p numpy array of parameters and theta and return
+            If no gradient, logpostfunc should take a value of an m by p numpy
+            array of parameters and theta and return
             a length m numpy array of log posterior evaluations.
-            If gradient, logpostfunc should return a tuple.  The first element in the tuple should be as listed above.
-            The second element in the tuple should be an m by p matrix of gradients of the log posterior.
+            If gradient, logpostfunc should return a tuple.  The first element
+            in the tuple should be as listed above.
+            The second element in the tuple should be an m by p matrix of
+            gradients of the log posterior.
     options : dict
         a dictionary contains the output of the sampler.
         Required -
             theta0: an m by p matrix of initial parameter values.
         Optional -
-            numsamp: the number of samplers you want from the posterior.  Default is 2000.
+            numsamp: the number of samplers you want from the posterior.
+            Default is 2000.
 
     Returns
     -------
