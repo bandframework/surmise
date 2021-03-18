@@ -44,6 +44,12 @@ x = np.hstack((np.reshape(np.tile(range(192), 3), (576, 1)),
               np.reshape(np.tile(np.array(('tothosp', 'icu', 'totadmiss')), 192), (576, 1))))
 x =  np.array(x, dtype='object')
 
+keeptimepoints = np.arange(10,x.shape[0],step=5)
+func_eval_rnd = func_eval_rnd[:,keeptimepoints]
+real_data  = real_data[keeptimepoints]
+x  = x[keeptimepoints,:]
+
+
 # (Filter) Fit an emulator via 'PCGP'
 emulator_f_PCGPwM = emulator(x=x,
                         theta=param_values_rnd,
@@ -101,7 +107,8 @@ print(confusion_matrix(y, model.predict(X)))
 print(confusion_matrix(ytest, model.predict(Xtest)))
 print(model.score(Xtest, ytest))
 ##### ##### ##### ##### #####
-obsvar = np.maximum(0.1*(real_data), 4)
+obsvar = np.maximum(0.1*np.sqrt(real_data), 0.1)
+
 
 cal_f = calibrator(emu = emulator_f_PCGPwM,
                    y = (real_data) ** (0.5),
@@ -119,7 +126,7 @@ print(np.quantile(cal_f.info['lpdfapproxnorm_un'],np.arange(0, 9)*0.1+0.05))
 
 
 cal_f = calibrator(emu = emulator_f_PCGPwM,
-                   y = np.sqrt(real_data),
+                   y = (real_data) ** (0.5),
                    x = x,
                    thetaprior = prior_covid,
                    method = 'directbayeswoodbury',
