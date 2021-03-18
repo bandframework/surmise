@@ -1,3 +1,4 @@
+breakpoint()
 import numpy as np
 import scipy.stats as sps
 
@@ -78,7 +79,7 @@ def sampler(logpostfunc, options={}):
 
         # Compute loglikelihood
         logpost = logpostfunc(theta_cand)
-
+        
         if np.isfinite(logpost):
             p_accept = min(1, np.exp(logpost - lposterior[i-1]))
             accept = np.random.uniform() < p_accept

@@ -47,7 +47,6 @@ emulator_f_1 = emulator(x=x,
                         theta=param_values_rnd,
                         f=np.sqrt(func_eval_rnd),
                         method='PCGPwM')
-print("built the emulator")
 
 # Define a class for prior of 10 parameters
 class prior_covid:
@@ -108,6 +107,7 @@ obsvar = np.maximum(0.01*np.sqrt(real_data), 1)
 for i in range(5):
 
     initial = prior_covid.rnd(1)
+    breakpoint()    
     cal_f = calibrator(emu = emulator_f_1,
                        y = np.sqrt(real_data),
                        x = x,
@@ -118,7 +118,7 @@ for i in range(5):
                                'theta0': initial, 
                                'numsamp' : 500, 
                                'stepType' : 'normal', 
-                               'stepParam' : np.array([0.05, 0.05, 0.05, 0.05])})
+                               'stepParam' : np.array([0.1, 0.06, 0.1, 0.1])})
     
     plot_pred_interval(cal_f, x, np.sqrt(real_data))
     cal_f_theta = cal_f.theta.rnd(500)
@@ -133,7 +133,7 @@ for i in range(5):
                        args = {'theta0': initial, 
                                'numsamp' : 500, 
                                'stepType' : 'normal', 
-                               'stepParam' : np.array([0.05, 0.05, 0.05, 0.05])})
+                               'stepParam' : np.array([0.1, 0.06, 0.1, 0.1])})
     
     plot_pred_interval(cal_f, x, np.sqrt(real_data))
     cal_f_theta = cal_f.theta.rnd(500)
