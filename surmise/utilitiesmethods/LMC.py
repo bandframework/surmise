@@ -104,9 +104,10 @@ def sampler(logpostfunc, options):
             theta0 = thetaposs
             keepgoing = False
         if iteratttempt > 10:
-            keepgoing = False
+            raise ValueError('Could not find any points to vary.')
 
     thetaop = theta0[:10, :]
+    thetastart = theta0
     thetac = np.mean(theta0, 0)
     thetas = np.maximum(np.std(theta0, 0), 10 ** (-4) * np.std(theta0))
 
@@ -129,16 +130,15 @@ def sampler(logpostfunc, options):
     keeptryingwithgrad = True
     failureswithgrad = 0
 
+    #begin preoptimizer
     for k in range(0, thetaop.shape[0]):
         theta0 = (thetaop[k, :] - thetac) / thetas
         if logpostf_grad is None:
             opval = spo.minimize(neglogpostf_nograd,
                                  theta0,
                                  method='L-BFGS-B',
-                                 bounds=bounds,
-                                 options={'maxiter': 4, 'maxfun': 100})
+                                 bounds=bounds)
             thetaop[k, :] = thetac + thetas * opval.x
-
         else:
             if keeptryingwithgrad:
                 opval = spo.minimize(neglogpostf_nograd,
@@ -166,17 +166,10 @@ def sampler(logpostfunc, options):
                                      bounds=bounds,
                                      options={'maxiter': 4, 'maxfun': 100})
                 thetaop[k, :] = thetac + thetas * opval.x
+    #end Preoptimizer
 
-    Lsave = logpostf_nograd(thetaop)
-    for k in range(0, thetaop.shape[0]):
-        LB, UB = test1dboundarys(thetaop[k, :], logpostf_nograd, thetas)
-        thetas = np.maximum(thetas, 0.5 * (UB - LB))
-        theta0 = np.vstack((theta0, LB))
-        theta0 = np.vstack((theta0, UB))
-
-    thetasave = theta0
+    thetasave = np.vstack((thetastart,thetaop))
     Lsave = logpostf_nograd(thetasave)
-
     tau = -1
     rho = 2 * (1 + (np.exp(2 * tau) - 1) / (np.exp(2 * tau) + 1))
     numchain = 50
@@ -186,7 +179,7 @@ def sampler(logpostfunc, options):
         Lsave = np.squeeze(np.reshape(Lsave, (-1, 1)))
         mLsave = np.max(Lsave)
         Lsave -= mLsave + np.log(np.sum(np.exp(Lsave - mLsave)))
-        post = np.exp(Lsave/4)
+        post = np.exp(Lsave/2)
         post = post/np.sum(post)
         startingv = np.random.choice(np.arange(0, Lsave.shape[0]),
                                      size=Lsave.shape[0], p=post)
@@ -285,49 +278,6 @@ def sampler(logpostfunc, options):
 
     theta = thetasave[np.random.choice(range(0, thetasave.shape[0]),
                                        size=numsamp), :]
-    sampler_info = {'theta': theta}
+    sampler_info = {'theta': theta, 'logpost': Lsave}
+
     return sampler_info
-
-
-def test1dboundarys(theta0, logpostfunchere, thetas):
-    L0 = logpostfunchere(theta0.reshape((1, len(theta0))))
-    thetaminsave = np.zeros(theta0.shape)
-    thetamaxsave = np.zeros(theta0.shape)
-    epsnorm = 1
-    for k in range(0, theta0.shape[0]):
-        notfarenough = 0
-        farenough = 0
-        eps = epsnorm * thetas[k]
-        keepgoing = True
-        while keepgoing:
-            thetaadj = 1 * theta0
-            thetaadj[k] += eps
-            L1 = logpostfunchere(thetaadj.reshape((1, len(thetaadj))))
-            if (L0-L1) < 3:
-                eps = eps*2
-                notfarenough += 1
-                thetamaxsave[k] = 1 * thetaadj[k]
-            else:
-                eps = eps/2
-                farenough += 1
-            if notfarenough > 1.5 and farenough > 1.5:
-                keepgoing = False
-                epsnorm = eps/thetas[k]
-        notfarenough = 0
-        farenough = 0
-        keepgoing = True
-        while keepgoing:
-            thetaadj = 1 * theta0
-            thetaadj[k] -= eps
-            L1 = logpostfunchere(thetaadj.reshape((1, len(thetaadj))))
-            if (L0-L1) < 3:
-                eps = eps*2
-                notfarenough += 1
-                thetaminsave[k] = 1 * thetaadj[k]
-            else:
-                eps = eps/2
-                farenough += 1
-            if notfarenough > 1.5 and farenough > 1.5:
-                keepgoing = False
-                epsnorm = eps/thetas[k]
-    return thetaminsave, thetamaxsave
