@@ -268,7 +268,7 @@ def sampler(logpostfunc, options):
         ESS = 1 + numchain*numsamppc*(1 - np.abs(rhohat))
         thetasave = np.reshape(thetasave, (-1, thetac.shape[1]))
         accr = numtimes/numsamppc
-        if iters > 1.5 and accr > 0.1 and accr < 0.9 and\
+        if iters > 1.5 and accr > taracc/2 and accr < 1.5*taracc and\
                 (np.mean(ESS) > tarESS):
             break
         elif accr < taracc*4/5 or accr > taracc*5/4:
