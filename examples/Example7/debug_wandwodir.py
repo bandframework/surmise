@@ -50,11 +50,11 @@ real_data  = real_data[keeptimepoints]
 x  = x[keeptimepoints,:]
 
 
-# (Filter) Fit an emulator via 'PCGP'
+# (Filter) Fit an emulator via 'PCGPwM'
 emulator_f_PCGPwM = emulator(x=x,
-                        theta=param_values_rnd,
-                        f=(func_eval_rnd) ** (0.5),
-                        method='PCGPwM')
+                             theta=param_values_rnd,
+                             f=(func_eval_rnd) ** (0.5),
+                             method='PCGPwM')
 print("built the emulator")
 
 # Define a class for prior of 10 parameters

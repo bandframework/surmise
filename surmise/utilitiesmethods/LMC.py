@@ -134,7 +134,7 @@ def sampler(logpostfunc, options):
     keeptryingwithgrad = True
     failureswithgrad = 0
 
-    #begin preoptimizer
+    # begin preoptimizer
     for k in range(0, thetaop.shape[0]):
         theta0 = (thetaop[k, :] - thetac) / thetas
         if logpostf_grad is None:
@@ -170,7 +170,7 @@ def sampler(logpostfunc, options):
                                      bounds=bounds,
                                      options={'maxiter': 4, 'maxfun': 100})
                 thetaop[k, :] = thetac + thetas * opval.x
-    #end Preoptimizer
+    # end Preoptimizer
 
     thetasave = np.vstack((thetastart,thetaop))
     Lsave = logpostf_nograd(thetasave)
@@ -268,6 +268,8 @@ def sampler(logpostfunc, options):
         ESS = 1 + numchain*numsamppc*(1 - np.abs(rhohat))
         thetasave = np.reshape(thetasave, (-1, thetac.shape[1]))
         accr = numtimes/numsamppc
+  
+        # termination criteria
         if iters > 1.5 and accr > taracc/2 and accr < 1.5*taracc and\
                 (np.mean(ESS) > tarESS):
             break

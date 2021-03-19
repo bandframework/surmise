@@ -129,40 +129,40 @@ plot_pred_interval(cal_f, x, np.sqrt(real_data))
 cal_f_theta = cal_f.theta.rnd(500)
 boxplot_param(cal_f_theta)
 
-initial = prior_covid.rnd(1)
-cal_f = calibrator(emu = emulator_f_1,
-                   y = np.sqrt(real_data),
-                   x = x,
-                   thetaprior = prior_covid,
-                   method = 'mlbayes',
-                   yvar = obsvar,
-                   args = {'clf_method': model, 
-                           'theta0': initial, 
-                           'numsamp' : 500, 
-                           'stepType' : 'normal', 
-                           'stepParam' : np.array([0.05, 0.05, 0.05, 0.05])})
+# initial = prior_covid.rnd(1)
+# cal_f = calibrator(emu = emulator_f_1,
+#                    y = np.sqrt(real_data),
+#                    x = x,
+#                    thetaprior = prior_covid,
+#                    method = 'mlbayes',
+#                    yvar = obsvar,
+#                    args = {'clf_method': model, 
+#                            'theta0': initial, 
+#                            'numsamp' : 500, 
+#                            'stepType' : 'normal', 
+#                            'stepParam' : np.array([0.05, 0.05, 0.05, 0.05])})
 
-plot_pred_interval(cal_f, x, np.sqrt(real_data))
-cal_f_theta = cal_f.theta.rnd(500)
-boxplot_param(cal_f_theta)
+# plot_pred_interval(cal_f, x, np.sqrt(real_data))
+# cal_f_theta = cal_f.theta.rnd(500)
+# boxplot_param(cal_f_theta)
 
 
-initial = prior_covid.rnd(1)
-print(initial)
-cal_f = calibrator(emu = emulator_f_1,
-                   y = np.sqrt(real_data),
-                   x = x,
-                   thetaprior = prior_covid,
-                   method = 'mlbayes',
-                   yvar = obsvar,
-                   args = {'theta0': initial, 
-                           'numsamp' : 500, 
-                           'stepType' : 'normal', 
-                           'stepParam' : np.array([0.05, 0.05, 0.05, 0.05])})
+# initial = prior_covid.rnd(1)
+# print(initial)
+# cal_f = calibrator(emu = emulator_f_1,
+#                    y = np.sqrt(real_data),
+#                    x = x,
+#                    thetaprior = prior_covid,
+#                    method = 'mlbayes',
+#                    yvar = obsvar,
+#                    args = {'theta0': initial, 
+#                            'numsamp' : 500, 
+#                            'stepType' : 'normal', 
+#                            'stepParam' : np.array([0.05, 0.05, 0.05, 0.05])})
 
-plot_pred_interval(cal_f, x, np.sqrt(real_data))
-cal_f_theta = cal_f.theta.rnd(500)
-boxplot_param(cal_f_theta)
+# plot_pred_interval(cal_f, x, np.sqrt(real_data))
+# cal_f_theta = cal_f.theta.rnd(500)
+# boxplot_param(cal_f_theta)
 
 
 # cal_f = calibrator(emu = emulator_f_1,
