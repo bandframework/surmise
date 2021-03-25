@@ -92,6 +92,46 @@ def plot_pred_errors(cal, xtest, real_data_test):
     fig.tight_layout()
     fig.subplots_adjust(top=0.9) 
     plt.show()
+
+def plot_pred_errors_emcee(theta, emu, xtest, real_data_test):
+    pr = emu.predict(theta=theta, x=xtest)
+    rndm_m = pr.mean()
+    plt.rcParams["font.size"] = "10"
+    fig, axs = plt.subplots(3, figsize=(8, 12))
+
+    for j in range(3):
+        if j == 0:
+            v = 'total_hosp'
+        elif j == 1:
+            v = 'icu_admission'
+        else:
+            v = 'daily_admission'
+        
+        ids = xtest[:, 1] == v
+        y = real_data_test[ids]
+        dim = len(y)
+        
+        upper = np.percentile(rndm_m[ids, :], 97.5, axis = 1)
+        lower = np.percentile(rndm_m[ids, :], 2.5, axis = 1)
+        median = np.percentile(rndm_m[ids, :], 50, axis = 1)
+        
+
+        p1 = axs[j].errorbar(range(0, dim), median, yerr = [median-lower, upper-median], color = 'grey')
+        #p1 = axs[j].plot(median, color = 'black')
+        #axs[j].fill_between(range(0, dim), lower, upper, color = 'grey')
+        p3 = axs[j].plot(range(0, dim), y, 'ro' ,markersize = 5, color='red')
+        if j == 0:
+            axs[j].set_ylabel('COVID-19 Total Hospitalizations')
+        elif j == 1:
+            axs[j].set_ylabel('COVID-19 ICU Patients')
+        elif j == 2:
+            axs[j].set_ylabel('COVID-19 Hospital Admissions')
+        axs[j].set_xlabel('Time (days)')  
+    
+        axs[j].legend([p1[0], p3[0]], ['prediction','observations'])
+    fig.tight_layout()
+    fig.subplots_adjust(top=0.9) 
+    plt.show()
     
 def plot_model_data(description, func_eval, real_data, param_values):
     '''

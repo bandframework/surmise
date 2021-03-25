@@ -17,7 +17,7 @@ param_values = np.loadtxt('param_values.csv', delimiter=',')
 func_eval = np.loadtxt('func_eval.csv', delimiter=',')
 
 # Get the random sample of 100
-rndsample = sample(range(0, 1000), 100)
+rndsample = sample(range(0, 1000), 500)
 func_eval_rnd = func_eval[rndsample, :]
 param_values_rnd = param_values[rndsample, :]
 
@@ -27,9 +27,14 @@ plot_model_data(description, np.sqrt(func_eval_rnd), np.sqrt(real_data), param_v
 # Filter out the data
 T0 = 100
 T1 = 2000
-par_in = param_values_rnd[np.logical_and.reduce((func_eval_rnd[:, 100] > T0,
+par_in = param_values_rnd[np.logical_and.reduce((func_eval_rnd[:, 25] < 350,
+                                                 func_eval_rnd[:, 100] > T0,
                                                  func_eval_rnd[:, 100] < T1)), :]
-func_eval_in = func_eval_rnd[np.logical_and.reduce((func_eval_rnd[:, 100] > T0,
+par_out = param_values_rnd[np.logical_or.reduce((func_eval_rnd[:, 25] > 350,
+                                                 func_eval_rnd[:, 100] < T0,
+                                                 func_eval_rnd[:, 100] > T1)), :]
+func_eval_in = func_eval_rnd[np.logical_and.reduce((func_eval_rnd[:, 25] < 350,
+                                                    func_eval_rnd[:, 100] > T0,
                                                     func_eval_rnd[:, 100] < T1)), :]
 
 # (Filter) Observe computer model outputs
@@ -53,19 +58,33 @@ emulator_f_PCGPwM = emulator(x=x,
                              method='PCGPwM')
 
 # Define a class for prior of 10 parameters
+# class prior_covid:
+#     """ This defines the class instance of priors provided to the method. """
+#     #sps.uniform.logpdf(theta[:, 0], 3, 4.5)
+#     def lpdf(theta):
+#         return (sps.beta.logpdf((theta[:, 0]-1.9)/2, 2, 2) +
+#                 sps.beta.logpdf((theta[:, 1]-0.29)/1.11, 2, 2) +
+#                 sps.beta.logpdf((theta[:, 2]-3)/2, 2, 2) +
+#                 sps.beta.logpdf((theta[:, 3]-3)/2, 2, 2)).reshape((len(theta), 1))
+#     def rnd(n):
+#         return np.vstack((1.9+2*sps.beta.rvs(2, 2, size=n),
+#                           0.29+1.11*sps.beta.rvs(2, 2, size=n),
+#                           3+2*sps.beta.rvs(2, 2, size=n),
+#                           3+2*sps.beta.rvs(2, 2, size=n))).T
+
 class prior_covid:
     """ This defines the class instance of priors provided to the method. """
     #sps.uniform.logpdf(theta[:, 0], 3, 4.5)
     def lpdf(theta):
-        return (sps.beta.logpdf((theta[:, 0]-1.9)/2, 2, 2) +
-                sps.beta.logpdf((theta[:, 1]-0.29)/1.11, 2, 2) +
-                sps.beta.logpdf((theta[:, 2]-3)/2, 2, 2) +
-                sps.beta.logpdf((theta[:, 3]-3)/2, 2, 2)).reshape((len(theta), 1))
+        return (sps.beta.logpdf((theta[:, 0]-1)/4, 2, 2) +
+                sps.beta.logpdf((theta[:, 1]-0.1)/4.9, 2, 2) +
+                sps.beta.logpdf((theta[:, 2]-1)/6, 2, 2) +
+                sps.beta.logpdf((theta[:, 3]-1)/6, 2, 2)).reshape((len(theta), 1))
     def rnd(n):
-        return np.vstack((1.9+2*sps.beta.rvs(2, 2, size=n),
-                          0.29+1.11*sps.beta.rvs(2, 2, size=n),
-                          3+2*sps.beta.rvs(2, 2, size=n),
-                          3+2*sps.beta.rvs(2, 2, size=n))).T
+        return np.vstack((1+4*sps.beta.rvs(2, 2, size=n),
+                          0.1+4.9*sps.beta.rvs(2, 2, size=n),
+                          1+6*sps.beta.rvs(2, 2, size=n),
+                          1+6*sps.beta.rvs(2, 2, size=n))).T
     
 # Fit a classification model
 classification_model = fit_RandomForest(func_eval, param_values, T0, T1)

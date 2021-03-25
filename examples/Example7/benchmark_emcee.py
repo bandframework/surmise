@@ -8,7 +8,9 @@ from surmise.emulation import emulator
 from visualization_tools import boxplot_param
 from visualization_tools import plot_pred_interval_emce
 from visualization_tools import plot_model_data
-from visualization_tools import plot_pred_errors
+from visualization_tools import plot_pred_errors_emcee
+from visualization_tools import pair_scatter
+
 import matplotlib.pyplot as plt
 import emcee
 # Read data 
@@ -18,7 +20,7 @@ param_values = np.loadtxt('param_values.csv', delimiter=',')
 func_eval = np.loadtxt('func_eval.csv', delimiter=',')
 
 # Get the random sample of 100
-rndsample = sample(range(0, 1000), 100)
+rndsample = sample(range(0, 1000), 500)
 func_eval_rnd = func_eval[rndsample, :]
 param_values_rnd = param_values[rndsample, :]
 
@@ -28,11 +30,18 @@ plot_model_data(description, np.sqrt(func_eval_rnd), np.sqrt(real_data), param_v
 # Filter out the data
 T0 = 100
 T1 = 2000
-par_in = param_values_rnd[np.logical_and.reduce((func_eval_rnd[:, 100] > T0,
+par_in = param_values_rnd[np.logical_and.reduce((func_eval_rnd[:, 25] < 350,
+                                                 func_eval_rnd[:, 100] > T0,
                                                  func_eval_rnd[:, 100] < T1)), :]
-func_eval_in = func_eval_rnd[np.logical_and.reduce((func_eval_rnd[:, 100] > T0,
+par_out = param_values_rnd[np.logical_or.reduce((func_eval_rnd[:, 25] > 350,
+                                                 func_eval_rnd[:, 100] < T0,
+                                                 func_eval_rnd[:, 100] > T1)), :]
+func_eval_in = func_eval_rnd[np.logical_and.reduce((func_eval_rnd[:, 25] < 350,
+                                                    func_eval_rnd[:, 100] > T0,
                                                     func_eval_rnd[:, 100] < T1)), :]
 
+pair_scatter(par_in)
+pair_scatter(par_out)
 # (Filter) Observe computer model outputs
 plot_model_data(description, np.sqrt(func_eval_in), np.sqrt(real_data), par_in)
 
@@ -53,21 +62,51 @@ emulator_f_PCGPwM = emulator(x=x,
                              f=(func_eval_in)**(0.5),
                              method='PCGPwM')
 
-# Define a class for prior of 10 parameters
 class prior_covid:
     """ This defines the class instance of priors provided to the method. """
     #sps.uniform.logpdf(theta[:, 0], 3, 4.5)
     def lpdf(theta):
-        return (sps.beta.logpdf((theta[:, 0]-1.9)/2, 2, 2) +
-                sps.beta.logpdf((theta[:, 1]-0.29)/1.11, 2, 2) +
-                sps.beta.logpdf((theta[:, 2]-3)/2, 2, 2) +
-                sps.beta.logpdf((theta[:, 3]-3)/2, 2, 2)).reshape((len(theta), 1))
+        return (sps.beta.logpdf((theta[:, 0]-1)/4, 2, 2) +
+                sps.beta.logpdf((theta[:, 1]-0.1)/4.9, 2, 2) +
+                sps.beta.logpdf((theta[:, 2]-1)/6, 2, 2) +
+                sps.beta.logpdf((theta[:, 3]-1)/6, 2, 2)).reshape((len(theta), 1))
     def rnd(n):
-        return np.vstack((1.9+2*sps.beta.rvs(2, 2, size=n),
-                          0.29+1.11*sps.beta.rvs(2, 2, size=n),
-                          3+2*sps.beta.rvs(2, 2, size=n),
-                          3+2*sps.beta.rvs(2, 2, size=n))).T
+        return np.vstack((1+4*sps.beta.rvs(2, 2, size=n),
+                          0.1+4.9*sps.beta.rvs(2, 2, size=n),
+                          1+6*sps.beta.rvs(2, 2, size=n),
+                          1+6*sps.beta.rvs(2, 2, size=n))).T
 
+# class prior_covid:
+#     """ This defines the class instance of priors provided to the method. """
+#     #sps.uniform.logpdf(theta[:, 0], 3, 4.5)
+#     def lpdf(theta):
+#         return (sps.beta.logpdf((theta[:, 0]-1.9)/2, 2, 2) +
+#                 sps.beta.logpdf((theta[:, 1]-0.1)/4.9, 2, 2) +
+#                 sps.beta.logpdf((theta[:, 2]-3)/2, 2, 2) +
+#                 sps.beta.logpdf((theta[:, 3]-3)/2, 2, 2)).reshape((len(theta), 1))
+#     def rnd(n):
+#         return np.vstack((1.9+2*sps.beta.rvs(2, 2, size=n),
+#                           0.1+4.9*sps.beta.rvs(2, 2, size=n),
+#                           3+2*sps.beta.rvs(2, 2, size=n),
+#                           3+2*sps.beta.rvs(2, 2, size=n))).T
+    
+# class prior_covid:
+#     """ This defines the class instance of priors provided to the method. """
+#     #sps.uniform.logpdf(theta[:, 0], 3, 4.5)
+#     def lpdf(theta):
+#         return (sps.triang.logpdf(theta[:, 0], c=(2.9-1.9)/2, loc=1.9, scale=2) +
+#                 sps.triang.logpdf(theta[:, 1], c=(1-0.1)/4.9, loc=0.1, scale=4.9) +
+#                 sps.triang.logpdf(theta[:, 2], c=(4-3)/2, loc=3, scale=2) +
+#                 sps.triang.logpdf(theta[:, 3], c=(4-3)/2, loc=3, scale=2)).reshape((len(theta), 1))
+#     def rnd(n):
+#         return np.vstack((sps.triang.rvs(c=(2.9-1.9)/2, loc=1.9, scale=2, size=n),
+#                           sps.triang.rvs(c=(1-0.1)/4.9, loc=0.1, scale=4.9, size=n),
+#                           sps.triang.rvs(c=(4-3)/2, loc=3, scale=2, size=n),
+#                           sps.triang.rvs(c=(4-3)/2, loc=3, scale=2, size=n))).T
+    
+pair_scatter(prior_covid.rnd(1000))
+
+    
 def log_likelihood(theta, obsvar, emu, y, x):
     a, b, c, d = theta
     param = np.array([[a, b, c, d]])
@@ -150,7 +189,9 @@ sampler_ml = emcee.EnsembleSampler(nwalkers, ndim, log_probability,
                                          classification_model))
 sampler_ml.run_mcmc(initial, 1000, progress=True)
 flat_samples_ml = sampler_ml.get_chain(discard=500, thin=15, flat=True)
-plot_pred_interval_emce(emulator_f_PCGPwM, flat_samples_ml, xtr, np.sqrt(real_data_tr))
+#plot_pred_interval_emce(emulator_f_PCGPwM, flat_samples_ml, xtr, np.sqrt(real_data_tr))
+boxplot_param(flat_samples_ml)
+plot_pred_errors_emcee(flat_samples_ml, emulator_f_PCGPwM, xtest, np.sqrt(real_data_test))
 
 
 sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, 
@@ -162,4 +203,27 @@ sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability,
                                       None))
 sampler.run_mcmc(initial, 1000, progress=True)
 flat_samples = sampler.get_chain(discard=500, thin=15, flat=True)
-plot_pred_interval_emce(emulator_f_PCGPwM, flat_samples, xtr, np.sqrt(real_data_tr))
+#plot_pred_interval_emce(emulator_f_PCGPwM, flat_samples, xtr, np.sqrt(real_data_tr))
+boxplot_param(flat_samples)
+plot_pred_errors_emcee(flat_samples, emulator_f_PCGPwM, xtest, np.sqrt(real_data_test))
+
+
+# (Filter) Fit an emulator via 'PCGP'
+emulator_nof_PCGPwM = emulator(x=x,
+                               theta=param_values_rnd,
+                               f=(func_eval_rnd)**(0.5),
+                               method='PCGPwM')
+
+sampler_nof = emcee.EnsembleSampler(nwalkers, ndim, log_probability, 
+                                    args=(prior_covid,
+                                    emulator_nof_PCGPwM,
+                                    np.sqrt(real_data_tr),
+                                    xtr, 
+                                    obsvar,
+                                    None))
+
+sampler_nof.run_mcmc(initial, 1000, progress=True)
+flat_samples_nof = sampler_nof.get_chain(discard=500, thin=15, flat=True)
+#plot_pred_interval_emce(emulator_f_PCGPwM, flat_samples, xtr, np.sqrt(real_data_tr))
+boxplot_param(flat_samples_nof)
+plot_pred_errors_emcee(flat_samples_nof, emulator_nof_PCGPwM, xtest, np.sqrt(real_data_test))
