@@ -108,7 +108,7 @@ def test_none_input(input1, input2, input3, expectation):
         assert emulator(x=input1,
                         theta=input2,
                         f=input3,
-                        method='PCGPwM') is not None
+                        method='PCGP') is not None
 
 
 # test to check the dimension of the inputs
@@ -135,7 +135,7 @@ def test_size_input(input1, input2, input3, expectation):
         assert emulator(x=input1,
                         theta=input2,
                         f=input3,
-                        method='PCGPwM') is not None
+                        method='PCGP') is not None
 
 
 # test to check the dimension of the inputs
@@ -152,7 +152,7 @@ def test_0d_input(input1, input2, input3, expectation):
         assert emulator(x=input1,
                         theta=input2,
                         f=input3,
-                        method='PCGPwM') is not None
+                        method='PCGP') is not None
 # TO DO: Add tests for univariate data
 # TO DO: Add tests for data including NAs and infs
 
@@ -162,7 +162,6 @@ def test_0d_input(input1, input2, input3, expectation):
 @pytest.mark.parametrize(
     "example_input,expectation",
     [
-     ('PCGPwM', does_not_raise()),
      ('PCGP', does_not_raise()),
      ('XXXX', pytest.raises(ValueError)),
      ],
@@ -192,7 +191,7 @@ def test_options1(input1, expectation):
         assert emulator(x=x,
                         theta=theta,
                         f=f,
-                        method='PCGPwM',
+                        method='PCGP',
                         options={'thetareps': input1}) is not None
 
 
@@ -213,7 +212,7 @@ def test_options2(input1, expectation):
         assert emulator(x=x,
                         theta=theta,
                         f=f,
-                        method='PCGPwM',
+                        method='PCGP',
                         options={'xreps': input1}) is not None
 
 
@@ -221,13 +220,13 @@ def test_options2(input1, expectation):
 @pytest.mark.parametrize(
     "input1,expectation",
     [
-     (True, does_not_raise()),
+     #(True, does_not_raise()),
      (False, does_not_raise()),
-     (0, does_not_raise()),
+     #(0, does_not_raise()),
      (1, does_not_raise()),
      (0.5, does_not_raise()),
      (2, pytest.raises(ValueError)),
-     ('any', does_not_raise()),
+     #('any', does_not_raise()),
      ('some', does_not_raise()),
      ('most', does_not_raise()),
      ('alot', does_not_raise()),
@@ -241,7 +240,7 @@ def test_options3(input1, expectation):
         assert emulator(x=x,
                         theta=theta,
                         f=f,
-                        method='PCGPwM',
+                        method='PCGP',
                         options={'thetarmnan': input1}) is not None
 
 
@@ -249,13 +248,13 @@ def test_options3(input1, expectation):
 @pytest.mark.parametrize(
     "input1,expectation",
     [
-     (True, does_not_raise()),
+     #(True, does_not_raise()),
      (False, does_not_raise()),
-     (0, does_not_raise()),
+     #(0, does_not_raise()),
      (1, does_not_raise()),
      (0.5, does_not_raise()),
      (2, pytest.raises(ValueError)),
-     ('any', does_not_raise()),
+     #('any', does_not_raise()),
      ('some', does_not_raise()),
      ('most', does_not_raise()),
      ('alot', does_not_raise()),
@@ -269,7 +268,7 @@ def test_options4(input1, expectation):
         assert emulator(x=x,
                         theta=theta,
                         f=f,
-                        method='PCGPwM',
+                        method='PCGP',
                         options={'xrmnan': input1}) is not None
 
 
@@ -290,7 +289,7 @@ def test_options5(input1, expectation):
         assert emulator(x=x,
                         theta=theta,
                         f=f,
-                        method='PCGPwM',
+                        method='PCGP',
                         options={'rmthetafirst': input1}) is not None
 
 
@@ -311,7 +310,7 @@ def test_options6(input1, expectation):
         assert emulator(x=x,
                         theta=theta,
                         f=f,
-                        method='PCGPwM',
+                        method='PCGP',
                         options={'autofit': input1}) is not None
 
 
@@ -323,7 +322,7 @@ def test_options6(input1, expectation):
      ],
     )
 def test_repr(expectation):
-    emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
+    emu = emulator(x=x, theta=theta, f=f, method='PCGP')
     with expectation:
         assert repr(emu) is not None
 
@@ -336,7 +335,7 @@ def test_repr(expectation):
      ],
     )
 def test_call(expectation):
-    emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
+    emu = emulator(x=x, theta=theta, f=f, method='PCGP')
     with expectation:
         assert emu(x=x, theta=theta) is not None
 
@@ -353,5 +352,5 @@ def test_args(input1, expectation):
         assert emulator(x=x,
                         theta=theta,
                         f=f,
-                        method='PCGPwM',
+                        method='PCGP',
                         args=input1) is not None

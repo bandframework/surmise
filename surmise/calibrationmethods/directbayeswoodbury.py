@@ -71,12 +71,19 @@ def fit(fitinfo, emu, x, y,  args=None):
     '''
 
     thetaprior = fitinfo['thetaprior']
-    try:
-        theta = thetaprior.rnd(10)
-        emupredict = emu.predict(x, theta, args={'return_grad': True})
-        emupredict.mean_gradtheta()
-        emureturn_grad = True
-    except Exception:
+    myusedir = True
+    if 'usedir' in args.keys() and args['usedir'] == False:
+        myusedir = False
+
+    if myusedir:
+        try:
+            theta = thetaprior.rnd(10)
+            emupredict = emu.predict(x, theta, args={'return_grad': True})
+            emupredict.mean_gradtheta()
+            emureturn_grad = True
+        except Exception:
+            emureturn_grad = False
+    else:
         emureturn_grad = False
 
     if emureturn_grad and 'lpdf_grad' not in dir(thetaprior):
@@ -89,9 +96,9 @@ def fit(fitinfo, emu, x, y,  args=None):
 
             for k in range(0, theta.shape[1]):
                 thetaprop = copy.copy(theta)
-                thetaprop[:, k] += 10**(-6)
+                thetaprop[:, k] += 10**(-3)
                 f_base2 = thetaprior.lpdf(thetaprop[inds, :])
-                grad[inds, k] = 10**(6) * (f_base2 -
+                grad[inds, k] = 10**(3) * (f_base2 -
                                            f_base[inds]).reshape(n_finite,)
 
             return grad
@@ -142,6 +149,7 @@ def fit(fitinfo, emu, x, y,  args=None):
     ladj = logpostfull_wgrad(theta, return_grad=False)
     mladj = np.max(ladj)
     fitinfo['lpdfapproxnorm'] = np.log(np.mean(np.exp(ladj - mladj))) + mladj
+    fitinfo['lpdfapproxnorm_un'] = ladj
     fitinfo['thetarnd'] = theta
     fitinfo['y'] = y
     fitinfo['x'] = x

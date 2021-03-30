@@ -34,12 +34,32 @@ the phrase "Closes #N," where N is the issue number. This will automatically
 close out the issues when they are pulled into the default branch (currently
 master).
 
+Testing
+~~~~~~~
+
+As you develop your code, you may want to include tests specific to your code.
+We encourage developers to provide their own tests in ``tests\`` directory. To run the
+new tests, you can run the following::
+
+  pytest tests/your-test.py
+
+
+
+
+Adding Documentation
+~~~~~~~~~~~~~~~~~~~~
+
+As you develop your code, we recommend writing docstrings in your classes and methods.
+If you want to contribute to the documentation of the architecture of surmise, you can write documentation
+in reStructuredText format, and edit in ``\doc`` directory. If you run ``make html``
+in the same directory, HTML pages can viewed.
+
+Developer's Certificate of Origin 1.1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 surmise is distributed under an MIT license (see LICENSE).  The
 act of submitting a pull request (with or without an explicit
 Signed-off-by tag) will be understood as an affirmation of the
 following:
-
-  Developer's Certificate of Origin 1.1
 
   By making a contribution to this project, I certify that:
 

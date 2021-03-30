@@ -1,3 +1,21 @@
+<<<<<<< HEAD
+*__pycache__
+*.pyc
+surmise_applications/
+*.o
+cov_*
+.cov_*
+.cache
+surmise.egg-info
+docs/_build
+x.log
+venv/
+.idea
+
+*.xml
+
+.idea/surmise.iml
+=======
 
 .spyproject/
 
@@ -10,3 +28,4 @@ surmise/utilitiesmethods/__pycache__/
 tests/test_new_emulator/__pycache__/
 
 surmise/calibrationmethods/__pycache__/
+>>>>>>> PCGPwM

@@ -4,6 +4,7 @@ This module contains a class that implements the main emulation method.
 import numpy as np
 import importlib
 import copy
+import warnings
 
 
 class emulator(object):
@@ -74,6 +75,11 @@ class emulator(object):
 
         '''
 
+        if ('warnings' in args.keys()) and args['warnings']:
+            warnings.resetwarnings()
+        else:
+            warnings.simplefilter('ignore')
+
         self.__ptf = passthroughfunc
         if self.__ptf is not None:
             return
@@ -100,7 +106,7 @@ class emulator(object):
             if theta is not None:
                 if (f.ndim == 2 and f.shape[1] == x.shape[0] and
                         f.shape[0] == theta.shape[0]):
-                    print('transposing f to try to get agreement...')
+                    warnings.warn('Transposing f to try to get agreement')
                     self.__f = copy.copy(f).T
                     f = copy.copy(f).T
                 else:
@@ -108,7 +114,7 @@ class emulator(object):
                                      ' number of rows in x.')
             else:
                 if f.ndim == 2 and f.shape[1] == x.shape[0]:
-                    print('transposing f to try to get agreement...')
+                    warnings.warn('Transposing f to try to get agreement')
                     self.__f = copy.copy(f).T
                     f = copy.copy(f).T
                 else:
@@ -123,11 +129,11 @@ class emulator(object):
                                      ' the number of rows in theta.')
             else:
                 if f.ndim == 2 and f.shape[0] == theta.shape[0]:
-                    print('transposing f to try to get agreement....')
+                    warnings.warn('Transposing f to try to get agreement')
                     self.__f = copy.copy(f).T
                     f = copy.copy(f).T
                 elif f.ndim == 1 and f.shape[0] == theta.shape[0]:
-                    print('transposing f to try to get agreement....')
+                    warnings.warn('Transposing f to try to get agreement')
                     self.__f = np.reshape(copy.copy(f), (1, -1))
                     f = np.reshape(copy.copy(f), (1, -1))
                 else:
@@ -159,7 +165,8 @@ class emulator(object):
         if "predict" not in dir(self.method):
             raise ValueError('Function predict not found in module!')
         if "supplementtheta" not in dir(self.method):
-            print('Function supplementtheta not found in module!')
+            warnings.warn('Function supplementtheta not found in module!')
+
         self.__options = {}
         self.__optionsset(options)
         self._info = {}
@@ -901,13 +908,13 @@ class prediction(object):
             return self.rnd(s, args)
 
     def __methodnotfoundstr(self, pfstr, opstr):
-        print(pfstr + opstr + ' functionality not in method... \n' +
-              ' Key labeled ' + opstr + ' not ' +
-              'provided in ' + pfstr + '._info... \n' +
-              ' Key labeled rnd not ' +
-              'provided in ' + pfstr + '._info...')
-        return 'Could not reconsile a good way to compute this value in'
-    ' current method.'
+        msg = (pfstr + opstr + ' functionality not in method... \n' +
+               ' Key labeled ' + opstr + ' not ' +
+               'provided in ' + pfstr + '._info... \n' +
+               ' Key labeled rnd not ' +
+               'provided in ' + pfstr + '._info...')
+
+        return msg
 
     def mean(self, args=None):
         '''

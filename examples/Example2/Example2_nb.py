@@ -135,7 +135,7 @@ class priorphys_grav:
 
 
 # %% [markdown]
-# Build an emulator using `PCGPwM` to predict the computer model output:
+# Build an emulator using `PCGP` to predict the computer model output:
 
  # %%
  # the time vector of interest
@@ -163,10 +163,10 @@ f_lin = balldropmodel_linear(xv, theta_lin)
 f_grav = balldropmodel_grav(xv, theta_grav)  
 
 # build an emulator for the linear simulation
-emu_lin = emulator(x=x, theta=theta_lin, f=f_lin, method='PCGPwM') 
+emu_lin = emulator(x=x, theta=theta_lin, f=f_lin, method='PCGP') 
 
 # build an emulator for the gravity simulation
-emu_grav = emulator(x=x, theta=theta_grav, f=f_grav, method='PCGPwM')  
+emu_grav = emulator(x=x, theta=theta_grav, f=f_grav, method='PCGP')  
 
 
 # %% [markdown]
@@ -189,7 +189,6 @@ def plot_preds(cal, axs):
         inds = np.where(xv[:,1] == k)[0]
         upper = np.percentile(rndm_m[:, inds], 97.5, axis = 0)
         lower = np.percentile(rndm_m[:, inds], 2.5, axis = 0)
-        #axs.plot(xv[inds,0], balldroptrue(xv[inds,:]), 'k--',linewidth=2)
         axs.fill_between(xv[inds,0], lower, upper, color = 'grey', alpha=0.25)
         axs.plot(xv[inds, 0], y[inds], 'ro', markersize = 5, color='red')
     return(axs)
@@ -199,16 +198,7 @@ def plot_preds(cal, axs):
 # ### Calibrators for Model 1
 
 # %%
-# build calibrators for the gravity simulation
 cal_grav_1 = calibrator(emu=emu_grav,
-                        y=y,
-                        x=x,
-                        thetaprior=priorphys_grav,
-                        method='directbayeswoodbury',
-                        yvar=obsvar)
-
-# %%
-cal_grav_2 = calibrator(emu=emu_grav,
                         y=y,
                         x=x,
                         thetaprior=priorphys_grav, 
@@ -220,7 +210,7 @@ cal_grav_2 = calibrator(emu=emu_grav,
                               'stepParam': np.array([1])})
 
 # %%
-cal_grav_3 = calibrator(emu=emu_grav,
+cal_grav_2 = calibrator(emu=emu_grav,
                         y=y,
                         x=x,
                         thetaprior=priorphys_grav, 
@@ -230,12 +220,20 @@ cal_grav_3 = calibrator(emu=emu_grav,
                               'theta0': priorphys_grav.rnd(1000)}) 
 
 # %%
+cal_grav_3 = calibrator(emu=emu_grav,
+                        y=y,
+                        x=x,
+                        thetaprior=priorphys_grav, 
+                        method='directbayeswoodbury',
+                        yvar=obsvar)
+
+# %%
 plot_theta(cal_grav_1, 0)
 plot_theta(cal_grav_2, 0)
 plot_theta(cal_grav_3, 0)
 
 # %%
-fig, axs = plt.subplots(1, 3, figsize=(14, 4))
+fig, axs = plt.subplots(1, 3, figsize=(15, 4))
 axs[0] = plot_preds(cal_grav_1, axs[0])
 axs[1] = plot_preds(cal_grav_2, axs[1])
 axs[2] = plot_preds(cal_grav_3, axs[2])
@@ -246,14 +244,6 @@ plt.show()
 
 # %%
 cal_lin_1 = calibrator(emu=emu_lin,
-                       y=y, 
-                       x=x,
-                       thetaprior=priorphys_lin, 
-                       method='directbayeswoodbury', 
-                       yvar=obsvar)
-
-# %%
-cal_lin_2 = calibrator(emu=emu_lin,
                        y=y,
                        x=x,
                        thetaprior=priorphys_lin, 
@@ -268,7 +258,7 @@ cal_lin_2 = calibrator(emu=emu_lin,
 # Now, we build a calibrator using a different sampler `LMC`--Langevin Monte Carlo.
 
 # %%
-cal_lin_3 = calibrator(emu=emu_lin,
+cal_lin_2 = calibrator(emu=emu_lin,
                        y=y,
                        x=x,
                        thetaprior=priorphys_lin, 
@@ -278,19 +268,21 @@ cal_lin_3 = calibrator(emu=emu_lin,
                              'theta0': priorphys_lin.rnd(1000)})  
 
 # %%
+cal_lin_3 = calibrator(emu=emu_lin,
+                       y=y,
+                       x=x,
+                       thetaprior=priorphys_lin, 
+                       method='directbayeswoodbury',
+                       yvar=obsvar)  
+
+# %%
 # visualize posterior draws for the calibration parameter
 plot_theta(cal_lin_1, 0)
 plot_theta(cal_lin_2, 0)
 plot_theta(cal_lin_3, 0)
 
 # %%
-# visualize posterior draws for the calibration parameter
-plot_theta(cal_lin_1, 1)
-plot_theta(cal_lin_2, 1)
-plot_theta(cal_lin_3, 1)
-
-# %%
-fig, axs = plt.subplots(1, 3, figsize=(14, 4))
+fig, axs = plt.subplots(1, 3, figsize=(15, 4))
 axs[0] = plot_preds(cal_lin_1, axs[0])
 axs[1] = plot_preds(cal_lin_2, axs[1])
 axs[2] = plot_preds(cal_lin_3, axs[2])

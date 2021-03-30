@@ -98,11 +98,6 @@ x =  np.array(x, dtype='object')
 # (No filter) Fit an emulator via 'PCGP'
 emulator_1 = emulator(x=x, theta=param_values_rnd, f=func_eval_rnd.T, method='PCGP') 
 
-# %%
-# (No filter) Fit an emulator via 'PCGPwM'
-emulator_2 = emulator(x=x, theta=param_values_rnd, f=func_eval_rnd.T, method='PCGPwM', 
-                      args = {'epsilon': 1.5, 'hypregmean': -10, 'hypregLB': -20}) 
-
 # %% [markdown]
 # ### Comparison of emulation methodologies
 
@@ -110,13 +105,8 @@ emulator_2 = emulator(x=x, theta=param_values_rnd, f=func_eval_rnd.T, method='PC
 # Compare emulators
 pred_1_test = emulator_1.predict(x, param_values_test)
 pred_mean_test_1 = pred_1_test.mean()
-print("Rsq = ", 1 - np.sum(np.square(pred_mean_test_1 - func_eval_test.T))/np.sum(np.square(func_eval_test - np.mean(func_eval_test.T, axis = 1))))
-print('MSE = ', np.mean(np.sum(np.square(pred_mean_test_1 - func_eval_test.T), axis = 1)))
-
-pred_2_test = emulator_2.predict(x, param_values_test)
-pred_mean_2_test = pred_2_test.mean()
-print("Rsq = ", 1 - np.sum(np.square(pred_mean_2_test - func_eval_test.T))/np.sum(np.square(func_eval_test - np.mean(func_eval_test.T, axis = 1))))
-print('MSE = ', np.mean(np.sum(np.square(pred_mean_2_test - func_eval_test.T), axis = 1)))
+print("Rsq = ", 1 - np.round(np.sum(np.square(pred_mean_test_1 - func_eval_test.T))/np.sum(np.square(func_eval_test - np.mean(func_eval_test.T, axis = 1))), 2))
+print('MSE = ', np.round(np.mean(np.sum(np.square(pred_mean_test_1 - func_eval_test.T), axis = 1)), 2))
 
 
 # %% [markdown]
@@ -197,14 +187,14 @@ obsvar = np.maximum(0.2*real_data, 5)
 
 # %%
 # Calibrator 1
-cal_1 = calibrator(emu=emulator_2,
+cal_1 = calibrator(emu=emulator_1,
                    y=real_data,
                    x=x,
                    thetaprior=prior_covid,
                    method='directbayes',
                    yvar=obsvar, 
                    args={'theta0': np.array([[2, 4, 4, 1.875, 14, 18, 20, 14, 13, 12]]), 
-                         'numsamp' : 1000,
+                         'numsamp' : 100,
                          'stepType' : 'normal', 
                          'stepParam' : np.array([0.01, 0.01, 0.01, 0.01, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03])})
 
@@ -212,25 +202,23 @@ plot_pred_interval(cal_1)
 
 # %%
 # Calibrator 2
-cal_2 = calibrator(emu=emulator_2,
-                   y=real_data,
-                   x=x,
-                   thetaprior=prior_covid, 
-                   method='directbayes',
-                   yvar=obsvar, 
-                   args={'sampler': 'LMC'})
+cal_2 = calibrator(emu=emulator_1,
+                    y=real_data,
+                    x=x,
+                    thetaprior=prior_covid, 
+                    method='directbayes',
+                    yvar=obsvar, 
+                    args={'sampler': 'LMC'})
 
 plot_pred_interval(cal_2) 
 
 # %%
 # Calibrator 3
-cal_3 = calibrator(emu=emulator_2,
-                   y=real_data,
-                   x=x,
-                   thetaprior=prior_covid, 
-                   method='directbayes',
-                   yvar=obsvar)
+cal_3 = calibrator(emu=emulator_1,
+                    y=real_data,
+                    x=x,
+                    thetaprior=prior_covid, 
+                    method='directbayeswoodbury',
+                    yvar=obsvar)
 
 plot_pred_interval(cal_3) 
-
-# %%

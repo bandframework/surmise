@@ -111,7 +111,7 @@ def does_not_raise():
      ],
     )
 def test_update_x(input1, input2, input3, input4, expectation):
-    emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
+    emu = emulator(x=x, theta=theta, f=f, method='PCGP')
     with expectation:
         assert emu.update(x=input1,
                           theta=input2,
@@ -134,7 +134,7 @@ def test_update_x(input1, input2, input3, input4, expectation):
      ],
     )
 def test_update_theta(input1, input2, input3, input4, expectation):
-    emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
+    emu = emulator(x=x, theta=theta, f=f, method='PCGP')
     with expectation:
         assert emu.update(x=input1,
                           theta=input2,
@@ -155,22 +155,22 @@ def test_update_theta(input1, input2, input3, input4, expectation):
      ],
     )
 def test_update_f(input1, input2, input3, expectation):
-    emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
+    emu = emulator(x=x, theta=theta, f=f, method='PCGP')
     with expectation:
         assert emu.update(x=input1, theta=input2, f=input3) is None
 
 
-# test to check update() with None
-@pytest.mark.parametrize(
-    "input1,input2,expectation",
-    [
-      (f_new, True, does_not_raise()),
-      (f_new, False, does_not_raise()),
-      (np.hstack((f_new, f_new)), False, pytest.raises(ValueError)),
-      ],
-    )
-def test_update_supptheta(input1, input2, expectation):
-    emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
-    emu.supplement(size=10, theta=theta_new)
-    with expectation:
-        assert emu.update(f=input1, options={'thetareps': input2}) is None
+# # test to check update() with None
+# @pytest.mark.parametrize(
+#     "input1,input2,expectation",
+#     [
+#       (f_new, True, does_not_raise()),
+#       (f_new, False, does_not_raise()),
+#       (np.hstack((f_new, f_new)), False, pytest.raises(ValueError)),
+#       ],
+#     )
+# def test_update_supptheta(input1, input2, expectation):
+#     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
+#     emu.supplement(size=10, theta=theta_new)
+#     with expectation:
+#         assert emu.update(f=input1, options={'thetareps': input2}) is None

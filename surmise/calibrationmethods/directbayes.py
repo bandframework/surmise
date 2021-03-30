@@ -197,7 +197,7 @@ def loglik(fitinfo, emu, theta, y, x, args):
     try:
         emucov = emupredict.covx()
         is_cov = True
-    except ValueError:
+    except Exception:
         emucov = emupredict.var()
         is_cov = False
 

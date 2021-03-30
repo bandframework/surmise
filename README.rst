@@ -1,9 +1,15 @@
 
 |
 
+.. image:: https://badge.fury.io/py/surmise.svg
+    :target: https://badge.fury.io/py/surmise
+
 .. image:: https://readthedocs.org/projects/surmise/badge/?version=latest
    :target: https://surmise.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
+
+.. image:: https://github.com/surmising/surmise/actions/workflows/python-package.yml/badge.svg
+    :target: https://github.com/surmising/surmise/actions/workflows/python-package.yml
 
 |
 
@@ -19,18 +25,40 @@ interface for calibration, uncertainty quantification, and sensitivity analysis.
 Dependencies
 ~~~~~~~~~~~~
 
-Required dependencies:
+.. list-table:: Required dependencies:
+   :widths: 25 50 50
+   :header-rows: 1
 
-* Python_ 3.5 or above
-* NumPy_
-* SciPy_
+   * - Python_
+     - NumPy_
+     - SciPy_
+   * - 3.5
+     - 1.16, 1.17, 1.18
+     - 1.4
+   * - 3.6
+     - 1.16, 1.17, 1.18, 1.19
+     - 1.4
+   * - 3.7
+     - 1.16, 1.17, 1.18, 1.19
+     - 1.4
+   * - 3.8
+     - 1.18, 1.19
+     - 1.4
+   * - 3.9
+     - 1.20
+     - 1.6
+
+Some examples require the optional dependency
+
+* GPy_
+
 
 Installation
 ~~~~~~~~~~~~
 
 From the command line, use the following command to install surmise::
 
- pip install git+git://github.com/surmising/surmise.git
+ pip install surmise==0.1.0
 
 
 Alternatively, the source code can be downloaded to the local folder, and the
@@ -97,3 +125,4 @@ of surmise.
 .. _pytest: https://pypi.org/project/pytest/
 .. _Python: http://www.python.org
 .. _SciPy: http://www.scipy.org
+.. _GPy: https://gpy.readthedocs.io/en/deploy/
