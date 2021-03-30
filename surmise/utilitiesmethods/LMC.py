@@ -1,13 +1,48 @@
 import numpy as np
 import scipy.optimize as spo
 
-'''
-Metropolis-adjusted Langevin algorithm or Langevin Monte Carlo (LMC)
+r'''
+Metropolis-adjusted Langevin algorithm or Langevin Monte Carlo (LMC).
+
+The LMC sampler is available through calling the `calibrator` object with an
+optional argument `args={'sampler': 'LMC'}`.  LMC is a Markov chain Monte
+Carlo method that seeks to propose the next iterates by leveraging gradient
+information at the current iterate.  The proposal has the form
+
+.. math::
+
+    \theta^{k+1} = \theta^k - \nabla g(\theta^k) \Delta t +
+    \sqrt{2\Delta t} Z,
+
+where :math:`\Delta t` is a time stepsize, and :math:`Z` is an independently
+and identically drawn sample from the standard Gaussian normal of the
+appropriate dimension.  The proposal is then accepted or rejected by the
+typical Metropolis-Hastings step, i.e. accept with probability
+
+.. math::
+
+    \alpha = \min\left\{1, \frac{\pi(\tilde{\theta}^{k+1})q(\theta^k \mid
+    \tilde{\theta}^{k+1})}{\pi(\theta^{k})q(\tilde{\theta}^{k+1} \mid
+    \theta^k)}\right\},
+
+where :math:`\pi(\cdot)` is the posterior distribution, :math:`q(\cdot \mid
+\cdot)` is the proposal distribution, and :math:`\theta^k,
+\tilde{\theta}^{k+1}` are the current and the proposed point respectively.
+
+Langevin Monte Carlo has shown strengths in increasing the acceptance rate,
+compared to the typical Metropolis-Hastings algorithm (Roberts and
+Rosenthal, 1998).  However, its significant drawback lies in its poor
+scaling due to the computation for the gradient at the current iterate.
+
+Refer to G. O. Roberts and J. S. Rosenthal. Optimal scaling of discrete
+approximations to langevin diffusions. *Journal of the Royal Statistical
+Society: Series B (Statistical Methodology)*, 60(1):255-268, 1998.
 '''
 
 
 def sampler(logpostfunc, options):
-    '''
+    r'''
+    Metropolis-adjusted Langevin algorithm or Langevin Monte Carlo (LMC).
 
     Parameters
     ----------
@@ -268,7 +303,7 @@ def sampler(logpostfunc, options):
         ESS = 1 + numchain*numsamppc*(1 - np.abs(rhohat))
         thetasave = np.reshape(thetasave, (-1, thetac.shape[1]))
         accr = numtimes/numsamppc
-  
+
         # termination criteria
         if iters > 1.5 and accr > taracc/2 and accr < 1.5*taracc and\
                 (np.mean(ESS) > tarESS):
