@@ -1,3 +1,8 @@
+"""PCGPwM method - PCGP with Missingness, an extension to PCGP
+(Higdon et al., 2008). In addition, the PCGPwM method provides the functionality
+to suggest selections of next parameters and obviations of any parameters on
+a list.  Obviation refers to the stopping of value retrieval of `f` for a
+parameter."""
 import numpy as np
 import scipy.optimize as spo
 import scipy.linalg as spla
@@ -5,29 +10,41 @@ import copy
 
 
 def fit(fitinfo, x, theta, f, args=None):
-    r"""
-    Fits a emulation model.
+    '''
+    The purpose of fit is to take information and plug all of our fit
+    information into fitinfo, which is a python dictionary.
+
+    .. note::
+       This is a modification of the method proposed by Higdon et al., 2008.
+       Refer to :py:func:`PCGP` for additional details.
+
+    Prior to performing the PCGP method (Higdon et al., 2008), the PCGPwM method
+    checks for missingness in `f` and provides imputations for the missing values
+    before conducting the PCGP method.  The method adds approximate variance at
+    each points requiring imputation.
 
     Parameters
     ----------
     fitinfo : dict
-        An arbitary dictionary where you should place all of your fitting
-        information that will be used by predict below once complete.
+        A dictionary including the emulation fitting information once
+        complete.
+        The dictionary is passed by reference, so it returns None.
+    x : numpy.ndarray
+        An array of inputs. Each row should correspond to a row in f.
+    theta : numpy.ndarray
+        An array of parameters. Each row should correspond to a column in f.
+    f : numpy.ndarray
+        An array of responses. Each column in f should correspond to a row in
+        theta. Each row in f should correspond to a row in x.
+    args : dict, optional
+        A dictionary containing options. The default is None.
 
-    x : array of objects
-        An matrix (vector) of inputs. Each row should correspond to a row in f.
+    Returns
+    -------
+    None.
 
-    theta : array of objects
-        An matrix (vector) of parameters. Each row should correspond to a row
-        in f.
+    '''
 
-    f : array of float
-        An matrix (vector) of responses.  Each row in f should correspond to a
-        row in x. Each column should correspond to a row in theta.
-
-    args : dict
-        A dictionary containing options passed to you.
-    """
     f = f.T
 
     # Check for missing or failed values
@@ -74,18 +91,16 @@ def predict(predinfo, fitinfo, x, theta, args={}):
         An arbitary dictionary where you should place all of your prediction
         information once complete. This dictionary is pass by reference, so
         there is no reason to return anything. Keep only stuff that will be
-        used by predict. Key elements
+        used by predict. Key elements are
 
-            - predinfo['mean'] : predinfo['mean'][k] is mean of the prediction
-              at all x at theta[k].
-            - predinfo['var'] : predinfo['var'][k] is variance of the
-              prediction at all x at theta[k].
-            - predinfo['cov'] : predinfo['cov'][k] is mean of the prediction
-              at all x at theta[k].
-            - predinfo['covhalf'] : if A = predinfo['covhalf'][k] then
-              A.T @ A = predinfo['cov'][k]
-            - predinfo['rand'] : predinfo['rand'][l][k] lth draw of of x at
-               theta[k].
+            - `predinfo['mean']` : `predinfo['mean'][k]` is mean of the prediction
+              at all x at `theta[k]`.
+            - `predinfo['var']` : `predinfo['var'][k]` is variance of the
+              prediction at all x at `theta[k]`.
+            - `predinfo['cov']` : `predinfo['cov'][k]` is mean of the prediction
+              at all x at `theta[k]`.
+            - `predinfo['covhalf']` : if `A = predinfo['covhalf'][k]` then
+              `A.T @ A = predinfo['cov'][k]`.
 
     fitinfo : dict
         An arbitary dictionary where you placed all your important fitting
@@ -139,8 +154,10 @@ def predict(predinfo, fitinfo, x, theta, args={}):
 
     rsave = np.array(np.ones(len(infos)), dtype=object)
 
+    # loop over principal components
     for k in range(0, len(infos)):
         if infos[k]['hypind'] == k:
+            # covariance matrix between new theta and thetas from fit.
             if return_grad:
                 rsave[k], drsave[k] = __covmat(theta,
                                                fitinfo['theta'],
@@ -150,6 +167,7 @@ def predict(predinfo, fitinfo, x, theta, args={}):
                 rsave[k] = __covmat(theta,
                                     fitinfo['theta'],
                                     infos[k]['hypcov'])
+        # adjusted covariance matrix
         r = (1 - infos[k]['nug']) * np.squeeze(rsave[infos[k]['hypind']])
 
         if return_grad:
@@ -159,7 +177,7 @@ def predict(predinfo, fitinfo, x, theta, args={}):
         except Exception:
             for i in range(0, len(infos)):
                 print((i, infos[i]['hypind']))
-            raise ValueError('Something went wrong')
+            raise ValueError('Something went wrong with fitted components')
 
         if rVh.ndim < 1.5:
             rVh = rVh.reshape((1, -1))
@@ -180,6 +198,7 @@ def predict(predinfo, fitinfo, x, theta, args={}):
 
         predvars[:, k] = infos[k]['sig2'] * np.abs(1 - np.sum(rVh ** 2, 1))
 
+    # calculate predictive mean and variance
     predinfo['mean'] = np.full((x.shape[0], theta.shape[0]), np.nan)
     predinfo['var'] = np.full((x.shape[0], theta.shape[0]), np.nan)
     pctscale = (fitinfo['pct'].T * fitinfo['scale']).T
@@ -224,8 +243,9 @@ def predict(predinfo, fitinfo, x, theta, args={}):
 
 def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
                     args):
-    r"""
-    Finds supplement theta given the dictionary fitinfo.
+    r'''
+    Suggests next parameters and obviates pending parameters for value
+    retrieval of `f`.
 
     Parameters
     ----------
@@ -233,27 +253,33 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
         An arbitary dictionary where you placed all your important fitting
         information from the fit function above.
     size : integer
-        The number of thetas the user wants.
+        The number of new thetas the user wants.
     theta : array
         An array of theta values where you want to predict.
     thetachoices : array
-        An array of to choice between.
+        An array of thetas to choose from.
     choicecosts : array
-        The cost of each choice given to you.
+        The computation cost of each theta choice given to you.
     cal : instance of emulator class
         An emulator class instance as defined in calibration.
         This will not always be provided.
     args : dict
-        A dictionary containing options passed to you.
+        A dictionary containing additional options.  Specific arguments:
+            - `'pending'`: a matrix (sized like `f`) to indicate pending value retrieval of `f`
+            - `'costpending'`: the cost to obviate pending thetas
+            - `'includepending'`: boolean to include pending values for obviation considerations
+        Example usage: `args = {'includepending': True, 'costpending': 0.01+0.99*np.mean(pending,0), 'pending': pending}`.
 
     Returns
     ----------
-    Note that we should have theta.shape[0] * x.shape[0] < size
+    Note that we should have `theta.shape[0] * x.shape[0] < size`.
     theta : array
-        An array of theta values that should be sampled should sample.
-    info : array
-        An an optional info dictionary that can pass back to the user.
-    """
+        Suggested parameters for further value retrievals of `f`.
+    info : dict
+        A dictionary to contain selection and obviation information. Contains arguments:
+            - `'crit'`: criteria associated with selected thetas
+            - `'obviatesugg'`: indices in `pending` for suggested obviations
+    '''
     pending = None
     if ('pending' in args.keys()):
         pending = args['pending'].T
@@ -285,6 +311,8 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
 
     crit = np.zeros(thetaposs.shape[0])
     weightma = np.mean(fitinfo['pct'] ** 2, 0)
+
+    # covariance matrices between new thetas, thetachoices, and thetas in fit.
     for k in range(0, len(infos)):
         if infos[k]['hypind'] == k:
             rsave[k] = (1 - infos[k]['nug']) * __covmat(theta, thetaold,
@@ -305,6 +333,7 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
     else:
         varpcause = 1*pendvar
 
+    # calculation of selection criterion
     thetachoicesave = np.zeros((size, fitinfo['theta'].shape[1]))
     for j in range(0, size):
         critcount = np.zeros((crit.shape[0], len(infos)))
@@ -355,7 +384,7 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
                 R[k] = (1 - infos[k]['nug']) * R[k] + np.eye(R[k].shape[0]) *\
                     infos[k]['nug']
 
-    # eliminant some values and see what happens
+    # calculation of obviation criterion and suggests obviations.
     info = {}
     info['crit'] = critsave
     if includepending:
@@ -380,7 +409,8 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
 
 
 def __standardizef(fitinfo, offset=None, scale=None):
-    "Standardizes f by creating offset, scale and fs."
+    r'''Standardizes f by creating offset, scale and fs.  When appropriate,
+    imputes values for `f`.'''
     # Extracting from input dictionary
     f = fitinfo['f']
     mof = fitinfo['mof']
@@ -440,8 +470,8 @@ def __standardizef(fitinfo, offset=None, scale=None):
     return
 
 
-def __PCs(fitinfo):
-    "Creates BLANK."
+def __PCs(fitinfo, varconstant=10):
+    "Apply PCA to reduce the dimension of `f`."
     # Extracting from input dictionary
     f = fitinfo['f']
     fs = fitinfo['fs']
@@ -478,13 +508,13 @@ def __PCs(fitinfo):
     fitinfo['extravar'] = np.mean((fs - fitinfo['pc'] @
                                    fitinfo['pct'].T) ** 2, 0) *\
         (fitinfo['scale'] ** 2)
-    fitinfo['pcstdvar'] = 10*pcstdvar  # ??? constant 10
+    fitinfo['pcstdvar'] = varconstant*pcstdvar
     return
 
 
-def __getnewvar(fitinfo, pending):
-    "Creates BLANK."
-    # Extracting from input dictionary
+def __getnewvar(fitinfo, pending, varconstant=10):
+    "Calculates the variances for entries where there are missing values."
+    # Extracting from principal components fit dictionary.
     pct = copy.copy(fitinfo['pcto'])
     pcw = copy.copy(fitinfo['pcw'])
     epsilon = fitinfo['epsilon']
@@ -500,7 +530,7 @@ def __getnewvar(fitinfo, pending):
         Qmat = np.diag(epsilon / pcw ** 2) + H
         term3 = np.diag(H) - np.sum(H * spla.solve(Qmat, H, assume_a='pos'), 0)
         pcstdvar[rv, :] = 1 - (pcw**2 / epsilon + 1) * term3
-    return (10*pcstdvar)
+    return (varconstant*pcstdvar)
 
 
 def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2):

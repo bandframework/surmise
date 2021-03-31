@@ -1,30 +1,72 @@
 import numpy as np
 import scipy.optimize as spo
 
-'''
-Metropolis-adjusted Langevin algorithm or Langevin Monte Carlo (LMC)
+r'''
+Metropolis-adjusted Langevin algorithm or Langevin Monte Carlo (LMC).
+
+The LMC sampler is available through calling the `calibrator` object with an
+optional argument `args={'sampler': 'LMC'}`.  LMC is a Markov chain Monte
+Carlo method that seeks to propose the next iterates by leveraging gradient
+information at the current iterate.  The proposal has the form
+
+.. math::
+
+    \theta^{k+1} = \theta^k - \nabla g(\theta^k) \Delta t +
+    \sqrt{2\Delta t} Z,
+
+where :math:`\Delta t` is a time stepsize, and :math:`Z` is an independently
+and identically drawn sample from the standard Gaussian normal of the
+appropriate dimension.  The proposal is then accepted or rejected by the
+typical Metropolis-Hastings step, i.e. accept with probability
+
+.. math::
+
+    \alpha = \min\left\{1, \frac{\pi(\tilde{\theta}^{k+1})q(\theta^k \mid
+    \tilde{\theta}^{k+1})}{\pi(\theta^{k})q(\tilde{\theta}^{k+1} \mid
+    \theta^k)}\right\},
+
+where :math:`\pi(\cdot)` is the posterior distribution, :math:`q(\cdot \mid
+\cdot)` is the proposal distribution, and :math:`\theta^k,
+\tilde{\theta}^{k+1}` are the current and the proposed point respectively.
+
+Langevin Monte Carlo has shown strengths in increasing the acceptance rate,
+compared to the typical Metropolis-Hastings algorithm (Roberts and
+Rosenthal, 1998).  However, its significant drawback lies in its poor
+scaling due to the computation for the gradient at the current iterate.
+
+Refer to G. O. Roberts and J. S. Rosenthal. Optimal scaling of discrete
+approximations to langevin diffusions. *Journal of the Royal Statistical
+Society: Series B (Statistical Methodology)*, 60(1):255-268, 1998.
 '''
 
 
 def sampler(logpostfunc, options):
-    '''
+    r'''
+    Metropolis-adjusted Langevin algorithm or Langevin Monte Carlo (LMC).
 
     Parameters
     ----------
     logpostfunc : function
         A function call describing the log of the posterior distribution.
+            If no gradient, logpostfunc should take a value of an m by p numpy
+            array of parameters and theta and return
+            a length m numpy array of log posterior evaluations.
+            If gradient, logpostfunc should return a tuple.  The first element
+            in the tuple should be as listed above.
+            The second element in the tuple should be an m by p matrix of
+            gradients of the log posterior.
     options : dict
         a dictionary contains the output of the sampler.
-
-    Raises
-    ------
-    ValueError
-        DESCRIPTION.
+        Required -
+            theta0: an m by p matrix of initial parameter values.
+        Optional -
+            numsamp: the number of samplers you want from the posterior.
+            Default is 2000.
 
     Returns
     -------
     TYPE
-        Matrix of sampled parameter values
+        numsamp by p of sampled parameter values
 
     '''
 
@@ -101,14 +143,16 @@ def sampler(logpostfunc, options):
             theta0 = thetaposs
             keepgoing = False
         if iteratttempt > 10:
-            keepgoing = False
+            raise ValueError('Could not find any points to vary.')
 
     thetaop = theta0[:10, :]
+    thetastart = theta0
     thetac = np.mean(theta0, 0)
-    thetas = np.maximum(np.std(theta0, 0), 10 ** (-4) * np.std(theta0))
+    thetas = np.maximum(np.std(theta0, 0), 10 ** (-8) * np.std(theta0))
 
     def neglogpostf_nograd(thetap):
         theta = thetac + thetas * thetap
+        ##print(theta)
         return -logpostf_nograd(theta.reshape((1, len(theta))))[0]
 
     if logpostf_grad is not None:
@@ -125,16 +169,15 @@ def sampler(logpostfunc, options):
     keeptryingwithgrad = True
     failureswithgrad = 0
 
+    # begin preoptimizer
     for k in range(0, thetaop.shape[0]):
         theta0 = (thetaop[k, :] - thetac) / thetas
         if logpostf_grad is None:
             opval = spo.minimize(neglogpostf_nograd,
                                  theta0,
                                  method='L-BFGS-B',
-                                 bounds=bounds,
-                                 options={'maxiter': 4, 'maxfun': 100})
+                                 bounds=bounds)
             thetaop[k, :] = thetac + thetas * opval.x
-
         else:
             if keeptryingwithgrad:
                 opval = spo.minimize(neglogpostf_nograd,
@@ -162,38 +205,29 @@ def sampler(logpostfunc, options):
                                      bounds=bounds,
                                      options={'maxiter': 4, 'maxfun': 100})
                 thetaop[k, :] = thetac + thetas * opval.x
+    # end Preoptimizer
 
-    for k in range(0, thetaop.shape[0]):
-        LB, UB = test1dboundarys(thetaop[k, :], logpostf_nograd, thetas)
-        thetas = np.maximum(thetas, 0.5 * (UB - LB))
-        theta0 = np.vstack((theta0, LB))
-        theta0 = np.vstack((theta0, UB))
-
-    thetasave = theta0
+    thetasave = np.vstack((thetastart,thetaop))
     Lsave = logpostf_nograd(thetasave)
-
     tau = -1
     rho = 2 * (1 + (np.exp(2 * tau) - 1) / (np.exp(2 * tau) + 1))
     numchain = 50
     maxiters = 10
     numsamppc = 10
+    covmat0 = np.diag(thetas)
     for iters in range(0, maxiters):
-        Lsave = np.squeeze(np.reshape(Lsave, (-1, 1)))
-        mLsave = np.max(Lsave)
-        Lsave -= mLsave + np.log(np.sum(np.exp(Lsave - mLsave)))
-        post = np.exp(Lsave/4)
-        post = post/np.sum(post)
         startingv = np.random.choice(np.arange(0, Lsave.shape[0]),
-                                     size=Lsave.shape[0], p=post)
+                                     size=Lsave.shape[0])
         thetasave = thetasave[startingv, :]
-        covmat0 = np.cov(thetasave.T)
+
+        covmat0 = 0.1*covmat0+ 0.9*np.cov(thetasave.T)
 
         if covmat0.ndim > 1:
-            covmat0 += (10 ** (-4)) * np.diag(np.diag(covmat0) + thetas)
+            covmat0 += 0.1 * np.diag(np.diag(covmat0))
             Wc, Vc = np.linalg.eigh(covmat0)
             hc = (Vc @ np.diag(np.sqrt(Wc)) @ Vc.T)
         else:
-            hc = np.sqrt(covmat0 + thetas)
+            hc = np.sqrt(covmat0)
 
         thetac = thetasave[np.random.choice(range(0, thetasave.shape[0]),
                                             size=numchain), :]
@@ -227,7 +261,9 @@ def sampler(logpostfunc, options):
                 qadj = np.zeros(fvalp.shape)
 
             swaprnd = np.log(np.random.uniform(size=fval.shape[0]))
-            whereswap = np.where(swaprnd < (fvalp - fval + qadj))[0]
+            whereswap = np.where(np.squeeze(swaprnd)
+                                 < np.squeeze(fvalp - fval)
+                                 + np.squeeze(qadj))[0]
 
             if whereswap.shape[0] > 0:
                 numtimes = numtimes + (whereswap.shape[0]/numchain)
@@ -268,11 +304,12 @@ def sampler(logpostfunc, options):
         thetasave = np.reshape(thetasave, (-1, thetac.shape[1]))
         accr = numtimes/numsamppc
 
-        if iters > 1.5 and accr > 0.1 and accr < 0.9 and\
+        # termination criteria
+        if iters > 1.5 and accr > taracc/2 and accr < 1.5*taracc and\
                 (np.mean(ESS) > tarESS):
             break
         elif accr < taracc*4/5 or accr > taracc*5/4:
-            tau = tau + 1/(1 + iters) * (accr - taracc)
+            tau = tau + 1/(0.2 + 0.2*iters) * (accr - taracc)
             rho = 2 * (1 + (np.exp(2 * tau) - 1) / (np.exp(2 * tau) + 1))
         if accr < taracc*1.5 and accr > taracc*0.6:
             trm = np.min((1.5*tarESS/np.mean(ESS), 4))
@@ -280,49 +317,6 @@ def sampler(logpostfunc, options):
 
     theta = thetasave[np.random.choice(range(0, thetasave.shape[0]),
                                        size=numsamp), :]
-    sampler_info = {'theta': theta}
+    sampler_info = {'theta': theta, 'logpost': Lsave}
+
     return sampler_info
-
-
-def test1dboundarys(theta0, logpostfunchere, thetas):
-    L0 = logpostfunchere(theta0.reshape((1, len(theta0))))
-    thetaminsave = np.zeros(theta0.shape)
-    thetamaxsave = np.zeros(theta0.shape)
-    epsnorm = 1
-    for k in range(0, theta0.shape[0]):
-        notfarenough = 0
-        farenough = 0
-        eps = epsnorm * thetas[k]
-        keepgoing = True
-        while keepgoing:
-            thetaadj = 1 * theta0
-            thetaadj[k] += eps
-            L1 = logpostfunchere(thetaadj.reshape((1, len(thetaadj))))
-            if (L0-L1) < 3:
-                eps = eps*2
-                notfarenough += 1
-            else:
-                eps = eps/2
-                farenough += 1
-                thetamaxsave[k] = 1 * thetaadj[k]
-            if notfarenough > 1.5 and farenough > 1.5:
-                keepgoing = False
-                epsnorm = eps/thetas[k]
-        notfarenough = 0
-        farenough = 0
-        keepgoing = True
-        while keepgoing:
-            thetaadj = 1 * theta0
-            thetaadj[k] -= eps
-            L1 = logpostfunchere(thetaadj.reshape((1, len(thetaadj))))
-            if (L0-L1) < 3:
-                eps = eps*2
-                notfarenough += 1
-            else:
-                eps = eps/2
-                farenough += 1
-                thetaminsave[k] = 1 * thetaadj[k]
-            if notfarenough > 1.5 and farenough > 1.5:
-                keepgoing = False
-                epsnorm = eps/thetas[k]
-    return thetaminsave, thetamaxsave

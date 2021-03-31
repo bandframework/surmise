@@ -1,5 +1,4 @@
-"""Emulator PCGP"""
-
+"""PCGP (Higdon et al., 2008)"""
 import numpy as np
 import scipy.optimize as spo
 
@@ -10,7 +9,7 @@ def fit(fitinfo, x, theta, f, args=None):
     information into fitinfo, which is a python dictionary.
 
     .. note::
-       This is an application of the method proposed by Higdon et al..
+       This is an application of the method proposed by Higdon et al., 2008.
        The idea is to use PCA to project the original simulator outputs
        onto a lower-dimensional space spanned by an orthogonal basis. The main
        steps are
@@ -33,7 +32,7 @@ def fit(fitinfo, x, theta, f, args=None):
         An array of parameters. Each row should correspond to a column in f.
     f : numpy.ndarray
         An array of responses. Each column in f should correspond to a row in
-        x. Each row in f should correspond to a row in x.
+        theta. Each row in f should correspond to a row in x.
     args : dict, optional
         A dictionary containing options. The default is None.
 
@@ -44,49 +43,24 @@ def fit(fitinfo, x, theta, f, args=None):
     '''
 
     f = f.T
-    fitinfo['offset'] = np.zeros(f.shape[1])
-    fitinfo['scale'] = np.ones(f.shape[1])
     fitinfo['theta'] = theta
     fitinfo['x'] = x
+    fitinfo['f'] = f
+    fitinfo['epsilon'] = 1
 
-    # Standardize the function evaluations f
-    for k in range(0, f.shape[1]):
-        fitinfo['offset'][k] = np.mean(f[:, k])
-        fitinfo['scale'][k] = np.std(f[:, k])
-        if fitinfo['scale'][k] == 0:
-            fitinfo['scale'][k] = 0.0001
-        # fitinfo['scale'][k] = 0.9*np.std(f[:, k]) + 0.1*np.std(f)
+    # standardize function evaluations f
+    __standardizef(fitinfo)
 
-    fstand = (f - fitinfo['offset']) / fitinfo['scale']
-
-    # Do PCA to reduce the dimension of the function evaluations
-    Vecs, Vals, _ = np.linalg.svd((fstand / np.sqrt(fstand.shape[0])).T)
-    Vals = np.append(Vals, np.zeros(Vecs.shape[1] - Vals.shape[0]))
-    Valssq = (fstand.shape[0]*(Vals**2) + 0.001) / (fstand.shape[0] + 0.001)
-
-    # Find the best size of the reduced space
-
-    numVals = 1 + np.sum(np.cumsum(Valssq) < 0.9995*np.sum(Valssq))
-    numVals = np.maximum(np.minimum(2, fstand.shape[1]), numVals)
-
-    #
-    fitinfo['Cs'] = Vecs * np.sqrt(Valssq)
-    fitinfo['PCs'] = fitinfo['Cs'][:, :numVals]
-    fitinfo['PCsi'] = Vecs[:, :numVals] * np.sqrt(1 / Valssq[:numVals])
-
-    pcaval = fstand @ fitinfo['PCsi']
-    fhat = pcaval @ fitinfo['PCs'].T
-    fitinfo['extravar'] = np.mean((fstand - fhat) ** 2,
-                                  0) * (fitinfo['scale'] ** 2)
+    # apply PCA to reduce the dimension of f
+    __PCs(fitinfo)
+    numpcs = fitinfo['pc'].shape[1]
 
     # create a dictionary to save the emu info for each PC
-    emulist = [dict() for x in range(0, numVals)]
+    emulist = [dict() for x in range(0, numpcs)]
 
-    print(fitinfo['method'], 'considering ', numVals, 'PCs')
-
-    # fit an emulator for each pc
-    for pcanum in range(0, numVals):
-        emulist[pcanum] = emulation_fit(theta, pcaval[:, pcanum])
+    # fit a GP for each PC
+    for pcanum in range(0, numpcs):
+        emulist[pcanum] = emulation_fit(theta, fitinfo['pc'][:, pcanum])
 
     fitinfo['emulist'] = emulist
     return
@@ -126,7 +100,25 @@ def predict(predinfo, fitinfo, x, theta, args=None):
     predvecs = np.zeros((theta.shape[0], len(infos)))
     predvars = np.zeros((theta.shape[0], len(infos)))
 
-    xind = range(0, fitinfo['x'].shape[0])
+    # xind = range(0, fitinfo['x'].shape[0])
+    try:
+        if x is None or np.all(np.equal(x, fitinfo['x'])) or \
+                np.allclose(x, fitinfo['x']):
+            xind = np.arange(0, x.shape[0])
+            xnewind = np.arange(0, x.shape[0])
+        else:
+            raise
+    except Exception:
+        matchingmatrix = np.ones((x.shape[0], fitinfo['x'].shape[0]))
+        for k in range(0, x[0].shape[0]):
+            try:
+                matchingmatrix *= np.isclose(x[:, k][:, None],
+                                             fitinfo['x'][:, k])
+            except Exception:
+                matchingmatrix *= np.equal(x[:, k][:, None],
+                                           fitinfo['x'][:, k])
+        xind = np.argwhere(matchingmatrix > 0.5)[:, 1]
+        xnewind = np.argwhere(matchingmatrix > 0.5)[:, 0]
 
     # For each PC, obtain the mean and variance
     for k in range(0, len(infos)):
@@ -136,16 +128,22 @@ def predict(predinfo, fitinfo, x, theta, args=None):
         predvars[:, k] = infos[k]['sigma2hat'] * \
             (1 + np.exp(infos[k]['hypnug']) - np.sum(r.T * (Rinv @ r.T), 0))
 
-    # Transfer back the PCs into the original space
-    predmean = (predvecs @ fitinfo['PCs'][xind, :].T) * \
-        fitinfo['scale'][xind] + fitinfo['offset'][xind]
+    pctscale = (fitinfo['pct'].T * fitinfo['scale']).T
 
-    predvar = fitinfo['extravar'][xind] + \
-        (predvars @ (fitinfo['PCs'][xind, :] ** 2).T) * \
-        (fitinfo['scale'][xind] ** 2)
+    # transfer back the PCs into the original space
+    predinfo['mean'] = np.full((x.shape[0], theta.shape[0]), np.nan)
+    predinfo['var'] = np.full((x.shape[0], theta.shape[0]), np.nan)
+    predinfo['mean'][xnewind, :] = (predvecs @ pctscale[xind, :].T +
+                                    fitinfo['offset'][xind]).T
+    predinfo['var'][xnewind, :] = (fitinfo['extravar'][xind] +
+                                   (predvars @ pctscale[xind, :].T ** 2)).T
 
-    predinfo['mean'] = predmean.T
-    predinfo['var'] = predvar.T
+    CH = (np.sqrt(predvars)[:, :, None] * (pctscale[xind, :].T)[None, :, :])
+    predinfo['covxhalf'] = np.full((theta.shape[0],
+                                    CH.shape[1],
+                                    x.shape[0]), np.nan)
+    predinfo['covxhalf'][:, :, xnewind] = CH
+    predinfo['covxhalf'] = predinfo['covxhalf'].transpose((2, 0, 1))
 
     return
 
@@ -160,20 +158,37 @@ def predictvar(predinfo, args=None):
 
 def emulation_covmat(theta1, theta2, gammav, returndir=False):
     '''
+    Returns covariance matrix R (Matern) such that
+
+    .. math::
+        R = (1 + S)*\\exp(-S)
+
+    where
+
+    .. math::
+        S = \\frac{|\\theta_1 - \\theta_2|}{\\gamma}.
+
+    The matrix inverse is obtained via eigendecomposition
+
+    .. math::
+        R^{-1} = V (W^{-1}) V^T
+
+    where V is eigenvector and W are eigenvalues.
+
     Parameters
     ----------
-    theta1 : Array
+    theta1 : numpy.ndarray
         An n1-by-d array of parameters.
-    theta2 : Array
+    theta2 : numpy.ndarray
        An n2-by-d array of parameters.
-    gammav : Array
-        A length d array.
+    gammav : numpy.ndarray
+        An array of length d covariance hyperparameters
     returndir : Bool, optional
         Boolean. If True, returns dR. The default is False.
 
     Returns
     -------
-    Array
+    numpy.ndarray
         A n1-by-n2 array of covariance between theta1 and theta2 given
         parameter gammav.
 
@@ -185,6 +200,8 @@ def emulation_covmat(theta1, theta2, gammav, returndir=False):
     n2 = theta2.shape[0]
     V = np.zeros([n1, n2])
     R = np.ones([n1, n2])
+
+    # Matern covariance structure, that is, R = (1 + S)*exp(-S)
     if returndir:
         dR = np.zeros([n1, n2, d])
     for k in range(0, d):
@@ -205,41 +222,50 @@ def emulation_covmat(theta1, theta2, gammav, returndir=False):
 
 def emulation_negloglik(hyperparameters, fitinfo):
     '''
+    Returns the negative log-likelihood of a univariate GP model for given
+    hyperparameters. Hyperparameters minimize the following
+
+    .. math::
+
+        \\frac{n}{2}\\log{\\hat{\\sigma}^2} + \\frac{1}{2} \\log |R|.
+
     Parameters
     ----------
-    hyperparameters : TYPE
-        DESCRIPTION.
-    fitinfo : TYPE
-        DESCRIPTION.
+    hyperparameters : numpy.ndarray
+        An array of hyperparameters.
+    fitinfo : dict
+        A dictionary including the emulation fitting information.
 
     Returns
     -------
-    negloglik : TYPE
-           Negative log-likelihood of single demensional GP model.
+    negloglik : float
+           Negative log-likelihood of a univariate GP model.
 
     '''
-    # Obtain the hyperparameter values
+    # obtain the hyperparameter values
     covhyp = hyperparameters[0:fitinfo['p']]
     nughyp = hyperparameters[fitinfo['p']]
 
-    # Set the fitinfo values
+    # get the fitinfo values
     theta = fitinfo['theta']
     n = fitinfo['n']
     f = fitinfo['f']
 
-    # Obtain the covariance matrix
+    # obtain the covariance matrix R
     R = emulation_covmat(theta, theta, covhyp)
     R = R + np.exp(nughyp)*np.diag(np.ones(n))
 
-    #
+    # eigendecomposition of R
     W, V = np.linalg.eigh(R)
+
+    # MLEs for mu and sigma^2
     fspin = V.T @ f
     onespin = V.T @ np.ones(f.shape)
     muhat = np.sum(V @ (1/W * fspin)) / np.sum(V @ (1/W * onespin))
     fcenter = fspin - muhat * onespin
     sigma2hat = np.mean((fcenter) ** 2 / W)
 
-    # Negative log-likelihood of a single dimensional GP model
+    # Negative log-likelihood of a univariate GP model
     negloglik = 1/2 * np.sum(np.log(W)) + n/2 * np.log(sigma2hat)
     negloglik += 1/2 * np.sum((hyperparameters - fitinfo['hypregmean'])**2 /
                               (fitinfo['hypregstd'] ** 2))
@@ -250,35 +276,35 @@ def emulation_negloglikgrad(hyperparameters, fitinfo):
     '''
     Parameters
     ----------
-    hyperparameters : TYPE
-        DESCRIPTION.
-    fitinfo : TYPE
-        DESCRIPTION.
+    hyperparameters : numpy.ndarray
+        An array of hyperparameters.
+    fitinfo : dict
+        A dictionary including the emulation fitting information.
 
     Returns
     -------
-    dnegloglik : TYPE
-        Gradient of the log-likelihood of a single dimensional GP model.
+    dnegloglik : float
+        Gradient of the log-likelihood of a univariate GP model.
 
     '''
-    # Obtain the hyper-parameter values
+    # obtain the hyperparameter values
     covhyp = hyperparameters[0:fitinfo['p']]
     nughyp = hyperparameters[fitinfo['p']]
 
-    # Set the fitinfo values
+    # get the fitinfo values
     theta = fitinfo['theta']
     n = fitinfo['n']
     p = fitinfo['p']
     f = fitinfo['f']
 
-    # Obtain the covariance matrix
+    # obtain the covariance matrix
     R, dR = emulation_covmat(theta, theta, covhyp, True)
     R = R + np.exp(nughyp)*np.diag(np.ones(n))
     dRappend = np.exp(nughyp)*np.diag(np.ones(n)).reshape(R.shape[0],
                                                           R.shape[1], 1)
     dR = np.append(dR, dRappend, axis=2)
 
-    #
+    # MLEs for mu and sigma^2
     W, V = np.linalg.eigh(R)
     fspin = V.T @ f
     onespin = V.T @ np.ones(f.shape)
@@ -288,7 +314,7 @@ def emulation_negloglikgrad(hyperparameters, fitinfo):
     fcenter = fspin - muhat * onespin
     sigma2hat = np.mean((fcenter) ** 2 / W)
 
-    #
+    # gradients
     dmuhat = np.zeros(p + 1)
     dsigma2hat = np.zeros(p + 1)
     dfcentercalc = (fcenter / W) @ V.T
@@ -313,22 +339,29 @@ def emulation_negloglikgrad(hyperparameters, fitinfo):
     return dnegloglik
 
 
-def emulation_fit(theta, pcaval, hypstarts=None, hypinds=None):
+def emulation_fit(theta, pcaval):
     '''
+    Fits a univariate GP. First, obtains the hyperparameter values via
+    'L-BFGS-B'. Then, finds the MLEs of mu and sigma^2 for the best
+    hyperparameters such that
+
+    .. math::
+        \\hat{\\mu} = \\frac{1^T R^{-1} f}{1^T R^{-1} 1}
+
+    .. math::
+        \\hat{\\sigma^2} =
+        \\frac{(f-\\hat{\\mu})^T R^{-1} (f-\\hat{\\mu})}{n}
+
     Parameters
     ----------
-    theta : Array
+    theta : numpy.ndarray
          An n-by-d array of parameters.
-    pcaval : Array
+    pcaval : numpy.ndarray
         An array of length n.
-    hypstarts : TYPE, optional
-        DESCRIPTION. The default is None.
-    hypinds : TYPE, optional
-        DESCRIPTION. The default is None.
 
     Returns
     -------
-    subinfo : Dictionary
+    subinfo : dict
         Dictionary of the fitted emulator model.
     '''
     subinfo = {}
@@ -337,17 +370,12 @@ def emulation_fit(theta, pcaval, hypstarts=None, hypinds=None):
     covhypLB = covhyp0 - 2
     covhypUB = covhyp0 + 3
 
-    # nughyp0 = -6
-    # nughypLB = -8
-    # nughypUB = 1
-
     nughyp0 = -6
     nughypLB = -15
-    nughypUB = 5
+    nughypUB = 1
 
     # Get a random sample of thetas to find the optimized hyperparameters
-    # n_train = np.min((20*theta.shape[1], theta.shape[0]))
-    n_train = np.min((10, theta.shape[0]))
+    n_train = np.min((20*theta.shape[1], theta.shape[0]))
     idx = np.random.choice(theta.shape[0], n_train, replace=False)
 
     # Start constructing the returning dictionary
@@ -358,12 +386,11 @@ def emulation_fit(theta, pcaval, hypstarts=None, hypinds=None):
     subinfo['f'] = pcaval[idx]
     subinfo['n'] = subinfo['f'].shape[0]
     subinfo['p'] = covhyp0.shape[0]
-    # TO MATT: dont know why we set them like that. we should do it optional
-    subinfo['hypregmean'] = np.append(covhyp0, nughyp0)
-    subinfo['hypregstd'] = np.append((covhypUB - covhypLB)/3, 1)
 
-    # Run an optimizer to find the hyperparameters minimizing the negative
-    # likelihood
+    subinfo['hypregmean'] = np.append(covhyp0, nughyp0)
+    subinfo['hypregstd'] = np.append((covhypUB - covhypLB)/3, 4)
+
+    # Find the hyperparameters minimizing the negative loglikelihood
     bounds = spo.Bounds(np.append(covhypLB, nughypLB),
                         np.append(covhypUB, nughypUB))
     opval = spo.minimize(emulation_negloglik,
@@ -384,6 +411,8 @@ def emulation_fit(theta, pcaval, hypstarts=None, hypinds=None):
 
     # Obtain the eigenvalue decomposition of the covariance matrix
     W, V = np.linalg.eigh(R)
+
+    # MLEs for mu and sigma^2
     fspin = V.T @ pcaval
     onespin = V.T @ np.ones(pcaval.shape)
     muhat = np.sum(V @ (1/W * fspin)) / np.sum(V @ (1/W * onespin))
@@ -404,3 +433,63 @@ def emulation_fit(theta, pcaval, hypstarts=None, hypinds=None):
     subinfo['theta'] = theta
 
     return subinfo
+
+
+def __standardizef(fitinfo, offset=None, scale=None):
+    "Standardizes f by creating offset, scale and fs."
+    # Extracting from input dictionary
+    f = fitinfo['f']
+
+    if (offset is not None) and (scale is not None):
+        if offset.shape[0] == f.shape[1] and scale.shape[0] == f.shape[1]:
+            if np.any(np.nanmean(np.abs(f-offset)/scale, 1) > 4):
+                offset = None
+                scale = None
+        else:
+            offset = None
+            scale = None
+    if offset is None or scale is None:
+        offset = np.zeros(f.shape[1])
+        scale = np.zeros(f.shape[1])
+        for k in range(0, f.shape[1]):
+            offset[k] = np.nanmean(f[:, k])
+            scale[k] = np.nanstd(f[:, k])
+            if scale[k] == 0:
+                scale[k] = 0.0001
+
+    # Initializing values
+    fs = np.zeros(f.shape)
+    fs = (f - offset) / scale
+
+    # Assigning new values to the dictionary
+    fitinfo['offset'] = offset
+    fitinfo['scale'] = scale
+    fitinfo['fs'] = fs
+    return
+
+
+def __PCs(fitinfo):
+    "Apply PCA to reduce the dimension of f"
+    # Extracting from input dictionary
+    f = fitinfo['f']
+    fs = fitinfo['fs']
+    epsilon = fitinfo['epsilon']
+    pct = None
+    pcw = None
+
+    U, S, _ = np.linalg.svd(fs.T, full_matrices=False)
+    Sp = S ** 2 - epsilon
+    pct = U[:, Sp > 0]
+    pcw = np.sqrt(Sp[Sp > 0])
+    pcstdvar = np.zeros((f.shape[0], pct.shape[1]))
+
+    fitinfo['pcw'] = pcw
+    fitinfo['pcto'] = 1*pct
+    fitinfo['pct'] = pct * pcw / np.sqrt(pct.shape[0])
+    fitinfo['pcti'] = pct * (np.sqrt(pct.shape[0]) / pcw)
+    fitinfo['pc'] = fs @ fitinfo['pcti']
+    fitinfo['extravar'] = np.mean((fs - fitinfo['pc'] @
+                                   fitinfo['pct'].T) ** 2, 0) *\
+        (fitinfo['scale'] ** 2)
+    fitinfo['pcstdvar'] = 10*pcstdvar
+    return

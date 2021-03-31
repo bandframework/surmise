@@ -77,6 +77,6 @@ def does_not_raise():
      ],
     )
 def test_predict_multi(input1, input2, expectation):
-    emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
+    emu = emulator(x=x, theta=theta, f=f, method='PCGP')
     with expectation:
         assert emu.predict(x=input1, theta=input2) is not None
