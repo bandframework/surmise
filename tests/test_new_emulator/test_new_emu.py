@@ -143,7 +143,7 @@ def test_prediction_covxhalf(cmdopt1):
 
 # test to check the prediction.mean_gradtheta()
 def test_prediction_mean_gradtheta(cmdopt1):
-    emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+    emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'return_grad': True})
     pred = emu.predict(x=x, theta=theta)
     try:
         pred.mean_gradtheta()
@@ -153,7 +153,7 @@ def test_prediction_mean_gradtheta(cmdopt1):
 
 # test to check the prediction.covx_gradtheta()
 def test_prediction_covxhalf_gradtheta(cmdopt1):
-    emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+    emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'return_grad': True})
     pred = emu.predict(x=x, theta=theta)
     try:
         pred.covxhalf_gradtheta()
