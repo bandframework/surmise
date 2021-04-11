@@ -47,6 +47,7 @@ def alg(thetaprior, n=25, maxthetas=500, flag_failmodel=True):
     looptime = []
     emutime = []
     caltime = []
+    thetaquantile = []
 
     for k in range(0, 50):
         print('Percentage Cancelled: %0.2f ( %d / %d)' %
@@ -143,15 +144,18 @@ def alg(thetaprior, n=25, maxthetas=500, flag_failmodel=True):
         emutime.append(emuend - emustart)
         caltime.append(calend - emuend)
 
-        print(np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis=0), 3))
+        thetarng = np.quantile(cal.theta.rnd(10000), (0.01, 0.5, 0.99), axis=0)
+        thetaquantile.append(thetarng)
+
+        print(np.round(thetarng, 3))
 
         # maximum parameter budget
         if numcompletetheta > maxthetas:
             print('exit with f shape: ', f.shape)
             break
-    return cal, emu, {'ncomp': numcomplete, 'npend': numpending, 'ncancel': numcancel, 'looptime': looptime, 'emutime': emutime, 'caltime': caltime}
+    return cal, emu, {'ncomp': numcomplete, 'npend': numpending, 'ncancel': numcancel, 'looptime': looptime, 'emutime': emutime, 'caltime': caltime, 'quantile': thetaquantile}
 
-#%%
+#%% prior class
 class thetaprior:
     """Prior class."""
 
@@ -164,18 +168,152 @@ class thetaprior:
         return np.vstack((sps.norm.rvs(0.6, 0.5, size=(n, 4))))
 
 
-# %%
+# %% runs without failures
 nofail_res_all = {'cal': [], 'emu': [], 'res': []}
-for i in np.arange(5):
+for i in np.arange(10):
     cal_nofail, emu_nofail, res_nofail = alg(thetaprior, maxthetas=200, flag_failmodel=False)
     nofail_res_all['cal'].append(cal_nofail)
     nofail_res_all['emu'].append(emu_nofail)
     nofail_res_all['res'].append(res_nofail)
 
-# %%
+# %% runs with failures
 fail_res_all = {'cal': [], 'emu': [], 'res': []}
-for i in np.arange(5):
+for i in np.arange(10):
     cal_fail, emu_fail, res_fail = alg(thetaprior, maxthetas=200, flag_failmodel=True)
     fail_res_all['cal'].append(cal_fail)
     fail_res_all['emu'].append(emu_fail)
     fail_res_all['res'].append(res_fail)
+
+#%% theta plots
+import matplotlib.pyplot as plt
+
+def plot_thetaprog(resdict):
+    """Plot quantile progression."""
+
+    n = len(resdict)
+    nsim = np.array(resdict[0]['ncomp'])
+    fig, ax = plt.subplots(1, 4, figsize=(12, 4), sharex=True, sharey=True)
+    for i in range(n):
+        for k in range(4):
+            compress_quantiles = np.array(resdict[i]['quantile'])
+            ax[k].plot(nsim, compress_quantiles[:, 0, k], color='k', alpha=0.15)
+            ax[k].plot(nsim, compress_quantiles[:, 1, k], color='k', alpha=0.15)
+            if i == 0:
+                ax[k].plot(nsim, 0.5*np.ones(nsim.shape), color='r', linewidth=3, linestyle= '--')
+    for i, axi in enumerate(ax):
+        axi.yaxis.set_tick_params(labelbottom=True)
+        axi.xaxis.set_tick_params(labelbottom=True)
+        axi.set_ylabel(r'$\theta_{:d}$'.format(i+1), rotation=0, size=15)
+    fig.text(0.5, -0.05, 'no. completed simulations', ha='center')
+    plt.tight_layout()
+    plt.savefig('fail_theta_prog.png', dpi=150)
+    return
+
+plot_thetaprog(fail_res_all['res'])
+plot_thetaprog(nofail_res_all['res'])
+
+#%% time plots
+def plot_time(resdict):
+    """Plot calibration time."""
+    n = len(resdict)
+    nsim = np.array(resdict[0]['ncomp'])
+    fig, ax = plt.subplots(1, 2, figsize=(6, 3), sharex=True, sharey=True)
+
+    emutimes = np.array([resdict[i]['emutime'] for i in range(n)]).T
+    emumean = emutimes.mean(1)
+    emustd = emutimes.std(1)
+    ax[0].plot(nsim, emumean, color='k', linewidth=2)
+    ax[0].plot(nsim, np.maximum(0, emumean + sps.t.ppf(0.025, n-1) * emustd),
+               color='k', linewidth=2, linestyle='--')
+    ax[0].plot(nsim, emumean + sps.t.ppf(0.975, n-1) * emustd,
+               color='k', linewidth=2, linestyle='--')
+    ax[0].set_title('emulation')
+    ax[0].set_ylabel('time (s)')
+
+    caltimes = np.array([resdict[i]['caltime'] for i in range(n)]).T
+    calmean = caltimes.mean(1)
+    calstd = caltimes.std(1)
+    ax[1].plot(nsim, calmean, color='k', linewidth=1.5)
+    ax[1].plot(nsim, np.maximum(0.01, calmean + sps.t.ppf(0.025, n-1) * calstd),
+               color='k', linewidth=1.5, linestyle='--')
+    ax[1].plot(nsim, calmean + sps.t.ppf(0.975, n-1) * calstd,
+               color='k', linewidth=1.5, linestyle='--')
+    ax[1].set_title('calibration')
+    ax[1].set_ylabel('time (s)')
+
+    for i, axi in enumerate(ax):
+        axi.yaxis.set_tick_params(labelbottom=True)
+        axi.xaxis.set_tick_params(labelbottom=True)
+    fig.text(0.5, -0.02, 'no. completed simulations', ha='center')
+    plt.tight_layout()
+    plt.savefig('nofail_time.png', dpi=150)
+    return
+
+plot_time(fail_res_all['res'])
+plot_time(nofail_res_all['res'])
+#%% alg loop time
+
+def plot_looptime(resdict):
+    """Plot calibration time."""
+    n = len(resdict)
+    nsim = np.array(resdict[0]['ncomp'])
+    fig, ax = plt.subplots(1, 1, figsize=(4, 4), sharex=True, sharey=True)
+
+    looptimes = np.array([resdict[i]['looptime'] for i in range(n)]).T
+    for i in range(n):
+        looptimes[:, i] = np.ediff1d(looptimes[:, i], to_end=0)
+
+    loopmean = looptimes.mean(1)
+    loopstd = looptimes.std(1)
+    ax.plot(nsim[:-1], loopmean[:-1], color='k', linewidth=2)
+    ax.plot(nsim[:-1], np.maximum(0, loopmean + sps.t.ppf(0.025, n-1) * loopstd)[:-1],
+               color='k', linewidth=2, linestyle='--')
+    ax.plot(nsim[:-1], loopmean[:-1] + sps.t.ppf(0.975, n-1) * loopstd[:-1],
+               color='k', linewidth=2, linestyle='--')
+    ax.set_ylabel('time (s)')
+
+    fig.text(0.5, -0.02, 'no. completed simulations', ha='center')
+    plt.tight_layout()
+    plt.savefig('nofail_looptime.png', dpi=150)
+    return
+
+plot_looptime(fail_res_all['res'])
+plot_looptime(nofail_res_all['res'])
+
+# %% theta pairplots from calibrated model
+import seaborn as sns
+import pandas as pd
+
+def plot_thetapairs(cal):
+    thetas = cal.theta.rnd(1000)
+    df = pd.DataFrame(thetas)
+
+    sns.reset_orig()
+    sns.set_theme(style='white', font_scale=2)
+    sns.set_palette('Dark2')
+
+    g = sns.PairGrid(df,
+                     layout_pad=0.005,
+                     despine=False,
+                     diag_sharey=False)
+
+    g.map_diag(sns.kdeplot, linewidth=4, common_norm=False)
+    g.map_offdiag(sns.histplot, bins=10, alpha=0.75)
+    g.map_offdiag(sns.kdeplot, linewidths=3, levels=[0.05], alpha=0.6)
+
+    # parameter labels
+    for i in np.arange(4):
+        ax = g.axes[i][i]
+        ax.annotate(r'$\theta_{:d}$'.format(i+1), xy=(0.05, 0.75), size=36, xycoords=ax.transAxes)
+        for j in np.arange(4):
+            if i != j:
+                ax = g.axes[i][j]
+                sns.scatterplot(x=np.array((0.5, 0.5)), y=np.array((0.5, 0.5)), s=500, color='r', marker='X', ax=ax, legend=False, alpha=0.75)
+
+    g.set(xlim=[0.2, 0.8], ylim=[0.2, 0.8])
+    g.set(xticks=[0.3, 0.5, 0.7], yticks=[0.3, 0.5, 0.7])
+    g.set(xlabel='', ylabel='')
+    g.fig.subplots_adjust(wspace=.0, hspace=.0)
+    g.savefig('nofail_thetapairs.png', dpi=150)
+
+plot_thetapairs(nofail_res_all['cal'][5])
