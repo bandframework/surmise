@@ -23,8 +23,8 @@ def sampler(logpostfunc, options):
     options : dict
         a dictionary contains the output of the sampler.
         Required -
-            theta0: an m by p matrix of initial parameter values.  p must be larger
-            than 10m for the code to work.
+            theta0: an m by p matrix of initial parameter values.  p must be
+            larger than 10m for the code to work.
         Optional -
             numsamp: the number of samplers you want from the posterior.
             Default is 2000.
@@ -54,7 +54,7 @@ def sampler(logpostfunc, options):
     else:
         maxtemp = 30
 
-    ###These are parameters we might want to give to the user
+    # These are parameters we might want to give to the user
     numtemps = 32
     numchain = 16
     fractunning = 0.5
@@ -67,9 +67,8 @@ def sampler(logpostfunc, options):
     temps = np.concatenate((np.exp(np.linspace(np.log(maxtemp),
                                                np.log(maxtemp)/(numtemps+1),
                                                numtemps)),
-                            np.ones(numchain)))#the ratio idea tend from emcee
-    temps = np.array(temps,ndmin=2).T
-
+                            np.ones(numchain)))  # ratio idea tend from emcee
+    temps = np.array(temps, ndmin=2).T
 
     # Test
     testout = logpostfunc(theta0[0:2, :])
@@ -115,10 +114,13 @@ def sampler(logpostfunc, options):
     # begin preoptimizer
     thetac = np.mean(theta0, 0)
     thetas = np.maximum(np.std(theta0, 0), 10 ** (-8) * np.std(theta0))
+
     def neglogpostf_nograd(thetap):
         theta = thetac + thetas * thetap
         return -logpostf_nograd(theta.reshape((1, len(theta))))[0]
+
     if logpostf_grad is not None:
+
         def neglogpostf_grad(thetap):
             theta = thetac + thetas * thetap
             return -thetas * logpostf_grad(theta.reshape((1, len(theta))))
@@ -127,7 +129,7 @@ def sampler(logpostfunc, options):
     boundU = np.minimum(10*np.ones(theta0.shape[1]),
                         np.max((theta0 - thetac)/thetas, 0))
     bounds = spo.Bounds(boundL, boundU)
-    thetaop = np.zeros((numopt,theta0.shape[1]))
+    thetaop = np.zeros((numopt, theta0.shape[1]))
     for k in range(0, numopt):
         if logpostf_grad is None:
             opval = spo.minimize(neglogpostf_nograd,
@@ -144,13 +146,13 @@ def sampler(logpostfunc, options):
             thetaop[k, :] = thetac + thetas * opval.x
     # end Preoptimizer
 
-    #shrink using optimal points as well
-    theta0 = np.vstack((theta0,thetaop))
+    # shrink using optimal points as well
+    theta0 = np.vstack((theta0, thetaop))
     theta0 = shrinkaroundcenter(theta0, logpostf_nograd)
     thetas = np.maximum(np.std(theta0, 0), 10 ** (-8) * np.std(theta0))
     thetac = theta0[np.random.choice(range(0, theta0.shape[0]),
-                                        size=totnumchain), :]
-    #done shrink
+                                     size=totnumchain), :]
+    # done shrink
 
     if logpostf_grad is not None:
         fval, dfval = logpostf(thetac)
@@ -178,13 +180,13 @@ def sampler(logpostfunc, options):
             diffval = (adjrho ** 2) * (dfval @ covmat0)
             thetap += diffval
             fvalp, dfvalp = logpostf(thetap)  # thetap : no chain x dimension
-            fvalp = fvalp / temps # to flatter the posterior
+            fvalp = fvalp / temps  # to flatten the posterior
             dfvalp = dfvalp / temps
             term1 = rvalo / np.sqrt(2)
             term2 = (adjrho / 2) * ((dfval + dfvalp) @ hc)
             qadj = -(2 * np.sum(term1 * term2, 1) + np.sum(term2**2, 1))
         else:
-            fvalp = logpostf_nograd(thetap) # thetap : no chain x dimension
+            fvalp = logpostf_nograd(thetap)  # thetap : no chain x dimension
             fvalp = fvalp / temps
             qadj = np.zeros(fvalp.shape)
         swaprnd = np.log(np.random.uniform(size=fval.shape[0]))
@@ -197,35 +199,36 @@ def sampler(logpostfunc, options):
             fval[whereswap] = 1*fvalp[whereswap]
             if logpostf_grad is not None:
                 dfval[whereswap, :] = 1*dfvalp[whereswap, :]
-        for rt in range(1,totnumchain):
+        for rt in range(1, totnumchain):
             rhoh = temps[rt-1]/temps[rt]
-            if((fval[rt-1]*(rhoh-1)+fval[rt]*(1/rhoh-1))>
-                np.log(np.random.uniform(size=1))):
-                fvaltemp = temps[rt-1]/temps[rt] * fval[rt - 1]
-                fval[rt-1] = temps[rt]/temps[rt-1] * fval[rt]
+            if((fval[rt - 1]*(rhoh - 1) + fval[rt]*(1/rhoh - 1)) >
+               np.log(np.random.uniform(size=1))):
+                fvaltemp = temps[rt - 1]/temps[rt] * fval[rt - 1]
+                fval[rt - 1] = temps[rt]/temps[rt - 1] * fval[rt]
                 fval[rt] = 1*fvaltemp
-                thetatemp = 1*thetac[rt-1,:]
-                thetac[rt-1,:] = 1*thetac[rt,:]
-                thetac[rt,:] = 1*thetatemp
+                thetatemp = 1*thetac[rt-1, :]
+                thetac[rt-1, :] = 1*thetac[rt, :]
+                thetac[rt, :] = 1*thetatemp
                 if logpostf_grad is not None:
-                    dfvaltemp = temps[rt- 1]/temps[rt ]  * dfval[rt - 1,:]
-                    dfval[rt-1,:] = temps[rt ] / temps[rt- 1] * dfval[rt,:]
-                    dfval[rt,:] = 1*dfvaltemp
-        if (k < samptunning) and (k % 5 == 0): # if we are not done with tuning
+                    dfvaltemp = temps[rt - 1]/temps[rt] * dfval[rt - 1, :]
+                    dfval[rt-1, :] = temps[rt] / temps[rt - 1] * dfval[rt, :]
+                    dfval[rt, :] = 1*dfvaltemp
+        if (k < samptunning) and (k % 5 == 0):  # if not done with tuning
             tau = tau + 1 / np.sqrt(1 + k/5) * \
                   ((numtimes / 5) - taracc)
             rho = 2 * (1 + (np.exp(2 * tau) - 1) / (np.exp(2 * tau) + 1))
             adjrho = rho*(temps**(1/3))
             numtimes = 0
-        elif(k >= samptunning): # if we are done with tuning
-            thetasave[:, k-samptunning, :] = 1 * thetac[numtemps:,]
+        elif(k >= samptunning):  # if we are done with tuning
+            thetasave[:, k-samptunning, :] = 1 * thetac[numtemps:, ]
 
-    thetasave = np.reshape(thetasave,(-1, thetac.shape[1]))
+    thetasave = np.reshape(thetasave, (-1, thetac.shape[1]))
     theta = thetasave[np.random.choice(range(0, thetasave.shape[0]),
                                        size=numsamp), :]
     sampler_info = {'theta': theta, 'logpost': logpostf_nograd(theta)}
 
     return sampler_info
+
 
 def shrinkaroundcenter(theta, lpostf):
     theta0 = 1*theta
