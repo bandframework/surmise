@@ -117,7 +117,7 @@ def sampler(logpostfunc, options):
 
     def neglogpostf_nograd(thetap):
         theta = thetac + thetas * thetap
-        ##print(theta)
+
         return -logpostf_nograd(theta.reshape((1, len(theta))))[0]
 
     if logpostf_grad is not None:
@@ -171,7 +171,7 @@ def sampler(logpostfunc, options):
                 thetaop[k, :] = thetac + thetas * opval.x
     # end Preoptimizer
 
-    thetasave = np.vstack((thetastart,thetaop))
+    thetasave = np.vstack((thetastart, thetaop))
     Lsave = logpostf_nograd(thetasave)
     tau = -1
     rho = 2 * (1 + (np.exp(2 * tau) - 1) / (np.exp(2 * tau) + 1))
@@ -184,7 +184,7 @@ def sampler(logpostfunc, options):
                                      size=Lsave.shape[0])
         thetasave = thetasave[startingv, :]
 
-        covmat0 = 0.1*covmat0+ 0.9*np.cov(thetasave.T)
+        covmat0 = 0.1*covmat0 + 0.9*np.cov(thetasave.T)
 
         if covmat0.ndim > 1:
             covmat0 += 0.1 * np.diag(np.diag(covmat0))
@@ -266,7 +266,7 @@ def sampler(logpostfunc, options):
         ESS = 1 + numchain*numsamppc*(1 - np.abs(rhohat))
         thetasave = np.reshape(thetasave, (-1, thetac.shape[1]))
         accr = numtimes/numsamppc
-  
+
         # termination criteria
         if iters > 1.5 and accr > taracc/2 and accr < 1.5*taracc and\
                 (np.mean(ESS) > tarESS):
