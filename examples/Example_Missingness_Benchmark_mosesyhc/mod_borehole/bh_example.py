@@ -251,6 +251,8 @@ def plot_time(resdict):
 
 plot_time(fail_res_all['res'])
 plot_time(nofail_res_all['res'])
+
+
 #%% alg loop time
 
 def plot_looptime(resdict):
