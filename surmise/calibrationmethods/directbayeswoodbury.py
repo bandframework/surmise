@@ -141,7 +141,7 @@ def fit(fitinfo, emu, x, y,  args=None):
 
     # obtain theta draws from posterior distribution
     args['theta0'] = theta
-    args['sampler'] = 'LMC'
+    args['sampler'] = 'PTLMC'
     sampler_obj = sampler(logpostfunc=logpostfull_wgrad, options=args)
     theta = sampler_obj.sampler_info['theta']
 
