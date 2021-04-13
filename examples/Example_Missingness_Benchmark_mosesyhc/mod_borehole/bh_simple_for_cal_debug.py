@@ -1,14 +1,16 @@
 import numpy as np
 import scipy.stats as sps
-from boreholetestfunctions import borehole_model, borehole_failmodel, borehole_true
+from boreholetestfunctions import borehole_model, borehole_failmodel, borehole_true, borehole_failmodel_random
 from surmise.emulation import emulator
 from surmise.calibration import calibrator
 from time import time
 
 
-def alg(thetaprior, n=25, maxthetas=500, flag_failmodel=True, obviate=True):
+def alg(thetaprior, n=25, maxthetas=500, flag_failmodel=True, random_fail=False, obviate=True):
     if flag_failmodel is False:
         bh_model = borehole_model
+    elif random_fail:
+        bh_model = borehole_failmodel_random
     else:
         bh_model = borehole_failmodel
 
@@ -192,13 +194,13 @@ true_cal = calibrator(pass_emu, y, x, thetaprior, yvar, method='directbayeswoodb
 postthetas = true_cal.theta.rnd(10000)
 postthetarng = np.quantile(postthetas, (0.025, 0.5, 0.975), axis=0)
 
-# %% runs without failures, without obviation
-cal, emu, res = alg(thetaprior, maxthetas=200, flag_failmodel=False, obviate=False)
+# %% runs
+cal, emu, res = alg(thetaprior, maxthetas=200, flag_failmodel=True, random_fail=True, obviate=False)
 sampthetas = cal.theta.rnd(10000)
-sampthetarng = np.quantile(postthetas, (0.025, 0.5, 0.975), axis=0)
+sampthetarng = np.quantile(sampthetas, (0.025, 0.5, 0.975), axis=0)
 
 #%% quantile comparisons
-print('estimated quantile from the last loop:\n', np.round(res['quantile'][-1][(0,-1),:], 3))
+# print('estimated quantile from the last loop:\n', np.round(res['quantile'][-1][(0,-1),:], 3))
 print('estimated posterior quantile:\n', np.round(sampthetarng[(0,-1),:], 3))
 print('true posterior quantile:\n', np.round(postthetarng[(0,-1), :], 3))
 

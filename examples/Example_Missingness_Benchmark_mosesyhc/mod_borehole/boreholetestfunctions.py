@@ -5,7 +5,16 @@ def borehole_failmodel(x, theta):
     """Given x and theta, return matrix of [row x] times [row theta] of values."""
 
     f = borehole_model(x, theta)
-    wheretoobig = np.where( (f / borehole_true(x)) > 1.25)
+    wheretoobig = np.where((f / borehole_true(x)) > 1.25)
+    f[wheretoobig[0],wheretoobig[1]] = np.inf
+
+    return f
+
+
+def borehole_failmodel_random(x, theta):
+
+    f = borehole_model(x, theta)
+    wheretoobig = np.where(np.random.choice([0, 1], f.shape, replace=True, p=[0.8, 0.2]))
     f[wheretoobig[0],wheretoobig[1]] = np.inf
 
     return f
