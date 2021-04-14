@@ -4,7 +4,7 @@ import scipy.stats as sps
 """Metropolis Hastings"""
 
 
-def sampler(logpostfunc, options={}):
+def sampler(logpostfunc, draw_rnd, options={}):
     '''
     Parameters
     ----------
@@ -50,13 +50,13 @@ def sampler(logpostfunc, options={}):
     if 'stepParam' in options.keys():
         stepParam = options['stepParam']
     else:
-        raise ValueError('Unknown stepParam')
+        stepParam = np.std(draw_rnd(1000), axis=0)
 
     # intial theta to start the chain
     if 'theta0' in options.keys():
         thetastart = options['theta0']
     else:
-        raise ValueError('Unknown theta0')
+        thetastart = draw_rnd(1)
 
     p = thetastart.shape[1]
     lposterior = np.zeros(1000 + n)

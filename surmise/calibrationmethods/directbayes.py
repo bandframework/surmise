@@ -1,5 +1,6 @@
 import numpy as np
 from surmise.utilities import sampler
+import copy
 
 
 def fit(fitinfo, emu, x, y, args=None):
@@ -85,16 +86,28 @@ def fit(fitinfo, emu, x, y, args=None):
         logpost[inds] += loglik(fitinfo, emu, theta[inds, :], y, x, args)
         return logpost
 
-    # Call the sampler
-    if 'theta0' not in args.keys():
-        if 'sampler' in args.keys():
-            if args['sampler'] == 'LMC':
-                args['theta0'] = thetaprior.rnd(1000)
+    # Define the draw function to sample from initial theta
+    def draw_rnd(n):
+        p = thetaprior.rnd(1).shape[1]
+        theta0 = np.array([]).reshape(0, p)
+
+        if 'thetarnd' in fitinfo:
+            theta0 = fitinfo['thetarnd']
+        if '_emulator__theta' in dir(emu):
+            theta0 = np.vstack((theta0, copy.copy(emu._emulator__theta)))
+        n0 = len(theta0)
+        if n0 < n:
+            theta0 = np.vstack((thetaprior.rnd(n-n0), theta0))
         else:
-            args['theta0'] = thetaprior.rnd(1)
-    if 'stepParam' not in args.keys():
-        args['stepParam'] = np.std(thetaprior.rnd(1000), axis=0)
-    sampler_obj = sampler(logpostfunc=logpostfull, options=args)
+            theta0 = theta0[np.random.randint(theta0.shape[0], size=n), :]
+
+        return theta0
+
+    # Call the sampler
+    sampler_obj = sampler(logpostfunc=logpostfull,
+                          draw_rnd=draw_rnd,
+                          options=args)
+
     theta = sampler_obj.sampler_info['theta']
 
     # Update fitinfo dict

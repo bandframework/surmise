@@ -198,14 +198,14 @@ def plot_preds(cal, axs):
 # ### Calibrators for Model 1
 
 # %%
+
 cal_grav_1 = calibrator(emu=emu_grav,
                         y=y,
                         x=x,
                         thetaprior=priorphys_grav, 
                         method='directbayes',
                         yvar=obsvar, 
-                        args={'theta0': np.array([[9]]), 
-                              'numsamp': 1000, 
+                        args={'numsamp': 1000, 
                               'stepType': 'normal', 
                               'stepParam': np.array([1])})
 
@@ -216,8 +216,7 @@ cal_grav_2 = calibrator(emu=emu_grav,
                         thetaprior=priorphys_grav, 
                         method='directbayes',
                         yvar=obsvar, 
-                        args={'sampler': 'LMC',
-                              'theta0': priorphys_grav.rnd(1000)}) 
+                        args={'sampler': 'LMC'}) 
 
 # %%
 cal_grav_3 = calibrator(emu=emu_grav,
@@ -225,7 +224,8 @@ cal_grav_3 = calibrator(emu=emu_grav,
                         x=x,
                         thetaprior=priorphys_grav, 
                         method='directbayeswoodbury',
-                        yvar=obsvar)
+                        yvar=obsvar,
+                        args={'sampler': 'LMC'})
 
 # %%
 plot_theta(cal_grav_1, 0)
@@ -244,46 +244,56 @@ plt.show()
 
 # %%
 cal_lin_1 = calibrator(emu=emu_lin,
-                       y=y,
-                       x=x,
-                       thetaprior=priorphys_lin, 
-                       method='directbayes',
-                       yvar=obsvar, 
-                       args={'theta0': np.array([[0, 9]]), 
-                             'numsamp': 1000, 
-                             'stepType': 'normal', 
-                             'stepParam': np.array([0.1, 1])})
+                        y=y,
+                        x=x,
+                        thetaprior=priorphys_lin, 
+                        method='directbayes',
+                        yvar=obsvar, 
+                        args={'theta0': np.array([[0, 9]]), 
+                              'numsamp': 1000, 
+                              'stepType': 'normal', 
+                              'stepParam': np.array([0.1, 1])})
 
 # %% [markdown]
 # Now, we build a calibrator using a different sampler `LMC`--Langevin Monte Carlo.
 
 # %%
 cal_lin_2 = calibrator(emu=emu_lin,
-                       y=y,
-                       x=x,
-                       thetaprior=priorphys_lin, 
-                       method='directbayes',
-                       yvar=obsvar, 
-                       args={'sampler': 'LMC',
-                             'theta0': priorphys_lin.rnd(1000)})  
+                        y=y,
+                        x=x,
+                        thetaprior=priorphys_lin, 
+                        method='directbayes',
+                        yvar=obsvar, 
+                        args={'sampler': 'LMC'})  
 
 # %%
 cal_lin_3 = calibrator(emu=emu_lin,
-                       y=y,
-                       x=x,
-                       thetaprior=priorphys_lin, 
-                       method='directbayeswoodbury',
-                       yvar=obsvar)  
+                        y=y,
+                        x=x,
+                        thetaprior=priorphys_lin, 
+                        method='directbayeswoodbury',
+                        yvar=obsvar,
+                        args={'sampler': 'LMC'})
+
+cal_lin_4 = calibrator(emu=emu_lin,
+                        y=y,
+                        x=x,
+                        thetaprior=priorphys_lin, 
+                        method='directbayeswoodbury',
+                        yvar=obsvar,
+                        args={'sampler': 'PTLMC'})  
 
 # %%
 # visualize posterior draws for the calibration parameter
 plot_theta(cal_lin_1, 0)
 plot_theta(cal_lin_2, 0)
 plot_theta(cal_lin_3, 0)
+plot_theta(cal_lin_4, 0)
 
 # %%
-fig, axs = plt.subplots(1, 3, figsize=(15, 4))
+fig, axs = plt.subplots(1, 4, figsize=(15, 4))
 axs[0] = plot_preds(cal_lin_1, axs[0])
 axs[1] = plot_preds(cal_lin_2, axs[1])
 axs[2] = plot_preds(cal_lin_3, axs[2])
+axs[3] = plot_preds(cal_lin_4, axs[3])
 plt.show()

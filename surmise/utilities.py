@@ -3,7 +3,7 @@ import importlib
 
 class sampler(object):
 
-    def __init__(self, logpostfunc, options={}):
+    def __init__(self, logpostfunc, draw_rnd, options={}):
         '''
         A class used to represent a sampler.
 
@@ -27,6 +27,7 @@ class sampler(object):
             method = 'metropolis_hastings'
 
         self.logpostfunc = logpostfunc
+        self.draw_rnd = draw_rnd
         self.options = options
         self.sampler_info = {}
         self.draw_samples(method)
@@ -49,4 +50,6 @@ class sampler(object):
         self.method = importlib.import_module('surmise.utilitiesmethods.'
                                               + method)
         # update sampler_info with the output of the sampler
-        self.sampler_info = self.method.sampler(self.logpostfunc, self.options)
+        self.sampler_info = self.method.sampler(self.logpostfunc,
+                                                self.draw_rnd,
+                                                self.options)

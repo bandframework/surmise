@@ -6,7 +6,7 @@ Metropolis-adjusted Langevin algorithm or Langevin Monte Carlo (LMC)
 '''
 
 
-def sampler(logpostfunc, options):
+def sampler(logpostfunc, draw_rnd, options):
     '''
 
     Parameters
@@ -38,7 +38,7 @@ def sampler(logpostfunc, options):
     if 'theta0' in options.keys():
         theta0 = options['theta0']
     else:
-        raise ValueError('Unknown theta0')
+        theta0 = draw_rnd(1000)
 
     # Initialize
     if 'numsamp' in options.keys():

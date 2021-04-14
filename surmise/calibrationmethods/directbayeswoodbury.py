@@ -126,16 +126,28 @@ def fit(fitinfo, emu, x, y,  args=None):
                                     args)
             return logpost
 
-    theta = thetaprior.rnd(1000)
-    if 'thetarnd' in fitinfo:
-        theta = np.vstack((fitinfo['thetarnd'], theta))
-    if '_emulator__theta' in dir(emu):
-        theta = np.vstack((theta, copy.copy(emu._emulator__theta)))
+    # Define the draw function to sample from initial theta
+    def draw_rnd(n):
+        p = thetaprior.rnd(1).shape[1]
+        theta0 = np.array([]).reshape(0, p)
+
+        if 'thetarnd' in fitinfo:
+            theta0 = fitinfo['thetarnd']
+        if '_emulator__theta' in dir(emu):
+            theta0 = np.vstack((theta0, copy.copy(emu._emulator__theta)))
+        n0 = len(theta0)
+        if n0 < n:
+            theta0 = np.vstack((thetaprior.rnd(n-n0), theta0))
+        else:
+            theta0 = theta0[np.random.randint(theta0.shape[0], size=n), :]
+
+        return theta0
 
     # obtain theta draws from posterior distribution
-    args['theta0'] = theta
-    args['sampler'] = 'LMC'
-    sampler_obj = sampler(logpostfunc=logpostfull_wgrad, options=args)
+    sampler_obj = sampler(logpostfunc=logpostfull_wgrad,
+                          draw_rnd=draw_rnd,
+                          options=args)
+
     theta = sampler_obj.sampler_info['theta']
 
     # obtain log-posterior of theta values
