@@ -208,7 +208,7 @@ class emulator(object):
         else:
             argstemp = copy.copy(self._args)
         x, theta, f = self.__preprocess()
-        self.method.fit(self._info, x, theta, f, args=argstemp)
+        self.method.fit(self._info, x, theta, f, **argstemp)
 
     def predict(self, x=None, theta=None, args={}):
         '''
@@ -302,7 +302,7 @@ class emulator(object):
                                  ' emulator build.')
 
         info = {}
-        self.method.predict(info, self._info, x, theta, args=argstemp)
+        self.method.predict(info, self._info, x, theta, **argstemp)
         return prediction(info, self)
 
     def supplement(self,
@@ -927,7 +927,7 @@ class prediction(object):
                 ((pfstr + opstr) in dir(self.emu.method)):
             if args is None:
                 args = self.emu._args
-            return copy.deepcopy(self.emu.method.predictmean(self._info, args))
+            return copy.deepcopy(self.emu.method.predictmean(self._info, **args))
         elif opstr in self._info.keys():
             return self._info[opstr]
         elif 'rnd' in self._info.keys():
@@ -960,7 +960,7 @@ class prediction(object):
                 ((pfstr + opstr) in dir(self.emu.method)):
             if args is None:
                 args = self.emu._args
-            return copy.deepcopy(self.emu.method.predictvar(self._info, args))
+            return copy.deepcopy(self.emu.method.predictvar(self._info, **args))
         elif opstr in self._info.keys():
             return copy.deepcopy(self._info[opstr])
         elif 'rnd' in self._info.keys():
@@ -980,7 +980,7 @@ class prediction(object):
                 ((pfstr + opstr) in dir(self.emu.method)):
             if args is None:
                 args = self.emu._args
-            return copy.deepcopy(self.emu.method.predictcov(self._info, args))
+            return copy.deepcopy(self.emu.method.predictcov(self._info, **args))
         elif opstr in self._info.keys():
             return copy.deepcopy(self._info[opstr])
         elif 'covxhalf' in self._info.keys():
@@ -1011,7 +1011,7 @@ class prediction(object):
                 ((pfstr + opstr) in dir(self.emu.method)):
             if args is None:
                 args = self.emu._args
-            return copy.deepcopy(self.emu.method.predictcov(self._info, args))
+            return copy.deepcopy(self.emu.method.predictcov(self._info, **args))
         elif opstr in self._info.keys():
             return copy.deepcopy(self._info[opstr])
         elif 'covx' in self._info.keys():
