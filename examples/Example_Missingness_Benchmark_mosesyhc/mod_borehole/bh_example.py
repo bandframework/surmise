@@ -1,14 +1,16 @@
 import numpy as np
 import scipy.stats as sps
-from boreholetestfunctions import borehole_model, borehole_failmodel, borehole_true
+from boreholetestfunctions import borehole_model, borehole_failmodel, borehole_true, borehole_failmodel_random
 from surmise.emulation import emulator
 from surmise.calibration import calibrator
 from time import time
 
 
-def alg(thetaprior, n=25, maxthetas=500, flag_failmodel=True, obviate=True):
+def alg(thetaprior, n=25, maxthetas=500, flag_failmodel=True, random_fail=False, obviate=True):
     if flag_failmodel is False:
         bh_model = borehole_model
+    elif random_fail:
+        bh_model = borehole_failmodel_random
     else:
         bh_model = borehole_failmodel
 
@@ -31,7 +33,7 @@ def alg(thetaprior, n=25, maxthetas=500, flag_failmodel=True, obviate=True):
 
     # apply emulator to calibration
     cal = calibrator(emu, y, x, thetaprior, yvar, method='directbayeswoodbury')
-    print(np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis=0), 3))
+    print(np.round(np.quantile(cal.theta.rnd(10000), (0.025, 0.5, 0.975), axis=0), 3))
 
     thetaidqueue = np.zeros(0)
     xidqueue = np.zeros(0)
@@ -156,6 +158,7 @@ def alg(thetaprior, n=25, maxthetas=500, flag_failmodel=True, obviate=True):
             break
     return cal, emu, {'ncomp': numcomplete, 'npend': numpending, 'ncancel': numcancel, 'looptime': looptime, 'emutime': emutime, 'caltime': caltime, 'quantile': thetaquantile}
 
+
 #%% prior class
 class thetaprior:
     """Prior class."""
@@ -192,32 +195,6 @@ true_cal = calibrator(pass_emu, y, x, thetaprior, yvar, method='directbayeswoodb
 postthetas = true_cal.theta.rnd(10000)
 postthetarng = np.quantile(postthetas, (0.025, 0.5, 0.975), axis=0)
 
-# %% runs without failures, without obviation
-cal, emu, res = alg(thetaprior, maxthetas=200, flag_failmodel=False, obviate=False)
-sampthetas = cal.theta.rnd(10000)
-sampthetarng = np.quantile(postthetas, (0.025, 0.5, 0.975), axis=0)
-
-#%% quantile comparisons
-print('estimated posterior quantile:\n', np.round(sampthetarng[(0,-1),:], 3))
-print('true posterior quantile:\n', np.round(postthetarng[(0,-1), :], 3))
-
-print('\n', np.round(postthetarng[(0,-1), :] - sampthetarng[(0,-1),:], 3))
-
-# %% runs without failures
-nofail_res_all = {'cal': [], 'emu': [], 'res': []}
-for i in np.arange(10):
-    cal_nofail, emu_nofail, res_nofail = alg(thetaprior, maxthetas=200, flag_failmodel=False)
-    nofail_res_all['cal'].append(cal_nofail)
-    nofail_res_all['emu'].append(emu_nofail)
-    nofail_res_all['res'].append(res_nofail)
-
-# %% runs with failures
-fail_res_all = {'cal': [], 'emu': [], 'res': []}
-for i in np.arange(10):
-    cal_fail, emu_fail, res_fail = alg(thetaprior, maxthetas=200, flag_failmodel=True)
-    fail_res_all['cal'].append(cal_fail)
-    fail_res_all['emu'].append(emu_fail)
-    fail_res_all['res'].append(res_fail)
 
 #%% theta plots
 import matplotlib.pyplot as plt
@@ -246,11 +223,8 @@ def plot_thetaprog(resdict):
         axi.set_ylim([0.45, 0.55])
     fig.text(0.5, -0.05, 'no. completed simulations', ha='center')
     plt.tight_layout()
-    plt.savefig('nofail_theta_prog.png', dpi=150)
+    # plt.savefig('nofail_theta_prog.png', dpi=150)
     return
-
-# plot_thetaprog(fail_res_all['res'])
-plot_thetaprog(nofail_res_all['res'])
 
 #%% time plots
 def plot_time(resdict):
@@ -286,11 +260,9 @@ def plot_time(resdict):
         axi.xaxis.set_tick_params(labelbottom=True)
     fig.text(0.5, -0.02, 'no. completed simulations', ha='center')
     plt.tight_layout()
-    plt.savefig('nofail_time.png', dpi=150)
+    # plt.savefig('nofail_time.png', dpi=150)
     return
 
-# plot_time(fail_res_all['res'])
-plot_time(nofail_res_all['res'])
 
 
 #%% alg loop time
@@ -316,11 +288,8 @@ def plot_looptime(resdict):
 
     fig.text(0.5, -0.02, 'no. completed simulations', ha='center')
     plt.tight_layout()
-    plt.savefig('nofail_looptime.png', dpi=150)
+    # plt.savefig('nofail_looptime.png', dpi=150)
     return
-
-plot_looptime(fail_res_all['res'])
-plot_looptime(nofail_res_all['res'])
 
 # %% theta pairplots from calibrated model
 import seaborn as sns
@@ -356,24 +325,54 @@ def plot_thetapairs(cal):
     g.set(xticks=[0.3, 0.5, 0.7], yticks=[0.3, 0.5, 0.7])
     g.set(xlabel='', ylabel='')
     g.fig.subplots_adjust(wspace=.0, hspace=.0)
-    g.savefig('nofail_thetapairs.png', dpi=150)
+    # g.savefig('nofail_thetapairs.png', dpi=150)
 
-plot_thetapairs(nofail_res_all['cal'][5])
 
+# # %% runs with obviation
+# res_obv = {'cal': [], 'emu': [], 'res': []}
+# for i in np.arange(5):
+#     cal_nofail, emu_nofail, res_nofail = alg(thetaprior, maxthetas=200, flag_failmodel=True, random_fail=True, obviate=True)
+#     res_obv['cal'].append(cal_nofail)
+#     res_obv['emu'].append(emu_nofail)
+#     res_obv['res'].append(res_nofail)
+
+# %% runs with failures
+res_noobv = {'cal': [], 'emu': [], 'res': []}
+for i in np.arange(10):
+    cal_fail, emu_fail, res_fail = alg(thetaprior, maxthetas=200, flag_failmodel=True, random_fail=False, obviate=True)
+    res_noobv['cal'].append(cal_fail)
+    res_noobv['emu'].append(emu_fail)
+    res_noobv['res'].append(res_fail)
+
+
+# %% one-shop plots
+
+print('obviation=False, random=False')
+
+resultlist = res_noobv
+
+sns.reset_defaults()
+plot_thetaprog(resultlist['res'])
+
+plot_time(resultlist['res'])
+
+plot_looptime(resultlist['res'])
+
+plot_thetapairs(resultlist['cal'][0])
 
 #%% profiling one loop
-import cProfile
-import pstats
-import io
+# import cProfile
+# import pstats
+# import io
 
-pr = cProfile.Profile()
-pr.enable()
+# pr = cProfile.Profile()
+# pr.enable()
 
-res = alg(thetaprior, maxthetas=200, flag_failmodel=False)
-pr.disable()
-s = io.StringIO()
-ps = pstats.Stats(pr, stream=s).sort_stats('tottime')
-ps.print_stats()
+# res = alg(thetaprior, maxthetas=200, flag_failmodel=False)
+# pr.disable()
+# s = io.StringIO()
+# ps = pstats.Stats(pr, stream=s).sort_stats('tottime')
+# ps.print_stats()
 
-with open('alg_profile.txt', 'w+') as f:
-    f.write(s.getvalue())
+# with open('alg_profile.txt', 'w+') as f:
+#     f.write(s.getvalue())

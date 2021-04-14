@@ -33,7 +33,7 @@ def alg(thetaprior, n=25, maxthetas=500, flag_failmodel=True, random_fail=False,
 
     # apply emulator to calibration
     cal = calibrator(emu, y, x, thetaprior, yvar, method='directbayeswoodbury')
-    print(np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis=0), 3))
+    print(np.round(np.quantile(cal.theta.rnd(10000), (0.025, 0.5, 0.975), axis=0), 3))
 
     thetaidqueue = np.zeros(0)
     xidqueue = np.zeros(0)
@@ -156,7 +156,7 @@ def alg(thetaprior, n=25, maxthetas=500, flag_failmodel=True, random_fail=False,
         if numcompletetheta > maxthetas:
             print('exit with f shape: ', f.shape)
             break
-    return cal, emu, {'ncomp': numcomplete, 'npend': numpending, 'ncancel': numcancel, 'looptime': looptime, 'emutime': emutime, 'caltime': caltime, 'quantile': thetaquantile}
+    return cal, emu, {'ncomp': numcomplete, 'npend': numpending, 'ncancel': numcancel, 'looptime': looptime, 'emutime': emutime, 'caltime': caltime, 'quantile': thetaquantile}, x, thetatot
 
 #%% prior class
 class thetaprior:
@@ -195,7 +195,18 @@ postthetas = true_cal.theta.rnd(10000)
 postthetarng = np.quantile(postthetas, (0.025, 0.5, 0.975), axis=0)
 
 # %% runs
-cal, emu, res = alg(thetaprior, maxthetas=200, flag_failmodel=True, random_fail=True, obviate=False)
+cal, emu, res, x, theta = alg(thetaprior, maxthetas=120, flag_failmodel=False, random_fail=False, obviate=False)
+
+# %% end of run data
+x = np.loadtxt('x.txt', delimiter=',')
+theta = np.loadtxt('theta.txt', delimiter=',')
+
+emu = emulator(x, theta, borehole_model(x, theta), method='PCGPwM',
+               options={'xrmnan': 'all',
+                        'thetarmnan': 'never',
+                        'return_grad': True})
+
+cal = calibrator(emu, y, x, thetaprior, yvar, method='directbayeswoodbury')
 sampthetas = cal.theta.rnd(10000)
 sampthetarng = np.quantile(sampthetas, (0.025, 0.5, 0.975), axis=0)
 
