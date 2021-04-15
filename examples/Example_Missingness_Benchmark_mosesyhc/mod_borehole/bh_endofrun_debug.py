@@ -51,3 +51,22 @@ print('estimated posterior quantile:\n', np.round(sampthetarng[(0,-1),:], 3))
 print('true posterior quantile:\n', np.round(postthetarng[(0,-1), :], 3))
 
 print('\n', np.round(postthetarng[(0,-1), :] - sampthetarng[(0,-1),:], 3))
+
+
+#%%
+import seaborn as sns
+import pandas as pd
+
+g = sns.pairplot(pd.DataFrame(postthetas[np.random.choice(np.arange(10000), 200, replace=False)]))
+# g.set(xlim=[0.2, 0.8], ylim=[0.2, 0.8])
+
+# %%
+import matplotlib.pyplot as plt
+
+fhat = emu.predict(theta=postthetas)
+facc = borehole_model(x, postthetas)
+resid = fhat()-borehole_model(x, postthetas)
+stdresid = (1/np.sqrt(borehole_model(x, postthetas).var(1)))[:,None]*(fhat()-borehole_model(x, postthetas))
+plt.figure()
+plt.scatter(facc, stdresid.flatten())
+plt.show()

@@ -107,10 +107,9 @@ def sampler(logpostfunc, options):
         rho = 2 / theta0.shape[1] ** (1/6)
         taracc = 0.60
 
-    thetac = np.mean(theta0, 0)
-    thetas = np.maximum(np.std(theta0, 0), 10 ** (-8) * np.std(theta0))
-
-    theta0 = shrinkaroundcenter(theta0, logpostf_nograd)
+    ord1 = np.argsort(-np.squeeze(logpostf_nograd(theta0)) +
+                      theta0.shape[1]*np.random.standard_normal(size=theta0.shape[0])**2)
+    theta0 = theta0[ord1[0:numchain],:]
 
     # begin preoptimizer
     thetac = np.mean(theta0, 0)
@@ -146,7 +145,6 @@ def sampler(logpostfunc, options):
 
     #shrink using optimal points as well
     theta0 = np.vstack((theta0,thetaop))
-    theta0 = shrinkaroundcenter(theta0, logpostf_nograd)
     thetas = np.maximum(np.std(theta0, 0), 10 ** (-8) * np.std(theta0))
     thetac = theta0[np.random.choice(range(0, theta0.shape[0]),
                                         size=totnumchain), :]
@@ -197,20 +195,11 @@ def sampler(logpostfunc, options):
             fval[whereswap] = 1*fvalp[whereswap]
             if logpostf_grad is not None:
                 dfval[whereswap, :] = 1*dfvalp[whereswap, :]
-        for rt in range(1,totnumchain):
-            rhoh = temps[rt-1]/temps[rt]
-            if((fval[rt-1]*(rhoh-1)+fval[rt]*(1/rhoh-1))>
-                np.log(np.random.uniform(size=1))):
-                fvaltemp = temps[rt-1]/temps[rt] * fval[rt - 1]
-                fval[rt-1] = temps[rt]/temps[rt-1] * fval[rt]
-                fval[rt] = 1*fvaltemp
-                thetatemp = 1*thetac[rt-1,:]
-                thetac[rt-1,:] = 1*thetac[rt,:]
-                thetac[rt,:] = 1*thetatemp
-                if logpostf_grad is not None:
-                    dfvaltemp = temps[rt- 1]/temps[rt ]  * dfval[rt - 1,:]
-                    dfval[rt-1,:] = temps[rt ] / temps[rt- 1] * dfval[rt,:]
-                    dfval[rt,:] = 1*dfvaltemp
+        orderprop = tempexchange(fval * temps,temps)
+        fval = fval[orderprop]
+        thetac= thetac[orderprop,:]
+        if logpostf_grad is not None:
+            dfval = dfval[orderprop,:]
         if (k < samptunning) and (k % 5 == 0): # if we are not done with tuning
             tau = tau + 1 / np.sqrt(1 + k/5) * \
                   ((numtimes / 5) - taracc)
@@ -227,29 +216,21 @@ def sampler(logpostfunc, options):
 
     return sampler_info
 
-def shrinkaroundcenter(theta, lpostf):
-    theta0 = 1*theta
-    keepgoing = True
-    theta0 = np.unique(theta0, axis=0)
-    iteratttempt = 0
-    while keepgoing:
-        logpost = lpostf(theta0)/4
-        mlogpost = np.max(logpost)
-        logpost -= (mlogpost + np.log(np.sum(np.exp(logpost - mlogpost))))
-        post = np.exp(logpost)
-        post = post/np.sum(post)
-        thetaposs = theta0[np.random.choice(range(0, theta0.shape[0]),
-                                            size=1000,
-                                            p=post.reshape((theta0.shape[0],
-                                                            ))), :]
-        if np.any(np.std(thetaposs, 0) < 10 ** (-8) * np.min(np.std(theta0,
-                                                                    0))):
-            thetastar = theta0[np.argmax(logpost), :]
-            theta0 = thetastar + (theta0 - thetastar) / 2
-            iteratttempt += 1
-        else:
-            theta0 = thetaposs
-            keepgoing = False
-        if iteratttempt > 10:
-            raise ValueError('Could not find any points to vary.')
-        return theta0
+def tempexchange(lpostf, temps, iters = 1):
+    order = np.arange(0, lpostf.shape[0])
+    for k in range(0,iters):
+        for rt in range(1, lpostf.shape[0]):
+            rhoh = (1/temps[rt-1] - 1 / temps[rt])
+            if ((lpostf[order[rt]]-lpostf[order[rt - 1]]) * rhoh  >
+                    np.log(np.random.uniform(size=1))):
+                temporder = order[rt - 1]
+                order[rt-1] = 1*order[rt]
+                order[rt] = 1* temporder
+        for rt in range(lpostf.shape[0]-1, 0,-1):
+            rhoh = (1/temps[rt-1] - 1 / temps[rt])
+            if ((lpostf[order[rt]]-lpostf[order[rt - 1]]) * rhoh  >
+                    np.log(np.random.uniform(size=1))):
+                temporder = order[rt - 1]
+                order[rt-1] = 1*order[rt]
+                order[rt] = 1* temporder
+    return order
