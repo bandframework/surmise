@@ -32,7 +32,7 @@ def fit(fitinfo, x, theta, f, epsilon=0.1, **kwargs):
         An array of parameters. Each row should correspond to a column in f.
     f : numpy.ndarray
         An array of responses. Each column in f should correspond to a row in
-        x. Each row in f should correspond to a row in x.
+        theta. Each row in f should correspond to a row in x.
     args : dict, optional
         A dictionary containing options. The default is None.
 
