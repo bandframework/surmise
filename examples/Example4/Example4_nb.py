@@ -44,6 +44,14 @@ description = description[keepinds, :]
 func_eval = func_eval[:,keepinds]
 func_eval_test = func_eval_test[:, keepinds]
 
+#keeptimepoints = np.arange(10, 134, step=5)
+keeptimepoints = np.arange(10, 134, step=4)
+keeptimepoints = np.concatenate((keeptimepoints, keeptimepoints + 134, keeptimepoints + 2*134))
+real_data = real_data[keeptimepoints]
+description = description[keeptimepoints, :]
+func_eval = func_eval[:, keeptimepoints]
+x = description
+func_eval_test = func_eval_test[:, keeptimepoints]
 # %%
 print('N:', func_eval.shape[0])
 print('D:', param_values.shape[1])
@@ -90,9 +98,9 @@ plot_model_data(description, func_eval_rnd, real_data, param_values_rnd)
 # ## Model emulation
 
 # %%
-x = np.hstack((np.reshape(np.tile(range(134), 3), (402, 1)),
-              np.reshape(np.tile(np.array(('tothosp','totadmiss','icu')),134), (402, 1))))
-x =  np.array(x, dtype='object')
+#x = np.hstack((np.reshape(np.tile(range(134), 3), (402, 1)),
+#              np.reshape(np.tile(np.array(('tothosp','totadmiss','icu')),134), (402, 1))))
+#x =  np.array(x, dtype='object')
 
 # %%
 # (No filter) Fit an emulator via 'PCGP'
@@ -118,14 +126,15 @@ def plot_pred_interval(cal):
     rndm_m = pr.rnd(s = 1000)
     plt.rcParams["font.size"] = "10"
     fig, axs = plt.subplots(3, figsize=(8, 12))
-
+    
+    diff = 31
     for j in range(3):
-        upper = np.percentile(rndm_m[:, j*134 : (j + 1)*134], 97.5, axis = 0)
-        lower = np.percentile(rndm_m[:, j*134 : (j + 1)*134], 2.5, axis = 0)
-        median = np.percentile(rndm_m[:, j*134 : (j + 1)*134], 50, axis = 0)
+        upper = np.percentile(rndm_m[:, j*diff : (j + 1)*diff], 97.5, axis = 0)
+        lower = np.percentile(rndm_m[:, j*diff : (j + 1)*diff], 2.5, axis = 0)
+        median = np.percentile(rndm_m[:, j*diff : (j + 1)*diff], 50, axis = 0)
         p1 = axs[j].plot(median, color = 'black')
-        axs[j].fill_between(range(0, 134), lower, upper, color = 'grey')
-        p3 = axs[j].plot(range(0, 134), real_data[j*134 : (j + 1)*134], 'ro' ,markersize = 5, color='red')
+        axs[j].fill_between(range(0, diff), lower, upper, color = 'grey')
+        p3 = axs[j].plot(range(0, diff), real_data[j*diff : (j + 1)*diff], 'ro' ,markersize = 5, color='red')
         if j == 0:
             axs[j].set_ylabel('COVID-19 Total Hospitalizations')
         elif j == 1:
@@ -219,6 +228,7 @@ cal_3 = calibrator(emu=emulator_1,
                     x=x,
                     thetaprior=prior_covid, 
                     method='directbayeswoodbury',
-                    yvar=obsvar)
+                    yvar=obsvar,
+                    args={'sampler': 'PTLMC'})
 
 plot_pred_interval(cal_3) 

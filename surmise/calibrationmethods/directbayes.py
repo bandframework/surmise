@@ -3,7 +3,7 @@ from surmise.utilities import sampler
 import copy
 
 
-def fit(fitinfo, emu, x, y, args=None):
+def fit(fitinfo, emu, x, y, **bayes_args):
     '''
     The main required function to be called by calibration to fit a
     calibration model.
@@ -83,11 +83,11 @@ def fit(fitinfo, emu, x, y, args=None):
 
         logpost = thetaprior.lpdf(theta)
         inds = np.where(np.isfinite(logpost))[0]
-        logpost[inds] += loglik(fitinfo, emu, theta[inds, :], y, x, args)
+        logpost[inds] += loglik(fitinfo, emu, theta[inds, :], y, x)
         return logpost
 
     # Define the draw function to sample from initial theta
-    def draw_rnd(n):
+    def draw_func(n):
         p = thetaprior.rnd(1).shape[1]
         theta0 = np.array([]).reshape(0, p)
 
@@ -104,9 +104,9 @@ def fit(fitinfo, emu, x, y, args=None):
         return theta0
 
     # Call the sampler
-    sampler_obj = sampler(logpostfunc=logpostfull,
-                          draw_rnd=draw_rnd,
-                          options=args)
+    sampler_obj = sampler(logpost_func=logpostfull,
+                          draw_func=draw_func,
+                          **bayes_args)
 
     theta = sampler_obj.sampler_info['theta']
 
@@ -140,7 +140,7 @@ def thetarnd(fitinfo, s=100, args=None):
                                                 size=s), :]
 
 
-def loglik(fitinfo, emu, theta, y, x, args):
+def loglik(fitinfo, emu, theta, y, x):
     '''
 
     Parameters

@@ -927,7 +927,8 @@ class prediction(object):
                 ((pfstr + opstr) in dir(self.emu.method)):
             if args is None:
                 args = self.emu._args
-            return copy.deepcopy(self.emu.method.predictmean(self._info, **args))
+            return copy.deepcopy(self.emu.method.predictmean(self._info,
+                                                             **args))
         elif opstr in self._info.keys():
             return self._info[opstr]
         elif 'rnd' in self._info.keys():
@@ -960,7 +961,8 @@ class prediction(object):
                 ((pfstr + opstr) in dir(self.emu.method)):
             if args is None:
                 args = self.emu._args
-            return copy.deepcopy(self.emu.method.predictvar(self._info, **args))
+            return copy.deepcopy(self.emu.method.predictvar(self._info,
+                                                            **args))
         elif opstr in self._info.keys():
             return copy.deepcopy(self._info[opstr])
         elif 'rnd' in self._info.keys():
@@ -980,7 +982,8 @@ class prediction(object):
                 ((pfstr + opstr) in dir(self.emu.method)):
             if args is None:
                 args = self.emu._args
-            return copy.deepcopy(self.emu.method.predictcov(self._info, **args))
+            return copy.deepcopy(self.emu.method.predictcov(self._info,
+                                                            **args))
         elif opstr in self._info.keys():
             return copy.deepcopy(self._info[opstr])
         elif 'covxhalf' in self._info.keys():
@@ -1011,7 +1014,8 @@ class prediction(object):
                 ((pfstr + opstr) in dir(self.emu.method)):
             if args is None:
                 args = self.emu._args
-            return copy.deepcopy(self.emu.method.predictcov(self._info, **args))
+            return copy.deepcopy(self.emu.method.predictcov(self._info,
+                                                            **args))
         elif opstr in self._info.keys():
             return copy.deepcopy(self._info[opstr])
         elif 'covx' in self._info.keys():

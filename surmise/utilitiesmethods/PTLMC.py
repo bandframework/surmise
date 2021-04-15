@@ -2,16 +2,26 @@ import numpy as np
 import scipy.optimize as spo
 
 '''
-Metropolis-adjusted Langevin algorithm or Langevin Monte Carlo (LMC)
+Parallel-Tempering Ensemble MCMC
 '''
 
 
-def sampler(logpostfunc, draw_rnd, options):
+def sampler(logpost_func,
+            draw_func,
+            numsamp=2000,
+            theta0=None,
+            maxtemp=30,
+            numtemps=32,
+            numchain=16,
+            fractunning=0.5,
+            sampperchain=400,
+            numopt=10,
+            **ptlmc_options):
     '''
 
     Parameters
     ----------
-    logpostfunc : function
+    logpost_func : function
         A function call describing the log of the posterior distribution.
             If no gradient, logpostfunc should take a value of an m by p numpy
             array of parameters and theta and return
@@ -20,48 +30,44 @@ def sampler(logpostfunc, draw_rnd, options):
             in the tuple should be as listed above.
             The second element in the tuple should be an m by p matrix of
             gradients of the log posterior.
-    options : dict
-        a dictionary contains the output of the sampler.
-        Required -
-            theta0: an m by p matrix of initial parameter values.  p must be
-            larger than 10m for the code to work.
-        Optional -
-            numsamp: the number of samplers you want from the posterior.
-            Default is 2000.
+    draw_func : TYPE
+        DESCRIPTION.
+    numsamp : TYPE, optional
+        number of samples you want from the posterior. The default is 2000.
+    theta0 : TYPE, optional
+        DESCRIPTION. The default is None.
+    maxtemp : TYPE, optional
+        DESCRIPTION. The default is 30.
+    numtemps : TYPE, optional
+        DESCRIPTION. The default is 32.
+    numchain : TYPE, optional
+        DESCRIPTION. The default is 16.
+    fractunning : TYPE, optional
+        DESCRIPTION. The default is 0.5.
+    sampperchain : TYPE, optional
+        DESCRIPTION. The default is 400.
+    numopt : TYPE, optional
+        DESCRIPTION. The default is 10.
+    **ptlmc_options : TYPE
+        DESCRIPTION.
+
+    Raises
+    ------
+    ValueError
+        DESCRIPTION.
 
     Returns
     -------
     TYPE
-        numsamp by p of sampled parameter values
+        DESCRIPTION.
 
     '''
 
-    if 'theta0' in options.keys():
-        theta0 = options['theta0']
-    else:
-        theta0 = draw_rnd(1000)
+    if theta0 is None:
+        theta0 = draw_func(1000)
 
     if theta0.shape[0] < 10*theta0.shape[1]:
         raise ValueError('Supply more initial thetas!')
-
-    # Initialize
-    if 'numsamp' in options.keys():
-        numsamp = options['numsamp']
-    else:
-        numsamp = 2000
-
-    if 'maxtemp' in options.keys():
-        maxtemp = options['maxtemp']
-    else:
-        maxtemp = 30
-
-    # These are parameters we might want to give to the user
-    numtemps = 32
-    numchain = 16
-    fractunning = 0.5
-    sampperchain = 400
-    numopt = 10
-    ###
 
     samptunning = np.ceil(sampperchain*fractunning).astype('int')
     totnumchain = numtemps+numchain
@@ -72,33 +78,33 @@ def sampler(logpostfunc, draw_rnd, options):
     temps = np.array(temps, ndmin=2).T
 
     # Test
-    testout = logpostfunc(theta0[0:2, :])
+    testout = logpost_func(theta0[0:2, :])
     if type(testout) is tuple:
         if len(testout) != 2:
             raise ValueError('log density does not return 1 or 2 elements')
         if testout[1].shape[1] is not theta0.shape[1]:
             raise ValueError('derivative appears to be the wrong shape')
 
-        logpostf = logpostfunc
+        logpostf = logpost_func
 
         def logpostf_grad(theta):
-            return logpostfunc(theta)[1]
+            return logpost_func(theta)[1]
 
         try:
-            testout = logpostfunc(theta0[10, :], return_grad=False)
+            testout = logpost_func(theta0[10, :], return_grad=False)
             if type(testout) is tuple:
                 raise ValueError('Cannot stop returning a grad')
 
             def logpostf_nograd(theta):
-                return logpostfunc(theta, return_grad=False)
+                return logpost_func(theta, return_grad=False)
 
         except Exception:
             def logpostf_nograd(theta):
-                return logpostfunc(theta)[0]
+                return logpost_func(theta)[0]
     else:
         logpostf_grad = None
-        logpostf = logpostfunc
-        logpostf_nograd = logpostfunc
+        logpostf = logpost_func
+        logpostf_nograd = logpost_func
 
     if logpostf_grad is None:
         rho = 2 / theta0.shape[1] ** (1/2)

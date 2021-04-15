@@ -126,7 +126,7 @@ def predict(predinfo, fitinfo, x, theta, computecov=True, **kwargs):
         Rinv = infos[k]['Rinv']
         if computecov:
             predvars[:, k] = infos[k]['sigma2hat'] * \
-                (1 + np.exp(infos[k]['hypnug']) - np.sum(r.T * (Rinv @ r.T), 0))
+                (1 + np.exp(infos[k]['hypnug']) - np.sum(r.T*(Rinv @ r.T), 0))
 
     pctscale = (fitinfo['pct'].T * fitinfo['scale']).T
 
@@ -139,7 +139,7 @@ def predict(predinfo, fitinfo, x, theta, computecov=True, **kwargs):
         predinfo['var'] = np.full((x.shape[0], theta.shape[0]), np.nan)
         predinfo['var'][xnewind, :] = (fitinfo['extravar'][xind] +
                                        (predvars @ pctscale[xind, :].T ** 2)).T
-        CH = (np.sqrt(predvars)[:, :, None] * (pctscale[xind, :].T)[None, :, :])
+        CH = (np.sqrt(predvars)[:, :, None]*(pctscale[xind, :].T)[None, :, :])
         predinfo['covxhalf'] = np.full((theta.shape[0],
                                         CH.shape[1],
                                         x.shape[0]), np.nan)
