@@ -4,7 +4,7 @@ from surmise.utilities import sampler
 import copy
 
 
-def fit(fitinfo, emu, x, y,  args=None):
+def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
     '''
     The main required function to be called by calibration to fit a
     calibration model.
@@ -111,8 +111,7 @@ def fit(fitinfo, emu, x, y,  args=None):
                                                   emu,
                                                   theta[inds, :],
                                                   y,
-                                                  x,
-                                                  args)
+                                                  x)
             logpost[inds] += loglikinds
             dlogpost[inds] += dloglikinds
             return logpost, dlogpost
@@ -122,12 +121,11 @@ def fit(fitinfo, emu, x, y,  args=None):
                                     emu,
                                     theta[inds, :],
                                     y,
-                                    x,
-                                    args)
+                                    x)
             return logpost
 
     # Define the draw function to sample from initial theta
-    def draw_rnd(n):
+    def draw_func(n):
         p = thetaprior.rnd(1).shape[1]
         theta0 = np.array([]).reshape(0, p)
 
@@ -144,9 +142,9 @@ def fit(fitinfo, emu, x, y,  args=None):
         return theta0
 
     # obtain theta draws from posterior distribution
-    sampler_obj = sampler(logpostfunc=logpostfull_wgrad,
-                          draw_rnd=draw_rnd,
-                          options=args)
+    sampler_obj = sampler(logpost_func=logpostfull_wgrad,
+                          draw_func=draw_func,
+                          **bayeswoodbury_args)
 
     theta = sampler_obj.sampler_info['theta']
 
@@ -256,7 +254,7 @@ def thetalpdf(fitinfo, theta, args=None):
     return (logpost-fitinfo['lpdfapproxnorm'])
 
 
-def loglik(fitinfo, emu, theta, y, x, args):
+def loglik(fitinfo, emu, theta, y, x):
     r"""
     This is a optional docstring for an internal function.
     """

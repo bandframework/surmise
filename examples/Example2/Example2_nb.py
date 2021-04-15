@@ -198,15 +198,14 @@ def plot_preds(cal, axs):
 # ### Calibrators for Model 1
 
 # %%
-
+#breakpoint()
 cal_grav_1 = calibrator(emu=emu_grav,
                         y=y,
                         x=x,
                         thetaprior=priorphys_grav, 
                         method='directbayes',
                         yvar=obsvar, 
-                        args={'numsamp': 1000, 
-                              'stepType': 'normal', 
+                        args={'stepType': 'normal', 
                               'stepParam': np.array([1])})
 
 # %%
@@ -227,16 +226,28 @@ cal_grav_3 = calibrator(emu=emu_grav,
                         yvar=obsvar,
                         args={'sampler': 'LMC'})
 
+
+# %%
+cal_grav_4 = calibrator(emu=emu_grav,
+                        y=y,
+                        x=x,
+                        thetaprior=priorphys_grav, 
+                        method='directbayeswoodbury',
+                        yvar=obsvar,
+                        args={'sampler': 'PTLMC'})
+
 # %%
 plot_theta(cal_grav_1, 0)
 plot_theta(cal_grav_2, 0)
 plot_theta(cal_grav_3, 0)
+plot_theta(cal_grav_4, 0)
 
 # %%
-fig, axs = plt.subplots(1, 3, figsize=(15, 4))
+fig, axs = plt.subplots(1, 4, figsize=(15, 4))
 axs[0] = plot_preds(cal_grav_1, axs[0])
 axs[1] = plot_preds(cal_grav_2, axs[1])
 axs[2] = plot_preds(cal_grav_3, axs[2])
+axs[3] = plot_preds(cal_grav_4, axs[3])
 plt.show()
 
 # %% [markdown]
@@ -275,6 +286,7 @@ cal_lin_3 = calibrator(emu=emu_lin,
                         yvar=obsvar,
                         args={'sampler': 'LMC'})
 
+# %%
 cal_lin_4 = calibrator(emu=emu_lin,
                         y=y,
                         x=x,

@@ -6,7 +6,11 @@ Metropolis-adjusted Langevin algorithm or Langevin Monte Carlo (LMC)
 '''
 
 
-def sampler(logpostfunc, draw_rnd, options):
+def sampler(logpost_func,
+            draw_func,
+            numsamp=2000,
+            theta0=None,
+            **lmc_options):
     '''
 
     Parameters
@@ -35,48 +39,40 @@ def sampler(logpostfunc, draw_rnd, options):
 
     '''
 
-    if 'theta0' in options.keys():
-        theta0 = options['theta0']
-    else:
-        theta0 = draw_rnd(1000)
-
-    # Initialize
-    if 'numsamp' in options.keys():
-        numsamp = options['numsamp']
-    else:
-        numsamp = 2000
+    if theta0 is None:
+        theta0 = draw_func(1000)
 
     # Minimum effective sample size (ESS) desired in the returned samples
     tarESS = np.max((150, 10 * theta0.shape[1]))
 
     # Test
-    testout = logpostfunc(theta0[0:2, :])
+    testout = logpost_func(theta0[0:2, :])
     if type(testout) is tuple:
         if len(testout) != 2:
             raise ValueError('log density does not return 1 or 2 elements')
         if testout[1].shape[1] is not theta0.shape[1]:
             raise ValueError('derivative appears to be the wrong shape')
 
-        logpostf = logpostfunc
+        logpostf = logpost_func
 
         def logpostf_grad(theta):
-            return logpostfunc(theta)[1]
+            return logpost_func(theta)[1]
 
         try:
-            testout = logpostfunc(theta0[10, :], return_grad=False)
+            testout = logpost_func(theta0[10, :], return_grad=False)
             if type(testout) is tuple:
                 raise ValueError('Cannot stop returning a grad')
 
             def logpostf_nograd(theta):
-                return logpostfunc(theta, return_grad=False)
+                return logpost_func(theta, return_grad=False)
 
         except Exception:
             def logpostf_nograd(theta):
-                return logpostfunc(theta)[0]
+                return logpost_func(theta)[0]
     else:
         logpostf_grad = None
-        logpostf = logpostfunc
-        logpostf_nograd = logpostfunc
+        logpostf = logpost_func
+        logpostf_nograd = logpost_func
 
     if logpostf_grad is None:
         rho = 2 / theta0.shape[1] ** (1/2)
