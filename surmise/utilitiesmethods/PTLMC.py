@@ -149,6 +149,8 @@ def sampler(logpostfunc, options):
         W,V = np.linalg.eigh(opval.hess_inv @ np.eye(thetacen.shape[0]))
         r = V @ (np.sqrt(W) * np.random.standard_normal(size=thetacen.shape[0]))
         notmoved = True
+        if k == 0:
+            notmoved = False
         stepadj = 4
         while notmoved:
             if (neglogpostf_nograd((stepadj * r + opval.x))
