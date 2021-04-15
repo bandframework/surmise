@@ -63,7 +63,7 @@ def sampler(logpostfunc, options):
     numtemps = 32
     numchain = 16
     fractunning = 0.5
-    numopt = 1*numchain
+    numopt = numtemps+numchain
     ###
 
     samptunning = np.ceil(sampperchain*fractunning).astype('int')
@@ -154,7 +154,7 @@ def sampler(logpostfunc, options):
         stepadj = 4
         while notmoved:
             if (neglogpostf_nograd((stepadj * r + opval.x))
-                - opval.fun) < 10 * thetacen.shape[0]:
+                - opval.fun) < 2*thetacen.shape[0]:
                 thetaop[k, :] = thetacen + thetas * (stepadj * r + opval.x)
                 notmoved = False
             else:
@@ -178,8 +178,10 @@ def sampler(logpostfunc, options):
                           thetac.shape[1]))
     mtheta = 0*np.mean(thetac,0)
     sse = 0*np.mean((thetac-mtheta)**2,0)
-    hc = np.diag(thetas)
-    covmat0 = np.diag(thetas**2)
+    covmat0 = np.cov(thetac.T)
+    covmat0 = 0.9*covmat0 + 0.1*np.diag(np.diag(covmat0))
+    W,V = np.linalg.eigh(covmat0)
+    hc = V @ np.diag(np.sqrt(W)) @ V.T
     tau = -1
     rho = 2 * (1 + (np.exp(2 * tau) - 1) / (np.exp(2 * tau) + 1))
     adjrho = rho*temps**(1/3)
@@ -206,25 +208,26 @@ def sampler(logpostfunc, options):
                              < np.squeeze(fvalp - fval)
                              + np.squeeze(qadj))[0]
         if whereswap.shape[0] > 0:
-            numtimes = numtimes + np.sum(whereswap>numtemps)/numchain
+            numtimes = numtimes + np.sum(whereswap>-1)/totnumchain
             thetac[whereswap, :] = 1*thetap[whereswap, :]
             fval[whereswap] = 1*fvalp[whereswap]
             if logpostf_grad is not None:
                 dfval[whereswap, :] = 1*dfvalp[whereswap, :]
-        orderprop = tempexchange(fval * temps,temps, iters=5)
-        fval = fval[orderprop]
+        fvaln = fval*temps
+        orderprop = tempexchange(fvaln,temps, iters=5)
+        fval = fvaln[orderprop] / temps
         thetac= thetac[orderprop,:]
         if logpostf_grad is not None:
-            dfval = dfval[orderprop,:]
+            dfvaln = temps * dfval
+            dfval = (1/ temps) * dfvaln[orderprop,:]
         if (k < samptunning) and (k % 10 == 0): # if we are not done with tuning
-            tau = tau + 1 / np.sqrt(1 + k/100) * \
+            tau = tau + 1 / np.sqrt(1 + k/10) * \
                   ((numtimes / 10) - taracc)
             rho = 2 * (1 + (np.exp(2 * tau) - 1) / (np.exp(2 * tau) + 1))
             adjrho = rho*(temps**(1/3))
             numtimes = 0
         elif(k >= samptunning): # if we are done with tuning
             thetasave[:, k-samptunning, :] = 1 * thetac[numtemps:,]
-
     thetasave = np.reshape(thetasave,(-1, thetac.shape[1]))
     theta = thetasave[np.random.choice(range(0, thetasave.shape[0]),
                                        size=numsamp), :]
@@ -235,24 +238,11 @@ def sampler(logpostfunc, options):
 def tempexchange(lpostf, temps, iters = 1):
     order = np.arange(0, lpostf.shape[0])
     for k in range(0,iters):
-        for rt in range(1, lpostf.shape[0]):
+        rtv = np.random.choice(range(1, lpostf.shape[0]),
+                                    lpostf.shape[0])
+        for rt in rtv:
             rhoh = (1/temps[rt-1] - 1 / temps[rt])
-            if np.abs(rhoh) < 10**(-3) and np.random.uniform(size=1)<0.5:
-                temporder = order[rt - 1]
-                order[rt-1] = 1*order[rt]
-                order[rt] = 1* temporder
-            elif ((lpostf[order[rt]]-lpostf[order[rt - 1]]) * rhoh  >
-                    np.log(np.random.uniform(size=1))):
-                temporder = order[rt - 1]
-                order[rt-1] = 1*order[rt]
-                order[rt] = 1* temporder
-        for rt in range(lpostf.shape[0]-1, 0,-1):
-            rhoh = (1/temps[rt-1] - 1 / temps[rt])
-            if np.abs(rhoh) < 10**(-3) and np.random.uniform(size=1)<0.5:
-                temporder = order[rt - 1]
-                order[rt-1] = 1*order[rt]
-                order[rt] = 1* temporder
-            elif ((lpostf[order[rt]]-lpostf[order[rt - 1]]) * rhoh  >
+            if ((lpostf[order[rt]]-lpostf[order[rt - 1]]) * rhoh  >
                     np.log(np.random.uniform(size=1))):
                 temporder = order[rt - 1]
                 order[rt-1] = 1*order[rt]
