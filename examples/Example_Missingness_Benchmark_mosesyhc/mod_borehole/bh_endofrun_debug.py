@@ -31,7 +31,8 @@ pass_emu = emulator(x, passthroughfunc=borehole_model, method='PCGPwM',
                              'return_grad': True})
 
 # apply emulator to calibration
-true_cal = calibrator(pass_emu, y, x, thetaprior, yvar, method='directbayeswoodbury')
+true_cal = calibrator(pass_emu, y, x, thetaprior, yvar, method='directbayeswoodbury',
+                      args={'samperchain':5000})
 postthetas = true_cal.theta.rnd(10000)
 postthetarng = np.quantile(postthetas, (0.025, 0.5, 0.975), axis=0)
 
@@ -51,3 +52,15 @@ print('estimated posterior quantile:\n', np.round(sampthetarng[(0,-1),:], 3))
 print('true posterior quantile:\n', np.round(postthetarng[(0,-1), :], 3))
 
 print('\n', np.round(postthetarng[(0,-1), :] - sampthetarng[(0,-1),:], 3))
+
+import seaborn as sns; import pandas as pd;
+sns.pairplot(pd.DataFrame(sampthetas))
+sns.pairplot(pd.DataFrame(postthetas))
+import matplotlib.pyplot as plt
+plt.show()
+plt.scatter(true_cal.theta.lpdf(sampthetas),cal.theta.lpdf(sampthetas))
+plt.show()
+plt.scatter(true_cal.theta.lpdf(postthetas),cal.theta.lpdf(postthetas))
+plt.show()
+plt.hist(sampthetas[:,0])
+plt.show()
