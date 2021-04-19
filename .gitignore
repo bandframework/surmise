@@ -12,3 +12,5 @@ x.log
 .idea
 venv/
 examples/Example_Missingness_Benchmark_mosesyhc/fayans/newp2.npy
+
+scratch/plumlee_lpdftesting/newp2.npy
