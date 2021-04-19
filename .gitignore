@@ -11,3 +11,4 @@ docs/_build
 x.log
 .idea
 venv/
+examples/Example_Missingness_Benchmark_mosesyhc/fayans/newp2.npy
