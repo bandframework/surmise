@@ -220,7 +220,7 @@ def plot_thetaprog(resdict):
         axi.yaxis.set_tick_params(labelbottom=True)
         axi.xaxis.set_tick_params(labelbottom=True)
         axi.set_ylabel(r'$\theta_{:d}$'.format(i+1), rotation=0, size=15)
-        axi.set_ylim([0.45, 0.55])
+        # axi.set_ylim([0.45, 0.55])
     fig.text(0.5, -0.05, 'no. completed simulations', ha='center')
     plt.tight_layout()
     # plt.savefig('nofail_theta_prog.png', dpi=150)
@@ -321,25 +321,17 @@ def plot_thetapairs(cal):
                 ax = g.axes[i][j]
                 sns.scatterplot(x=np.array((0.5, 0.5)), y=np.array((0.5, 0.5)), s=500, color='r', marker='X', ax=ax, legend=False, alpha=0.75)
 
-    g.set(xlim=[0.2, 0.8], ylim=[0.2, 0.8])
+    g.set(xlim=[0.1, 0.9], ylim=[0.1, 0.9])
     g.set(xticks=[0.3, 0.5, 0.7], yticks=[0.3, 0.5, 0.7])
     g.set(xlabel='', ylabel='')
     g.fig.subplots_adjust(wspace=.0, hspace=.0)
     # g.savefig('nofail_thetapairs.png', dpi=150)
 
 
-# # %% runs with obviation
-# res_obv = {'cal': [], 'emu': [], 'res': []}
-# for i in np.arange(5):
-#     cal_nofail, emu_nofail, res_nofail = alg(thetaprior, maxthetas=200, flag_failmodel=True, random_fail=True, obviate=True)
-#     res_obv['cal'].append(cal_nofail)
-#     res_obv['emu'].append(emu_nofail)
-#     res_obv['res'].append(res_nofail)
-
 # %% runs with failures
 res_noobv = {'cal': [], 'emu': [], 'res': []}
 for i in np.arange(10):
-    cal_fail, emu_fail, res_fail = alg(thetaprior, maxthetas=200, flag_failmodel=True, random_fail=False, obviate=True)
+    cal_fail, emu_fail, res_fail = alg(thetaprior, maxthetas=120, flag_failmodel=True, random_fail=False, obviate=True)
     res_noobv['cal'].append(cal_fail)
     res_noobv['emu'].append(emu_fail)
     res_noobv['res'].append(res_fail)
@@ -347,7 +339,7 @@ for i in np.arange(10):
 
 # %% one-shop plots
 
-print('obviation=False, random=False')
+print('obviation=True, random=False')
 
 resultlist = res_noobv
 
