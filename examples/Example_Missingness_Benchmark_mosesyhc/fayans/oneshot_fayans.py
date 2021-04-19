@@ -35,7 +35,7 @@ feval = feval[~fevaltoobig]
 failval = failval[~fevaltoobig]
 
 # subset by theta values
-thetatoobig = np.any(np.abs(theta) > 2, 1)
+thetatoobig = np.any(np.abs(theta - 0.5) > 1.5, 1)
 print('number of parameters with large thetas: {:d}'.format(thetatoobig.sum()))
 theta = theta[~thetatoobig]
 feval = feval[~thetatoobig]
@@ -115,16 +115,24 @@ fayans_cols = [r'$\rho_{\mathrm{eq}}$', r'$E/A$', r'$K$', r'$J$',
                     r'$h^{\xi}_{+}$', r'$h^{\xi}_{\nabla}$']
 
 
-def plot_allthetas(allthetas, postthetas=None, sumfails=None):
-    toplotdf = allthetas
-    toplotdf['sumfails'] = sumfails
+def plot_allthetas(allthetas, sumfails=None, plotn=20000):
+    df = allthetas
+    tmin = df.min().min()
+    tmax = df.max().max()
+    print(tmin, tmax)
+
+    df['sumfails'] = sumfails
+
+    df = df.loc[np.random.choice(np.arange(df.shape[0]),
+                                size=np.min((plotn, df.shape[0])),
+                                replace=False)]
+
+
     sns.reset_orig()
     sns.set_theme(style='white', font_scale=3)
     sns.set_palette('cubehelix')
 
-    step = 10000
-
-    g = sns.PairGrid(toplotdf, hue='sumfails', # hue='cat',
+    g = sns.PairGrid(df, hue='sumfails',  # hue='cat',
                      layout_pad=0.005,
                      palette="RdYlBu_r",
                      despine=False,
@@ -142,6 +150,7 @@ def plot_allthetas(allthetas, postthetas=None, sumfails=None):
     cbar = g.fig.colorbar(mappable=plt.cm.ScalarMappable(cmap="RdBu_r", norm=plt.Normalize(vmin=np.min(sumfails), vmax=np.max(sumfails))),
                           cax=cax, pad=0.05)
     g.fig.subplots_adjust(wspace=.0, hspace=.0, right=0.92)
+    g.set(xlim=[tmin, tmax], ylim=[tmin, tmax])
     cbar.ax.set_title('#fail', y=1.05)
 
 
@@ -182,8 +191,6 @@ def plot_thetapairs(cal):
 
 import time
 # # subset theta further if desired
-# t1 = time.time()
-# plot_allthetas(pd.DataFrame(theta), sumfails=failval.sum(1))
-# print('plot time: {:.2f} min'.format((time.time() - t1) / 60))
+plot_allthetas(pd.DataFrame(theta), sumfails=failval.sum(1))
 
-plot_thetapairs(cal)
+# plot_thetapairs(cal)
