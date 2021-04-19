@@ -26,3 +26,5 @@ surmise/utilitiesmethods/__pycache__/
 tests/test_new_emulator/__pycache__/
 
 surmise/calibrationmethods/__pycache__/
+
+examples/Example_Missingness_Benchmark_mosesyhc/fayans/fayansdata/newp2.npy
