@@ -9,7 +9,7 @@ import scipy.linalg as spla
 import copy
 
 
-def fit(fitinfo, x, theta, f, args=None):
+def fit(fitinfo, x, theta, f, **kwargs):
     '''
     The purpose of fit is to take information and plug all of our fit
     information into fitinfo, which is a python dictionary.
@@ -36,7 +36,7 @@ def fit(fitinfo, x, theta, f, args=None):
     f : numpy.ndarray
         An array of responses. Each column in f should correspond to a row in
         theta. Each row in f should correspond to a row in x.
-    args : dict, optional
+    kwargs : dict, optional
         A dictionary containing options. The default is None.
 
     Returns
@@ -55,9 +55,9 @@ def fit(fitinfo, x, theta, f, args=None):
         fitinfo['mof'] = None
         fitinfo['mofrows'] = None
 
-    fitinfo['epsilon'] = args['epsilon'] if 'epsilon' in args.keys() else 0.1
-    hyp1 = args['hypregmean'] if 'hypregmean' in args.keys() else -10
-    hyp2 = args['hypregLB'] if 'hypregLB' in args.keys() else -20
+    fitinfo['epsilon'] = kwargs['epsilon'] if 'epsilon' in kwargs.keys() else 0.1
+    hyp1 = kwargs['hypregmean'] if 'hypregmean' in kwargs.keys() else -10
+    hyp2 = kwargs['hypregLB'] if 'hypregLB' in kwargs.keys() else -20
 
     fitinfo['theta'] = theta
     fitinfo['f'] = f
@@ -79,7 +79,7 @@ def fit(fitinfo, x, theta, f, args=None):
     return
 
 
-def predict(predinfo, fitinfo, x, theta, args={}):
+def predict(predinfo, fitinfo, x, theta, **kwargs):
     r"""
     Finds prediction at theta and x given the dictionary fitinfo.
     This [emulationpredictdocstring] automatically filled by docinfo.py when
@@ -112,12 +112,12 @@ def predict(predinfo, fitinfo, x, theta, args={}):
     theta :  array of objects
         An matrix (vector) of parameters to prediction.
 
-    args : dict
+    kwargs : dict
         A dictionary containing options passed to you.
     """
     return_grad = False
-    if (args is not None) and ('return_grad' in args.keys()) and \
-            (args['return_grad'] is True):
+    if (kwargs is not None) and ('return_grad' in kwargs.keys()) and \
+            (kwargs['return_grad'] is True):
         return_grad = True
 
     infos = fitinfo['emulist']
@@ -240,176 +240,12 @@ def predict(predinfo, fitinfo, x, theta, args={}):
                  (pctscale[xind, :].T)[None, :, :]).transpose(3, 1, 2, 0)
     return
 
+def lpdf(predinfo, f, **kwargs):
 
-def lpdf(predinfo, f):
-
-
-    return
-
-def predict(predinfo, fitinfo, x, theta, args={}):
-    r"""
-    Finds prediction at theta and x given the dictionary fitinfo.
-    This [emulationpredictdocstring] automatically filled by docinfo.py when
-    running updatedocs.py
-
-    Parameters
-    ----------
-    predinfo : dict
-        An arbitary dictionary where you should place all of your prediction
-        information once complete. This dictionary is pass by reference, so
-        there is no reason to return anything. Keep only stuff that will be
-        used by predict. Key elements are
-
-            - `predinfo['mean']` : `predinfo['mean'][k]` is mean of the prediction
-              at all x at `theta[k]`.
-            - `predinfo['var']` : `predinfo['var'][k]` is variance of the
-              prediction at all x at `theta[k]`.
-            - `predinfo['cov']` : `predinfo['cov'][k]` is mean of the prediction
-              at all x at `theta[k]`.
-            - `predinfo['covhalf']` : if `A = predinfo['covhalf'][k]` then
-              `A.T @ A = predinfo['cov'][k]`.
-
-    fitinfo : dict
-        An arbitary dictionary where you placed all your important fitting
-        information from the fit function above.
-
-    x : array of objects
-        An matrix (vector) of inputs for prediction.
-
-    theta :  array of objects
-        An matrix (vector) of parameters to prediction.
-
-    args : dict
-        A dictionary containing options passed to you.
-    """
-    return_grad = False
-    if (args is not None) and ('return_grad' in args.keys()) and \
-            (args['return_grad'] is True):
-        return_grad = True
-
-    infos = fitinfo['emulist']
-    predvecs = np.zeros((theta.shape[0], len(infos)))
-    predvars = np.zeros((theta.shape[0], len(infos)))
-
-    if return_grad:
-        predvecs_gradtheta = np.zeros((theta.shape[0], len(infos),
-                                       theta.shape[1]))
-        predvars_gradtheta = np.zeros((theta.shape[0], len(infos),
-                                       theta.shape[1]))
-        drsave = np.array(np.ones(len(infos)), dtype=object)
-    if predvecs.ndim < 1.5:
-        predvecs = predvecs.reshape((1, -1))
-        predvars = predvars.reshape((1, -1))
-    try:
-        if x is None or np.all(np.equal(x, fitinfo['x'])) or \
-                np.allclose(x, fitinfo['x']):
-            xind = np.arange(0, x.shape[0])
-            xnewind = np.arange(0, x.shape[0])
-        else:
-            raise
-    except Exception:
-        matchingmatrix = np.ones((x.shape[0], fitinfo['x'].shape[0]))
-        for k in range(0, x[0].shape[0]):
-            try:
-                matchingmatrix *= np.isclose(x[:, k][:, None],
-                                             fitinfo['x'][:, k])
-            except Exception:
-                matchingmatrix *= np.equal(x[:, k][:, None],
-                                           fitinfo['x'][:, k])
-        xind = np.argwhere(matchingmatrix > 0.5)[:, 1]
-        xnewind = np.argwhere(matchingmatrix > 0.5)[:, 0]
-
-    rsave = np.array(np.ones(len(infos)), dtype=object)
-
-    # loop over principal components
-    for k in range(0, len(infos)):
-        if infos[k]['hypind'] == k:
-            # covariance matrix between new theta and thetas from fit.
-            if return_grad:
-                rsave[k], drsave[k] = __covmat(theta,
-                                               fitinfo['theta'],
-                                               infos[k]['hypcov'],
-                                               return_gradx1=True)
-            else:
-                rsave[k] = __covmat(theta,
-                                    fitinfo['theta'],
-                                    infos[k]['hypcov'])
-        # adjusted covariance matrix
-        r = (1 - infos[k]['nug']) * np.squeeze(rsave[infos[k]['hypind']])
-
-        if return_grad:
-            dr = (1 - infos[k]['nug'])*np.squeeze(drsave[infos[k]['hypind']])
-        try:
-            rVh = r @ infos[k]['Vh']
-        except Exception:
-            for i in range(0, len(infos)):
-                print((i, infos[i]['hypind']))
-            raise ValueError('Something went wrong with fitted components')
-
-        if rVh.ndim < 1.5:
-            rVh = rVh.reshape((1, -1))
-        predvecs[:, k] = r @ infos[k]['pw']
-        if return_grad:
-            if dr.ndim == 2:
-                drVh = dr.T @ infos[k]['Vh']
-                predvecs_gradtheta[:, k, :] = dr.T @ infos[k]['pw']
-                predvars_gradtheta[:, k, :] = \
-                    -infos[k]['sig2']*2*np.sum(rVh * drVh, 1)
-            else:
-                drVh = np.squeeze(dr.transpose(0, 2, 1) @ infos[k]['Vh'])
-                predvecs_gradtheta[:, k, :] = np.squeeze(dr.transpose(0, 2, 1)
-                                                         @ infos[k]['pw'])
-                predvars_gradtheta[:, k, :] =\
-                    -infos[k]['sig2'] * 2 * \
-                    np.sum(rVh * drVh.transpose(1, 0, 2), 2).T
-
-        predvars[:, k] = infos[k]['sig2'] * np.abs(1 - np.sum(rVh ** 2, 1))
-
-    # calculate predictive mean and variance
-    predinfo['mean'] = np.full((x.shape[0], theta.shape[0]), np.nan)
-    predinfo['var'] = np.full((x.shape[0], theta.shape[0]), np.nan)
-    pctscale = (fitinfo['pct'].T * fitinfo['scale']).T
-    predinfo['mean'][xnewind, :] = ((predvecs @ pctscale[xind, :].T) +
-                                    fitinfo['offset'][xind]).T
-    predinfo['var'][xnewind, :] = ((fitinfo['extravar'][xind] +
-                                    predvars @ (pctscale[xind, :] ** 2).T)).T
-
-    CH = (np.sqrt(predvars)[:, :, None] * (pctscale[xind, :].T)[None, :, :])
-
-    predinfo['covxhalf'] = np.full((theta.shape[0],
-                                    CH.shape[1],
-                                    x.shape[0]), np.nan)
-    predinfo['covxhalf'][:, :, xnewind] = CH
-    predinfo['covxhalf'] = predinfo['covxhalf'].transpose((2, 0, 1))
-
-    if return_grad:
-        predinfo['mean_gradtheta'] = np.full((x.shape[0],
-                                              theta.shape[0],
-                                              theta.shape[1]), np.nan)
-        predinfo['mean_gradtheta'][xnewind, :, :] =\
-            ((predvecs_gradtheta.transpose(0, 2, 1) @
-              pctscale[xind, :].T)).transpose((2, 0, 1))
-
-        dsqrtpredvars = 0.5 * (predvars_gradtheta.transpose(2, 0, 1) /
-                               np.sqrt(predvars)).transpose(1, 2, 0)
-
-        if np.allclose(xnewind, xind):
-            predinfo['covxhalf_gradtheta'] =\
-                (dsqrtpredvars.transpose(2, 0, 1)[:, :, :, None] *
-                 (pctscale[xind, :].T)[None, :, :]).transpose(3, 1, 2, 0)
-        else:
-            predinfo['covxhalf_gradtheta'] = np.full((x.shape[0],
-                                                      theta.shape[0],
-                                                      CH.shape[1],
-                                                      theta.shape[1]), np.nan)
-            predinfo['covxhalf_gradtheta'][xnewind] = \
-                (dsqrtpredvars.transpose(2, 0, 1)[:, :, :, None] *
-                 (pctscale[xind, :].T)[None, :, :]).transpose(3, 1, 2, 0)
-    return
-
+    return np.sum(f**2)
 
 def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
-                    args):
+                    **kwargs):
     r'''
     Suggests next parameters and obviates pending parameters for value
     retrieval of `f`.
@@ -430,12 +266,12 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
     cal : instance of emulator class
         An emulator class instance as defined in calibration.
         This will not always be provided.
-    args : dict
+    **kwargs : dict
         A dictionary containing additional options.  Specific arguments:
             - `'pending'`: a matrix (sized like `f`) to indicate pending value retrieval of `f`
             - `'costpending'`: the cost to obviate pending thetas
             - `'includepending'`: boolean to include pending values for obviation considerations
-        Example usage: `args = {'includepending': True, 'costpending': 0.01+0.99*np.mean(pending,0), 'pending': pending}`.
+        Example usage: `kwargs = {'includepending': True, 'costpending': 0.01+0.99*np.mean(pending,0), 'pending': pending}`.
 
     Returns
     ----------
@@ -448,14 +284,14 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
             - `'obviatesugg'`: indices in `pending` for suggested obviations
     '''
     pending = None
-    if ('pending' in args.keys()):
-        pending = args['pending'].T
+    if ('pending' in kwargs.keys()):
+        pending = kwargs['pending'].T
         pendvar = __getnewvar(fitinfo, pending)
 
-    if ('includepending' in args.keys()) and (args['includepending'] is True):
+    if ('includepending' in kwargs.keys()) and (kwargs['includepending'] is True):
         includepending = True
-        if ('costpending' in args.keys()):
-            costpending = args['costpending'] * \
+        if ('costpending' in kwargs.keys()):
+            costpending = kwargs['costpending'] * \
                 np.ones(fitinfo['theta'].shape[0])
         else:
             costpending = np.mean(choicecosts) * \
