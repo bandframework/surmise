@@ -11,3 +11,5 @@ docs/_build
 x.log
 .idea
 venv/
+scratch/
+examples/Example_Missingness_Benchmark_mosesyhc/
