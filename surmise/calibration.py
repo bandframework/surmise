@@ -187,8 +187,12 @@ class calibrator(object):
         except Exception:
             raise ValueError('Module not found!')
 
-        self.__options = options
-        if self.__options['autofit'] is False:
+        self.__options = copy.copy(options)
+
+        if 'autofit' in self.__options.keys():
+            if self.__options['autofit'] is not False:
+                self.fit()
+        else:
             self.fit()
 
     def __repr__(self):

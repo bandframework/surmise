@@ -251,34 +251,29 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
                      (pctscale[xind, :].T)[None, :, :]).transpose(3, 1, 2, 0)
     return
 
-def predictlpdf(predinfo, f, **kwargs):
-    rf1 = f - predinfo['mean']
-    rf = ((f-predinfo['mean']).T* (1/np.sqrt(predinfo['extravar']))).T
-    Gf = predinfo['phi'].T * (1/np.sqrt(predinfo['extravar']))
+def predictlpdf(predinfo, f, return_grad = False, addvar = 0, **kwargs):
+    totvar = addvar + predinfo['extravar']
+    rf = ((f-predinfo['mean'].T)* (1/np.sqrt(totvar))).T
+    Gf = predinfo['phi'].T * (1/np.sqrt(totvar))
     Gfrf = Gf @ rf
     Gf2 = Gf @ Gf.T
     likv= np.sum(rf**2,0)
-    for c in range(0,predinfo['predvars'].shape[0]):
-        likv[c] -= Gfrf[:,c].T @ np.linalg.solve(np.diag(1/(predinfo['predvars'][c,:]))+Gf2, Gfrf[:,c])
-    return likv
-
-def predictlpdf_gradtheta(predinfo, f, **kwargs):
-    rf1 = f - predinfo['mean']
-    rf = ((f-predinfo['mean']).T* (1/np.sqrt(predinfo['extravar']))).T
-    Gf = predinfo['phi'].T * (1/np.sqrt(predinfo['extravar']))
-    Gfrf = Gf @ rf
-    Gf2 = Gf @ Gf.T
-    rf2 = -(predinfo['mean_gradtheta'].transpose(2,1,0) * (1/np.sqrt(predinfo['extravar']))).transpose(2,1,0)
-    Gfrf2 = (Gf @ rf2.transpose(1,0,2)).transpose(1,0,2)
-    likv= np.sum(rf**2,0)
-    dlikv = 2*np.sum(rf2.transpose(2,1,0)*rf.transpose(1,0),2).T
+    if return_grad:
+        rf2 = -(predinfo['mean_gradtheta'].transpose(2,1,0) *
+                (1/np.sqrt(totvar))).transpose(2,1,0)
+        Gfrf2 = (Gf @ rf2.transpose(1,0,2)).transpose(1,0,2)
+        dlikv = 2*np.sum(rf2.transpose(2,1,0)*rf.transpose(1,0),2).T
     for c in range(0,predinfo['predvars'].shape[0]):
         term1 = np.linalg.solve(np.diag(1/(predinfo['predvars'][c,:]))+Gf2, Gfrf[:,c])
-        term2 = (term1/predinfo['predvars'][c,:])**2
         likv[c] -= Gfrf[:,c].T @ term1
-        dlikv[c,:] -= 2*Gfrf2[:,c,:].T @ term1
-        dlikv[c,:] -= term2 @ (predinfo['predvars_gradtheta'][c, :, :])
-    return dlikv
+        if return_grad:
+            term2 = (term1/predinfo['predvars'][c,:])**2
+            dlikv[c,:] -= 2*Gfrf2[:,c,:].T @ term1
+            dlikv[c,:] -= term2 @ (predinfo['predvars_gradtheta'][c, :, :])
+    if return_grad:
+        return likv.reshape(-1,1), dlikv
+    else:
+        return likv.reshape(-1,1)
 
 def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
                     **kwargs):
