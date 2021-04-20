@@ -182,9 +182,14 @@ def sampler(logpostfunc,
                           sampperchain,
                           thetac.shape[1]))
     covmat0 = np.cov(thetac.T)
-    covmat0 = 0.9*covmat0 + 0.1*np.diag(np.diag(covmat0))
-    W, V = np.linalg.eigh(covmat0)
-    hc = V @ np.diag(np.sqrt(W)) @ V.T
+    if thetac.shape[1] > 1:
+        covmat0 = 0.9*covmat0 + 0.1*np.diag(np.diag(covmat0))
+        W, V = np.linalg.eigh(covmat0)
+        hc = V @ np.diag(np.sqrt(W)) @ V.T
+    else:
+        hc = np.sqrt(covmat0)
+        hc = hc.reshape(1,1)
+        covmat0 = covmat0.reshape(1,1)
     tau = -1
     rho = 2 * (1 + (np.exp(2 * tau) - 1) / (np.exp(2 * tau) + 1))
     adjrho = rho*temps**(1/3)
