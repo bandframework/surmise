@@ -119,10 +119,10 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
     if (kwargs is not None) and ('return_grad' in kwargs.keys()) and \
             (kwargs['return_grad'] is True):
         return_grad = True
-    partial_grad = False
-    if (kwargs is not None) and ('partial_grad' in kwargs.keys()) and \
-            (kwargs['partial_grad'] is True):
-        partial_grad = True
+    return_covx = True
+    if (kwargs is not None) and ('return_covx' in kwargs.keys()) and \
+            (kwargs['return_covx'] is True):
+        return_covx = True
     infos = fitinfo['emulist']
     predvecs = np.zeros((theta.shape[0], len(infos)))
     predvars = np.zeros((theta.shape[0], len(infos)))
@@ -185,19 +185,18 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
             rVh = rVh.reshape((1, -1))
         predvecs[:, k] = r @ infos[k]['pw']
         if return_grad:
-            if drsave[infos[k]['hypind']].ndim == 2:
-                dr = (1 - infos[k]['nug']) * drsave[infos[k]['hypind']]
+            dr = (1 - infos[k]['nug']) * np.squeeze(drsave[infos[k]['hypind']])
+            if dr.ndim == 2:
                 drVh = dr.T @ infos[k]['Vh']
                 predvecs_gradtheta[:, k, :] = dr.T @ infos[k]['pw']
                 predvars_gradtheta[:, k, :] = \
                     -infos[k]['sig2']*2*np.sum(rVh * drVh, 1)
             else:
                 predvecs_gradtheta[:, k, :] = (1 - infos[k]['nug'])*\
-                                              np.squeeze(drsave[infos[k]['hypind']].transpose(0, 2, 1)
+                                              np.squeeze(dr.transpose(0, 2, 1)
                                                          @ infos[k]['pw'])
                 predvars_gradtheta[:, k, :] =\
-                    -(infos[k]['sig2'] * 2 * (1 - infos[k]['nug'])) *\
-                    np.einsum("ij,ijk->ik",rVh2, np.squeeze(drsave[infos[k]['hypind']]))
+                    -(infos[k]['sig2'] * 2) * np.einsum("ij,ijk->ik",rVh2, dr)
         predvars[:, k] = infos[k]['sig2'] * np.abs(1 - np.sum(rVh ** 2, 1))
 
     # calculate predictive mean and variance
@@ -206,12 +205,22 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
     pctscale = (fitinfo['pct'].T * fitinfo['scale']).T
     predinfo['mean'][xnewind, :] = ((predvecs @ pctscale[xind, :].T) +
                                     fitinfo['offset'][xind]).T
+
     predinfo['var'][xnewind, :] = ((fitinfo['extravar'][xind] +
                                     predvars @ (pctscale[xind, :] ** 2).T)).T
     predinfo['extravar'] = 1*fitinfo['extravar'][xind]
     predinfo['predvars'] = 1*predvars
     predinfo['predvecs'] = 1*predvecs
     predinfo['phi'] = 1*pctscale[xind, :]
+
+    if return_covx:
+        CH = (np.sqrt(predvars)[:, :, None] * (pctscale[xind, :].T)[None, :, :])
+
+        predinfo['covxhalf'] = np.full((theta.shape[0],
+                                        CH.shape[1],
+                                        x.shape[0]), np.nan)
+        predinfo['covxhalf'][:, :, xnewind] = CH
+        predinfo['covxhalf'] = predinfo['covxhalf'].transpose((2, 0, 1))
 
     if return_grad:
         predinfo['mean_gradtheta'] = np.full((x.shape[0],
@@ -223,14 +232,7 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
         predinfo['predvars_gradtheta'] = 1*predvars_gradtheta
         predinfo['predvecs_gradtheta'] = 1*predvecs_gradtheta
 
-        if not partial_grad:
-            CH = (np.sqrt(predvars)[:, :, None] * (pctscale[xind, :].T)[None, :, :])
-
-            predinfo['covxhalf'] = np.full((theta.shape[0],
-                                            CH.shape[1],
-                                            x.shape[0]), np.nan)
-            predinfo['covxhalf'][:, :, xnewind] = CH
-            predinfo['covxhalf'] = predinfo['covxhalf'].transpose((2, 0, 1))
+        if return_covx:
 
             dsqrtpredvars = 0.5 * (predvars_gradtheta.transpose(2, 0, 1) /
                                    np.sqrt(predvars)).transpose(1, 2, 0)

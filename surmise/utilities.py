@@ -6,7 +6,7 @@ class sampler(object):
     def __init__(self,
                  logpost_func,
                  draw_func,
-                 sampler='metropolis_hastings',
+                 sampler='PTLMC',
                  **sampler_options):
         '''
         A class used to represent a sampler.

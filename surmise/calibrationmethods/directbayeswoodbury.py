@@ -270,20 +270,11 @@ def loglik(fitinfo, emu, theta, y, x):
     emucovxhalf = emupredict.covxhalf()
     loglik = np.zeros((emumean.shape[1], 1))
 
-    if np.any(np.abs(emuvar/(10 ** (-4) +
-                             (1 + 10**(-4))*np.sum(np.square(emucovxhalf),
-                                                   2))) > 1):
-        emuoldpredict = emu.predict(x)
-        emuoldvar = emuoldpredict.var()
-        emuoldcxh = emuoldpredict.covxhalf()
-        obsvar += np.mean(np.abs(emuoldvar -
-                                 np.sum(np.square(emuoldcxh), 2)), 1)
-
     # compute loglikelihood for each theta value in theta
     for k in range(0, emumean.shape[1]):
         m0 = emumean[:, k]
         S0 = np.squeeze(emucovxhalf[:, k, :])
-        stndresid = (np.squeeze(y) - m0) / np.sqrt(obsvar)
+        stndresid = ((np.squeeze(y) - m0).T / np.sqrt(obsvar)).T
         term1 = np.sum(stndresid ** 2)
         J = (S0.T / np.sqrt(obsvar)).T
         if J.ndim < 1.5:
@@ -302,7 +293,7 @@ def loglik(fitinfo, emu, theta, y, x):
     return loglik
 
 
-def loglik_grad(fitinfo, emu, theta, y, x, args):
+def loglik_grad(fitinfo, emu, theta, y, x, args=None):
     r"""
     This is a optional docstring for an internal function.
     """
@@ -327,20 +318,12 @@ def loglik_grad(fitinfo, emu, theta, y, x, args):
     dterm3 = np.zeros(emu._info['theta'].shape[1])
 
     # adj for any unmodled variance:
-    if np.any(np.abs(emuvar/(10 ** (-4) +
-                             (1 + 10**(-4))*np.sum(np.square(emucovxhalf),
-                                                   2))) > 1):
-        emuoldpredict = emu.predict(x)
-        emuoldvar = emuoldpredict.var()
-        emuoldcxh = emuoldpredict.covxhalf()
-        obsvar += np.mean(np.abs(emuoldvar -
-                                 np.sum(np.square(emuoldcxh), 2)), 1)
 
     for k in range(0, emumean.shape[1]):
         m0 = emumean[:, k]
         dm0 = np.squeeze(emumean_grad[:, k, :])
         S0 = np.squeeze(emucovxhalf[:, k, :])
-        stndresid = (np.squeeze(y) - m0) / np.sqrt(obsvar)
+        stndresid = ((np.squeeze(y) - m0).T / np.sqrt(obsvar)).T
         term1 = np.sum(stndresid ** 2)
         stndresid_grad = - (dm0.T / np.sqrt(obsvar)).T
         dterm1 = 2 * np.sum(stndresid * stndresid_grad.T, 1)
