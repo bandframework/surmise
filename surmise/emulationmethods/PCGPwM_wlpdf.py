@@ -121,8 +121,8 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
         return_grad = True
     return_covx = True
     if (kwargs is not None) and ('return_covx' in kwargs.keys()) and \
-            (kwargs['return_covx'] is True):
-        return_covx = True
+            (kwargs['return_covx'] is False):
+        return_covx = False
     infos = fitinfo['emulist']
     predvecs = np.zeros((theta.shape[0], len(infos)))
     predvars = np.zeros((theta.shape[0], len(infos)))
@@ -253,7 +253,7 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
 
 def predictlpdf(predinfo, f, return_grad = False, addvar = 0, **kwargs):
     totvar = addvar + predinfo['extravar']
-    rf = ((f-predinfo['mean'].T)* (1/np.sqrt(totvar))).T
+    rf = ((f.T-predinfo['mean'].T) * (1/np.sqrt(totvar))).T
     Gf = predinfo['phi'].T * (1/np.sqrt(totvar))
     Gfrf = Gf @ rf
     Gf2 = Gf @ Gf.T
@@ -264,16 +264,25 @@ def predictlpdf(predinfo, f, return_grad = False, addvar = 0, **kwargs):
         Gfrf2 = (Gf @ rf2.transpose(1,0,2)).transpose(1,0,2)
         dlikv = 2*np.sum(rf2.transpose(2,1,0)*rf.transpose(1,0),2).T
     for c in range(0,predinfo['predvars'].shape[0]):
-        term1 = np.linalg.solve(np.diag(1/(predinfo['predvars'][c,:]))+Gf2, Gfrf[:,c])
+        w,v = np.linalg.eig(np.diag(1/(predinfo['predvars'][c,:]))+Gf2)
+        term1 = (v * (1/w)) @ (v.T @ Gfrf[:,c])
+
         likv[c] -= Gfrf[:,c].T @ term1
+        likv[c] += np.sum(np.log(predinfo['predvars'][c,:]))
+        likv[c] += np.sum(np.log(w))
         if return_grad:
+            Si = (v * (1/w)) @ v.T
+            grt = (predinfo['predvars_gradtheta'][c, :, :].T / predinfo['predvars'][c,:]).T
+            dlikv[c,:] += np.sum(grt,0)
+            grt = (-grt.T/predinfo['predvars'][c,:]).T
+            dlikv[c,:] += np.diag(Si) @ grt
             term2 = (term1/predinfo['predvars'][c,:])**2
             dlikv[c,:] -= 2*Gfrf2[:,c,:].T @ term1
             dlikv[c,:] -= term2 @ (predinfo['predvars_gradtheta'][c, :, :])
     if return_grad:
-        return likv.reshape(-1,1), dlikv
+        return (-likv/2).reshape(-1,1), (-dlikv/2)
     else:
-        return likv.reshape(-1,1)
+        return (-likv/2).reshape(-1,1)
 
 def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
                     **kwargs):
@@ -650,19 +659,17 @@ def __fitGP1d(theta, g, hyp1, hyp2, gvar=None, hypstarts=None, hypinds=None,
         scalL = np.std(hypstarts, 0) * hypstarts.shape[0] /\
             (1 + hypstarts.shape[0]) +\
             1/(1 + hypstarts.shape[0]) * subinfo['hypregstd']
-        if np.sum((dL * scalL) ** 2) < 1.2 * \
-                (subinfo['hyp'].shape[0] + 4*np.sqrt(subinfo['hyp'].shape[0])):
+        if np.sum((dL * scalL) ** 2) < 1.25 * \
+                (subinfo['hyp'].shape[0] + 5*np.sqrt(subinfo['hyp'].shape[0])):
             skipop = True
         else:
             skipop = False
     else:
         skipop = False
     if (not skipop):
-
         def scaledlik(hypv):
             hyprs = subinfo['hypregmean'] + hypv * subinfo['hypregstd']
             return __negloglik(hyprs, subinfo)
-
         def scaledlikgrad(hypv):
             hyprs = subinfo['hypregmean'] + hypv * subinfo['hypregstd']
             return __negloglikgrad(hyprs, subinfo) * subinfo['hypregstd']
@@ -686,9 +693,8 @@ def __fitGP1d(theta, g, hyp1, hyp2, gvar=None, hypstarts=None, hypinds=None,
         likdiff = (L0 - __negloglik(hypn, subinfo))
     else:
         likdiff = 0
-    if hypind0 > -0.5 and (2 * likdiff) < 1.2 * \
-            (subinfo['hyp'].shape[0] + 4 * np.sqrt(subinfo['hyp'].shape[0])):
-
+    if hypind0 > -0.5 and (2 * likdiff) < 1.25 * \
+            (subinfo['hyp'].shape[0] + 5 * np.sqrt(subinfo['hyp'].shape[0])):
         subinfo['hypcov'] = subinfo['hyp'][:-1]
         subinfo['hypind'] = hypind0
         subinfo['nug'] = np.exp(subinfo['hyp'][-1]) /\
@@ -782,4 +788,43 @@ def __negloglikgrad(hyp, info):
     dnegloglik += (10**(-8) +
                    hyp-info['hypregmean'])/((info['hypregstd']) ** 2)
     return dnegloglik
-
+#
+# def __covmat(x1, x2, gammav, return_gradhyp=False, return_gradx1=False):
+#     """Return the covariance between x1 and x2 given parameter gammav."""
+#     x1 = x1.reshape(1, gammav.shape[0]-1)/np.exp(gammav[:-1]) \
+#         if x1.ndim < 1.5 else x1/np.exp(gammav[:-1])
+#     x2 = x2.reshape(1, gammav.shape[0]-1)/np.exp(gammav[:-1]) \
+#         if x2.ndim < 1.5 else x2/np.exp(gammav[:-1])
+#
+#     V = np.zeros([x1.shape[0], x2.shape[0]])
+#     R = np.full((x1.shape[0], x2.shape[0]), 1/(1+np.exp(gammav[-1])))
+#
+#     if return_gradhyp:
+#         dR = np.zeros([x1.shape[0], x2.shape[0], gammav.shape[0]])
+#     elif return_gradx1:
+#         dR = np.zeros([x1.shape[0], x2.shape[0], x1.shape[1]])
+#     for k in range(0, gammav.shape[0]-1):
+#         if return_gradx1:
+#             S = np.subtract.outer(x1[:, k], x2[:, k])
+#             Sign = np.sign(S)
+#             S = np.abs(S)
+#         else:
+#             S = np.abs(np.subtract.outer(x1[:, k], x2[:, k]))
+#         R *= (1 + S)
+#         V -= S
+#         if return_gradhyp:
+#             dR[:, :, k] = (S ** 2) / (1 + S)
+#         if return_gradx1:
+#             dR[:, :, k] = -(S * Sign) / (1 + S) / np.exp(gammav[k])
+#     R *= np.exp(V)
+#     if return_gradhyp:
+#         dR *= R[:, :, None]
+#         dR[:, :, -1] = np.exp(gammav[-1]) / ((1 + np.exp(gammav[-1]))) *\
+#             (1 / (1 + np.exp(gammav[-1])) - R)
+#     elif return_gradx1:
+#         dR *= R[:, :, None]
+#     R += np.exp(gammav[-1])/(1+np.exp(gammav[-1]))
+#     if return_gradhyp or return_gradx1:
+#         return R, dR
+#     else:
+#         return R

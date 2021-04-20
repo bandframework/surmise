@@ -15,7 +15,6 @@ def sampler(logpostfunc,
             numchain=16,
             fractunning=0.5,
             sampperchain=400,
-            numopt=10,
             **ptlmc_options):
     '''
 
@@ -76,7 +75,7 @@ def sampler(logpostfunc,
                                                numtemps)),
                             np.ones(numchain)))  # ratio idea tend from emcee
     temps = np.array(temps, ndmin=2).T
-
+    numopt = temps.shape[0]
     # Test
     testout = logpostfunc(theta0[0:2, :])
     if type(testout) is tuple:
