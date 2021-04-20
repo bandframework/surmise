@@ -302,7 +302,7 @@ def loglik(fitinfo, emu, theta, y, x):
     return loglik
 
 
-def loglik_grad(fitinfo, emu, theta, y, x, args):
+def loglik_grad(fitinfo, emu, theta, y, x, args=None):
     r"""
     This is a optional docstring for an internal function.
     """
