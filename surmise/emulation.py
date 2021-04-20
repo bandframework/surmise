@@ -1072,7 +1072,8 @@ class prediction(object):
                 ((pfstr + opstr) in dir(self.emu.method)):
             if args is None:
                 args = self.emu._args
-            return copy.deepcopy(self.emu.method.ldf(self._info,
+            return copy.deepcopy(self.emu.method.predictlpdf(self._info,
+                                                            f,
                                                             **args))
         else:
             raise ValueError(self.__methodnotfoundstr(pfstr, opstr))
@@ -1087,7 +1088,8 @@ class prediction(object):
                 ((pfstr + opstr) in dir(self.emu.method)):
             if args is None:
                 args = self.emu._args
-            return copy.deepcopy(self.emu.method.ldf(self._info,
+            return copy.deepcopy(self.emu.method.predictlpdf_gradtheta(self._info,
+                                                            f,
                                                             **args))
         else:
             raise ValueError(self.__methodnotfoundstr(pfstr, opstr))

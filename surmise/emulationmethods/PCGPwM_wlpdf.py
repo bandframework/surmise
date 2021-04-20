@@ -3,11 +3,12 @@
 to suggest selections of next parameters and obviations of any parameters on
 a list.  Obviation refers to the stopping of value retrieval of `f` for a
 parameter."""
+
 import numpy as np
 import scipy.optimize as spo
 import scipy.linalg as spla
 import copy
-
+from matern_covmat import covmat as __covmat
 
 def fit(fitinfo, x, theta, f, **kwargs):
     '''
@@ -46,7 +47,6 @@ def fit(fitinfo, x, theta, f, **kwargs):
     '''
 
     f = f.T
-
     # Check for missing or failed values
     if not np.all(np.isfinite(f)):
         fitinfo['mof'] = np.logical_not(np.isfinite(f))
@@ -119,7 +119,10 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
     if (kwargs is not None) and ('return_grad' in kwargs.keys()) and \
             (kwargs['return_grad'] is True):
         return_grad = True
-
+    partial_grad = False
+    if (kwargs is not None) and ('partial_grad' in kwargs.keys()) and \
+            (kwargs['partial_grad'] is True):
+        partial_grad = True
     infos = fitinfo['emulist']
     predvecs = np.zeros((theta.shape[0], len(infos)))
     predvars = np.zeros((theta.shape[0], len(infos)))
@@ -170,10 +173,9 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
         # adjusted covariance matrix
         r = (1 - infos[k]['nug']) * np.squeeze(rsave[infos[k]['hypind']])
 
-        if return_grad:
-            dr = (1 - infos[k]['nug'])*np.squeeze(drsave[infos[k]['hypind']])
         try:
             rVh = r @ infos[k]['Vh']
+            rVh2 = rVh @ (infos[k]['Vh']).T
         except Exception:
             for i in range(0, len(infos)):
                 print((i, infos[i]['hypind']))
@@ -183,19 +185,19 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
             rVh = rVh.reshape((1, -1))
         predvecs[:, k] = r @ infos[k]['pw']
         if return_grad:
-            if dr.ndim == 2:
+            if drsave[infos[k]['hypind']].ndim == 2:
+                dr = (1 - infos[k]['nug']) * drsave[infos[k]['hypind']]
                 drVh = dr.T @ infos[k]['Vh']
                 predvecs_gradtheta[:, k, :] = dr.T @ infos[k]['pw']
                 predvars_gradtheta[:, k, :] = \
                     -infos[k]['sig2']*2*np.sum(rVh * drVh, 1)
             else:
-                drVh = np.squeeze(dr.transpose(0, 2, 1) @ infos[k]['Vh'])
-                predvecs_gradtheta[:, k, :] = np.squeeze(dr.transpose(0, 2, 1)
+                predvecs_gradtheta[:, k, :] = (1 - infos[k]['nug'])*\
+                                              np.squeeze(drsave[infos[k]['hypind']].transpose(0, 2, 1)
                                                          @ infos[k]['pw'])
                 predvars_gradtheta[:, k, :] =\
-                    -infos[k]['sig2'] * 2 * \
-                    np.sum(rVh * drVh.transpose(1, 0, 2), 2).T
-
+                    -(infos[k]['sig2'] * 2 * (1 - infos[k]['nug'])) *\
+                    np.einsum("ij,ijk->ik",rVh2, np.squeeze(drsave[infos[k]['hypind']]))
         predvars[:, k] = infos[k]['sig2'] * np.abs(1 - np.sum(rVh ** 2, 1))
 
     # calculate predictive mean and variance
@@ -206,14 +208,10 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
                                     fitinfo['offset'][xind]).T
     predinfo['var'][xnewind, :] = ((fitinfo['extravar'][xind] +
                                     predvars @ (pctscale[xind, :] ** 2).T)).T
-
-    CH = (np.sqrt(predvars)[:, :, None] * (pctscale[xind, :].T)[None, :, :])
-
-    predinfo['covxhalf'] = np.full((theta.shape[0],
-                                    CH.shape[1],
-                                    x.shape[0]), np.nan)
-    predinfo['covxhalf'][:, :, xnewind] = CH
-    predinfo['covxhalf'] = predinfo['covxhalf'].transpose((2, 0, 1))
+    predinfo['extravar'] = 1*fitinfo['extravar'][xind]
+    predinfo['predvars'] = 1*predvars
+    predinfo['predvecs'] = 1*predvecs
+    predinfo['phi'] = 1*pctscale[xind, :]
 
     if return_grad:
         predinfo['mean_gradtheta'] = np.full((x.shape[0],
@@ -222,27 +220,63 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
         predinfo['mean_gradtheta'][xnewind, :, :] =\
             ((predvecs_gradtheta.transpose(0, 2, 1) @
               pctscale[xind, :].T)).transpose((2, 0, 1))
+        predinfo['predvars_gradtheta'] = 1*predvars_gradtheta
+        predinfo['predvecs_gradtheta'] = 1*predvecs_gradtheta
 
-        dsqrtpredvars = 0.5 * (predvars_gradtheta.transpose(2, 0, 1) /
-                               np.sqrt(predvars)).transpose(1, 2, 0)
+        if not partial_grad:
+            CH = (np.sqrt(predvars)[:, :, None] * (pctscale[xind, :].T)[None, :, :])
 
-        if np.allclose(xnewind, xind):
-            predinfo['covxhalf_gradtheta'] =\
-                (dsqrtpredvars.transpose(2, 0, 1)[:, :, :, None] *
-                 (pctscale[xind, :].T)[None, :, :]).transpose(3, 1, 2, 0)
-        else:
-            predinfo['covxhalf_gradtheta'] = np.full((x.shape[0],
-                                                      theta.shape[0],
-                                                      CH.shape[1],
-                                                      theta.shape[1]), np.nan)
-            predinfo['covxhalf_gradtheta'][xnewind] = \
-                (dsqrtpredvars.transpose(2, 0, 1)[:, :, :, None] *
-                 (pctscale[xind, :].T)[None, :, :]).transpose(3, 1, 2, 0)
+            predinfo['covxhalf'] = np.full((theta.shape[0],
+                                            CH.shape[1],
+                                            x.shape[0]), np.nan)
+            predinfo['covxhalf'][:, :, xnewind] = CH
+            predinfo['covxhalf'] = predinfo['covxhalf'].transpose((2, 0, 1))
+
+            dsqrtpredvars = 0.5 * (predvars_gradtheta.transpose(2, 0, 1) /
+                                   np.sqrt(predvars)).transpose(1, 2, 0)
+
+            if np.allclose(xnewind, xind):
+                predinfo['covxhalf_gradtheta'] =\
+                    (dsqrtpredvars.transpose(2, 0, 1)[:, :, :, None] *
+                     (pctscale[xind, :].T)[None, :, :]).transpose(3, 1, 2, 0)
+            else:
+                predinfo['covxhalf_gradtheta'] = np.full((x.shape[0],
+                                                          theta.shape[0],
+                                                          CH.shape[1],
+                                                          theta.shape[1]), np.nan)
+                predinfo['covxhalf_gradtheta'][xnewind] = \
+                    (dsqrtpredvars.transpose(2, 0, 1)[:, :, :, None] *
+                     (pctscale[xind, :].T)[None, :, :]).transpose(3, 1, 2, 0)
     return
 
-def lpdf(predinfo, f, **kwargs):
+def predictlpdf(predinfo, f, **kwargs):
+    rf1 = f - predinfo['mean']
+    rf = ((f-predinfo['mean']).T* (1/np.sqrt(predinfo['extravar']))).T
+    Gf = predinfo['phi'].T * (1/np.sqrt(predinfo['extravar']))
+    Gfrf = Gf @ rf
+    Gf2 = Gf @ Gf.T
+    likv= np.sum(rf**2,0)
+    for c in range(0,predinfo['predvars'].shape[0]):
+        likv[c] -= Gfrf[:,c].T @ np.linalg.solve(np.diag(1/(predinfo['predvars'][c,:]))+Gf2, Gfrf[:,c])
+    return likv
 
-    return np.sum(f**2)
+def predictlpdf_gradtheta(predinfo, f, **kwargs):
+    rf1 = f - predinfo['mean']
+    rf = ((f-predinfo['mean']).T* (1/np.sqrt(predinfo['extravar']))).T
+    Gf = predinfo['phi'].T * (1/np.sqrt(predinfo['extravar']))
+    Gfrf = Gf @ rf
+    Gf2 = Gf @ Gf.T
+    rf2 = -(predinfo['mean_gradtheta'].transpose(2,1,0) * (1/np.sqrt(predinfo['extravar']))).transpose(2,1,0)
+    Gfrf2 = (Gf @ rf2.transpose(1,0,2)).transpose(1,0,2)
+    likv= np.sum(rf**2,0)
+    dlikv = 2*np.sum(rf2.transpose(2,1,0)*rf.transpose(1,0),2).T
+    for c in range(0,predinfo['predvars'].shape[0]):
+        term1 = np.linalg.solve(np.diag(1/(predinfo['predvars'][c,:]))+Gf2, Gfrf[:,c])
+        term2 = (term1/predinfo['predvars'][c,:])**2
+        likv[c] -= Gfrf[:,c].T @ term1
+        dlikv[c,:] -= 2*Gfrf2[:,c,:].T @ term1
+        dlikv[c,:] -= term2 @ (predinfo['predvars_gradtheta'][c, :, :])
+    return dlikv
 
 def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
                     **kwargs):
@@ -700,45 +734,6 @@ def __fitGP1d(theta, g, hyp1, hyp2, gvar=None, hypstarts=None, hypinds=None,
     return subinfo
 
 
-def __covmat(x1, x2, gammav, return_gradhyp=False, return_gradx1=False):
-    """Return the covariance between x1 and x2 given parameter gammav."""
-    x1 = x1.reshape(1, gammav.shape[0]-1)/np.exp(gammav[:-1]) \
-        if x1.ndim < 1.5 else x1/np.exp(gammav[:-1])
-    x2 = x2.reshape(1, gammav.shape[0]-1)/np.exp(gammav[:-1]) \
-        if x2.ndim < 1.5 else x2/np.exp(gammav[:-1])
-
-    V = np.zeros([x1.shape[0], x2.shape[0]])
-    R = np.full((x1.shape[0], x2.shape[0]), 1/(1+np.exp(gammav[-1])))
-
-    if return_gradhyp:
-        dR = np.zeros([x1.shape[0], x2.shape[0], gammav.shape[0]])
-    elif return_gradx1:
-        dR = np.zeros([x1.shape[0], x2.shape[0], x1.shape[1]])
-    for k in range(0, gammav.shape[0]-1):
-        if return_gradx1:
-            S = np.subtract.outer(x1[:, k], x2[:, k])
-            Sign = np.sign(S)
-            S = np.abs(S)
-        else:
-            S = np.abs(np.subtract.outer(x1[:, k], x2[:, k]))
-        R *= (1 + S)
-        V -= S
-        if return_gradhyp:
-            dR[:, :, k] = (S ** 2) / (1 + S)
-        if return_gradx1:
-            dR[:, :, k] = -(S * Sign) / (1 + S) / np.exp(gammav[k])
-    R *= np.exp(V)
-    if return_gradhyp:
-        dR *= R[:, :, None]
-        dR[:, :, -1] = np.exp(gammav[-1]) / ((1 + np.exp(gammav[-1]))) *\
-            (1 / (1 + np.exp(gammav[-1])) - R)
-    elif return_gradx1:
-        dR *= R[:, :, None]
-    R += np.exp(gammav[-1])/(1+np.exp(gammav[-1]))
-    if return_gradhyp or return_gradx1:
-        return R, dR
-    else:
-        return R
 
 
 def __negloglik(hyp, info):
@@ -790,3 +785,4 @@ def __negloglikgrad(hyp, info):
     dnegloglik += (10**(-8) +
                    hyp-info['hypregmean'])/((info['hypregstd']) ** 2)
     return dnegloglik
+

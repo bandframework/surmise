@@ -16,3 +16,17 @@ examples/Example_Missingness_Benchmark_mosesyhc/fayans/newp2.npy
 scratch/plumlee_lpdftesting/newp2.npy
 
 scratch/plumlee_lpdftesting/
+
+*.c
+
+OpenBLAS/
+
+*.pyd
+
+*.obj
+
+line_profiler/
+
+*.lib
+
+build/temp.win-amd64-3.8/Release/surmise/emulationsupport/matern_covmat.cp38-win_amd64.exp

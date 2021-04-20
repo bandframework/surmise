@@ -1,7 +1,8 @@
 import setuptools
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
-
+from Cython.Build import cythonize
+import numpy
 
 class Run_TestSuite(TestCommand):
     def run_tests(self):
@@ -37,5 +38,7 @@ setup(
                       ],
     extras_require={'extras': ['GPy'],
                     'docs': ['sphinx', 'sphinxcontrib.bibtex', 'sphinx_rtd_theme']},
-    cmdclass={'test': Run_TestSuite}
+    cmdclass={'test': Run_TestSuite},
+    ext_modules=cythonize("surmise\emulationsupport/matern_covmat.pyx"),
+    include_dirs=[numpy.get_include()]
 )
