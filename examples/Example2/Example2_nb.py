@@ -163,10 +163,10 @@ f_lin = balldropmodel_linear(xv, theta_lin)
 f_grav = balldropmodel_grav(xv, theta_grav)  
 
 # build an emulator for the linear simulation
-emu_lin = emulator(x=x, theta=theta_lin, f=f_lin, method='PCGP') 
+emu_lin = emulator(x=x, theta=theta_lin, f=f_lin, method='PCGPwM') 
 
 # build an emulator for the gravity simulation
-emu_grav = emulator(x=x, theta=theta_grav, f=f_grav, method='PCGP')  
+emu_grav = emulator(x=x, theta=theta_grav, f=f_grav, method='PCGPwM')  
 
 
 # %% [markdown]
@@ -198,7 +198,6 @@ def plot_preds(cal, axs):
 # ### Calibrators for Model 1
 
 # %%
-#breakpoint()
 cal_grav_1 = calibrator(emu=emu_grav,
                         y=y,
                         x=x,

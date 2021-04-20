@@ -77,7 +77,6 @@ def sampler(logpostfunc,
                             np.ones(numchain)))  # ratio idea tend from emcee
     temps = np.array(temps, ndmin=2).T
 
-
     # Test
     testout = logpostfunc(theta0[0:2, :])
     if type(testout) is tuple:
@@ -115,12 +114,14 @@ def sampler(logpostfunc,
         taracc = 0.60
 
     ord1 = np.argsort(-np.squeeze(logpostf_nograd(theta0)) +
-                      theta0.shape[1]*np.random.standard_normal(size=theta0.shape[0])**2)
-    theta0 = theta0[ord1[0:totnumchain],:]
+                      (theta0.shape[1] *
+                       np.random.standard_normal(size=theta0.shape[0])**2))
+    theta0 = theta0[ord1[0:totnumchain], :]
 
     # begin preoptimizer
     thetacen = np.mean(theta0, 0)
     thetas = np.maximum(np.std(theta0, 0), 10 ** (-8) * np.std(theta0))
+
     def neglogpostf_nograd(thetap):
         theta = thetacen + thetas * thetap
         return -logpostf_nograd(theta.reshape((1, len(theta))))[0]
@@ -133,7 +134,7 @@ def sampler(logpostfunc,
     boundU = np.minimum(10*np.ones(theta0.shape[1]),
                         np.max((theta0 - thetacen)/thetas, 0))
     bounds = spo.Bounds(boundL, boundU)
-    thetaop = np.zeros((numopt,theta0.shape[1]))
+    thetaop = np.zeros((numopt, theta0.shape[1]))
     for k in range(0, numopt):
         if logpostf_grad is None:
             opval = spo.minimize(neglogpostf_nograd,
@@ -149,24 +150,25 @@ def sampler(logpostfunc,
                                  jac=neglogpostf_grad,
                                  bounds=bounds)
             thetaop[k, :] = thetacen + thetas * opval.x
-        W,V = np.linalg.eigh(opval.hess_inv @ np.eye(thetacen.shape[0]))
-        r = V @ (np.sqrt(W) * np.random.standard_normal(size=thetacen.shape[0]))
+        W, V = np.linalg.eigh(opval.hess_inv @ np.eye(thetacen.shape[0]))
+        r = V @ (np.sqrt(W) *
+                 np.random.standard_normal(size=thetacen.shape[0]))
         notmoved = True
         if k == 0:
             notmoved = False
         stepadj = 4
         while notmoved:
-            if (neglogpostf_nograd((stepadj * r + opval.x))
-                - opval.fun) < 2*thetacen.shape[0]:
+            if (neglogpostf_nograd((stepadj * r + opval.x)) -
+                    opval.fun) < 2*thetacen.shape[0]:
                 thetaop[k, :] = thetacen + thetas * (stepadj * r + opval.x)
                 notmoved = False
             else:
                 stepadj /= 2
     # end Preoptimizer
     thetac = thetaop[np.random.choice(range(0, thetaop.shape[0]),
-                                        size=totnumchain), :]
+                                      size=totnumchain), :]
     thetas = np.maximum(np.std(thetac, 0), 10 ** (-8) * np.std(thetac))
-    #done shrink
+    # done shrink
 
     if logpostf_grad is not None:
         fval, dfval = logpostf(thetac)
@@ -181,7 +183,7 @@ def sampler(logpostfunc,
                           thetac.shape[1]))
     covmat0 = np.cov(thetac.T)
     covmat0 = 0.9*covmat0 + 0.1*np.diag(np.diag(covmat0))
-    W,V = np.linalg.eigh(covmat0)
+    W, V = np.linalg.eigh(covmat0)
     hc = V @ np.diag(np.sqrt(W)) @ V.T
     tau = -1
     rho = 2 * (1 + (np.exp(2 * tau) - 1) / (np.exp(2 * tau) + 1))
@@ -195,13 +197,13 @@ def sampler(logpostfunc,
             diffval = (adjrho ** 2) * (dfval @ covmat0)
             thetap += diffval
             fvalp, dfvalp = logpostf(thetap)  # thetap : no chain x dimension
-            fvalp = fvalp / temps # to flatter the posterior
+            fvalp = fvalp / temps  # to flatten the posterior
             dfvalp = dfvalp / temps
             term1 = rvalo / np.sqrt(2)
             term2 = (adjrho / 2) * ((dfval + dfvalp) @ hc)
             qadj = -(2 * np.sum(term1 * term2, 1) + np.sum(term2**2, 1))
         else:
-            fvalp = logpostf_nograd(thetap) # thetap : no chain x dimension
+            fvalp = logpostf_nograd(thetap)  # thetap : no chain x dimension
             fvalp = fvalp / temps
             qadj = np.zeros(fvalp.shape)
         swaprnd = np.log(np.random.uniform(size=fval.shape[0]))
@@ -209,43 +211,43 @@ def sampler(logpostfunc,
                              < np.squeeze(fvalp - fval)
                              + np.squeeze(qadj))[0]
         if whereswap.shape[0] > 0:
-            numtimes = numtimes + np.sum(whereswap>-1)/totnumchain
+            numtimes = numtimes + np.sum(whereswap > -1)/totnumchain
             thetac[whereswap, :] = 1*thetap[whereswap, :]
             fval[whereswap] = 1*fvalp[whereswap]
             if logpostf_grad is not None:
                 dfval[whereswap, :] = 1*dfvalp[whereswap, :]
         fvaln = fval*temps
-        orderprop = tempexchange(fvaln,temps, iters=5)
+        orderprop = tempexchange(fvaln, temps, iters=5)
         fval = fvaln[orderprop] / temps
-        thetac= thetac[orderprop,:]
+        thetac = thetac[orderprop, :]
         if logpostf_grad is not None:
             dfvaln = temps * dfval
-            dfval = (1/ temps) * dfvaln[orderprop,:]
-        if (k < samptunning) and (k % 10 == 0): # if we are not done with tuning
+            dfval = (1 / temps) * dfvaln[orderprop, :]
+        if (k < samptunning) and (k % 10 == 0):  # if not done with tuning
             tau = tau + 1 / np.sqrt(1 + k/10) * \
                   ((numtimes / 10) - taracc)
             rho = 2 * (1 + (np.exp(2 * tau) - 1) / (np.exp(2 * tau) + 1))
             adjrho = rho*(temps**(1/3))
             numtimes = 0
-        elif(k >= samptunning): # if we are done with tuning
-            thetasave[:, k-samptunning, :] = 1 * thetac[numtemps:,]
-    thetasave = np.reshape(thetasave,(-1, thetac.shape[1]))
+        elif(k >= samptunning):  # if done with tuning
+            thetasave[:, k-samptunning, :] = 1 * thetac[numtemps:, ]
+    thetasave = np.reshape(thetasave, (-1, thetac.shape[1]))
     theta = thetasave[np.random.choice(range(0, thetasave.shape[0]),
                                        size=numsamp), :]
     sampler_info = {'theta': theta, 'logpost': logpostf_nograd(theta)}
 
     return sampler_info
 
-def tempexchange(lpostf, temps, iters = 1):
+
+def tempexchange(lpostf, temps, iters=1):
     order = np.arange(0, lpostf.shape[0])
-    for k in range(0,iters):
-        rtv = np.random.choice(range(1, lpostf.shape[0]),
-                                    lpostf.shape[0])
+    for k in range(0, iters):
+        rtv = np.random.choice(range(1, lpostf.shape[0]), lpostf.shape[0])
         for rt in rtv:
             rhoh = (1/temps[rt-1] - 1 / temps[rt])
-            if ((lpostf[order[rt]]-lpostf[order[rt - 1]]) * rhoh  >
+            if ((lpostf[order[rt]]-lpostf[order[rt - 1]]) * rhoh >
                     np.log(np.random.uniform(size=1))):
                 temporder = order[rt - 1]
                 order[rt-1] = 1*order[rt]
-                order[rt] = 1* temporder
+                order[rt] = 1 * temporder
     return order

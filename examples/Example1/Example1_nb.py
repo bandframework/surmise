@@ -171,6 +171,7 @@ print(np.shape(f_lin))
 # %%
 # build an emulator for the linear simulation
 emu_lin_1 = emulator(x=xtot, theta=theta_lin, f=f_lin, method='PCGP') 
+emu_lin_2 = emulator(x=xtot, theta=theta_lin, f=f_lin, method='PCGPwM') 
 
 # %% [markdown]
 # Build an emulator for the gravity simulation:
@@ -178,6 +179,7 @@ emu_lin_1 = emulator(x=xtot, theta=theta_lin, f=f_lin, method='PCGP')
 # %%
 # build an emulator for the gravity simulation
 emu_grav_1 = emulator(x=xtot, theta=theta_grav, f=f_grav, method='PCGP')
+emu_grav_2 = emulator(x=xtot, theta=theta_grav, f=f_grav, method='PCGPwM')
 
 # %% [markdown]
 # ## Comparison of emulation methodologies
@@ -203,22 +205,37 @@ f_lin_test = balldropmodel_linear(xtotv, theta_lin_test)
 
 # %%
 pred_grav_1 = emu_grav_1.predict(x=xtot, theta=theta_grav_test)
+pred_grav_2 = emu_grav_2.predict(x=xtot, theta=theta_grav_test)
+
 pred_lin_1 = emu_lin_1.predict(x=xtot, theta=theta_lin_test)
+pred_lin_2 = emu_lin_2.predict(x=xtot, theta=theta_lin_test)
 
 # %%
 # get the prediction means and variances
 pred_lin_1_m, pred_lin_1_var = pred_lin_1.mean(), pred_lin_1.var()
 pred_grav_1_m, pred_grav_1_var = pred_grav_1.mean(), pred_grav_1.var()
 
+pred_lin_2_m, pred_lin_2_var = pred_lin_2.mean(), pred_lin_2.var()
+pred_grav_2_m, pred_grav_2_var = pred_grav_2.mean(), pred_grav_2.var()
+
+
 # %% [markdown]
 # Finally, let's observe the sum of squared deviations between the prediction means and the simulated output:
 
 # %%
-print('Rsq PCGP = ', np.round(1 - np.sum(np.square(pred_lin_1_m - f_lin_test))/np.sum(np.square(f_lin_test.T - np.mean(f_lin_test, axis = 1))), 2))
-print('SSE PCGP = ', np.round(np.sum(np.square(pred_lin_1_m - f_lin_test)), 2))
+print('Rsq PCGP lin 1 = ', np.round(1 - np.sum(np.square(pred_lin_1_m - f_lin_test))/np.sum(np.square(f_lin_test.T - np.mean(f_lin_test, axis = 1))), 2))
+print('SSE PCGP lin 1 = ', np.round(np.sum(np.square(pred_lin_1_m - f_lin_test)), 2))
 
-print('Rsq PCGP = ', np.round(1 - np.sum(np.square(pred_grav_1_m - f_grav_test))/np.sum(np.square(f_grav_test.T - np.mean(f_grav_test, axis = 1))), 2))
-print('SSE PCGP = ', np.round(np.sum(np.square(pred_grav_1_m - f_grav_test)), 2))
+print('Rsq PCGP lin 2 = ', np.round(1 - np.sum(np.square(pred_lin_2_m - f_lin_test))/np.sum(np.square(f_lin_test.T - np.mean(f_lin_test, axis = 1))), 2))
+print('SSE PCGP lin 2 = ', np.round(np.sum(np.square(pred_lin_2_m - f_lin_test)), 2))
+
+
+print('Rsq PCGP grav 1 = ', np.round(1 - np.sum(np.square(pred_grav_1_m - f_grav_test))/np.sum(np.square(f_grav_test.T - np.mean(f_grav_test, axis = 1))), 2))
+print('SSE PCGP grav 1 = ', np.round(np.sum(np.square(pred_grav_1_m - f_grav_test)), 2))
+
+print('Rsq PCGP grav 2 = ', np.round(1 - np.sum(np.square(pred_grav_2_m - f_grav_test))/np.sum(np.square(f_grav_test.T - np.mean(f_grav_test, axis = 1))), 2))
+print('SSE PCGP grav 2 = ', np.round(np.sum(np.square(pred_grav_2_m - f_grav_test)), 2))
+
 
 # %% [markdown]
 # ## Additional functionalities
