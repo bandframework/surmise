@@ -136,7 +136,7 @@ print(np.shape(f))
 # Let's build an emulator for computer model runs:
 
 # %%
-emulator_1 = emulator(x=x_std, theta=theta, f=f, method='PCGP')
+emulator_1 = emulator(x=x_std, theta=theta, f=f, method='PCGPwM')
 
 # %% [markdown]
 # ### Comparison of emulation methodologies
