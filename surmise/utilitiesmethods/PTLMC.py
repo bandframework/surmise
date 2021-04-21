@@ -15,7 +15,6 @@ def sampler(logpostfunc,
             numchain=16,
             fractunning=0.5,
             sampperchain=400,
-            numopt=10,
             **ptlmc_options):
     '''
 
@@ -76,7 +75,7 @@ def sampler(logpostfunc,
                                                numtemps)),
                             np.ones(numchain)))  # ratio idea tend from emcee
     temps = np.array(temps, ndmin=2).T
-
+    numopt = temps.shape[0]
     # Test
     testout = logpostfunc(theta0[0:2, :])
     if type(testout) is tuple:
@@ -134,7 +133,7 @@ def sampler(logpostfunc,
     boundU = np.minimum(10*np.ones(theta0.shape[1]),
                         np.max((theta0 - thetacen)/thetas, 0))
     bounds = spo.Bounds(boundL, boundU)
-    thetaop = np.zeros((numopt, theta0.shape[1]))
+    thetaop = theta0
     for k in range(0, numopt):
         if logpostf_grad is None:
             opval = spo.minimize(neglogpostf_nograd,
@@ -142,7 +141,6 @@ def sampler(logpostfunc,
                                  method='L-BFGS-B',
                                  bounds=bounds)
             thetaop[k, :] = thetacen + thetas * opval.x
-
         else:
             opval = spo.minimize(neglogpostf_nograd,
                                  (thetaop[k, :] - thetacen) / thetas,
@@ -151,25 +149,26 @@ def sampler(logpostfunc,
                                  bounds=bounds)
             thetaop[k, :] = thetacen + thetas * opval.x
         W, V = np.linalg.eigh(opval.hess_inv @ np.eye(thetacen.shape[0]))
-        r = V @ (np.sqrt(W) *
-                 np.random.standard_normal(size=thetacen.shape[0]))
         notmoved = True
         if k == 0:
             notmoved = False
         stepadj = 4
+        l0 = neglogpostf_nograd(opval.x)
         while notmoved:
+            r = (V.T*np.sqrt(W)) @ (V @
+                 np.random.standard_normal(size=thetacen.shape[0]))
             if (neglogpostf_nograd((stepadj * r + opval.x)) -
-                    opval.fun) < 2*thetacen.shape[0]:
+                    l0) < 3*thetacen.shape[0]:
                 thetaop[k, :] = thetacen + thetas * (stepadj * r + opval.x)
                 notmoved = False
             else:
                 stepadj /= 2
+            if stepadj < 1/16:
+                thetaop[k, :] = thetacen + thetas * (opval.x)
+                notmoved = False
     # end Preoptimizer
-    thetac = thetaop[np.random.choice(range(0, thetaop.shape[0]),
-                                      size=totnumchain), :]
-    thetas = np.maximum(np.std(thetac, 0), 10 ** (-8) * np.std(thetac))
+    thetac = thetaop
     # done shrink
-
     if logpostf_grad is not None:
         fval, dfval = logpostf(thetac)
         fval = fval/temps
