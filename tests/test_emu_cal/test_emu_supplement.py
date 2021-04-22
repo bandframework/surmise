@@ -102,96 +102,96 @@ def does_not_raise():
     yield
 
 
-# # test to check supplement_x
-# @pytest.mark.parametrize(
-#      "input1,input2,input3,expectation",
-#      [
-#       (5, x, x1, pytest.raises(ValueError)),  # not supported
-#       (0.25, x, x1, pytest.raises(ValueError)),  # must be integer
-#       (5, None, x1, pytest.raises(ValueError)),
-#       ],
-#      )
-# def test_supplement_x(input1, input2, input3, expectation):
-#     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
-#     with expectation:
-#          assert emu.supplement(size=input1,
-#                               x=input2,
-#                               xchoices=input3) is not None
+# test to check supplement_x
+@pytest.mark.parametrize(
+      "input1,input2,input3,expectation",
+      [
+      (5, x, x1, pytest.raises(ValueError)),  # not supported
+      (0.25, x, x1, pytest.raises(ValueError)),  # must be integer
+      (5, None, x1, pytest.raises(ValueError)),
+      ],
+      )
+def test_supplement_x(input1, input2, input3, expectation):
+    emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
+    with expectation:
+          assert emu.supplement(size=input1,
+                              x=input2,
+                              xchoices=input3) is not None
 
 
-# # test to check supplement_theta
-# @pytest.mark.parametrize(
-#     "input1,input2,input3,expectation",
-#     [
-#      # replication of emu.__theta
-#      (0, theta, theta1, pytest.raises(ValueError)),  # 'No supptheta exists.'
-#      (5, theta, theta1, pytest.raises(ValueError)),  # 'Complete replication of self.__theta'
-#      (5, None, theta1, pytest.raises(ValueError)),  # 'Provide either x or (theta or cal).'
-#      (5, theta, theta4d, pytest.raises(ValueError)),  # 'Dimension.'
-#      (5, theta, None, pytest.raises(ValueError)),  # 'Complete replication of self.__theta'
-#      (5, theta4d, None, pytest.raises(ValueError)),
-#      (5, thetarnd, None, does_not_raise()),
-#      (5, thetacomb, None, does_not_raise()),
-#      ],
-#     )
-# def test_supplement_theta(input1, input2, input3, expectation):
-#     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
-#     with expectation:
-#         assert emu.supplement(size=input1,
-#                               theta=input2,
-#                               thetachoices=input3) is not None
+# test to check supplement_theta
+@pytest.mark.parametrize(
+    "input1,input2,input3,expectation",
+    [
+      # replication of emu.__theta
+      (0, theta, theta1, pytest.raises(ValueError)),  # 'No supptheta exists.'
+      (5, theta, theta1, pytest.raises(ValueError)),  # 'Complete replication of self.__theta'
+      (5, None, theta1, pytest.raises(ValueError)),  # 'Provide either x or (theta or cal).'
+      (5, theta, theta4d, pytest.raises(ValueError)),  # 'Dimension.'
+      (5, theta, None, pytest.raises(ValueError)),  # 'Complete replication of self.__theta'
+      (5, theta4d, None, pytest.raises(ValueError)),
+      (5, thetarnd, None, does_not_raise()),
+      (5, thetacomb, None, does_not_raise()),
+      ],
+    )
+def test_supplement_theta(input1, input2, input3, expectation):
+    emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
+    with expectation:
+        assert emu.supplement(size=input1,
+                              theta=input2,
+                              thetachoices=input3) is not None
 
 
-# # test to check supplement_theta
-# @pytest.mark.parametrize(
-#     "input1,input2,expectation",
-#     [
-#      (x, theta, pytest.raises(ValueError)), #ValueError: You must either provide either x or (theta or cal).
-#      (None, None, pytest.raises(ValueError)), #ValueError: You must either provide either x or (theta or cal).
-#      ],
-#     )
-# def test_supplement_x_theta(input1, input2, expectation):
-#     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
-#     with expectation:
-#         assert emu.supplement(size=10, x=input1, theta=input2) is not None
+# test to check supplement_theta
+@pytest.mark.parametrize(
+    "input1,input2,expectation",
+    [
+      (x, theta, pytest.raises(ValueError)), #ValueError: You must either provide either x or (theta or cal).
+      (None, None, pytest.raises(ValueError)), #ValueError: You must either provide either x or (theta or cal).
+      ],
+    )
+def test_supplement_x_theta(input1, input2, expectation):
+    emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
+    with expectation:
+        assert emu.supplement(size=10, x=input1, theta=input2) is not None
 
 
-# # test to check supplement_cal
-# @pytest.mark.parametrize(
-#     "expectation",
-#     [
-#      (does_not_raise()),
-#      ],
-#     )
-# def test_supplement_cal(expectation):
-#     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
-#     args1 = {'theta0': np.array([[0, 9]]),
-#              'numsamp': 50,
-#              'stepType': 'normal',
-#              'stepParam': [0.1, 1]}
-#     cal = calibrator(emu=emu,
-#                      y=y,
-#                      x=x,
-#                      thetaprior=priorphys_lin,
-#                      method='directbayes',
-#                      yvar=obsvar,
-#                      args=args1)
-#     with expectation:
-#         assert emu.supplement(size=10, cal=cal) is not None
+# test to check supplement_cal
+@pytest.mark.parametrize(
+    "expectation",
+    [
+      (does_not_raise()),
+      ],
+    )
+def test_supplement_cal(expectation):
+    emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
+    args1 = {'theta0': np.array([[0, 9]]),
+              'numsamp': 50,
+              'stepType': 'normal',
+              'stepParam': [0.1, 1]}
+    cal = calibrator(emu=emu,
+                      y=y,
+                      x=x,
+                      thetaprior=priorphys_lin,
+                      method='directbayes',
+                      yvar=obsvar,
+                      args=args1)
+    with expectation:
+        assert emu.supplement(size=10, cal=cal) is not None
 
-# # test to check supplement_cal
-# @pytest.mark.parametrize(
-#     "expectation",
-#     [
-#      (does_not_raise()),
-#      ],
-#     )
-# def test_supplement_supp(expectation):
-#     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
-#     emu.supplement(size=5, theta=thetarnd)
+# test to check supplement_cal
+@pytest.mark.parametrize(
+    "expectation",
+    [
+      (does_not_raise()),
+      ],
+    )
+def test_supplement_supp(expectation):
+    emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
+    emu.supplement(size=5, theta=thetarnd)
 
-#     with expectation:
-#         assert emu.supplement(size=0) is not None
+    with expectation:
+        assert emu.supplement(size=0) is not None
 
 # test to check supplement_cal
 @pytest.mark.parametrize(
@@ -206,13 +206,13 @@ def test_supplement_method(expectation):
         assert emu.supplement(size=5, theta=thetarnd) is not None
 
 # test to check supplement_theta
-# @pytest.mark.parametrize(
-#    "input1,expectation",
-#    [
-#     (thetacomb, does_not_raise()), #ValueError: You must either provide either x or (theta or cal).
-#     ],
-#    )
-#def test_supplement_match(input1, expectation):
-#    emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
-#    with expectation:
-#        assert emu.supplement(size=15, theta=theta, thetachoices=input1) is not None
+@pytest.mark.parametrize(
+    "input1,expectation",
+    [
+    (thetacomb, does_not_raise()), #ValueError: You must either provide either x or (theta or cal).
+    ],
+    )
+def test_supplement_match(input1, expectation):
+    emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
+    with expectation:
+        assert emu.supplement(size=15, theta=theta, thetachoices=input1) is not None

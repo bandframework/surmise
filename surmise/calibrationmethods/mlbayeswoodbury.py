@@ -97,12 +97,13 @@ def fit(fitinfo,
             grad = np.zeros((theta.shape[0], theta.shape[1]))
             n_finite = len(inds)
 
-            for k in range(0, theta.shape[1]):
-                thetaprop = copy.copy(theta)
-                thetaprop[:, k] += 10**(-3)
-                f_base2 = thetaprior.lpdf(thetaprop[inds, :])
-                grad[inds, k] = 10**(3) * (f_base2 -
-                                           f_base[inds]).reshape(n_finite,)
+            if n_finite > 0:
+                for k in range(0, theta.shape[1]):
+                    thetaprop = copy.copy(theta)
+                    thetaprop[:, k] += 10**(-3)
+                    f_base2 = thetaprior.lpdf(thetaprop[inds, :])
+                    grad[inds, k] = 10**(3) * (f_base2 -
+                                               f_base[inds]).reshape(n_finite,)
 
             return grad
         thetaprior.lpdf_grad = lpdf_grad
@@ -136,17 +137,18 @@ def fit(fitinfo,
         if emureturn_grad and return_grad:
             # obtain the gradient of the log-prior
             dlogpost = thetaprior.lpdf_grad(theta)
-            # obtain the log-likelihood and the gradient of it
-            loglikinds, dloglikinds = loglik_grad(fitinfo,
-                                                  emu,
-                                                  theta[inds, :],
-                                                  y,
-                                                  x)
-            logpost[inds] += loglikinds
-            dlogpost[inds] += dloglikinds
-            if clf_method is not None:
-                logpost[inds] += logprobacce(theta[inds, :])
-                dlogpost[inds] += logprobacce_grad(theta[inds, :])
+            if len(inds) > 0:
+                # obtain the log-likelihood and the gradient of it
+                loglikinds, dloglikinds = loglik_grad(fitinfo,
+                                                      emu,
+                                                      theta[inds, :],
+                                                      y,
+                                                      x)
+                logpost[inds] += loglikinds
+                dlogpost[inds] += dloglikinds
+                if clf_method is not None:
+                    logpost[inds] += logprobacce(theta[inds, :])
+                    dlogpost[inds] += logprobacce_grad(theta[inds, :])
             return logpost, dlogpost
         else:
             if len(inds) > 0:

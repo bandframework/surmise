@@ -248,9 +248,9 @@ def thetalpdf(fitinfo, theta, args=None):
     logpost = thetaprior.lpdf(theta)
     if logpost.ndim > 0.5 and logpost.shape[0] > 1.5:
         inds = np.where(np.isfinite(logpost))[0]
-        logpost[inds] += loglik(fitinfo, emu, theta[inds], y, x, args)
+        logpost[inds] += loglik(fitinfo, emu, theta[inds], y, x)
     elif np.isfinite(logpost):
-        logpost += loglik(fitinfo, emu, theta, y, x, args)
+        logpost += loglik(fitinfo, emu, theta, y, x)
     return (logpost-fitinfo['lpdfapproxnorm'])
 
 
@@ -302,7 +302,7 @@ def loglik(fitinfo, emu, theta, y, x):
     return loglik
 
 
-def loglik_grad(fitinfo, emu, theta, y, x, args):
+def loglik_grad(fitinfo, emu, theta, y, x):
     r"""
     This is a optional docstring for an internal function.
     """

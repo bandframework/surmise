@@ -29,3 +29,5 @@ matern_covmat.cp38-win_amd64.pyd
 OpenBLAS/
 
 surmise/emulationsupport/matern_covmat.c
+
+CaseStudy/
