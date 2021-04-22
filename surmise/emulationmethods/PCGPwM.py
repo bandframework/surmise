@@ -75,7 +75,7 @@ def fit(fitinfo, x, theta, f, epsilon=0.1, hyp_mean=-10, hyp_LB=-20, **kwargs):
     return
 
 
-def predict(predinfo, fitinfo, x, theta, args={}):
+def predict(predinfo, fitinfo, x, theta, return_grad=False, **kwargs):
     r"""
     Finds prediction at theta and x given the dictionary fitinfo.
     This [emulationpredictdocstring] automatically filled by docinfo.py when
@@ -111,10 +111,6 @@ def predict(predinfo, fitinfo, x, theta, args={}):
     args : dict
         A dictionary containing options passed to you.
     """
-    return_grad = False
-    if (args is not None) and ('return_grad' in args.keys()) and \
-            (args['return_grad'] is True):
-        return_grad = True
 
     infos = fitinfo['emulist']
     predvecs = np.zeros((theta.shape[0], len(infos)))
