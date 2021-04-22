@@ -4,7 +4,7 @@ from surmise.utilities import sampler
 import copy
 
 
-def fit(fitinfo, emu, x, y,  args=None):
+def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
     '''
     The main required function to be called by calibration to fit a
     calibration model.
@@ -71,19 +71,12 @@ def fit(fitinfo, emu, x, y,  args=None):
     '''
 
     thetaprior = fitinfo['thetaprior']
-    myusedir = True
-    if 'usedir' in args.keys() and args['usedir'] == False:
-        myusedir = False
-
-    if myusedir:
-        try:
-            theta = thetaprior.rnd(10)
-            emupredict = emu.predict(x, theta, args={'return_grad': True})
-            emupredict.mean_gradtheta()
-            emureturn_grad = True
-        except Exception:
-            emureturn_grad = False
-    else:
+    try:
+        theta = thetaprior.rnd(10)
+        emupredict = emu.predict(x, theta, args={'return_grad': True})
+        emupredict.mean_gradtheta()
+        emureturn_grad = True
+    except Exception:
         emureturn_grad = False
 
     if emureturn_grad and 'lpdf_grad' not in dir(thetaprior):
@@ -96,9 +89,9 @@ def fit(fitinfo, emu, x, y,  args=None):
 
             for k in range(0, theta.shape[1]):
                 thetaprop = copy.copy(theta)
-                thetaprop[:, k] += 10**(-3)
+                thetaprop[:, k] += 10**(-6)
                 f_base2 = thetaprior.lpdf(thetaprop[inds, :])
-                grad[inds, k] = 10**(3) * (f_base2 -
+                grad[inds, k] = 10**(6) * (f_base2 -
                                            f_base[inds]).reshape(n_finite,)
 
             return grad
@@ -118,8 +111,7 @@ def fit(fitinfo, emu, x, y,  args=None):
                                                   emu,
                                                   theta[inds, :],
                                                   y,
-                                                  x,
-                                                  args)
+                                                  x)
             logpost[inds] += loglikinds
             dlogpost[inds] += dloglikinds
             return logpost, dlogpost
@@ -129,27 +121,37 @@ def fit(fitinfo, emu, x, y,  args=None):
                                     emu,
                                     theta[inds, :],
                                     y,
-                                    x,
-                                    args)
+                                    x)
             return logpost
 
-    theta = thetaprior.rnd(1000)
-    if 'thetarnd' in fitinfo:
-        theta = np.vstack((fitinfo['thetarnd'], theta))
-    if '_emulator__theta' in dir(emu):
-        theta = np.vstack((theta, copy.copy(emu._emulator__theta)))
+    # Define the draw function to sample from initial theta
+    def draw_func(n):
+        p = thetaprior.rnd(1).shape[1]
+        theta0 = np.array([]).reshape(0, p)
+
+        if 'thetarnd' in fitinfo:
+            theta0 = fitinfo['thetarnd']
+        if '_emulator__theta' in dir(emu):
+            theta0 = np.vstack((theta0, copy.copy(emu._emulator__theta)))
+        n0 = len(theta0)
+        if n0 < n:
+            theta0 = np.vstack((thetaprior.rnd(n-n0), theta0))
+        else:
+            theta0 = theta0[np.random.randint(theta0.shape[0], size=n), :]
+
+        return theta0
 
     # obtain theta draws from posterior distribution
-    args['theta0'] = theta
-    args['sampler'] = 'PTLMC'
-    sampler_obj = sampler(logpostfunc=logpostfull_wgrad, options=args)
+    sampler_obj = sampler(logpost_func=logpostfull_wgrad,
+                          draw_func=draw_func,
+                          **bayeswoodbury_args)
+
     theta = sampler_obj.sampler_info['theta']
 
     # obtain log-posterior of theta values
     ladj = logpostfull_wgrad(theta, return_grad=False)
     mladj = np.max(ladj)
     fitinfo['lpdfapproxnorm'] = np.log(np.mean(np.exp(ladj - mladj))) + mladj
-    fitinfo['lpdfapproxnorm_un'] = ladj
     fitinfo['thetarnd'] = theta
     fitinfo['y'] = y
     fitinfo['x'] = x
@@ -252,7 +254,7 @@ def thetalpdf(fitinfo, theta, args=None):
     return (logpost-fitinfo['lpdfapproxnorm'])
 
 
-def loglik(fitinfo, emu, theta, y, x, args):
+def loglik(fitinfo, emu, theta, y, x):
     r"""
     This is a optional docstring for an internal function.
     """
@@ -300,7 +302,7 @@ def loglik(fitinfo, emu, theta, y, x, args):
     return loglik
 
 
-def loglik_grad(fitinfo, emu, theta, y, x, args):
+def loglik_grad(fitinfo, emu, theta, y, x, args=None):
     r"""
     This is a optional docstring for an internal function.
     """

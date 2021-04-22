@@ -1,3 +1,4 @@
+.DS_Store
 *__pycache__
 *.pyc
 surmise_applications/
@@ -8,25 +9,26 @@ cov_*
 surmise.egg-info
 docs/_build
 x.log
-venv/
 .idea
+venv/
+examples/Example_Missingness_Benchmark_mosesyhc/fayans/newp2.npy
 
-*.xml
+scratch/plumlee_lpdftesting/newp2.npy
 
-.idea/surmise.iml
+scratch/plumlee_lpdftesting/
 
-.spyproject/
+*.c
 
-surmise/__pycache__/
+OpenBLAS/
 
-surmise/emulationmethods/__pycache__/
+*.pyd
 
-surmise/utilitiesmethods/__pycache__/
+*.obj
 
-tests/test_new_emulator/__pycache__/
+line_profiler/
 
 surmise/calibrationmethods/__pycache__/
-
 examples/Example_Missingness_Benchmark_mosesyhc/fayans/fayansdata/newp2.npy
-
 scratch/
+.spyproject/
+*.lib

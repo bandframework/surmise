@@ -6,8 +6,15 @@ import warnings
 
 class calibrator(object):
 
-    def __init__(self, emu=None, y=None, x=None, thetaprior=None, yvar=None,
-                 method='directbayes', args={}):
+    def __init__(self,
+                 emu=None,
+                 y=None,
+                 x=None,
+                 thetaprior=None,
+                 yvar=None,
+                 method='directbayes',
+                 args={},
+                 options={}):
         '''
         A class to represent a calibrator. Fits a calibrator model provided
         in ``calibrationmethods/[method].py`` where [method] is the user
@@ -180,7 +187,13 @@ class calibrator(object):
         except Exception:
             raise ValueError('Module not found!')
 
-        self.fit()
+        self.__options = copy.copy(options)
+
+        if 'autofit' in self.__options.keys():
+            if self.__options['autofit'] is not False:
+                self.fit()
+        else:
+            self.fit()
 
     def __repr__(self):
         object_method = [method_name for method_name in dir(self)
@@ -206,9 +219,13 @@ class calibrator(object):
         args : dict
             A dictionary containing options you would like to pass
         """
-        if args is None:
-            args = self.args
-        self.method.fit(self.info, self.emu, self.x, self.y, args)
+
+        if args is not None:
+            argstemp = {**self.args, **copy.deepcopy(args)}
+        else:
+            argstemp = copy.copy(self.args)
+
+        self.method.fit(self.info, self.emu, self.x, self.y, **argstemp)
         if hasattr(self, 'theta'):
             del self.theta
         # : theta attribute of calibrator
@@ -316,7 +333,8 @@ class prediction(object):
         if (pfstr + opstr) in dir(self.cal.method):
             if args is None:
                 args = self.cal.args
-            return copy.deepcopy(self.cal.method.predictmean(self.info, args))
+            return copy.deepcopy(self.cal.method.predictmean(self.info,
+                                                             args))
         elif opstr in self.info.keys():
             return copy.deepcopy(self.info[opstr])
         elif 'rnd' in self.info.keys():
@@ -335,7 +353,8 @@ class prediction(object):
         if (pfstr + opstr) in dir(self.cal.method):
             if args is None:
                 args = self.cal.args
-            return copy.deepcopy(self.cal.method.predictvar(self.info, args))
+            return copy.deepcopy(self.cal.method.predictvar(self.info,
+                                                            args))
         elif opstr in self.info.keys():
             return copy.deepcopy(self.info[opstr])
         elif 'rnd' in self.info.keys():
@@ -354,7 +373,8 @@ class prediction(object):
         if (pfstr + opstr) in dir(self.cal.method):
             if args is None:
                 args = self.cal.args
-            return copy.deepcopy(self.cal.method.predictrnd(self.info, args))
+            return copy.deepcopy(self.cal.method.predictrnd(self.info,
+                                                            args))
         elif 'rnd' in self.info.keys():
             return self.info['rnd'][np.random.choice(self.info['rnd'].shape[0],
                                                      size=s), :]
@@ -436,7 +456,8 @@ class thetadist(object):
         if (pfstr + opstr) in dir(self.cal.method):
             if args is None:
                 args = self.cal.args
-            return copy.deepcopy(self.cal.method.thetavar(self.cal.info, args))
+            return copy.deepcopy(self.cal.method.thetavar(self.cal.info,
+                                                          args))
         elif (pfstr+opstr) in self.cal.info.keys():
             return copy.deepcopy(self.cal.info[(pfstr+opstr)])
         elif (pfstr+'rnd') in self.cal.info.keys():
@@ -454,7 +475,8 @@ class thetadist(object):
         if (pfstr + opstr) in dir(self.cal.method):
             if args is None:
                 args = self.cal.args
-            return copy.copy(self.cal.method.thetarnd(self.cal.info, s, args))
+            return copy.copy(self.cal.method.thetarnd(self.cal.info, s,
+                                                      args))
         elif (pfstr+opstr) in self.cal.info.keys():
             return self.cal.info['thetarnd'][
                         np.random.choice(self.cal.info['thetarnd'].shape[0],

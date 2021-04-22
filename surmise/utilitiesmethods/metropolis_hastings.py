@@ -4,68 +4,56 @@ import scipy.stats as sps
 """Metropolis Hastings"""
 
 
-def sampler(logpostfunc, options={}):
+def sampler(logpost_func,
+            draw_func,
+            numsamp=2000,
+            theta0=None,
+            stepType='normal',
+            stepParam=None,
+            **mh_options):
     '''
+
+
     Parameters
     ----------
-    logpostfunc : function
+    logpost_func : function
         a function returns the log of the posterior for a given theta.
-    options : dict, optional
-        a dictionary providing the sampler options. The default is {}.
-        The possible parameters for the sampler:
-
-        - numsamp (int) : number of samples to draw
-
-        - stepType : either 'uniform' or 'normal'
-
-        - stepParam (float) : scaling parameter
-
-        - theta0 : initial theta value
-
-    Raises
-    ------
-    ValueError
-        If a stepParam or theta0 is not provided.
+    draw_func : function
+        a function returns random draws of initial design theta
+    numsamp : int, optional
+        number of samples to draw. The default is 2000.
+    theta0 : array, optional
+        initial theta value. The default is None.
+    stepType : str, optional
+        either 'uniform' or 'normal'. The default is 'normal'.
+    stepParam : array, optional
+        scaling parameter. The default is None.
+    **mh_options : dict
+        additional options.
 
     Returns
     -------
     sampler_info : dict
-        a dictionary contains the output of the sampler.
+        returns numsamp random draws from posterior.
 
     '''
 
-    # Initialize
-    if 'numsamp' in options.keys():
-        n = options['numsamp']
-    else:
-        n = 2000
-
-    if 'stepType' in options.keys():
-        stepType = options['stepType']
-    else:
-        # default is normal
-        stepType = 'normal'
-
     # scaling parameter
-    if 'stepParam' in options.keys():
-        stepParam = options['stepParam']
-    else:
-        raise ValueError('Unknown stepParam')
+    if stepParam is None:
+        stepParam = np.std(draw_func(1000), axis=0)
 
     # intial theta to start the chain
-    if 'theta0' in options.keys():
-        thetastart = options['theta0']
-    else:
-        raise ValueError('Unknown theta0')
+    if theta0 is None:
+        theta0 = draw_func(1)
 
-    p = thetastart.shape[1]
-    lposterior = np.zeros(1000 + n)
-    theta = np.zeros((1000 + n, thetastart.shape[1]))
-    lposterior[0] = logpostfunc(thetastart)
-    theta[0, :] = thetastart
+    p = theta0.shape[1]
+    lposterior = np.zeros(1000 + numsamp)
+    theta = np.zeros((1000 + numsamp, theta0.shape[1]))
+    lposterior[0] = logpost_func(theta0)
+    theta[0, :] = theta0
     n_acc = 0
 
-    for i in range(1, 1000 + n):
+    for i in range(1, 1000 + numsamp):
         # Candidate theta
         if stepType == 'normal':
             theta_cand = [theta[i-1, :][k] + stepParam[k] *
@@ -77,8 +65,8 @@ def sampler(logpostfunc, options={}):
         theta_cand = np.reshape(np.array(theta_cand), (1, p))
 
         # Compute loglikelihood
-        logpost = logpostfunc(theta_cand)
-        
+        logpost = logpost_func(theta_cand)
+
         if np.isfinite(logpost):
             p_accept = min(1, np.exp(logpost - lposterior[i-1]))
             accept = np.random.uniform() < p_accept
@@ -90,14 +78,12 @@ def sampler(logpostfunc, options={}):
             # Update position
             theta[i, :] = theta_cand
             lposterior[i] = logpost
-            if i >= 1000:
+            if i >= numsamp:
                 n_acc += 1
         else:
             theta[i, :] = theta[i-1, :]
             lposterior[i] = lposterior[i-1]
 
-    theta = theta[(1000):(1000 + n), :]
-    sampler_info = {'theta': theta, 'acc_rate': n_acc/n}
-    
-    print('acc rate:', n_acc/n)
+    theta = theta[(1000):(1000 + numsamp), :]
+    sampler_info = {'theta': theta, 'acc_rate': n_acc/numsamp}
     return sampler_info

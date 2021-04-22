@@ -2,7 +2,7 @@ import numpy as np
 import GPy
 
 
-def fit(fitinfo, x, theta, f, args=None):
+def fit(fitinfo, x, theta, f, **kwargs):
 
     if x is None:
         col_no = theta.shape[1]
@@ -35,7 +35,7 @@ def fit(fitinfo, x, theta, f, args=None):
     return
 
 
-def predict(predinfo, fitinfo, x, theta, args=None):
+def predict(predinfo, fitinfo, x, theta, **kwargs):
 
     emulator = fitinfo['emu']
 

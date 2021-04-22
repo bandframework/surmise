@@ -1,15 +1,15 @@
 """PCGPwM method - PCGP with Missingness, an extension to PCGP
-(Higdon et al., 2008). In addition, the PCGPwM method provides the functionality
-to suggest selections of next parameters and obviations of any parameters on
-a list.  Obviation refers to the stopping of value retrieval of `f` for a
-parameter."""
+(Higdon et al., 2008). In addition, the PCGPwM method provides the
+functionality to suggest selections of next parameters and obviations of any
+parameters on a list.  Obviation refers to the stopping of value retrieval of
+`f` for a parameter."""
 import numpy as np
 import scipy.optimize as spo
 import scipy.linalg as spla
 import copy
 
 
-def fit(fitinfo, x, theta, f, args=None):
+def fit(fitinfo, x, theta, f, epsilon=0.1, hyp_mean=-10, hyp_LB=-20, **kwargs):
     '''
     The purpose of fit is to take information and plug all of our fit
     information into fitinfo, which is a python dictionary.
@@ -18,10 +18,10 @@ def fit(fitinfo, x, theta, f, args=None):
        This is a modification of the method proposed by Higdon et al., 2008.
        Refer to :py:func:`PCGP` for additional details.
 
-    Prior to performing the PCGP method (Higdon et al., 2008), the PCGPwM method
-    checks for missingness in `f` and provides imputations for the missing values
-    before conducting the PCGP method.  The method adds approximate variance at
-    each points requiring imputation.
+    Prior to performing the PCGP method (Higdon et al., 2008), the PCGPwM
+    method checks for missingness in `f` and provides imputations for the
+    missing values before conducting the PCGP method.  The method adds
+    approximate variance at each points requiring imputation.
 
     Parameters
     ----------
@@ -55,31 +55,27 @@ def fit(fitinfo, x, theta, f, args=None):
         fitinfo['mof'] = None
         fitinfo['mofrows'] = None
 
-    fitinfo['epsilon'] = args['epsilon'] if 'epsilon' in args.keys() else 0.1
-    hyp1 = args['hypregmean'] if 'hypregmean' in args.keys() else -10
-    hyp2 = args['hypregLB'] if 'hypregLB' in args.keys() else -20
-
     fitinfo['theta'] = theta
     fitinfo['f'] = f
     fitinfo['x'] = x
 
     # Standardize the function evaluations f
-    __standardizef(fitinfo)
+    __standardizef(fitinfo, epsilon)
 
     # Construct principle components
-    __PCs(fitinfo)
+    __PCs(fitinfo, epsilon)
     numpcs = fitinfo['pc'].shape[1]
 
-    print(fitinfo['method'], 'considering ', numpcs, 'PCs')
+    # print(fitinfo['method'], 'considering ', numpcs, 'PCs')
 
     # Fit emulators for all PCs
-    emulist = __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2)
+    emulist = __fitGPs(fitinfo, theta, numpcs, hyp_mean, hyp_LB)
     fitinfo['emulist'] = emulist
 
     return
 
 
-def predict(predinfo, fitinfo, x, theta, args={}):
+def predict(predinfo, fitinfo, x, theta, **kwargs):
     r"""
     Finds prediction at theta and x given the dictionary fitinfo.
     This [emulationpredictdocstring] automatically filled by docinfo.py when
@@ -93,12 +89,12 @@ def predict(predinfo, fitinfo, x, theta, args={}):
         there is no reason to return anything. Keep only stuff that will be
         used by predict. Key elements are
 
-            - `predinfo['mean']` : `predinfo['mean'][k]` is mean of the prediction
-              at all x at `theta[k]`.
+            - `predinfo['mean']` : `predinfo['mean'][k]` is mean of the
+              prediction at all x at `theta[k]`.
             - `predinfo['var']` : `predinfo['var'][k]` is variance of the
               prediction at all x at `theta[k]`.
-            - `predinfo['cov']` : `predinfo['cov'][k]` is mean of the prediction
-              at all x at `theta[k]`.
+            - `predinfo['cov']` : `predinfo['cov'][k]` is mean of the
+              prediction at all x at `theta[k]`.
             - `predinfo['covhalf']` : if `A = predinfo['covhalf'][k]` then
               `A.T @ A = predinfo['cov'][k]`.
 
@@ -116,8 +112,8 @@ def predict(predinfo, fitinfo, x, theta, args={}):
         A dictionary containing options passed to you.
     """
     return_grad = False
-    if (args is not None) and ('return_grad' in args.keys()) and \
-            (args['return_grad'] is True):
+    if (kwargs is not None) and ('return_grad' in kwargs.keys()) and \
+            (kwargs['return_grad'] is True):
         return_grad = True
 
     infos = fitinfo['emulist']
@@ -265,10 +261,14 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
         This will not always be provided.
     args : dict
         A dictionary containing additional options.  Specific arguments:
-            - `'pending'`: a matrix (sized like `f`) to indicate pending value retrieval of `f`
+            - `'pending'`: a matrix (sized like `f`) to indicate pending value
+            retrieval of `f`
             - `'costpending'`: the cost to obviate pending thetas
-            - `'includepending'`: boolean to include pending values for obviation considerations
-        Example usage: `args = {'includepending': True, 'costpending': 0.01+0.99*np.mean(pending,0), 'pending': pending}`.
+            - `'includepending'`: boolean to include pending values for
+            obviation considerations
+        Example usage: `args = {'includepending': True,
+                                'costpending': 0.01+0.99*np.mean(pending,0),
+                                'pending': pending}`.
 
     Returns
     ----------
@@ -276,7 +276,8 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
     theta : array
         Suggested parameters for further value retrievals of `f`.
     info : dict
-        A dictionary to contain selection and obviation information. Contains arguments:
+        A dictionary to contain selection and obviation information. Contains
+        arguments:
             - `'crit'`: criteria associated with selected thetas
             - `'obviatesugg'`: indices in `pending` for suggested obviations
     '''
@@ -408,14 +409,13 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
     return thetachoicesave, info
 
 
-def __standardizef(fitinfo, offset=None, scale=None):
+def __standardizef(fitinfo, epsilon, offset=None, scale=None):
     r'''Standardizes f by creating offset, scale and fs.  When appropriate,
     imputes values for `f`.'''
     # Extracting from input dictionary
     f = fitinfo['f']
     mof = fitinfo['mof']
     mofrows = fitinfo['mofrows']
-    epsilon = fitinfo['epsilon']
 
     if (offset is not None) and (scale is not None):
         if offset.shape[0] == f.shape[1] and scale.shape[0] == f.shape[1]:
@@ -438,7 +438,7 @@ def __standardizef(fitinfo, offset=None, scale=None):
     if mof is None:
         fs = (f - offset) / scale
     else:
-    # Imputes missing values
+        # Imputes missing values
         for k in range(0, f.shape[1]):
             fs[:, k] = (f[:, k] - offset[k]) / scale[k]
             if np.sum(mof[:, k]) > 0:
@@ -470,14 +470,14 @@ def __standardizef(fitinfo, offset=None, scale=None):
     return
 
 
-def __PCs(fitinfo, varconstant=10):
+def __PCs(fitinfo, epsilon, varconstant=10):
     "Apply PCA to reduce the dimension of `f`."
     # Extracting from input dictionary
     f = fitinfo['f']
     fs = fitinfo['fs']
     mof = fitinfo['mof']
     mofrows = fitinfo['mofrows']
-    epsilon = fitinfo['epsilon']
+
     pct = None
     pcw = None
 

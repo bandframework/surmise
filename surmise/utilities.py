@@ -3,7 +3,11 @@ import importlib
 
 class sampler(object):
 
-    def __init__(self, logpostfunc, options={}):
+    def __init__(self,
+                 logpost_func,
+                 draw_func,
+                 sampler='metropolis_hastings',
+                 **sampler_options):
         '''
         A class used to represent a sampler.
 
@@ -21,24 +25,20 @@ class sampler(object):
 
         '''
 
-        try:
-            method = options['sampler']
-        except Exception:
-            method = 'metropolis_hastings'
-
-        self.logpostfunc = logpostfunc
-        self.options = options
+        self.logpost_func = logpost_func
+        self.draw_func = draw_func
+        self.options = sampler_options
         self.sampler_info = {}
-        self.draw_samples(method)
+        self.draw_samples(sampler)
 
-    def draw_samples(self, method):
+    def draw_samples(self, sampler):
         '''
         Calls "utilitiesmethods.[method].sampler" where [method] is the
         user option.
 
         Parameters
         ----------
-        method : str
+        sampler_method : str
             name of the sampler.
 
         Returns
@@ -47,6 +47,9 @@ class sampler(object):
 
         '''
         self.method = importlib.import_module('surmise.utilitiesmethods.'
-                                              + method)
+                                              + sampler)
+
         # update sampler_info with the output of the sampler
-        self.sampler_info = self.method.sampler(self.logpostfunc, self.options)
+        self.sampler_info = self.method.sampler(self.logpost_func,
+                                                self.draw_func,
+                                                **self.options)

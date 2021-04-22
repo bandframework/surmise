@@ -40,9 +40,12 @@ Society: Series B (Statistical Methodology)*, 60(1):255-268, 1998.
 '''
 
 
-def sampler(logpostfunc, options):
-    r'''
-    Metropolis-adjusted Langevin algorithm or Langevin Monte Carlo (LMC).
+def sampler(logpost_func,
+            draw_func,
+            numsamp=2000,
+            theta0=None,
+            **lmc_options):
+    '''
 
     Parameters
     ----------
@@ -70,48 +73,40 @@ def sampler(logpostfunc, options):
 
     '''
 
-    if 'theta0' in options.keys():
-        theta0 = options['theta0']
-    else:
-        raise ValueError('Unknown theta0')
-
-    # Initialize
-    if 'numsamp' in options.keys():
-        numsamp = options['numsamp']
-    else:
-        numsamp = 2000
+    if theta0 is None:
+        theta0 = draw_func(1000)
 
     # Minimum effective sample size (ESS) desired in the returned samples
     tarESS = np.max((150, 10 * theta0.shape[1]))
 
     # Test
-    testout = logpostfunc(theta0[0:2, :])
+    testout = logpost_func(theta0[0:2, :])
     if type(testout) is tuple:
         if len(testout) != 2:
             raise ValueError('log density does not return 1 or 2 elements')
         if testout[1].shape[1] is not theta0.shape[1]:
             raise ValueError('derivative appears to be the wrong shape')
 
-        logpostf = logpostfunc
+        logpostf = logpost_func
 
         def logpostf_grad(theta):
-            return logpostfunc(theta)[1]
+            return logpost_func(theta)[1]
 
         try:
-            testout = logpostfunc(theta0[10, :], return_grad=False)
+            testout = logpost_func(theta0[10, :], return_grad=False)
             if type(testout) is tuple:
                 raise ValueError('Cannot stop returning a grad')
 
             def logpostf_nograd(theta):
-                return logpostfunc(theta, return_grad=False)
+                return logpost_func(theta, return_grad=False)
 
         except Exception:
             def logpostf_nograd(theta):
-                return logpostfunc(theta)[0]
+                return logpost_func(theta)[0]
     else:
         logpostf_grad = None
-        logpostf = logpostfunc
-        logpostf_nograd = logpostfunc
+        logpostf = logpost_func
+        logpostf_nograd = logpost_func
 
     if logpostf_grad is None:
         rho = 2 / theta0.shape[1] ** (1/2)
@@ -152,7 +147,7 @@ def sampler(logpostfunc, options):
 
     def neglogpostf_nograd(thetap):
         theta = thetac + thetas * thetap
-        ##print(theta)
+
         return -logpostf_nograd(theta.reshape((1, len(theta))))[0]
 
     if logpostf_grad is not None:
@@ -184,8 +179,7 @@ def sampler(logpostfunc, options):
                                      theta0,
                                      method='L-BFGS-B',
                                      jac=neglogpostf_grad,
-                                     bounds=bounds,
-                                     options={'maxiter': 15, 'maxfun': 100})
+                                     bounds=bounds)
                 thetaop[k, :] = thetac + thetas * opval.x
 
             if not keeptryingwithgrad or not opval.success:
@@ -207,20 +201,20 @@ def sampler(logpostfunc, options):
                 thetaop[k, :] = thetac + thetas * opval.x
     # end Preoptimizer
 
-    thetasave = np.vstack((thetastart,thetaop))
+    thetasave = np.vstack((thetastart, thetaop))
     Lsave = logpostf_nograd(thetasave)
     tau = -1
     rho = 2 * (1 + (np.exp(2 * tau) - 1) / (np.exp(2 * tau) + 1))
-    numchain = 50
+    numchain = 100
     maxiters = 10
-    numsamppc = 10
+    numsamppc = 200
     covmat0 = np.diag(thetas)
     for iters in range(0, maxiters):
         startingv = np.random.choice(np.arange(0, Lsave.shape[0]),
                                      size=Lsave.shape[0])
         thetasave = thetasave[startingv, :]
 
-        covmat0 = 0.1*covmat0+ 0.9*np.cov(thetasave.T)
+        covmat0 = 0.1*covmat0 + 0.9*np.cov(thetasave.T)
 
         if covmat0.ndim > 1:
             covmat0 += 0.1 * np.diag(np.diag(covmat0))
@@ -264,7 +258,6 @@ def sampler(logpostfunc, options):
             whereswap = np.where(np.squeeze(swaprnd)
                                  < np.squeeze(fvalp - fval)
                                  + np.squeeze(qadj))[0]
-
             if whereswap.shape[0] > 0:
                 numtimes = numtimes + (whereswap.shape[0]/numchain)
                 thetac[whereswap, :] = 1*thetap[whereswap, :]

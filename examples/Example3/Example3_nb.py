@@ -136,7 +136,7 @@ print(np.shape(f))
 # Let's build an emulator for computer model runs:
 
 # %%
-emulator_1 = emulator(x=x_std, theta=theta, f=f, method='PCGP')
+emulator_1 = emulator(x=x_std, theta=theta, f=f, method='PCGPwM')
 
 # %% [markdown]
 # ### Comparison of emulation methodologies
@@ -214,7 +214,8 @@ cal_2 = calibrator(emu=emulator_1,
                    x=xrep_std,
                    thetaprior=prior_balldrop, 
                    method='directbayeswoodbury',
-                   yvar=obsvar)
+                   yvar=obsvar,
+                   args={'sampler': 'LMC'})
 
 plot_pred(x_std, xrep, y, cal_2, theta_range)
 
@@ -226,7 +227,20 @@ cal_3 = calibrator(emu=emulator_1,
                    thetaprior=prior_balldrop, 
                    method='directbayes',
                    yvar=obsvar, 
-                   args={'sampler': 'LMC',
-                         'theta0': prior_balldrop.rnd(1000)}) 
+                   args={'sampler': 'LMC'}) 
 
 plot_pred(x_std, xrep, y, cal_3, theta_range)
+
+
+# %%
+# Fit a calibrator via method = 'directbayes' and 'sampler' : 'LMC'
+cal_4 = calibrator(emu=emulator_1,
+                   y=y,
+                   x=xrep_std,
+                   thetaprior=prior_balldrop, 
+                   method='directbayes',
+                   yvar=obsvar, 
+                   args={'sampler': 'PTLMC',
+                         'maxtemp': 10}) 
+
+plot_pred(x_std, xrep, y, cal_4, theta_range)
