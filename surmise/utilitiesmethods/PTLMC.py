@@ -122,7 +122,7 @@ def sampler(logpostfunc,
     thetas = np.maximum(np.std(theta0, 0), 10 ** (-8) * np.std(theta0))
 
     def neglogpostf_nograd(thetap):
-        theta = thetacen + thetas * thetap
+        theta = thetacen + thetas * thetap   
         return -logpostf_nograd(theta.reshape((1, len(theta))))[0]
     if logpostf_grad is not None:
         def neglogpostf_grad(thetap):
@@ -157,6 +157,7 @@ def sampler(logpostfunc,
         while notmoved:
             r = (V.T*np.sqrt(W)) @ (V @
                  np.random.standard_normal(size=thetacen.shape[0]))
+
             if (neglogpostf_nograd((stepadj * r + opval.x)) -
                     l0) < 3*thetacen.shape[0]:
                 thetaop[k, :] = thetacen + thetas * (stepadj * r + opval.x)

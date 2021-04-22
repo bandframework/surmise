@@ -106,22 +106,26 @@ def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
         if emureturn_grad and return_grad:
             # obtain the gradient of the log-prior
             dlogpost = thetaprior.lpdf_grad(theta)
-            # obtain the log-likelihood and the gradient of it
-            loglikinds, dloglikinds = loglik_grad(fitinfo,
-                                                  emu,
-                                                  theta[inds, :],
-                                                  y,
-                                                  x)
-            logpost[inds] += loglikinds
-            dlogpost[inds] += dloglikinds
+            
+            if len(inds):
+                # obtain the log-likelihood and the gradient of it
+                loglikinds, dloglikinds = loglik_grad(fitinfo,
+                                                      emu,
+                                                      theta[inds, :],
+                                                      y,
+                                                      x)
+                logpost[inds] += loglikinds
+                dlogpost[inds] += dloglikinds
             return logpost, dlogpost
         else:
-            # obtain the log-likelihood
-            logpost[inds] += loglik(fitinfo,
-                                    emu,
-                                    theta[inds, :],
-                                    y,
-                                    x)
+            if len(inds) > 0:
+                # obtain the log-likelihood
+                logpost[inds] += loglik(fitinfo,
+                                        emu,
+                                        theta[inds, :],
+                                        y,
+                                        x)
+
             return logpost
 
     # Define the draw function to sample from initial theta
