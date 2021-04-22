@@ -122,7 +122,6 @@ cal_f = calibrator(emu = emulator_f_PCGPwM,
 cal_f_theta = cal_f.theta.rnd(500)
 plot_pred_errors(cal_f, xtest, np.sqrt(real_data_test))
 
-
 cal_f_ml = calibrator(emu = emulator_f_PCGPwM,
                    y = np.sqrt(real_data_tr),
                    x = xtr,

@@ -4,7 +4,13 @@ from surmise.utilities import sampler
 import copy
 
 
-def fit(fitinfo, emu, x, y,  args=None):
+def fit(fitinfo,
+        emu,
+        x,
+        y,
+        clf_method=None,
+        myusedir=True,
+        **bayeswoodbury_args):
     '''
     The main required function to be called by calibration to fit a
     calibration model.
@@ -71,13 +77,6 @@ def fit(fitinfo, emu, x, y,  args=None):
     '''
 
     thetaprior = fitinfo['thetaprior']
-    if 'clf_method' in args.keys():
-        clf_method = args['clf_method']
-    else:
-        clf_method = None
-    myusedir = True
-    if 'usedir' in args.keys() and args['usedir'] == False:
-        myusedir = False
 
     if myusedir:
         try:
@@ -108,7 +107,6 @@ def fit(fitinfo, emu, x, y,  args=None):
             return grad
         thetaprior.lpdf_grad = lpdf_grad
 
-
     def logprobacce(theta):
         theta_f = 1 * theta
         for i_id in range(0, theta.shape[1]):
@@ -123,10 +121,10 @@ def fit(fitinfo, emu, x, y,  args=None):
 
     def logprobacce_grad(theta):
         L0 = logprobacce(theta)
-        dL = np.zeros((L0.shape[0],theta.shape[1]))
+        dL = np.zeros((L0.shape[0], theta.shape[1]))
         for i_id in range(0, theta.shape[1]):
             theta_f = 1 * theta
-            theta_f[:,i_id] += 10**(-6)
+            theta_f[:, i_id] += 10**(-6)
             L1 = logprobacce(theta_f)
             dL[:, i_id] = np.squeeze((L1-L0) * (10**6))
         return dL
@@ -135,7 +133,6 @@ def fit(fitinfo, emu, x, y,  args=None):
         # obtain the log-prior
         logpost = thetaprior.lpdf(theta)
         inds = np.where(np.isfinite(logpost))[0]
-
         if emureturn_grad and return_grad:
             # obtain the gradient of the log-prior
             dlogpost = thetaprior.lpdf_grad(theta)
@@ -144,8 +141,7 @@ def fit(fitinfo, emu, x, y,  args=None):
                                                   emu,
                                                   theta[inds, :],
                                                   y,
-                                                  x,
-                                                  args)
+                                                  x)
             logpost[inds] += loglikinds
             dlogpost[inds] += dloglikinds
             if clf_method is not None:
@@ -153,36 +149,41 @@ def fit(fitinfo, emu, x, y,  args=None):
                 dlogpost[inds] += logprobacce_grad(theta[inds, :])
             return logpost, dlogpost
         else:
-            # obtain the log-likelihood
-            logpost[inds] += loglik(fitinfo,
-                                    emu,
-                                    theta[inds, :],
-                                    y,
-                                    x,
-                                    args)
-            if clf_method is not None:
-                logpost[inds] += logprobacce(theta[inds, :])
-            
+            if len(inds) > 0:
+                # obtain the log-likelihood
+                logpost[inds] += loglik(fitinfo,
+                                        emu,
+                                        theta[inds, :],
+                                        y,
+                                        x)
+                if clf_method is not None:
+                    logpost[inds] += logprobacce(theta[inds, :])
+
             return logpost
 
-    theta = thetaprior.rnd(1000)
-    if 'thetarnd' in fitinfo:
-        theta = np.vstack((theta,fitinfo['thetarnd']))
-    if '_emulator__theta' in dir(emu):
-        theta = np.vstack((theta, copy.copy(emu._emulator__theta)))
+    # Define the draw function to sample from initial theta
+    def draw_func(n):
+        p = thetaprior.rnd(1).shape[1]
+        theta0 = np.array([]).reshape(0, p)
+
+        if 'thetarnd' in fitinfo:
+            theta0 = fitinfo['thetarnd']
+        if '_emulator__theta' in dir(emu):
+            theta0 = np.vstack((theta0, copy.copy(emu._emulator__theta)))
+        n0 = len(theta0)
+        if n0 < n:
+            theta0 = np.vstack((thetaprior.rnd(n-n0), theta0))
+        else:
+            theta0 = theta0[np.random.randint(theta0.shape[0], size=n), :]
+
+        return theta0
 
     # obtain theta draws from posterior distribution
-    if args['sampler'] == 'PTLMC':
-        args['theta0'] = theta
-        sampler_obj = sampler(logpostfunc=logpostfull_wgrad, options=args)
-        theta = sampler_obj.sampler_info['theta']
-    else:
-        if 'theta0' not in args.keys():
-            args['theta0'] = thetaprior.rnd(1)
-        if 'stepParam' not in args.keys():
-            args['stepParam'] = np.std(thetaprior.rnd(1000), axis=0)
-        sampler_obj = sampler(logpostfunc=logpostfull_wgrad, options=args)
-        theta = sampler_obj.sampler_info['theta']
+    sampler_obj = sampler(logpost_func=logpostfull_wgrad,
+                          draw_func=draw_func,
+                          **bayeswoodbury_args)
+
+    theta = sampler_obj.sampler_info['theta']
 
     # obtain log-posterior of theta values
     ladj = logpostfull_wgrad(theta, return_grad=False)
@@ -291,7 +292,7 @@ def thetalpdf(fitinfo, theta, args=None):
     return (logpost-fitinfo['lpdfapproxnorm'])
 
 
-def loglik(fitinfo, emu, theta, y, x, args):
+def loglik(fitinfo, emu, theta, y, x):
     r"""
     This is a optional docstring for an internal function.
     """
@@ -339,7 +340,7 @@ def loglik(fitinfo, emu, theta, y, x, args):
     return loglik
 
 
-def loglik_grad(fitinfo, emu, theta, y, x, args):
+def loglik_grad(fitinfo, emu, theta, y, x):
     r"""
     This is a optional docstring for an internal function.
     """
