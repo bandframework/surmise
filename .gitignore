@@ -30,3 +30,7 @@ line_profiler/
 *.lib
 
 build/temp.win-amd64-3.8/Release/surmise/emulationsupport/matern_covmat.cp38-win_amd64.exp
+
+.spyproject/
+
+scratch/
