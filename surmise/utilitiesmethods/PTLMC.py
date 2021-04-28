@@ -156,7 +156,7 @@ def sampler(logpostfunc,
         l0 = neglogpostf_nograd(opval.x)
         while notmoved:
             r = (V.T*np.sqrt(W)) @ (V @
-                 np.random.standard_normal(size=thetacen.shape[0]))
+                                    np.random.standard_normal(size=thetacen.shape[0]))
             if (neglogpostf_nograd((stepadj * r + opval.x)) -
                     l0) < 3*thetacen.shape[0]:
                 thetaop[k, :] = thetacen + thetas * (stepadj * r + opval.x)

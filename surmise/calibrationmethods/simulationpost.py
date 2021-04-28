@@ -2,7 +2,7 @@ import numpy as np
 import scipy.stats as sps
 from surmise.utilities import sampler
 import copy
-
+import sys
 
 def fit(fitinfo, emu, x, y, **myargs):
     '''
@@ -78,7 +78,7 @@ def fit(fitinfo, emu, x, y, **myargs):
         lpdf, lpdf_grad = emupredict.lpdf(y,
                                           args={'addvar': fitinfo['yvar'],
                                                 'return_grad': True})
-    except:
+    except ValueError:
         raise ValueError('need logpdf with return_grad=True')
 
     if 'lpdf_grad' not in dir(thetaprior):
@@ -111,8 +111,8 @@ def fit(fitinfo, emu, x, y, **myargs):
                                      args={'return_grad': True,
                                            'return_covx': False})
             loglikinds, dloglikinds = emupredict.lpdf(y,
-                                          args={'addvar': fitinfo['yvar'],
-                                                'return_grad': True})
+                                                      args={'addvar': fitinfo['yvar'],
+                                                            'return_grad': True})
             logpost[inds] += loglikinds
             dlogpost[inds] += dloglikinds
             return logpost, dlogpost
@@ -122,10 +122,9 @@ def fit(fitinfo, emu, x, y, **myargs):
                                      args={'return_grad': False,
                                            'return_covx': False})
             logpost[inds] += emupredict.lpdf(y,
-                                          args={'addvar': fitinfo['yvar'],
-                                                'return_grad': False})
+                                             args={'addvar': fitinfo['yvar'],
+                                                   'return_grad': False})
             return logpost
-
 
     def draw_func(n):
         p = thetaprior.rnd(1).shape[1]

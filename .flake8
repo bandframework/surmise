@@ -1,11 +1,11 @@
 [flake8]
-max-line-length = 120
+max-line-length = 125
 
 ignore =
         # Not worrying about spaces around arithmetic operations
-        E226, E231, E251
+        E225, E226, E231, E251
         # Not worrying about blank lines
-        E301, E302
+        E301, E302, E303, E306
         # Linebreaks before/after unary operators are okay
         W503, W504
 exclude =
