@@ -32,3 +32,6 @@ examples/Example_Missingness_Benchmark_mosesyhc/fayans/fayansdata/newp2.npy
 scratch/
 .spyproject/
 *.lib
+build/
+
+.eggs/
