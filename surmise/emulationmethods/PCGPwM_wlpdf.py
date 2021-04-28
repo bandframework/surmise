@@ -192,9 +192,8 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
                 predvars_gradtheta[:, k, :] = \
                     -infos[k]['sig2']*2*np.sum(rVh * drVh, 1)
             else:
-                predvecs_gradtheta[:, k, :] = (1 - infos[k]['nug'])*\
-                                              np.squeeze(dr.transpose(0, 2, 1)
-                                                         @ infos[k]['pw'])
+                predvecs_gradtheta[:, k, :] = (1 - infos[k]['nug']) * \
+                                              np.squeeze(dr.transpose(0, 2, 1) @ infos[k]['pw'])
                 predvars_gradtheta[:, k, :] =\
                     -(infos[k]['sig2'] * 2) * np.einsum("ij,ijk->ik",rVh2, dr)
         predvars[:, k] = infos[k]['sig2'] * np.abs(1 - np.sum(rVh ** 2, 1))
@@ -251,13 +250,14 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
                      (pctscale[xind, :].T)[None, :, :]).transpose(3, 1, 2, 0)
     return
 
+
 def predictlpdf(predinfo, f, return_grad = False, addvar = 0, **kwargs):
     totvar = addvar + predinfo['extravar']
     rf = ((f.T-predinfo['mean'].T) * (1/np.sqrt(totvar))).T
     Gf = predinfo['phi'].T * (1/np.sqrt(totvar))
     Gfrf = Gf @ rf
     Gf2 = Gf @ Gf.T
-    likv= np.sum(rf**2,0)
+    likv= np.sum(rf**2, 0)
     if return_grad:
         rf2 = -(predinfo['mean_gradtheta'].transpose(2,1,0) *
                 (1/np.sqrt(totvar))).transpose(2,1,0)
@@ -394,7 +394,7 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
                     np.abs(1 - np.sum(r, 0))
             else:
                 critcount[:, k] = weightma[k] / weightma[infos[k]['hypind']] *\
-                   critcount[:, infos[k]['hypind']]
+                                  critcount[:, infos[k]['hypind']]
         crit = np.sum(critcount, 1)
         jstar = np.argmax(crit / choicecosts)
         critsave[j] = crit[jstar] / choicecosts[jstar]
@@ -481,7 +481,7 @@ def __standardizef(fitinfo, offset=None, scale=None):
     if mof is None:
         fs = (f - offset) / scale
     else:
-    # Imputes missing values
+        # Imputes missing values
         for k in range(0, f.shape[1]):
             fs[:, k] = (f[:, k] - offset[k]) / scale[k]
             if np.sum(mof[:, k]) > 0:
@@ -666,10 +666,12 @@ def __fitGP1d(theta, g, hyp1, hyp2, gvar=None, hypstarts=None, hypinds=None,
             skipop = False
     else:
         skipop = False
+
     if (not skipop):
         def scaledlik(hypv):
             hyprs = subinfo['hypregmean'] + hypv * subinfo['hypregstd']
             return __negloglik(hyprs, subinfo)
+
         def scaledlikgrad(hypv):
             hyprs = subinfo['hypregmean'] + hypv * subinfo['hypregstd']
             return __negloglikgrad(hyprs, subinfo) * subinfo['hypregstd']
@@ -735,8 +737,6 @@ def __fitGP1d(theta, g, hyp1, hyp2, gvar=None, hypstarts=None, hypinds=None,
         subinfo['Vh'] = Vh
     subinfo['pw'] = subinfo['Rinv'] @ g
     return subinfo
-
-
 
 
 def __negloglik(hyp, info):

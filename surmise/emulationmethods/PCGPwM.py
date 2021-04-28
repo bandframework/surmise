@@ -352,7 +352,7 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
                     np.abs(1 - np.sum(r, 0))
             else:
                 critcount[:, k] = weightma[k] / weightma[infos[k]['hypind']] *\
-                   critcount[:, infos[k]['hypind']]
+                                  critcount[:, infos[k]['hypind']]
         crit = np.sum(critcount, 1)
         jstar = np.argmax(crit / choicecosts)
         critsave[j] = crit[jstar] / choicecosts[jstar]

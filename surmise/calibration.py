@@ -479,8 +479,8 @@ class thetadist(object):
                                                       args))
         elif (pfstr+opstr) in self.cal.info.keys():
             return self.cal.info['thetarnd'][
-                        np.random.choice(self.cal.info['thetarnd'].shape[0],
-                                         size=s), :]
+                   np.random.choice(self.cal.info['thetarnd'].shape[0],
+                                    size=s), :]
         else:
             raise ValueError(self.__methodnotfoundstr(pfstr, opstr))
 

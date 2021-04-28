@@ -156,7 +156,7 @@ def sampler(logpostfunc,
         l0 = neglogpostf_nograd(opval.x)
         while notmoved:
             r = (V.T*np.sqrt(W)) @ (V @
-                 np.random.standard_normal(size=thetacen.shape[0]))
+                                    np.random.standard_normal(size=thetacen.shape[0]))
             if (neglogpostf_nograd((stepadj * r + opval.x)) -
                     l0) < 3*thetacen.shape[0]:
                 thetaop[k, :] = thetacen + thetas * (stepadj * r + opval.x)
@@ -228,8 +228,8 @@ def sampler(logpostfunc,
             dfvaln = temps * dfval
             dfval = (1 / temps) * dfvaln[orderprop, :]
         if (k < samptunning) and (k % 10 == 0):  # if not done with tuning
-            tau = tau + 1 / np.sqrt(1 + k/10) * \
-                  ((numtimes / 10) - taracc)
+            tau = tau + 1 / np.sqrt(1 + k/10) \
+                  * ((numtimes / 10) - taracc)
             rho = 2 * (1 + (np.exp(2 * tau) - 1) / (np.exp(2 * tau) + 1))
             adjrho = rho*(temps**(1/3))
             numtimes = 0
