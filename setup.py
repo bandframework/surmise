@@ -39,6 +39,6 @@ setup(
     extras_require={'extras': ['GPy'],
                     'docs': ['sphinx', 'sphinxcontrib.bibtex', 'sphinx_rtd_theme']},
     cmdclass={'test': Run_TestSuite},
-    ext_modules=cythonize("surmise\emulationsupport/matern_covmat.pyx"),
+    ext_modules=cythonize("surmise/emulationsupport/matern_covmat.pyx"),
     include_dirs=[numpy.get_include()]
 )
