@@ -2,6 +2,8 @@
 max-line-length = 125
 
 ignore =
+        # Ignore linebreak indents for long operations
+        E126
         # Not worrying about spaces around arithmetic operations
         E225, E226, E231, E251
         # Not worrying about blank lines

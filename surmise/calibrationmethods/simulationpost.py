@@ -2,7 +2,6 @@ import numpy as np
 import scipy.stats as sps
 from surmise.utilities import sampler
 import copy
-import sys
 
 def fit(fitinfo, emu, x, y, **myargs):
     '''
