@@ -238,7 +238,7 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
 
 
 def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
-                    args):
+                    **args):
     r'''
     Suggests next parameters and obviates pending parameters for value
     retrieval of `f`.
