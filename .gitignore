@@ -31,3 +31,5 @@ OpenBLAS/
 surmise/emulationsupport/matern_covmat.c
 
 CaseStudy/
+
+.eggs/
