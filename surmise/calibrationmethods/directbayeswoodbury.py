@@ -211,8 +211,8 @@ def predict(predinfo, fitinfo, emu, x, args=None):
             sps.norm.rvs(0, 1, size=(emucovxhalf.shape[2]))
         predinfo['rnd'][k, :] += re
 
-    predinfo['mean'] = np.mean(emumean, 0)
-    predinfo['var'] = np.mean(varfull, 0) + np.var(emumean, 0)
+    predinfo['mean'] = np.mean(emumean, 1)
+    predinfo['var'] = np.mean(varfull, 1) + np.var(emumean, 1)
     return
 
 
