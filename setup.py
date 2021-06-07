@@ -1,7 +1,7 @@
 import setuptools
-from setuptools import setup
+from setuptools import setup, Extension
 from setuptools.command.test import test as TestCommand
-
+import numpy
 
 class Run_TestSuite(TestCommand):
     def run_tests(self):
@@ -31,11 +31,19 @@ setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.5',
+    setup_requires=[
+        'setuptools>=18.0',
+        'cython'
+    ],
     install_requires=[
                       'numpy',
                       'scipy'
                       ],
     extras_require={'extras': ['GPy'],
                     'docs': ['sphinx', 'sphinxcontrib.bibtex', 'sphinx_rtd_theme']},
-    cmdclass={'test': Run_TestSuite}
+    cmdclass={'test': Run_TestSuite},
+    ext_modules=[
+        Extension('surmise.emulationsupport.matern_covmat', sources=['surmise/emulationsupport/matern_covmat.pyx']),
+    ],
+    include_dirs=[numpy.get_include()]
 )

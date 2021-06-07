@@ -1,15 +1,17 @@
 """PCGPwM method - PCGP with Missingness, an extension to PCGP
-(Higdon et al., 2008). In addition, the PCGPwM method provides the
-functionality to suggest selections of next parameters and obviations of any
-parameters on a list.  Obviation refers to the stopping of value retrieval of
-`f` for a parameter."""
+(Higdon et al., 2008). In addition, the PCGPwM method provides the functionality
+to suggest selections of next parameters and obviations of any parameters on
+a list.  Obviation refers to the stopping of value retrieval of `f` for a
+parameter."""
+
 import numpy as np
 import scipy.optimize as spo
 import scipy.linalg as spla
 import copy
+from matern_covmat import covmat as __covmat
 
 
-def fit(fitinfo, x, theta, f, epsilon=0.1, hyp_mean=-10, hyp_LB=-20, **kwargs):
+def fit(fitinfo, x, theta, f, **kwargs):
     '''
     The purpose of fit is to take information and plug all of our fit
     information into fitinfo, which is a python dictionary.
@@ -18,10 +20,10 @@ def fit(fitinfo, x, theta, f, epsilon=0.1, hyp_mean=-10, hyp_LB=-20, **kwargs):
        This is a modification of the method proposed by Higdon et al., 2008.
        Refer to :py:func:`PCGP` for additional details.
 
-    Prior to performing the PCGP method (Higdon et al., 2008), the PCGPwM
-    method checks for missingness in `f` and provides imputations for the
-    missing values before conducting the PCGP method.  The method adds
-    approximate variance at each points requiring imputation.
+    Prior to performing the PCGP method (Higdon et al., 2008), the PCGPwM method
+    checks for missingness in `f` and provides imputations for the missing values
+    before conducting the PCGP method.  The method adds approximate variance at
+    each points requiring imputation.
 
     Parameters
     ----------
@@ -36,7 +38,7 @@ def fit(fitinfo, x, theta, f, epsilon=0.1, hyp_mean=-10, hyp_LB=-20, **kwargs):
     f : numpy.ndarray
         An array of responses. Each column in f should correspond to a row in
         theta. Each row in f should correspond to a row in x.
-    args : dict, optional
+    kwargs : dict, optional
         A dictionary containing options. The default is None.
 
     Returns
@@ -46,7 +48,6 @@ def fit(fitinfo, x, theta, f, epsilon=0.1, hyp_mean=-10, hyp_LB=-20, **kwargs):
     '''
 
     f = f.T
-
     # Check for missing or failed values
     if not np.all(np.isfinite(f)):
         fitinfo['mof'] = np.logical_not(np.isfinite(f))
@@ -55,27 +56,31 @@ def fit(fitinfo, x, theta, f, epsilon=0.1, hyp_mean=-10, hyp_LB=-20, **kwargs):
         fitinfo['mof'] = None
         fitinfo['mofrows'] = None
 
+    fitinfo['epsilon'] = kwargs['epsilon'] if 'epsilon' in kwargs.keys() else 0.1
+    hyp1 = kwargs['hypregmean'] if 'hypregmean' in kwargs.keys() else -10
+    hyp2 = kwargs['hypregLB'] if 'hypregLB' in kwargs.keys() else -20
+
     fitinfo['theta'] = theta
     fitinfo['f'] = f
     fitinfo['x'] = x
 
     # Standardize the function evaluations f
-    __standardizef(fitinfo, epsilon)
+    __standardizef(fitinfo)
 
     # Construct principle components
-    __PCs(fitinfo, epsilon)
+    __PCs(fitinfo)
     numpcs = fitinfo['pc'].shape[1]
 
-    # print(fitinfo['method'], 'considering ', numpcs, 'PCs')
+    print(fitinfo['method'], 'considering ', numpcs, 'PCs')
 
     # Fit emulators for all PCs
-    emulist = __fitGPs(fitinfo, theta, numpcs, hyp_mean, hyp_LB)
+    emulist = __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2)
     fitinfo['emulist'] = emulist
 
     return
 
 
-def predict(predinfo, fitinfo, x, theta, return_grad=False, **kwargs):
+def predict(predinfo, fitinfo, x, theta, **kwargs):
     r"""
     Finds prediction at theta and x given the dictionary fitinfo.
     This [emulationpredictdocstring] automatically filled by docinfo.py when
@@ -89,12 +94,12 @@ def predict(predinfo, fitinfo, x, theta, return_grad=False, **kwargs):
         there is no reason to return anything. Keep only stuff that will be
         used by predict. Key elements are
 
-            - `predinfo['mean']` : `predinfo['mean'][k]` is mean of the
-              prediction at all x at `theta[k]`.
+            - `predinfo['mean']` : `predinfo['mean'][k]` is mean of the prediction
+              at all x at `theta[k]`.
             - `predinfo['var']` : `predinfo['var'][k]` is variance of the
               prediction at all x at `theta[k]`.
-            - `predinfo['cov']` : `predinfo['cov'][k]` is mean of the
-              prediction at all x at `theta[k]`.
+            - `predinfo['cov']` : `predinfo['cov'][k]` is mean of the prediction
+              at all x at `theta[k]`.
             - `predinfo['covhalf']` : if `A = predinfo['covhalf'][k]` then
               `A.T @ A = predinfo['cov'][k]`.
 
@@ -108,10 +113,17 @@ def predict(predinfo, fitinfo, x, theta, return_grad=False, **kwargs):
     theta :  array of objects
         An matrix (vector) of parameters to prediction.
 
-    args : dict
+    kwargs : dict
         A dictionary containing options passed to you.
     """
-
+    return_grad = False
+    if (kwargs is not None) and ('return_grad' in kwargs.keys()) and \
+            (kwargs['return_grad'] is True):
+        return_grad = True
+    return_covx = True
+    if (kwargs is not None) and ('return_covx' in kwargs.keys()) and \
+            (kwargs['return_covx'] is False):
+        return_covx = False
     infos = fitinfo['emulist']
     predvecs = np.zeros((theta.shape[0], len(infos)))
     predvars = np.zeros((theta.shape[0], len(infos)))
@@ -162,10 +174,9 @@ def predict(predinfo, fitinfo, x, theta, return_grad=False, **kwargs):
         # adjusted covariance matrix
         r = (1 - infos[k]['nug']) * np.squeeze(rsave[infos[k]['hypind']])
 
-        if return_grad:
-            dr = (1 - infos[k]['nug'])*np.squeeze(drsave[infos[k]['hypind']])
         try:
             rVh = r @ infos[k]['Vh']
+            rVh2 = rVh @ (infos[k]['Vh']).T
         except Exception:
             for i in range(0, len(infos)):
                 print((i, infos[i]['hypind']))
@@ -175,19 +186,17 @@ def predict(predinfo, fitinfo, x, theta, return_grad=False, **kwargs):
             rVh = rVh.reshape((1, -1))
         predvecs[:, k] = r @ infos[k]['pw']
         if return_grad:
+            dr = (1 - infos[k]['nug']) * np.squeeze(drsave[infos[k]['hypind']])
             if dr.ndim == 2:
                 drVh = dr.T @ infos[k]['Vh']
                 predvecs_gradtheta[:, k, :] = dr.T @ infos[k]['pw']
                 predvars_gradtheta[:, k, :] = \
-                    -infos[k]['sig2']*2*np.sum(rVh * drVh, 1)
+                    -infos[k]['sig2'] * 2 * np.sum(rVh * drVh, 1)
             else:
-                drVh = np.squeeze(dr.transpose(0, 2, 1) @ infos[k]['Vh'])
-                predvecs_gradtheta[:, k, :] = np.squeeze(dr.transpose(0, 2, 1)
-                                                         @ infos[k]['pw'])
-                predvars_gradtheta[:, k, :] =\
-                    -infos[k]['sig2'] * 2 * \
-                    np.sum(rVh * drVh.transpose(1, 0, 2), 2).T
-
+                predvecs_gradtheta[:, k, :] = (1 - infos[k]['nug']) * \
+                                              np.squeeze(dr.transpose(0, 2, 1) @ infos[k]['pw'])
+                predvars_gradtheta[:, k, :] = \
+                    -(infos[k]['sig2'] * 2) * np.einsum("ij,ijk->ik", rVh2, dr)
         predvars[:, k] = infos[k]['sig2'] * np.abs(1 - np.sum(rVh ** 2, 1))
 
     # calculate predictive mean and variance
@@ -196,45 +205,89 @@ def predict(predinfo, fitinfo, x, theta, return_grad=False, **kwargs):
     pctscale = (fitinfo['pct'].T * fitinfo['scale']).T
     predinfo['mean'][xnewind, :] = ((predvecs @ pctscale[xind, :].T) +
                                     fitinfo['offset'][xind]).T
+
     predinfo['var'][xnewind, :] = ((fitinfo['extravar'][xind] +
                                     predvars @ (pctscale[xind, :] ** 2).T)).T
+    predinfo['extravar'] = 1 * fitinfo['extravar'][xind]
+    predinfo['predvars'] = 1 * predvars
+    predinfo['predvecs'] = 1 * predvecs
+    predinfo['phi'] = 1 * pctscale[xind, :]
 
-    CH = (np.sqrt(predvars)[:, :, None] * (pctscale[xind, :].T)[None, :, :])
+    if return_covx:
+        CH = (np.sqrt(predvars)[:, :, None] * (pctscale[xind, :].T)[None, :, :])
 
-    predinfo['covxhalf'] = np.full((theta.shape[0],
-                                    CH.shape[1],
-                                    x.shape[0]), np.nan)
-    predinfo['covxhalf'][:, :, xnewind] = CH
-    predinfo['covxhalf'] = predinfo['covxhalf'].transpose((2, 0, 1))
+        predinfo['covxhalf'] = np.full((theta.shape[0],
+                                        CH.shape[1],
+                                        x.shape[0]), np.nan)
+        predinfo['covxhalf'][:, :, xnewind] = CH
+        predinfo['covxhalf'] = predinfo['covxhalf'].transpose((2, 0, 1))
 
     if return_grad:
         predinfo['mean_gradtheta'] = np.full((x.shape[0],
                                               theta.shape[0],
                                               theta.shape[1]), np.nan)
-        predinfo['mean_gradtheta'][xnewind, :, :] =\
+        predinfo['mean_gradtheta'][xnewind, :, :] = \
             ((predvecs_gradtheta.transpose(0, 2, 1) @
               pctscale[xind, :].T)).transpose((2, 0, 1))
+        predinfo['predvars_gradtheta'] = 1 * predvars_gradtheta
+        predinfo['predvecs_gradtheta'] = 1 * predvecs_gradtheta
 
-        dsqrtpredvars = 0.5 * (predvars_gradtheta.transpose(2, 0, 1) /
-                               np.sqrt(predvars)).transpose(1, 2, 0)
+        if return_covx:
 
-        if np.allclose(xnewind, xind):
-            predinfo['covxhalf_gradtheta'] =\
-                (dsqrtpredvars.transpose(2, 0, 1)[:, :, :, None] *
-                 (pctscale[xind, :].T)[None, :, :]).transpose(3, 1, 2, 0)
-        else:
-            predinfo['covxhalf_gradtheta'] = np.full((x.shape[0],
-                                                      theta.shape[0],
-                                                      CH.shape[1],
-                                                      theta.shape[1]), np.nan)
-            predinfo['covxhalf_gradtheta'][xnewind] = \
-                (dsqrtpredvars.transpose(2, 0, 1)[:, :, :, None] *
-                 (pctscale[xind, :].T)[None, :, :]).transpose(3, 1, 2, 0)
+            dsqrtpredvars = 0.5 * (predvars_gradtheta.transpose(2, 0, 1) /
+                                   np.sqrt(predvars)).transpose(1, 2, 0)
+
+            if np.allclose(xnewind, xind):
+                predinfo['covxhalf_gradtheta'] = \
+                    (dsqrtpredvars.transpose(2, 0, 1)[:, :, :, None] *
+                     (pctscale[xind, :].T)[None, :, :]).transpose(3, 1, 2, 0)
+            else:
+                predinfo['covxhalf_gradtheta'] = np.full((x.shape[0],
+                                                          theta.shape[0],
+                                                          CH.shape[1],
+                                                          theta.shape[1]), np.nan)
+                predinfo['covxhalf_gradtheta'][xnewind] = \
+                    (dsqrtpredvars.transpose(2, 0, 1)[:, :, :, None] *
+                     (pctscale[xind, :].T)[None, :, :]).transpose(3, 1, 2, 0)
     return
 
 
+def predictlpdf(predinfo, f, return_grad=False, addvar=0, **kwargs):
+    totvar = addvar + predinfo['extravar']
+    rf = ((f.T - predinfo['mean'].T) * (1 / np.sqrt(totvar))).T
+    Gf = predinfo['phi'].T * (1 / np.sqrt(totvar))
+    Gfrf = Gf @ rf
+    Gf2 = Gf @ Gf.T
+    likv = np.sum(rf ** 2, 0)
+    if return_grad:
+        rf2 = -(predinfo['mean_gradtheta'].transpose(2, 1, 0) *
+                (1 / np.sqrt(totvar))).transpose(2, 1, 0)
+        Gfrf2 = (Gf @ rf2.transpose(1, 0, 2)).transpose(1, 0, 2)
+        dlikv = 2 * np.sum(rf2.transpose(2, 1, 0) * rf.transpose(1, 0), 2).T
+    for c in range(0, predinfo['predvars'].shape[0]):
+        w, v = np.linalg.eig(np.diag(1 / (predinfo['predvars'][c, :])) + Gf2)
+        term1 = (v * (1 / w)) @ (v.T @ Gfrf[:, c])
+
+        likv[c] -= Gfrf[:, c].T @ term1
+        likv[c] += np.sum(np.log(predinfo['predvars'][c, :]))
+        likv[c] += np.sum(np.log(w))
+        if return_grad:
+            Si = (v * (1 / w)) @ v.T
+            grt = (predinfo['predvars_gradtheta'][c, :, :].T / predinfo['predvars'][c, :]).T
+            dlikv[c, :] += np.sum(grt, 0)
+            grt = (-grt.T / predinfo['predvars'][c, :]).T
+            dlikv[c, :] += np.diag(Si) @ grt
+            term2 = (term1 / predinfo['predvars'][c, :]) ** 2
+            dlikv[c, :] -= 2 * Gfrf2[:, c, :].T @ term1
+            dlikv[c, :] -= term2 @ (predinfo['predvars_gradtheta'][c, :, :])
+    if return_grad:
+        return (-likv / 2).reshape(-1, 1), (-dlikv / 2)
+    else:
+        return (-likv / 2).reshape(-1, 1)
+
+
 def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
-                    args):
+                    **kwargs):
     r'''
     Suggests next parameters and obviates pending parameters for value
     retrieval of `f`.
@@ -255,16 +308,12 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
     cal : instance of emulator class
         An emulator class instance as defined in calibration.
         This will not always be provided.
-    args : dict
+    **kwargs : dict
         A dictionary containing additional options.  Specific arguments:
-            - `'pending'`: a matrix (sized like `f`) to indicate pending value
-            retrieval of `f`
+            - `'pending'`: a matrix (sized like `f`) to indicate pending value retrieval of `f`
             - `'costpending'`: the cost to obviate pending thetas
-            - `'includepending'`: boolean to include pending values for
-            obviation considerations
-        Example usage: `args = {'includepending': True,
-                                'costpending': 0.01+0.99*np.mean(pending,0),
-                                'pending': pending}`.
+            - `'includepending'`: boolean to include pending values for obviation considerations
+        Example usage: `kwargs = {'includepending': True, 'costpending': 0.01+0.99*np.mean(pending,0), 'pending': pending}`.
 
     Returns
     ----------
@@ -272,24 +321,23 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
     theta : array
         Suggested parameters for further value retrievals of `f`.
     info : dict
-        A dictionary to contain selection and obviation information. Contains
-        arguments:
+        A dictionary to contain selection and obviation information. Contains arguments:
             - `'crit'`: criteria associated with selected thetas
             - `'obviatesugg'`: indices in `pending` for suggested obviations
     '''
     pending = None
-    if ('pending' in args.keys()):
-        pending = args['pending'].T
+    if ('pending' in kwargs.keys()):
+        pending = kwargs['pending'].T
         pendvar = __getnewvar(fitinfo, pending)
 
-    if ('includepending' in args.keys()) and (args['includepending'] is True):
+    if ('includepending' in kwargs.keys()) and (kwargs['includepending'] is True):
         includepending = True
-        if ('costpending' in args.keys()):
-            costpending = args['costpending'] * \
-                np.ones(fitinfo['theta'].shape[0])
+        if ('costpending' in kwargs.keys()):
+            costpending = kwargs['costpending'] * \
+                          np.ones(fitinfo['theta'].shape[0])
         else:
             costpending = np.mean(choicecosts) * \
-                np.ones(fitinfo['theta'].shape[0])
+                          np.ones(fitinfo['theta'].shape[0])
     else:
         includepending = False
     if theta is None:
@@ -314,21 +362,21 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
         if infos[k]['hypind'] == k:
             rsave[k] = (1 - infos[k]['nug']) * __covmat(theta, thetaold,
                                                         infos[k]['hypcov'])
-            rposssave[k] = (1-infos[k]['nug']) * __covmat(thetaposs, thetaold,
-                                                          infos[k]['hypcov'])
-            rnewsave[k] = (1-infos[k]['nug']) * __covmat(thetaposs, theta,
-                                                         infos[k]['hypcov'])
+            rposssave[k] = (1 - infos[k]['nug']) * __covmat(thetaposs, thetaold,
+                                                            infos[k]['hypcov'])
+            rnewsave[k] = (1 - infos[k]['nug']) * __covmat(thetaposs, theta,
+                                                           infos[k]['hypcov'])
             R[k] = __covmat(thetaold, thetaold, infos[k]['hypcov'])
-            R[k] = (1-infos[k]['nug']) * R[k] + np.eye(R[k].shape[0]) *\
-                infos[k]['nug']
+            R[k] = (1 - infos[k]['nug']) * R[k] + np.eye(R[k].shape[0]) * \
+                   infos[k]['nug']
 
     critsave = np.zeros(thetaposs.shape[0])
     critcount = np.zeros((crit.shape[0], len(infos)))
 
     if pending is None:
-        varpcause = 1*varpca
+        varpcause = 1 * varpca
     else:
-        varpcause = 1*pendvar
+        varpcause = 1 * pendvar
 
     # calculation of selection criterion
     thetachoicesave = np.zeros((size, fitinfo['theta'].shape[1]))
@@ -344,11 +392,11 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
                 term1 = np.linalg.solve(Rh, rposssave[infos[k]['hypind']].T)
                 q = rsave[infos[k]['hypind']] @ term1
                 r = rposssave[infos[k]['hypind']].T * term1
-                critcount[:, k] = weightma[k] * np.mean((p.T-q) ** 2, 0) /\
-                    np.abs(1 - np.sum(r, 0))
+                critcount[:, k] = weightma[k] * np.mean((p.T - q) ** 2, 0) / \
+                                  np.abs(1 - np.sum(r, 0))
             else:
-                critcount[:, k] = weightma[k] / weightma[infos[k]['hypind']] *\
-                   critcount[:, infos[k]['hypind']]
+                critcount[:, k] = weightma[k] / weightma[infos[k]['hypind']] * \
+                                  critcount[:, infos[k]['hypind']]
         crit = np.sum(critcount, 1)
         jstar = np.argmax(crit / choicecosts)
         critsave[j] = crit[jstar] / choicecosts[jstar]
@@ -360,8 +408,8 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
                 R[k] = np.vstack((R[k], rposssave[k][jstar, :]))
                 R[k] = np.vstack((R[k].T,
                                   np.append(rposssave[k][jstar, :], 1))).T
-                newr = (1 - infos[k]['nug']) *\
-                    __covmat(thetaposs, thetaold[-1, :], infos[k]['hypcov'])
+                newr = (1 - infos[k]['nug']) * \
+                       __covmat(thetaposs, thetaold[-1, :], infos[k]['hypcov'])
                 rposssave[k] = np.delete(rposssave[k], jstar, 0)
                 rposssave[k] = np.hstack((rposssave[k], newr))
                 rsave[k] = np.hstack((rsave[k],
@@ -370,16 +418,16 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
         crit = np.delete(crit, jstar)
         critcount = np.delete(critcount, jstar, 0)
         choicecosts = np.delete(choicecosts, jstar)
-        varpcause = np.vstack((varpcause, 0*varpca[0, :]))
-        varpca = np.vstack((varpca, 0*varpca[0, :]))
+        varpcause = np.vstack((varpcause, 0 * varpca[0, :]))
+        varpca = np.vstack((varpca, 0 * varpca[0, :]))
 
         for k in range(0, len(infos)):
             if infos[k]['hypind'] == k:
                 rsave[k] = (1 - infos[k]['nug']) * __covmat(theta, thetaold,
                                                             infos[k]['hypcov'])
                 R[k] = __covmat(thetaold, thetaold, infos[k]['hypcov'])
-                R[k] = (1 - infos[k]['nug']) * R[k] + np.eye(R[k].shape[0]) *\
-                    infos[k]['nug']
+                R[k] = (1 - infos[k]['nug']) * R[k] + np.eye(R[k].shape[0]) * \
+                       infos[k]['nug']
 
     # calculation of obviation criterion and suggests obviations.
     info = {}
@@ -393,11 +441,11 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
                 delta = (pendvar[:, k] - varpca[:fitinfo['theta'].shape[0], k])
                 term3 = np.diag(np.linalg.inv(Rh))[:fitinfo['theta'].shape[0]]
                 critpend[:, k] = -weightma[k] * delta * \
-                    np.mean((term1[:fitinfo['theta'].shape[0], :] ** 2), 1) \
-                    / (1 + delta * term3)
+                                 np.mean((term1[:fitinfo['theta'].shape[0], :] ** 2), 1) \
+                                 / (1 + delta * term3)
             else:
-                critpend[:, k] = weightma[k] / weightma[infos[k]['hypind']] *\
-                    critpend[:, infos[k]['hypind']]
+                critpend[:, k] = weightma[k] / weightma[infos[k]['hypind']] * \
+                                 critpend[:, infos[k]['hypind']]
         critpend = np.sum(critpend, 1)
         info['obviatesugg'] = np.where(np.any(pending, 1) *
                                        (np.mean(critsave[:size]) >
@@ -405,17 +453,18 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
     return thetachoicesave, info
 
 
-def __standardizef(fitinfo, epsilon, offset=None, scale=None):
+def __standardizef(fitinfo, offset=None, scale=None):
     r'''Standardizes f by creating offset, scale and fs.  When appropriate,
     imputes values for `f`.'''
     # Extracting from input dictionary
     f = fitinfo['f']
     mof = fitinfo['mof']
     mofrows = fitinfo['mofrows']
+    epsilon = fitinfo['epsilon']
 
     if (offset is not None) and (scale is not None):
         if offset.shape[0] == f.shape[1] and scale.shape[0] == f.shape[1]:
-            if np.any(np.nanmean(np.abs(f-offset)/scale, 1) > 4):
+            if np.any(np.nanmean(np.abs(f - offset) / scale, 1) > 4):
                 offset = None
                 scale = None
         else:
@@ -457,7 +506,7 @@ def __standardizef(fitinfo, epsilon, offset=None, scale=None):
                 J = Up[wherenotmof, :].T @ fs[rv, wherenotmof]
                 fs[rv, wheremof] = (Up[wheremof, :] *
                                     ((Sp / np.sqrt(epsilon)) ** 2)) @ \
-                    (J - H @ (spla.solve(Amat, J, assume_a='pos')))
+                                   (J - H @ (spla.solve(Amat, J, assume_a='pos')))
 
     # Assigning new values to the dictionary
     fitinfo['offset'] = offset
@@ -466,14 +515,14 @@ def __standardizef(fitinfo, epsilon, offset=None, scale=None):
     return
 
 
-def __PCs(fitinfo, epsilon, varconstant=10):
+def __PCs(fitinfo, varconstant=10):
     "Apply PCA to reduce the dimension of `f`."
     # Extracting from input dictionary
     f = fitinfo['f']
     fs = fitinfo['fs']
     mof = fitinfo['mof']
     mofrows = fitinfo['mofrows']
-
+    epsilon = fitinfo['epsilon']
     pct = None
     pcw = None
 
@@ -491,20 +540,20 @@ def __PCs(fitinfo, epsilon, varconstant=10):
             Amat = np.diag(epsilon / (pcw ** 2)) + H
             J = pct[wherenotmof, :].T @ fs[rv, wherenotmof]
             pc[rv, :] = (pcw ** 2 / epsilon + 1) * \
-                (J - H @ np.linalg.solve(Amat, J))
+                        (J - H @ np.linalg.solve(Amat, J))
             Qmat = np.diag(epsilon / pcw ** 2) + H
             term3 = np.diag(H) - \
-                np.sum(H * spla.solve(Qmat, H, assume_a='pos'), 0)
+                    np.sum(H * spla.solve(Qmat, H, assume_a='pos'), 0)
             pcstdvar[rv, :] = 1 - (pcw ** 2 / epsilon + 1) * term3
     fitinfo['pcw'] = pcw
-    fitinfo['pcto'] = 1*pct
+    fitinfo['pcto'] = 1 * pct
     fitinfo['pct'] = pct * pcw / np.sqrt(pc.shape[0])
     fitinfo['pcti'] = pct * (np.sqrt(pc.shape[0]) / pcw)
     fitinfo['pc'] = pc * (np.sqrt(pc.shape[0]) / pcw)
     fitinfo['extravar'] = np.mean((fs - fitinfo['pc'] @
-                                   fitinfo['pct'].T) ** 2, 0) *\
-        (fitinfo['scale'] ** 2)
-    fitinfo['pcstdvar'] = varconstant*pcstdvar
+                                   fitinfo['pct'].T) ** 2, 0) * \
+                          (fitinfo['scale'] ** 2)
+    fitinfo['pcstdvar'] = varconstant * pcstdvar
     return
 
 
@@ -525,15 +574,15 @@ def __getnewvar(fitinfo, pending, varconstant=10):
         H = pct[wherenotmof, :].T @ pct[wherenotmof, :]
         Qmat = np.diag(epsilon / pcw ** 2) + H
         term3 = np.diag(H) - np.sum(H * spla.solve(Qmat, H, assume_a='pos'), 0)
-        pcstdvar[rv, :] = 1 - (pcw**2 / epsilon + 1) * term3
-    return (varconstant*pcstdvar)
+        pcstdvar[rv, :] = 1 - (pcw ** 2 / epsilon + 1) * term3
+    return (varconstant * pcstdvar)
 
 
 def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2):
     """Fit emulators for all principle components."""
     if 'emulist' in fitinfo.keys():
         hypstarts = np.zeros((numpcs, fitinfo['emulist'][0]['hyp'].shape[0]))
-        hypinds = -1*np.ones(numpcs)
+        hypinds = -1 * np.ones(numpcs)
         for pcanum in range(0, min(numpcs, len(fitinfo['emulist']))):
             hypstarts[pcanum, :] = fitinfo['emulist'][pcanum]['hyp']
             hypinds[pcanum] = fitinfo['emulist'][pcanum]['hypind']
@@ -551,7 +600,7 @@ def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2):
                                             hyp1=hyp1,
                                             hyp2=hyp2,
                                             gvar=fitinfo['pcstdvar'][:,
-                                                                     pcanum],
+                                                 pcanum],
                                             hypstarts=hypstarts[hypwhere, :],
                                             hypinds=hypwhere)
             else:
@@ -560,14 +609,14 @@ def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2):
                                             hyp1=hyp1,
                                             hyp2=hyp2,
                                             gvar=fitinfo['pcstdvar'][:,
-                                                                     pcanum])
+                                                 pcanum])
                 hypstarts = np.zeros((numpcs,
                                       emulist[pcanum]['hyp'].shape[0]))
             emulist[pcanum]['hypind'] = min(pcanum, emulist[pcanum]['hypind'])
             hypstarts[pcanum, :] = emulist[pcanum]['hyp']
             if emulist[pcanum]['hypind'] < -0.5:
-                emulist[pcanum]['hypind'] = 1*pcanum
-            hypinds[pcanum] = 1*emulist[pcanum]['hypind']
+                emulist[pcanum]['hypind'] = 1 * pcanum
+            hypinds[pcanum] = 1 * emulist[pcanum]['hypind']
     return emulist
 
 
@@ -576,18 +625,18 @@ def __fitGP1d(theta, g, hyp1, hyp2, gvar=None, hypstarts=None, hypinds=None,
     """Return a fitted model from the emulator model using smart method."""
 
     subinfo = {}
-    subinfo['hypregmean'] = np.append(0 + 0.5*np.log(theta.shape[1]) +
+    subinfo['hypregmean'] = np.append(0 + 0.5 * np.log(theta.shape[1]) +
                                       np.log(np.std(theta, 0)), (0, hyp1))
-    subinfo['hypregLB'] = np.append(-4 + 0.5*np.log(theta.shape[1]) +
+    subinfo['hypregLB'] = np.append(-4 + 0.5 * np.log(theta.shape[1]) +
                                     np.log(np.std(theta, 0)), (-12, hyp2))
 
-    subinfo['hypregUB'] = np.append(4 + 0.5*np.log(theta.shape[1]) +
+    subinfo['hypregUB'] = np.append(4 + 0.5 * np.log(theta.shape[1]) +
                                     np.log(np.std(theta, 0)), (2, 0))
     subinfo['hypregstd'] = (subinfo['hypregUB'] - subinfo['hypregLB']) / 8
     subinfo['hypregstd'][-2] = 2
     subinfo['hypregstd'][-1] = 4
-    subinfo['hyp'] = 1*subinfo['hypregmean']
-    nhyptrain = np.max(np.min((20*theta.shape[1], theta.shape[0])))
+    subinfo['hyp'] = 1 * subinfo['hypregmean']
+    nhyptrain = np.max(np.min((20 * theta.shape[1], theta.shape[0])))
     if theta.shape[0] > nhyptrain:
         thetac = np.random.choice(theta.shape[0], nhyptrain, replace=False)
     else:
@@ -604,23 +653,23 @@ def __fitGP1d(theta, g, hyp1, hyp2, gvar=None, hypstarts=None, hypinds=None,
             L1 = __negloglik(hypstarts[k, :], subinfo)
             if L1 < L0:
                 subinfo['hyp'] = hypstarts[k, :]
-                L0 = 1*L1
+                L0 = 1 * L1
                 hypind0 = hypinds[k]
 
     if hypind0 > -0.5 and hypstarts.ndim > 1:
         dL = __negloglikgrad(subinfo['hyp'], subinfo)
-        scalL = np.std(hypstarts, 0) * hypstarts.shape[0] /\
-            (1 + hypstarts.shape[0]) +\
-            1/(1 + hypstarts.shape[0]) * subinfo['hypregstd']
-        if np.sum((dL * scalL) ** 2) < 1.2 * \
-                (subinfo['hyp'].shape[0] + 4*np.sqrt(subinfo['hyp'].shape[0])):
+        scalL = np.std(hypstarts, 0) * hypstarts.shape[0] / \
+                (1 + hypstarts.shape[0]) + \
+                1 / (1 + hypstarts.shape[0]) * subinfo['hypregstd']
+        if np.sum((dL * scalL) ** 2) < 1.25 * \
+                (subinfo['hyp'].shape[0] + 5 * np.sqrt(subinfo['hyp'].shape[0])):
             skipop = True
         else:
             skipop = False
     else:
         skipop = False
-    if (not skipop):
 
+    if (not skipop):
         def scaledlik(hypv):
             hyprs = subinfo['hypregmean'] + hypv * subinfo['hypregstd']
             return __negloglik(hyprs, subinfo)
@@ -630,12 +679,12 @@ def __fitGP1d(theta, g, hyp1, hyp2, gvar=None, hypstarts=None, hypinds=None,
             return __negloglikgrad(hyprs, subinfo) * subinfo['hypregstd']
 
         newLB = (subinfo['hypregLB'] - subinfo['hypregmean']) / \
-            subinfo['hypregstd']
+                subinfo['hypregstd']
         newUB = (subinfo['hypregUB'] - subinfo['hypregmean']) / \
-            subinfo['hypregstd']
+                subinfo['hypregstd']
 
         newhyp0 = (subinfo['hyp'] - subinfo['hypregmean']) / \
-            subinfo['hypregstd']
+                  subinfo['hypregstd']
 
         opval = spo.minimize(scaledlik,
                              newhyp0,
@@ -648,18 +697,17 @@ def __fitGP1d(theta, g, hyp1, hyp2, gvar=None, hypstarts=None, hypinds=None,
         likdiff = (L0 - __negloglik(hypn, subinfo))
     else:
         likdiff = 0
-    if hypind0 > -0.5 and (2 * likdiff) < 1.2 * \
-            (subinfo['hyp'].shape[0] + 4 * np.sqrt(subinfo['hyp'].shape[0])):
-
+    if hypind0 > -0.5 and (2 * likdiff) < 1.25 * \
+            (subinfo['hyp'].shape[0] + 5 * np.sqrt(subinfo['hyp'].shape[0])):
         subinfo['hypcov'] = subinfo['hyp'][:-1]
         subinfo['hypind'] = hypind0
-        subinfo['nug'] = np.exp(subinfo['hyp'][-1]) /\
-            (1+np.exp(subinfo['hyp'][-1]))
+        subinfo['nug'] = np.exp(subinfo['hyp'][-1]) / \
+                         (1 + np.exp(subinfo['hyp'][-1]))
 
         R = __covmat(theta, theta, subinfo['hypcov'])
 
-        subinfo['R'] = (1-subinfo['nug'])*R + subinfo['nug'] * \
-            np.eye(R.shape[0])
+        subinfo['R'] = (1 - subinfo['nug']) * R + subinfo['nug'] * \
+                       np.eye(R.shape[0])
         if gvar is not None:
             subinfo['R'] += np.diag(gvar)
 
@@ -668,76 +716,35 @@ def __fitGP1d(theta, g, hyp1, hyp2, gvar=None, hypstarts=None, hypinds=None,
         fcenter = Vh.T @ g
         subinfo['Vh'] = Vh
         n = subinfo['R'].shape[0]
-        subinfo['sig2'] = (np.mean(fcenter ** 2)*n + 1)/(n + 1)
-        subinfo['Rinv'] = V @ np.diag(1/W) @ V.T
+        subinfo['sig2'] = (np.mean(fcenter ** 2) * n + 1) / (n + 1)
+        subinfo['Rinv'] = V @ np.diag(1 / W) @ V.T
     else:
         subinfo['hyp'] = hypn
         subinfo['hypind'] = -1
         subinfo['hypcov'] = subinfo['hyp'][:-1]
-        subinfo['nug'] = np.exp(subinfo['hyp'][-1]) /\
-            (1+np.exp(subinfo['hyp'][-1]))
+        subinfo['nug'] = np.exp(subinfo['hyp'][-1]) / \
+                         (1 + np.exp(subinfo['hyp'][-1]))
 
         R = __covmat(theta, theta, subinfo['hypcov'])
         subinfo['R'] = (1 - subinfo['nug']) * R + \
-            subinfo['nug'] * np.eye(R.shape[0])
+                       subinfo['nug'] * np.eye(R.shape[0])
         if gvar is not None:
             subinfo['R'] += np.diag(gvar)
         n = subinfo['R'].shape[0]
         W, V = np.linalg.eigh(subinfo['R'])
         Vh = V / np.sqrt(np.abs(W))
         fcenter = Vh.T @ g
-        subinfo['sig2'] = (np.mean(fcenter ** 2)*n + 1)/(n+1)
-        subinfo['Rinv'] = Vh  @ Vh.T
+        subinfo['sig2'] = (np.mean(fcenter ** 2) * n + 1) / (n + 1)
+        subinfo['Rinv'] = Vh @ Vh.T
         subinfo['Vh'] = Vh
     subinfo['pw'] = subinfo['Rinv'] @ g
     return subinfo
 
 
-def __covmat(x1, x2, gammav, return_gradhyp=False, return_gradx1=False):
-    """Return the covariance between x1 and x2 given parameter gammav."""
-    x1 = x1.reshape(1, gammav.shape[0]-1)/np.exp(gammav[:-1]) \
-        if x1.ndim < 1.5 else x1/np.exp(gammav[:-1])
-    x2 = x2.reshape(1, gammav.shape[0]-1)/np.exp(gammav[:-1]) \
-        if x2.ndim < 1.5 else x2/np.exp(gammav[:-1])
-
-    V = np.zeros([x1.shape[0], x2.shape[0]])
-    R = np.full((x1.shape[0], x2.shape[0]), 1/(1+np.exp(gammav[-1])))
-
-    if return_gradhyp:
-        dR = np.zeros([x1.shape[0], x2.shape[0], gammav.shape[0]])
-    elif return_gradx1:
-        dR = np.zeros([x1.shape[0], x2.shape[0], x1.shape[1]])
-    for k in range(0, gammav.shape[0]-1):
-        if return_gradx1:
-            S = np.subtract.outer(x1[:, k], x2[:, k])
-            Sign = np.sign(S)
-            S = np.abs(S)
-        else:
-            S = np.abs(np.subtract.outer(x1[:, k], x2[:, k]))
-        R *= (1 + S)
-        V -= S
-        if return_gradhyp:
-            dR[:, :, k] = (S ** 2) / (1 + S)
-        if return_gradx1:
-            dR[:, :, k] = -(S * Sign) / (1 + S) / np.exp(gammav[k])
-    R *= np.exp(V)
-    if return_gradhyp:
-        dR *= R[:, :, None]
-        dR[:, :, -1] = np.exp(gammav[-1]) / ((1 + np.exp(gammav[-1]))) *\
-            (1 / (1 + np.exp(gammav[-1])) - R)
-    elif return_gradx1:
-        dR *= R[:, :, None]
-    R += np.exp(gammav[-1])/(1+np.exp(gammav[-1]))
-    if return_gradhyp or return_gradx1:
-        return R, dR
-    else:
-        return R
-
-
 def __negloglik(hyp, info):
     """Return penalized log likelihood of single demensional GP model."""
     R0 = __covmat(info['theta'], info['theta'], hyp[:-1])
-    nug = np.exp(hyp[-1])/(1 + np.exp(hyp[-1]))
+    nug = np.exp(hyp[-1]) / (1 + np.exp(hyp[-1]))
     R = (1 - nug) * R0 + nug * np.eye(info['theta'].shape[0])
     if info['gvar'] is not None:
         R += np.diag(info['gvar'])
@@ -746,9 +753,9 @@ def __negloglik(hyp, info):
     fcenter = Vh.T @ info['g']
     n = info['g'].shape[0]
     sig2hat = (n * np.mean(fcenter ** 2) + 10) / (n + 10)
-    negloglik = 1/2 * np.sum(np.log(np.abs(W))) + 1/2 * n * np.log(sig2hat)
-    negloglik += 0.5*np.sum((((10**(-8) + hyp-info['hypregmean'])) /
-                            (info['hypregstd'])) ** 2)
+    negloglik = 1 / 2 * np.sum(np.log(np.abs(W))) + 1 / 2 * n * np.log(sig2hat)
+    negloglik += 0.5 * np.sum((((10 ** (-8) + hyp - info['hypregmean'])) /
+                               (info['hypregstd'])) ** 2)
     return negloglik
 
 
@@ -756,20 +763,20 @@ def __negloglikgrad(hyp, info):
     """Return gradient of the penalized log likelihood of single demensional
     GP model."""
     R0, dR = __covmat(info['theta'], info['theta'], hyp[:-1], True)
-    nug = np.exp(hyp[-1])/(1 + np.exp(hyp[-1]))
+    nug = np.exp(hyp[-1]) / (1 + np.exp(hyp[-1]))
     R = (1 - nug) * R0 + nug * np.eye(info['theta'].shape[0])
     if info['gvar'] is not None:
         R += np.diag(info['gvar'])
 
-    dR = (1-nug) * dR
-    dRappend = nug/((1+np.exp(hyp[-1]))) *\
-        (-R0+np.eye(info['theta'].shape[0]))
+    dR = (1 - nug) * dR
+    dRappend = nug / ((1 + np.exp(hyp[-1]))) * \
+               (-R0 + np.eye(info['theta'].shape[0]))
     dR = np.append(dR, dRappend[:, :, None], axis=2)
     W, V = np.linalg.eigh(R)
     Vh = V / np.sqrt(np.abs(W))
     fcenter = Vh.T @ info['g']
     n = info['g'].shape[0]
-    sig2hat = (n * np.mean(fcenter**2) + 10) / (n + 10)
+    sig2hat = (n * np.mean(fcenter ** 2) + 10) / (n + 10)
     dnegloglik = np.zeros(dR.shape[2])
     Rinv = Vh @ Vh.T
 
@@ -780,6 +787,6 @@ def __negloglikgrad(hyp, info):
         dnegloglik[k] += 0.5 * n * dsig2hat / sig2hat
         dnegloglik[k] += 0.5 * np.sum(Rinv * dR[:, :, k])
 
-    dnegloglik += (10**(-8) +
-                   hyp-info['hypregmean'])/((info['hypregstd']) ** 2)
+    dnegloglik += (10 ** (-8) +
+                   hyp - info['hypregmean']) / ((info['hypregstd']) ** 2)
     return dnegloglik
