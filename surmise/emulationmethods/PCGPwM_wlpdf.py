@@ -752,7 +752,7 @@ def __negloglik(hyp, info):
     n = info['g'].shape[0]
     sig2hat = (n * np.mean(fcenter ** 2) + 10) / (n + 10)
     negloglik = 1/2 * np.sum(np.log(np.abs(W))) + 1/2 * n * np.log(sig2hat)
-    negloglik += 0.5*np.sum((((10**(-8) + hyp-info['hypregmean'])) /
+    negloglik += 0.5*np.sum((((10**(-8) + hyp - info['hypregmean'])) /
                             (info['hypregstd'])) ** 2)
     return negloglik
 
@@ -788,43 +788,3 @@ def __negloglikgrad(hyp, info):
     dnegloglik += (10**(-8) +
                    hyp-info['hypregmean'])/((info['hypregstd']) ** 2)
     return dnegloglik
-#
-# def __covmat(x1, x2, gammav, return_gradhyp=False, return_gradx1=False):
-#     """Return the covariance between x1 and x2 given parameter gammav."""
-#     x1 = x1.reshape(1, gammav.shape[0]-1)/np.exp(gammav[:-1]) \
-#         if x1.ndim < 1.5 else x1/np.exp(gammav[:-1])
-#     x2 = x2.reshape(1, gammav.shape[0]-1)/np.exp(gammav[:-1]) \
-#         if x2.ndim < 1.5 else x2/np.exp(gammav[:-1])
-#
-#     V = np.zeros([x1.shape[0], x2.shape[0]])
-#     R = np.full((x1.shape[0], x2.shape[0]), 1/(1+np.exp(gammav[-1])))
-#
-#     if return_gradhyp:
-#         dR = np.zeros([x1.shape[0], x2.shape[0], gammav.shape[0]])
-#     elif return_gradx1:
-#         dR = np.zeros([x1.shape[0], x2.shape[0], x1.shape[1]])
-#     for k in range(0, gammav.shape[0]-1):
-#         if return_gradx1:
-#             S = np.subtract.outer(x1[:, k], x2[:, k])
-#             Sign = np.sign(S)
-#             S = np.abs(S)
-#         else:
-#             S = np.abs(np.subtract.outer(x1[:, k], x2[:, k]))
-#         R *= (1 + S)
-#         V -= S
-#         if return_gradhyp:
-#             dR[:, :, k] = (S ** 2) / (1 + S)
-#         if return_gradx1:
-#             dR[:, :, k] = -(S * Sign) / (1 + S) / np.exp(gammav[k])
-#     R *= np.exp(V)
-#     if return_gradhyp:
-#         dR *= R[:, :, None]
-#         dR[:, :, -1] = np.exp(gammav[-1]) / ((1 + np.exp(gammav[-1]))) *\
-#             (1 / (1 + np.exp(gammav[-1])) - R)
-#     elif return_gradx1:
-#         dR *= R[:, :, None]
-#     R += np.exp(gammav[-1])/(1+np.exp(gammav[-1]))
-#     if return_gradhyp or return_gradx1:
-#         return R, dR
-#     else:
-#         return R
