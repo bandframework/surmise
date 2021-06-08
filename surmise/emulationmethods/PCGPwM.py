@@ -8,7 +8,7 @@ import numpy as np
 import scipy.optimize as spo
 import scipy.linalg as spla
 import copy
-from matern_covmat import covmat as __covmat
+from surmise.emulationsupport.matern_covmat import covmat as __covmat
 
 
 def fit(fitinfo, x, theta, f, **kwargs):
