@@ -122,7 +122,7 @@ def sampler(logpostfunc,
     thetas = np.maximum(np.std(theta0, 0), 10 ** (-8) * np.std(theta0))
 
     def neglogpostf_nograd(thetap):
-        theta = thetacen + thetas * thetap   
+        theta = thetacen + thetas * thetap
         return -logpostf_nograd(theta.reshape((1, len(theta))))[0]
     if logpostf_grad is not None:
         def neglogpostf_grad(thetap):
@@ -155,8 +155,7 @@ def sampler(logpostfunc,
         stepadj = 4
         l0 = neglogpostf_nograd(opval.x)
         while notmoved:
-            r = (V.T*np.sqrt(W)) @ (V @
-                 np.random.standard_normal(size=thetacen.shape[0]))
+            r = (V.T*np.sqrt(W)) @ (V @ np.random.standard_normal(size=thetacen.shape[0]))
 
             if (neglogpostf_nograd((stepadj * r + opval.x)) -
                     l0) < 3*thetacen.shape[0]:
@@ -188,8 +187,8 @@ def sampler(logpostfunc,
         hc = V @ np.diag(np.sqrt(W)) @ V.T
     else:
         hc = np.sqrt(covmat0)
-        hc = hc.reshape(1,1)
-        covmat0 = covmat0.reshape(1,1)
+        hc = hc.reshape(1, 1)
+        covmat0 = covmat0.reshape(1, 1)
     tau = -1
     rho = 2 * (1 + (np.exp(2 * tau) - 1) / (np.exp(2 * tau) + 1))
     adjrho = rho*temps**(1/3)

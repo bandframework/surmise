@@ -106,7 +106,7 @@ def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
         if emureturn_grad and return_grad:
             # obtain the gradient of the log-prior
             dlogpost = thetaprior.lpdf_grad(theta)
-            
+
             if len(inds):
                 # obtain the log-likelihood and the gradient of it
                 loglikinds, dloglikinds = loglik_grad(fitinfo,

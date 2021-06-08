@@ -49,7 +49,7 @@ def sampler(logpost_func,
     p = theta0.shape[1]
     lposterior = np.zeros(1000 + numsamp)
     theta = np.zeros((1000 + numsamp, theta0.shape[1]))
-    #print(theta0)
+    # print(theta0)
     lposterior[0] = logpost_func(theta0, return_grad=False)
     theta[0, :] = theta0
     n_acc = 0
