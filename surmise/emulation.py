@@ -456,7 +456,7 @@ class emulator(object):
                                             copy.copy(thetachoices),
                                             copy.copy(choicescost),
                                             copy.copy(cal),
-                                            argstemp)
+                                            **argstemp)
         except Exception:
             raise ValueError('supplementtheta does not exist.')
 
