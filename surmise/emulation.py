@@ -1049,13 +1049,50 @@ class prediction(object):
         """
         Returns a rnd draws of size s at theta and x
         """
-        raise ValueError('rnd functionality not in method')
+        pfstr = 'predict'  # prefix string
+        opstr = 'rnd'  # operation string
+
+        if (self.emu._emulator__ptf is None) and \
+                ((pfstr + opstr) in dir(self.emu.method)):
+            if args is None:
+                args = self.emu._args
+            return copy.deepcopy(self.emu.method.ldf(self._info,
+                                                     **args))
+        else:
+            raise ValueError(self.__methodnotfoundstr(pfstr, opstr))
 
     def lpdf(self, f=None, args=None):
         """
         Returns a log pdf at theta and x
         """
-        raise ValueError('lpdf functionality not in method')
+
+        pfstr = 'predict'  # prefix string
+        opstr = 'lpdf'  # operation string
+        if (self.emu._emulator__ptf is None) and \
+                ((pfstr + opstr) in dir(self.emu.method)):
+            if args is None:
+                args = self.emu._args
+            return copy.deepcopy(self.emu.method.predictlpdf(self._info,
+                                                             f,
+                                                             **args))
+        else:
+            raise ValueError(self.__methodnotfoundstr(pfstr, opstr))
+
+    def lpdf_gradtheta(self, f=None, args=None):
+        """
+        Returns a log pdf at theta and x
+        """
+        pfstr = 'predict'  # prefix string
+        opstr = 'lpdf_gradtheta'  # operation string
+        if (self.emu._emulator__ptf is None) and \
+                ((pfstr + opstr) in dir(self.emu.method)):
+            if args is None:
+                args = self.emu._args
+            return copy.deepcopy(self.emu.method.predictlpdf_gradtheta(self._info,
+                                                                       f,
+                                                                       **args))
+        else:
+            raise ValueError(self.__methodnotfoundstr(pfstr, opstr))
 
 
 def _matrixmatching(mat1, mat2):
