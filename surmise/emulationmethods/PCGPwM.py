@@ -184,20 +184,34 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
 
         if rVh.ndim < 1.5:
             rVh = rVh.reshape((1, -1))
+        if rVh2.ndim < 1.5:
+            rVh2 = np.reshape(rVh2, (1, -1))
         predvecs[:, k] = r @ infos[k]['pw']
         if return_grad:
-            dr = (1 - infos[k]['nug']) * np.squeeze(drsave[infos[k]['hypind']])
+            drsave_hypind = np.squeeze(drsave[infos[k]['hypind']])
+            if drsave_hypind.ndim < 2.5 and theta.shape[1] < 1.5:
+                drsave_hypind = np.reshape(drsave_hypind, (*drsave_hypind.shape, 1))
+            elif drsave_hypind.ndim < 2.5 and theta.shape[1] > 1.5:
+                drsave_hypind = np.reshape(drsave_hypind, (1, *drsave_hypind.shape))
+
+            dr = (1 - infos[k]['nug']) * drsave_hypind
             if dr.ndim == 2:
                 drVh = dr.T @ infos[k]['Vh']
                 predvecs_gradtheta[:, k, :] = dr.T @ infos[k]['pw']
                 predvars_gradtheta[:, k, :] = \
                     -infos[k]['sig2'] * 2 * np.sum(rVh * drVh, 1)
             else:
-                predvecs_gradtheta[:, k, :] = (1 - infos[k]['nug']) * \
-                                              np.squeeze(dr.transpose(0, 2, 1) @ infos[k]['pw'])
+                drpw = np.squeeze(dr.transpose(0, 2, 1) @ infos[k]['pw'])
+                if drpw.ndim < 1.5 and theta.shape[1] < 1.5:
+                    drpw = np.reshape(drpw, (-1, 1))
+                elif drpw.ndim < 1.5 and theta.shape[1] > 1.5:
+                    drpw = np.reshape(drpw, (1, -1))
+
+                predvecs_gradtheta[:, k, :] = (1 - infos[k]['nug']) * drpw
                 predvars_gradtheta[:, k, :] = \
                     -(infos[k]['sig2'] * 2) * np.einsum("ij,ijk->ik", rVh2, dr)
         predvars[:, k] = infos[k]['sig2'] * np.abs(1 - np.sum(rVh ** 2, 1))
+
 
     # calculate predictive mean and variance
     predinfo['mean'] = np.full((x.shape[0], theta.shape[0]), np.nan)
