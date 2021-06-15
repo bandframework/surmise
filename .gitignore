@@ -33,3 +33,5 @@ surmise/emulationsupport/matern_covmat.c
 CaseStudy/
 
 .eggs/
+
+examples/develop-example/
