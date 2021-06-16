@@ -15,7 +15,6 @@ The code can be found on our `Github project page <https://github.com/surmising/
    Quickstart<introduction>
    understanding	
    programming_surmise
-   .. include:: ../CONTRIBUTING.rst
 
 .. toctree::
    :maxdepth: 2
@@ -23,6 +22,12 @@ The code can be found on our `Github project page <https://github.com/surmising/
 
    examples
    tutorials
+
+.. toctree::
+   :caption: Developer Guide:
+   :maxdepth: 4
+
+   contribution
 
 Indices and tables
 ====================================

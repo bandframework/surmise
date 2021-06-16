@@ -36,7 +36,7 @@ Documentation
 ~~~~~~~~~~~~~~~~~~~~
 
 Clear and complete documentation is essential in order for users to be able to find and
- understand the code. 
+understand the code. 
 
 Documentation for individual functions and classes – which includes at least a basic 
 description, type and meaning of all parameters and returns values, and usage examples – 
