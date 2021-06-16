@@ -1,4 +1,4 @@
-Contributing to `surmise`
+Contributing to surmise
 ===========================
 
 Contributions may be made via a GitHub pull request to
@@ -30,10 +30,6 @@ We encourage developers to provide their own tests in ``tests\`` directory. To r
 new tests, you can run the following::
 
   pytest tests/your-test.py
-
-.. include:: ../testing/README.rst
-   :literal:
-
 
 
 Documentation
