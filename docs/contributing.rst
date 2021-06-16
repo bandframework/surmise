@@ -1,11 +1,9 @@
-Contributing to surmise
+Contributing
 =========================
 
 
 .. toctree::
    :maxdepth: 4
 	
-   .. include:: ../CONTRIBUTING.RST
-
-
+   .. include:: ../CONTRIBUTING.rst
 
