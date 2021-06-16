@@ -1,4 +1,4 @@
-Contributing to surmise
+Contributing to `surmise`
 ===========================
 
 Contributions may be made via a GitHub pull request to
@@ -10,32 +10,20 @@ make pull requests to, the develop branch. The master branch is used only
 for releases. Pull requests may be made from a fork, for those without
 repository write access.
 
-Code should pass flake8 tests, allowing for the exceptions
-given in the flake8_ file in the project directory.
-
 Issues can be raised at
 
     https://github.com/surmising/surmise/issues
-
-Issues may include reporting bugs or suggested features. Administrators
-will add issues, as appropriate, to the project board at
-
-    https://github.com/surmising/surmise/projects
-
-By convention, user branch names should have a <type>/<name> format, where
-example types are feature, bugfix, testing, docs, and experimental.
-Administrators may take a hotfix branch from the master, which will be
-merged into master (as a patch) and develop. Administrators may also take a
-release branch off develop and then merge this branch into master and develop
-for a release. Most branches should relate to an issue or feature.
 
 When a branch closes a related issue, the pull request message should include
 the phrase "Closes #N," where N is the issue number. This will automatically
 close out the issues when they are pulled into the default branch (currently
 master).
 
-Testing
+Testing contributions
 ~~~~~~~
+
+Code should pass flake8 tests, allowing for the exceptions given in the flake8_ 
+file in the project directory.
 
 As you develop your code, you may want to include tests specific to your code.
 We encourage developers to provide their own tests in ``tests\`` directory. To run the
@@ -43,20 +31,38 @@ new tests, you can run the following::
 
   pytest tests/your-test.py
 
+.. include:: ../testing/README.rst
+   :literal:
 
 
 
-Adding Documentation
+Documentation
 ~~~~~~~~~~~~~~~~~~~~
 
-As you develop your code, we recommend writing docstrings in your classes and methods.
-If you want to contribute to the documentation of the architecture of surmise, you can write documentation
+Clear and complete documentation is essential in order for users to be able to find and
+ understand the code. 
+
+Documentation for individual functions and classes – which includes at least a basic 
+description, type and meaning of all parameters and returns values, and usage examples – 
+is put in docstrings. Those docstrings can be read within the interpreter, and are 
+compiled into a reference guide in html and pdf format.   If you want to contribute 
+to the documentation of the architecture of surmise, you can write documentation
 in reStructuredText format, and edit in ``\doc`` directory. If you run ``make html``
-in the same directory, HTML pages can viewed.
+in the same directory, HTML pages can viewed.  As you develop your code, we recommend 
+writing docstrings in your classes and methods.
+
+On any code that is not self-documenting, provide clear comments when some important 
+thing must be communicated to the user.  There is no general rul for the number of
+needed comments, 
+
+Some general guidence on commenting code can be found at::
+  https://www.cs.utah.edu/~germain/PPS/Topics/commenting.html
+and::
+  http://ideas-productivity.org/wordpress/wp-content/uploads/2021/02/webinar049-softwaredocumentation.pdf
 
 Developer's Certificate of Origin 1.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-surmise is distributed under an MIT license (see LICENSE).  The
+`surmise` is distributed under an MIT license (see LICENSE).  The
 act of submitting a pull request (with or without an explicit
 Signed-off-by tag) will be understood as an affirmation of the
 following:
