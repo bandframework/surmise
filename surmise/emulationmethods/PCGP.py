@@ -3,7 +3,7 @@ import numpy as np
 import scipy.optimize as spo
 
 
-def fit(fitinfo, x, theta, f, args=None):
+def fit(fitinfo, x, theta, f, epsilon=0.1, **kwargs):
     '''
     The purpose of fit is to take information and plug all of our fit
     information into fitinfo, which is a python dictionary.
@@ -32,7 +32,7 @@ def fit(fitinfo, x, theta, f, args=None):
         An array of parameters. Each row should correspond to a column in f.
     f : numpy.ndarray
         An array of responses. Each column in f should correspond to a row in
-        x. Each row in f should correspond to a row in x.
+        theta. Each row in f should correspond to a row in x.
     args : dict, optional
         A dictionary containing options. The default is None.
 
@@ -41,12 +41,11 @@ def fit(fitinfo, x, theta, f, args=None):
     None.
 
     '''
-
     f = f.T
     fitinfo['theta'] = theta
     fitinfo['x'] = x
     fitinfo['f'] = f
-    fitinfo['epsilon'] = 1
+    fitinfo['epsilon'] = epsilon
 
     # standardize function evaluations f
     __standardizef(fitinfo)
@@ -66,7 +65,7 @@ def fit(fitinfo, x, theta, f, args=None):
     return
 
 
-def predict(predinfo, fitinfo, x, theta, args=None):
+def predict(predinfo, fitinfo, x, theta, computecov=True, **kwargs):
     '''
     Parameters
     ----------
@@ -125,34 +124,35 @@ def predict(predinfo, fitinfo, x, theta, args=None):
         r = emulation_covmat(theta, fitinfo['theta'], infos[k]['hypcov'])
         predvecs[:, k] = infos[k]['muhat'] + r @ infos[k]['pw']
         Rinv = infos[k]['Rinv']
-        predvars[:, k] = infos[k]['sigma2hat'] * \
-            (1 + np.exp(infos[k]['hypnug']) - np.sum(r.T * (Rinv @ r.T), 0))
+        if computecov:
+            predvars[:, k] = infos[k]['sigma2hat'] * \
+                (1 + np.exp(infos[k]['hypnug']) - np.sum(r.T*(Rinv @ r.T), 0))
 
     pctscale = (fitinfo['pct'].T * fitinfo['scale']).T
 
     # transfer back the PCs into the original space
     predinfo['mean'] = np.full((x.shape[0], theta.shape[0]), np.nan)
-    predinfo['var'] = np.full((x.shape[0], theta.shape[0]), np.nan)
     predinfo['mean'][xnewind, :] = (predvecs @ pctscale[xind, :].T +
                                     fitinfo['offset'][xind]).T
-    predinfo['var'][xnewind, :] = (fitinfo['extravar'][xind] +
-                                   (predvars @ pctscale[xind, :].T ** 2)).T
 
-    CH = (np.sqrt(predvars)[:, :, None] * (pctscale[xind, :].T)[None, :, :])
-    predinfo['covxhalf'] = np.full((theta.shape[0],
-                                    CH.shape[1],
-                                    x.shape[0]), np.nan)
-    predinfo['covxhalf'][:, :, xnewind] = CH
-    predinfo['covxhalf'] = predinfo['covxhalf'].transpose((2, 0, 1))
-
+    if computecov:
+        predinfo['var'] = np.full((x.shape[0], theta.shape[0]), np.nan)
+        predinfo['var'][xnewind, :] = (fitinfo['extravar'][xind] +
+                                       (predvars @ pctscale[xind, :].T ** 2)).T
+        CH = (np.sqrt(predvars)[:, :, None]*(pctscale[xind, :].T)[None, :, :])
+        predinfo['covxhalf'] = np.full((theta.shape[0],
+                                        CH.shape[1],
+                                        x.shape[0]), np.nan)
+        predinfo['covxhalf'][:, :, xnewind] = CH
+        predinfo['covxhalf'] = predinfo['covxhalf'].transpose((2, 0, 1))
     return
 
 
-def predictmean(predinfo, args=None):
+def predictmean(predinfo, **kwargs):
     return predinfo['mean']
 
 
-def predictvar(predinfo, args=None):
+def predictvar(predinfo, **kwargs):
     return predinfo['var']
 
 

@@ -4,7 +4,13 @@ from surmise.utilities import sampler
 import copy
 
 
-def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
+def fit(fitinfo,
+        emu,
+        x,
+        y,
+        clf_method=None,
+        myusedir=True,
+        **bayeswoodbury_args):
     '''
     The main required function to be called by calibration to fit a
     calibration model.
@@ -71,12 +77,16 @@ def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
     '''
 
     thetaprior = fitinfo['thetaprior']
-    try:
-        theta = thetaprior.rnd(10)
-        emupredict = emu.predict(x, theta, args={'return_grad': True})
-        emupredict.mean_gradtheta()
-        emureturn_grad = True
-    except Exception:
+
+    if myusedir:
+        try:
+            theta = thetaprior.rnd(10)
+            emupredict = emu.predict(x, theta, args={'return_grad': True})
+            emupredict.mean_gradtheta()
+            emureturn_grad = True
+        except Exception:
+            emureturn_grad = False
+    else:
         emureturn_grad = False
 
     if emureturn_grad and 'lpdf_grad' not in dir(thetaprior):
@@ -87,27 +97,47 @@ def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
             grad = np.zeros((theta.shape[0], theta.shape[1]))
             n_finite = len(inds)
 
-            for k in range(0, theta.shape[1]):
-                thetaprop = copy.copy(theta)
-                thetaprop[:, k] += 10**(-6)
-                f_base2 = thetaprior.lpdf(thetaprop[inds, :])
-                grad[inds, k] = 10**(6) * (f_base2 -
-                                           f_base[inds]).reshape(n_finite,)
+            if n_finite > 0:
+                for k in range(0, theta.shape[1]):
+                    thetaprop = copy.copy(theta)
+                    thetaprop[:, k] += 10**(-3)
+                    f_base2 = thetaprior.lpdf(thetaprop[inds, :])
+                    grad[inds, k] = 10**(3) * (f_base2 -
+                                               f_base[inds]).reshape(n_finite,)
 
             return grad
         thetaprior.lpdf_grad = lpdf_grad
 
-    def logpostfull_wgrad(theta, return_grad=True):
+    def logprobacce(theta):
+        theta_f = 1 * theta
+        for i_id in range(0, theta.shape[1]):
+            for j_id in range(i_id, theta.shape[1]):
+                theta_f = np.concatenate(
+                    [theta_f, np.reshape(theta_f[:, i_id] * theta_f[:, j_id],
+                                         (len(theta_f), 1))], axis=1)
+        ml_probability = clf_method.predict_proba(theta_f)[:, 1]
+        ml_logprobability = np.reshape(np.log(ml_probability),
+                                       (len(theta), 1))
+        return ml_logprobability
 
+    def logprobacce_grad(theta):
+        L0 = logprobacce(theta)
+        dL = np.zeros((L0.shape[0], theta.shape[1]))
+        for i_id in range(0, theta.shape[1]):
+            theta_f = 1 * theta
+            theta_f[:, i_id] += 10**(-6)
+            L1 = logprobacce(theta_f)
+            dL[:, i_id] = np.squeeze((L1-L0) * (10**6))
+        return dL
+
+    def logpostfull_wgrad(theta, return_grad=True):
         # obtain the log-prior
         logpost = thetaprior.lpdf(theta)
         inds = np.where(np.isfinite(logpost))[0]
-
         if emureturn_grad and return_grad:
             # obtain the gradient of the log-prior
             dlogpost = thetaprior.lpdf_grad(theta)
-
-            if len(inds):
+            if len(inds) > 0:
                 # obtain the log-likelihood and the gradient of it
                 loglikinds, dloglikinds = loglik_grad(fitinfo,
                                                       emu,
@@ -116,6 +146,9 @@ def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
                                                       x)
                 logpost[inds] += loglikinds
                 dlogpost[inds] += dloglikinds
+                if clf_method is not None:
+                    logpost[inds] += logprobacce(theta[inds, :])
+                    dlogpost[inds] += logprobacce_grad(theta[inds, :])
             return logpost, dlogpost
         else:
             if len(inds) > 0:
@@ -125,6 +158,8 @@ def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
                                         theta[inds, :],
                                         y,
                                         x)
+                if clf_method is not None:
+                    logpost[inds] += logprobacce(theta[inds, :])
 
             return logpost
 
@@ -156,6 +191,7 @@ def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
     ladj = logpostfull_wgrad(theta, return_grad=False)
     mladj = np.max(ladj)
     fitinfo['lpdfapproxnorm'] = np.log(np.mean(np.exp(ladj - mladj))) + mladj
+    fitinfo['lpdfapproxnorm_un'] = ladj
     fitinfo['thetarnd'] = theta
     fitinfo['y'] = y
     fitinfo['x'] = x
@@ -252,9 +288,9 @@ def thetalpdf(fitinfo, theta, args=None):
     logpost = thetaprior.lpdf(theta)
     if logpost.ndim > 0.5 and logpost.shape[0] > 1.5:
         inds = np.where(np.isfinite(logpost))[0]
-        logpost[inds] += loglik(fitinfo, emu, theta[inds], y, x)
+        logpost[inds] += loglik(fitinfo, emu, theta[inds], y, x, args)
     elif np.isfinite(logpost):
-        logpost += loglik(fitinfo, emu, theta, y, x)
+        logpost += loglik(fitinfo, emu, theta, y, x, args)
     return (logpost-fitinfo['lpdfapproxnorm'])
 
 
