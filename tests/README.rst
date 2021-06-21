@@ -1,6 +1,5 @@
-===========================
 Running Tests
-===========================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The test suite requires the pytest_ and pytest-cov_ packages to be installed and
 can all be run from the ``tests/`` directory of the source distribution by

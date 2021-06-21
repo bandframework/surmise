@@ -9,6 +9,7 @@ cov_*
 surmise.egg-info
 docs/_build
 x.log
+
 .idea
 venv/
 scratch/
@@ -33,3 +34,4 @@ surmise/emulationsupport/matern_covmat.c
 CaseStudy/
 
 .eggs/
+
