@@ -10,53 +10,99 @@ make pull requests to, the develop branch. The master branch is used only
 for releases. Pull requests may be made from a fork, for those without
 repository write access.
 
-Code should pass flake8 tests, allowing for the exceptions
-given in the flake8_ file in the project directory.
-
 Issues can be raised at
 
     https://github.com/surmising/surmise/issues
-
-Issues may include reporting bugs or suggested features. Administrators
-will add issues, as appropriate, to the project board at
-
-    https://github.com/surmising/surmise/projects
-
-By convention, user branch names should have a <type>/<name> format, where
-example types are feature, bugfix, testing, docs, and experimental.
-Administrators may take a hotfix branch from the master, which will be
-merged into master (as a patch) and develop. Administrators may also take a
-release branch off develop and then merge this branch into master and develop
-for a release. Most branches should relate to an issue or feature.
 
 When a branch closes a related issue, the pull request message should include
 the phrase "Closes #N," where N is the issue number. This will automatically
 close out the issues when they are pulled into the default branch (currently
 master).
 
-Testing
+Testing contributions
 ~~~~~~~
 
-As you develop your code, you may want to include tests specific to your code.
-We encourage developers to provide their own tests in ``tests\`` directory. To run the
-new tests, you can run the following::
+Code should pass flake8 tests, allowing for the exceptions given in the flake8_
+file in the project directory. Some rules of flake8 can be seen here at https://www.flake8rules.com.
+To check if the code passes the flake8 tests, within the directory run::
+
+  flake8
+
+As you develop your code, we ask developers to include tests specific to their code,
+and provide their own tests in ``tests\`` directory. To run the new tests, you can run the following::
 
   pytest tests/your-test.py
 
+When a pull request is done to include a new method, we ask developers to include their tests.
 
-
-
-Adding Documentation
+Documentation
 ~~~~~~~~~~~~~~~~~~~~
 
-As you develop your code, we recommend writing docstrings in your classes and methods.
-If you want to contribute to the documentation of the architecture of surmise, you can write documentation
-in reStructuredText format, and edit in ``\doc`` directory. If you run ``make html``
-in the same directory, HTML pages can viewed.
+Clear and complete documentation is essential in order for users to be able to find and
+understand the code.
+
+Documentation for individual functions and classes – which includes at least a basic
+description, type and meaning of all parameters and returns values, and usage examples –
+is put in docstrings. Those docstrings can be read within the interpreter, and are
+compiled into a reference guide in html and pdf format.   If you want to contribute
+to the documentation of the architecture of surmise, you can write documentation
+in reStructuredText format, and edit in ``\docs`` directory. If you run ``make html``
+in the same directory, HTML pages can viewed.  As you develop your code, we recommend
+writing docstrings in your classes and methods.
+
+On any code that is not self-documenting, provide clear comments when some important
+thing must be communicated to the user. There is no general rule for the number of
+needed comments. Some examples of bad and good commenting habits are given below:
+
+Lack of comments:
+
+Bad Example::
+
+  def mySqrt(x):
+
+      r = x
+      precision = 10 ** (-10)
+
+      while abs(x - r * r) > precision:
+          r = (r + x / r) / 2
+
+      return r
+
+Good Example::
+
+  # square root of x with Newton-Raphson approximation
+  def mySqrt(x):
+
+      r = x
+      precision = 10 ** (-10)
+
+      while abs(x - r * r) > precision:
+          r = (r + x / r) / 2
+
+      return r
+
+Do not use excessive comments.
+
+Bad Example::
+
+  # looping in range from 0 to 9 and printing the value to the console
+  for x in range(10):
+    print(x)
+
+Good Example::
+
+  # 0, 1 .. 9
+  for x in range(10):
+    print(x)
+
+Some general guidence on commenting code can be found at:
+  https://www.cs.utah.edu/~germain/PPS/Topics/commenting.html
+and:
+  http://ideas-productivity.org/wordpress/wp-content/uploads/2021/02/webinar049-softwaredocumentation.pdf
 
 Developer's Certificate of Origin 1.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-surmise is distributed under an MIT license (see LICENSE).  The
+```surmise`` is distributed under an MIT license (see LICENSE). The
 act of submitting a pull request (with or without an explicit
 Signed-off-by tag) will be understood as an affirmation of the
 following:
