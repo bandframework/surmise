@@ -3,6 +3,7 @@ import scipy.stats as sps
 from surmise.utilities import sampler
 import copy
 
+
 def fit(fitinfo, emu, x, y, **myargs):
     '''
     The main required function to be called by calibration to fit a
@@ -100,7 +101,7 @@ def fit(fitinfo, emu, x, y, **myargs):
     def logpostfull_wgrad(theta, return_grad=True):
         logpost = thetaprior.lpdf(theta)
         inds = np.where(np.isfinite(logpost))[0]
-        logpost=logpost.reshape(-1,1)
+        logpost = logpost.reshape(-1, 1)
 
         if return_grad:
             # obtain the gradient of the log-prior

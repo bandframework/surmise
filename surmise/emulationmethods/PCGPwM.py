@@ -212,7 +212,6 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
                     -(infos[k]['sig2'] * 2) * np.einsum("ij,ijk->ik", rVh2, dr)
         predvars[:, k] = infos[k]['sig2'] * np.abs(1 - np.sum(rVh ** 2, 1))
 
-
     # calculate predictive mean and variance
     predinfo['mean'] = np.full((x.shape[0], theta.shape[0]), np.nan)
     predinfo['var'] = np.full((x.shape[0], theta.shape[0]), np.nan)
