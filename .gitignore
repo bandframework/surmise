@@ -35,3 +35,5 @@ CaseStudy/
 
 .eggs/
 
+
+examples/develop-example/myexample.py

@@ -467,7 +467,7 @@ class emulator(object):
                 if nctheta.shape[0] < 0.5:
                     supptheta = None
                     raise ValueError('supptheta is a complete replication of '
-                          'self.__theta.')
+                                     'self.__theta.')
                 else:
                     if nctheta.shape[0] < supptheta.shape[0]:
                         print('Removing replications from supptheta.')
