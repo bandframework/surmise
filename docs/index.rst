@@ -23,6 +23,12 @@ The code can be found on our `Github project page <https://github.com/surmising/
    examples
    tutorials
 
+.. toctree::
+   :caption: Developer Guide:
+   :maxdepth: 4
+
+   contributing
+
 Indices and tables
 ====================================
 
