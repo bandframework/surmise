@@ -1,26 +1,29 @@
-"""MODULE DESCRIPTION"""
+"""
+PCGPwMatComp method - an extension of PCGP method (Higdon et al. 2008) to handle missingness in simulation data.
+Matrix completion methods are used to complete the data, using matrix-completion package (Duan 2020). Then,
+:py:mod:surmise.emulationmethods.PCGP is used with the completed data.
+"""
 import numpy as np
-import scipy.optimize as spo
 import surmise.emulationmethods.PCGP as semPCGP
-import matrix_completion
+try:
+    from matrix_completion import svt_solve, pmf_solve, biased_mf_solve
+except ModuleNotFoundError:
+    raise ModuleNotFoundError('This emulation method requires installation of package \'cvxpy\'.')
 
 
-def fit(fitinfo, x, theta, f, epsilon=0.1, **kwargs):
-    '''
+methodoptionstr = ('\nTry one of the following: '
+                   '\n\'svt\' (singular value thresholding), '
+                   '\n\'pmf\' (probabilistic matrix factorization), '
+                   '\n\'bmf\' (biased alterating least squares matrix factorization).')
+
+
+suggeststr = '\nOtherwise, try emulation method \'PCGPwM\' to handle missing values.'
+
+
+def fit(fitinfo, x, theta, f, epsilon=0.1, completionmethod='svt', **kwargs):
+    """
     The purpose of fit is to take information and plug all of our fit
     information into fitinfo, which is a python dictionary.
-
-    .. note::
-       This is an application of the method proposed by Higdon et al., 2008.
-       The idea is to use PCA to project the original simulator outputs
-       onto a lower-dimensional space spanned by an orthogonal basis. The main
-       steps are
-
-        - 1. Standardize f
-        - 2. Compute the SVD of f, and get the PCs
-        - 3. Project the original centred data into the orthonormal space to
-          obtain the matrix of coefficients (say we use r PCs)
-        - 4. Then, build r separate and independent GPs from the input space
 
     Parameters
     ----------
@@ -35,29 +38,77 @@ def fit(fitinfo, x, theta, f, epsilon=0.1, **kwargs):
     f : numpy.ndarray
         An array of responses. Each column in f should correspond to a row in
         theta. Each row in f should correspond to a row in x.
-    args : dict, optional
-        A dictionary containing options. The default is None.
+    completionmethod : str
+        A string variable containing the name of matrix completion method. Options
+        are:
+        - \'svt\' (singular value thresholding),
+        - \'pmf\' (probabilistic matrix factorization),
+        - \'bmf\' (biased alterating least squares matrix factorization).
 
     Returns
     -------
     None.
 
-    '''
-
+    """
     f = f.T
-    # Check for missing or failed values
-    if not np.all(np.isfinite(f)):
-        fitinfo['mof'] = np.logical_not(np.isfinite(f))
-    else:
-        fitinfo['mof'] = None
-
     fitinfo['theta'] = theta
     fitinfo['f'] = f
     fitinfo['x'] = x
+    fitinfo['epsilon'] = epsilon
 
+    # Check for missing or failed values
+    if not np.all(np.isfinite(f)):
+        fitinfo['mof'] = np.logical_not(np.isfinite(f))
+        print('Completing f with method \'{:s}\''.format(completionmethod))
+        __completef(fitinfo, completionmethod)
+    else:
+        fitinfo['mof'] = None
+        print('No missing values identified... Proceeding with PCGP method.')
+
+    # standardize function evaluations f
+    __standardizef(fitinfo)
+
+    # apply PCA to reduce the dimension of f
+    __PCs(fitinfo)
+    numpcs = fitinfo['pc'].shape[1]
+
+    # create a dictionary to save the emu info for each PC
+    emulist = [dict() for x in range(0, numpcs)]
+
+    # fit a GP for each PC
+    for pcanum in range(0, numpcs):
+        emulist[pcanum] = emulation_fit(theta, fitinfo['pc'][:, pcanum])
+
+    fitinfo['emulist'] = emulist
     return
 
 
+def __completef(fitinfo, method=None):
+    """Completes missing values in f using matrix-completion library (Duan, 2020)."""
+    mof = fitinfo['mof']
+    f = fitinfo['f']
+
+    if method is None or method == 'svt':
+        # Singular value thresholding
+        fhat = svt_solve(f, ~mof)
+    elif method == 'pmf':
+        # Probablistic matrix factorization
+        fhat = pmf_solve(f, ~mof, k=10, mu=1e-2)
+    elif method == 'bmf':
+        # Biased alternating least squares
+        fhat = biased_mf_solve(f, ~mof, k=10, mu=1e-2)
+    else:
+        raise ValueError('Unsupported completion method. {:s}'.format(methodoptionstr))
+
+    if not np.isfinite(fhat).all():
+        raise ValueError('Completion method {:s} failed. {:s} {:s}'.format(method, methodoptionstr, suggeststr))
+
+    fitinfo['f'] = fhat
+    fitinfo['completionmethod'] = method
+    return
+
+
+# Functions below call surmise.emulationmethods.PCGP directly.
 def predict(predinfo, fitinfo, x, theta, computecov=True, **kwargs):
     '''
     Parameters
@@ -88,8 +139,7 @@ def predict(predinfo, fitinfo, x, theta, computecov=True, **kwargs):
     Prediction mean and variance at theta and x given the dictionary fitinfo.
     '''
 
-
-    return
+    return semPCGP.predict(predinfo, fitinfo, x, theta, computecov)
 
 
 def predictmean(predinfo, **kwargs):
@@ -138,6 +188,7 @@ def emulation_covmat(theta1, theta2, gammav, returndir=False):
 
     '''
 
+    return semPCGP.emulation_covmat(theta1, theta2, gammav, returndir)
 
 
 def emulation_negloglik(hyperparameters, fitinfo):
@@ -163,6 +214,7 @@ def emulation_negloglik(hyperparameters, fitinfo):
 
     '''
 
+    return semPCGP.emulation_negloglik(hyperparameters, fitinfo)
 
 
 def emulation_negloglikgrad(hyperparameters, fitinfo):
@@ -181,7 +233,7 @@ def emulation_negloglikgrad(hyperparameters, fitinfo):
 
     '''
 
-
+    return semPCGP.emulation_negloglikgrad(hyperparameters, fitinfo)
 
 
 def emulation_fit(theta, pcaval):
@@ -210,15 +262,14 @@ def emulation_fit(theta, pcaval):
         Dictionary of the fitted emulator model.
     '''
 
-def __completef(fitinfo, method=None):
-    """"""
-    if 'mof' not in fitinfo.keys():
-        raise KeyError('No missing ')
+    return semPCGP.emulation_fit(theta, pcaval)
+
 
 def __standardizef(fitinfo, offset=None, scale=None):
-    "Standardizes f by creating offset, scale and fs."
-    # Extracting from input dictionary
+    """Standardizes f by creating offset, scale and fs."""
+    return semPCGP.__standardizef(fitinfo, offset, scale)
 
 
 def __PCs(fitinfo):
-    "Apply PCA to reduce the dimension of f"
+    """Apply PCA to reduce the dimension of f."""
+    return semPCGP.__PCs(fitinfo)

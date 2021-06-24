@@ -62,7 +62,7 @@ class emulator(object):
             Optional dictionary containing options you would like to pass to
             [method].fit(x, theta, f, args)
             or
-            [method].predict(x, theta args) The default is {}.
+            [method].predict(x, theta, args) The default is {}.
 
         options : dict, optional
             Dictionary containing options you would like
