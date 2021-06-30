@@ -36,3 +36,5 @@ CaseStudy/
 .eggs/
 
 examples/develop-example/
+
+.coverage
