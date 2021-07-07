@@ -8,8 +8,14 @@ def fit(fitinfo, x, theta, f, ignore_nan=True, **kwargs):
         col_no = theta.shape[1]
         # Train GP on those realizations
         f = f.T
-        kernel = GPy.kern.RBF(input_dim=col_no, variance=1., lengthscale=1.)
-        white_kern = GPy.kern.White(1, variance=0.1)
+
+        if ignore_nan:
+            fisnan = np.isnan(f).squeeze()
+            f = f[~fisnan]
+            theta = theta[~fisnan]
+
+        kernel = GPy.kern.RBF(input_dim=col_no, variance=1., lengthscale=1.)  # generalize for user input
+        white_kern = GPy.kern.White(1, variance=0.1)  # generalize for user input
 
         kernel = (kernel + white_kern)
 
@@ -32,7 +38,7 @@ def fit(fitinfo, x, theta, f, ignore_nan=True, **kwargs):
             xtheta = xtheta[~fisnan]
 
         # Train GP on those realizations
-        kernel = GPy.kern.RBF(input_dim=col_flat, variance=1, lengthscale=1)
+        kernel = GPy.kern.RBF(input_dim=col_flat, variance=1, lengthscale=1)  # generalize for user input
         emulator = GPy.models.GPRegression(xtheta, f_flat, kernel)
         emulator.optimize()
 
