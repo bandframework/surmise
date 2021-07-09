@@ -35,5 +35,6 @@ CaseStudy/
 
 .eggs/
 
+examples/develop-example/
 
-examples/develop-example/myexample.py
+.coverage
