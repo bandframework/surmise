@@ -3,7 +3,9 @@ import scipy.stats as sps
 import pytest
 from contextlib import contextmanager
 from surmise.emulation import emulator
-
+import pyximport
+pyximport.install(setup_args={"include_dirs":np.get_include()},
+                  reload_support=True)
 
 ##############################################
 #            Simple scenarios                #
@@ -180,7 +182,7 @@ def test_prediction_mean(input1, expectation):
 @pytest.mark.parametrize(
     "input1,expectation",
     [
-     # ('PCGPwM', does_not_raise()),
+     ('PCGPwM', does_not_raise()),
      ('PCGP', does_not_raise()),
      ],
     )
@@ -195,7 +197,7 @@ def test_prediction_var(input1, expectation):
 @pytest.mark.parametrize(
     "input1,expectation",
     [
-     # ('PCGPwM', does_not_raise()),
+     ('PCGPwM', does_not_raise()),
      ('PCGP', does_not_raise()),
      ],
     )
@@ -210,7 +212,7 @@ def test_prediction_covx(input1, expectation):
 @pytest.mark.parametrize(
     "input1,expectation",
     [
-     # ('PCGPwM', does_not_raise()),
+     ('PCGPwM', does_not_raise()),
      ('PCGP', does_not_raise()),
      ],
     )

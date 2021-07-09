@@ -4,6 +4,9 @@ import pytest
 from contextlib import contextmanager
 from surmise.emulation import emulator
 from surmise.calibration import calibrator
+import pyximport
+pyximport.install(setup_args={"include_dirs":np.get_include()},
+                  reload_support=True)
 ##############################################
 #            Simple scenarios                #
 ##############################################
@@ -144,7 +147,7 @@ def test_prediction_covxhalf(cmdopt1):
 # test to check the prediction.mean_gradtheta()
 def test_prediction_mean_gradtheta(cmdopt1):
     emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
-    pred = emu.predict(x=x, theta=theta)
+    pred = emu.predict(x=x, theta=theta, args={'return_grad': True})
     try:
         pred.mean_gradtheta()
     except:
@@ -154,7 +157,7 @@ def test_prediction_mean_gradtheta(cmdopt1):
 # test to check the prediction.covx_gradtheta()
 def test_prediction_covxhalf_gradtheta(cmdopt1):
     emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
-    pred = emu.predict(x=x, theta=theta)
+    pred = emu.predict(x=x, theta=theta, args={'return_grad': True})
     try:
         pred.covxhalf_gradtheta()
     except:
