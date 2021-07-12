@@ -324,11 +324,12 @@ def loglik_grad(fitinfo, emu, theta, y, x):
     emucovxhalf_grad = emupredict.covxhalf_gradtheta()
 
     loglik = np.zeros((emumean.shape[1], 1))
-    dloglik = np.zeros((emumean.shape[1], emu._info['theta'].shape[1]))
+    d = emu._info['theta'].shape[1]
+    dloglik = np.zeros((emumean.shape[1], d))
 
-    dterm1 = np.zeros(emu._info['theta'].shape[1])
-    dterm2 = np.zeros(emu._info['theta'].shape[1])
-    dterm3 = np.zeros(emu._info['theta'].shape[1])
+    dterm1 = np.zeros(d)
+    dterm2 = np.zeros(d)
+    dterm3 = np.zeros(d)
 
     # adj for any unmodled variance:
     if np.any(np.abs(emuvar/(10 ** (-4) +
@@ -346,12 +347,13 @@ def loglik_grad(fitinfo, emu, theta, y, x):
         S0 = np.squeeze(emucovxhalf[:, k, :])
         stndresid = (np.squeeze(y) - m0) / np.sqrt(obsvar)
         term1 = np.sum(stndresid ** 2)
-        stndresid_grad = - (dm0.T / np.sqrt(obsvar)).T
+        stndresid_grad = (-(dm0.T / np.sqrt(obsvar)).T).reshape((len(y), d))
         dterm1 = 2 * np.sum(stndresid * stndresid_grad.T, 1)
         J = (S0.T / np.sqrt(obsvar)).T
 
         if J.ndim < 1.5:
             J = J[:, None]
+
         J2 = J.T @ stndresid
         W, V = np.linalg.eigh(np.eye(J.shape[1]) + J.T @ J)
         J3 = V @ np.diag(1/W) @ V.T @ J2

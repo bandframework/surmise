@@ -17,12 +17,10 @@ with open("README.rst", "r", encoding="utf-8") as fh:
 
 setup(
     name="surmise",
-    version="0.1.0",
+    version="0.1.1",
     author="Matthew Plumlee, Özge Sürer, Stefan M. Wild",
     author_email="ozgesurer2019@u.northwestern.edu",
     description="A modular interface for surrogate models and tools",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
     url="https://github.com/surmising/surmise",
     packages=setuptools.find_packages(),
     classifiers=[
