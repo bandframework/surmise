@@ -11,7 +11,7 @@ import copy
 from surmise.emulationsupport.matern_covmat import covmat as __covmat
 
 
-def fit(fitinfo, x, theta, f, **kwargs):
+def fit(fitinfo, x, theta, f, epsilon=0.1, **kwargs):
     '''
     The purpose of fit is to take information and plug all of our fit
     information into fitinfo, which is a python dictionary.
@@ -56,7 +56,7 @@ def fit(fitinfo, x, theta, f, **kwargs):
         fitinfo['mof'] = None
         fitinfo['mofrows'] = None
 
-    fitinfo['epsilon'] = kwargs['epsilon'] if 'epsilon' in kwargs.keys() else 0.1
+    fitinfo['epsilon'] = epsilon
     hyp1 = kwargs['hypregmean'] if 'hypregmean' in kwargs.keys() else -10
     hyp2 = kwargs['hypregLB'] if 'hypregLB' in kwargs.keys() else -20
 
