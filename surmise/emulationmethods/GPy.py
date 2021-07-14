@@ -15,7 +15,7 @@ def fit(fitinfo, x, theta, f, ignore_nan=True, **kwargs):
             theta = theta[~fisnan]
 
         kernel = GPy.kern.RBF(input_dim=col_no, variance=1., lengthscale=1.)  # generalize for user input
-        white_kern = GPy.kern.White(1, variance=0.1)  # generalize for user input
+        white_kern = GPy.kern.White(input_dim=1, variance=0.1)  # generalize for user input
 
         kernel = (kernel + white_kern)
 
