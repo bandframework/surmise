@@ -12,7 +12,6 @@ x.log
 
 .idea
 venv/
-scratch/
 examples/Example_Missingness_Benchmark_mosesyhc/
 
 build/lib.win-amd64-3.8/matern_covmat.cp38-win_amd64.pyd
@@ -38,3 +37,5 @@ CaseStudy/
 examples/develop-example/
 
 .coverage
+
+scratch/
