@@ -11,7 +11,8 @@ import copy
 from surmise.emulationsupport.matern_covmat import covmat as __covmat
 
 
-def fit(fitinfo, x, theta, f, **kwargs):
+def fit(fitinfo, x, theta, f, epsilon=0.1, lognugmean=-10,
+        lognugLB=-20, **kwargs):
     '''
     The purpose of fit is to take information and plug all of our fit
     information into fitinfo, which is a python dictionary.
@@ -38,6 +39,20 @@ def fit(fitinfo, x, theta, f, **kwargs):
     f : numpy.ndarray
         An array of responses. Each column in f should correspond to a row in
         theta. Each row in f should correspond to a row in x.
+    epsilon : scalar
+        A parameter to control the number of PCs used.  The suggested range for
+        epsilon is (0.01, 0.1).  The larger epsilon is, the fewer PCs will be
+        used.  Note that epsilon here is *not* the unexplained variance in
+        typical principal component analysis.
+    lognugmean : scalar
+        A parameter to control the log of the nugget used in fitting the GPs.
+        The suggested range for lognugmean is (-12, -4).  The nugget is estimated,
+        and this parameter is used to guide the estimation.
+    lognugLB : scalar
+        A parameter to control the lower bound of the log of the nugget. The
+        suggested range for lognugLB is (-24, -12).
+
+
     kwargs : dict, optional
         A dictionary containing options. The default is None.
 
@@ -56,9 +71,9 @@ def fit(fitinfo, x, theta, f, **kwargs):
         fitinfo['mof'] = None
         fitinfo['mofrows'] = None
 
-    fitinfo['epsilon'] = kwargs['epsilon'] if 'epsilon' in kwargs.keys() else 0.1
-    hyp1 = kwargs['hypregmean'] if 'hypregmean' in kwargs.keys() else -10
-    hyp2 = kwargs['hypregLB'] if 'hypregLB' in kwargs.keys() else -20
+    fitinfo['epsilon'] = epsilon
+    hyp1 = lognugmean
+    hyp2 = lognugLB
 
     fitinfo['theta'] = theta
     fitinfo['f'] = f
@@ -67,7 +82,7 @@ def fit(fitinfo, x, theta, f, **kwargs):
     # Standardize the function evaluations f
     __standardizef(fitinfo)
 
-    # Construct principle components
+    # Construct principal components
     __PCs(fitinfo)
     numpcs = fitinfo['pc'].shape[1]
 
@@ -677,7 +692,7 @@ def __fitGP1d(theta, g, hyp1, hyp2, gvar=None, hypstarts=None, hypinds=None,
     else:
         skipop = False
 
-    if (not skipop):
+    if not skipop:
         def scaledlik(hypv):
             hyprs = subinfo['hypregmean'] + hypv * subinfo['hypregstd']
             return __negloglik(hyprs, subinfo)
