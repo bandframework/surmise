@@ -8,7 +8,7 @@ import surmise.emulationmethods.PCGP as semPCGP
 try:
     from matrix_completion import svt_solve, pmf_solve, biased_mf_solve
 except ImportError:  # ModuleNotFoundError introduced in Python 3.6
-    raise ImportError('This emulation method requires installation of package \'cvxpy\'.')
+    raise ImportError('This emulation method requires installation of packages \'matrix_completion\' and \'cvxpy\'.')
 
 
 methodoptionstr = ('\nTry one of the following: '
