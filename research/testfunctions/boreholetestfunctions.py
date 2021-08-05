@@ -1,5 +1,10 @@
 import numpy as np
 
+_dict = {
+    'function':     'Borehole',
+    'xdim':         2,
+    'thetadim':     4
+}
 
 def borehole_failmodel(x, theta):
     """Given x and theta, return matrix of [row x] times [row theta] of values."""
@@ -47,7 +52,7 @@ def borehole_true(x):
 def borehole_vec(x, theta):
     """Given x and theta, return vector of values."""
     (Hu, Ld_Kw, Treff, powparam) = np.split(theta, theta.shape[1], axis=1)
-    (rw,  Hl) = np.split(x[:, :-1], 2, axis=1)
+    (rw,  Hl) = np.split(x, x.shape[1], axis=1)
     numer = 2 * np.pi *  (Hu - Hl)
     denom1 = 2 * Ld_Kw / rw ** 2
     denom2 = Treff
@@ -81,11 +86,11 @@ def xstd2x(xstd):
     """Given standardized x in [0, 1]^2 x {0, 1}, return non-standardized x."""
     if xstd.ndim < 1.5:
         xstd = xstd[:,None].T
-    (rws, Hls, labels) = np.split(xstd, xstd.shape[1], axis=1)
+    (rws, Hls) = np.split(xstd, xstd.shape[1], axis=1)
 
     rw = rws * (np.log(0.5) - np.log(0.05)) + np.log(0.05)
     rw = np.exp(rw)
     Hl = Hls * (820 - 700) + 700
 
-    x = np.hstack((rw, Hl, labels))
+    x = np.hstack((rw, Hl))
     return x

@@ -25,10 +25,9 @@ def Wingweight_failmodel(x, theta):
     """Given x and theta, return matrix of [row x] times [row theta] of values."""
 
     f = Wingweight_model(x, theta)
-    wherextoobig = np.where(np.linalg.norm(x, axis=1) < np.sqrt(x.shape[1]))
-    wherethetatoobig = np.where(np.linalg.norm(theta, axis=1, ord=np.inf) > 0.6)
+    wherextoobig = np.where(np.min(x, axis=1) < 0.05)
+    wherethetatoobig = np.where(np.linalg.norm(theta, axis=1, ord=np.inf) > 0.8)
     faillist = np.array([(i, j) for i in wherextoobig[0] for j in wherethetatoobig[0]]).T
-
     f[faillist[0], faillist[1]] = np.nan
 
     return f
