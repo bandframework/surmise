@@ -13,7 +13,7 @@ def fit(fitinfo, x, theta, f, ignore_nan=True, **kwargs):
             f = f[~fisnan]
             theta = theta[~fisnan]
 
-        kernel = GPy.kern.Matern52(input_dim=col_no)  # generalize for user input
+        kernel = GPy.kern.RBF(input_dim=col_no) + GPy.kern.White(1) # generalize for user input
 
         emulator = GPy.models.GPRegression(theta, f, kernel)
         emulator.optimize()

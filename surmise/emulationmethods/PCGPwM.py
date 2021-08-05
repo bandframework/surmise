@@ -94,6 +94,7 @@ def fit(fitinfo, x, theta, f, epsilon=0.1, lognugmean=-10,
 
     # Fit emulators for all PCs
     emulist = __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, hypvarconst)
+    fitinfo['varc_status'] = 'fixed' if varconstant is not None else 'optimized'
     fitinfo['logvarc'] = np.array([emulist[i]['hypvarconst'] for i in range(numpcs)])
     fitinfo['pcstdvar'] = np.exp(fitinfo['logvarc']) * fitinfo['unscaled_pcstdvar']
     fitinfo['emulist'] = emulist
@@ -783,7 +784,7 @@ def __negloglik(hyp, info):
     fcenter = Vh.T @ info['g']
     n = info['g'].shape[0]
 
-    sig2hat = (n * np.mean(fcenter ** 2) + 10) / (n + 10)
+    sig2hat = (n * np.mean(fcenter ** 2) + np.exp(hyp[-2])) / (n + np.exp(hyp[-2]))
     negloglik = 1 / 2 * np.sum(np.log(np.abs(W))) + 1 / 2 * n * np.log(sig2hat)
     negloglik += 0.5 * np.sum(((10 ** (-8) + hyp - info['hypregmean']) /
                                (info['hypregstd'])) ** 2)
@@ -811,14 +812,14 @@ def __negloglikgrad(hyp, info):
     Vh = V / np.sqrt(np.abs(W))
     fcenter = Vh.T @ info['g']
     n = info['g'].shape[0]
-    sig2hat = (n * np.mean(fcenter ** 2) + 10) / (n + 10)
+    sig2hat = (n * np.mean(fcenter ** 2) + np.exp(hyp[-2])) / (n + np.exp(hyp[-2]))
     dnegloglik = np.zeros(dR.shape[2])
     Rinv = Vh @ Vh.T
 
     for k in range(0, dR.shape[2]):
         dsig2hat = - np.sum((Vh @
                              np.multiply.outer(fcenter, fcenter) @
-                             Vh.T) * dR[:, :, k]) / (n + 10)
+                             Vh.T) * dR[:, :, k]) / (n + np.exp(hyp[-2]))
         dnegloglik[k] += 0.5 * n * dsig2hat / sig2hat
         dnegloglik[k] += 0.5 * np.sum(Rinv * dR[:, :, k])
 
