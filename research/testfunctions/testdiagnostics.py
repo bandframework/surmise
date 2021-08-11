@@ -36,7 +36,7 @@ def plot_fails(x, theta, model):
     g.map(sns.kdeplot, "value", shade=True)
 
     for i, ax in enumerate(g.axes[0]):
-        ax.set_xlabel(r'$\theta_{:d}$'.format(i+1))
+        ax.set_xlabel(r'$\theta_{:d}$'.format(i + 1))
         ax.set_title('')
 
     g.add_legend()
@@ -45,42 +45,58 @@ def plot_fails(x, theta, model):
     for t, l in zip(g._legend.texts, new_labels): t.set_text(l)
 
 
-def plot_marginal(x, theta, model, emus=()):
+def plot_marginal(x, theta, model, modelname, emus=()):
     sns.set_palette('icefire')
     markers = ['o', 'v', 's', 'X', 'p', 'D', '*', '+']
     if theta.shape[0] > 100:
         theta = theta[:100, :]
 
+    alpha = emus[-1]._info['dampalpha']
+
     f = model(x, theta)
 
-    fig, axes = plt.subplots(1, theta.shape[1])
+    fig, axes = plt.subplots(1, theta.shape[1], figsize=(4 * theta.shape[1], 4))
     for k, ax in enumerate(axes):
         sns.scatterplot(x=theta[:, k], y=f[10], color='r', label='true', marker='D', ax=ax, s=20, zorder=100)
         for i, emu in enumerate(emus):
             emumean = emu.predict(x, theta).mean()[10]
             emulabel = emu.method.__name__.split('.')[-1]
+            if 'logvarc' in emu._info:
+                emulabel = r'$\beta$=' + str(np.round(np.mean(emu._info['logvarc']), 0))
             sns.lineplot(theta[:, k], emumean, label=emulabel, marker=markers[i], sort=True, ax=ax, zorder=1)
-        ax.set_xlabel(r'$\theta_{:d}$'.format(k+1))
+        ax.set_xlabel(r'$\theta_{:d}$'.format(k + 1))
         ax.set_ylabel('function prediction')
 
+    plt.suptitle(r'{:s}, $\alpha$ = {:.3f}'.format(modelname, alpha))
     plt.legend()
-    # plt.tight_layout()
-    plt.show()
+    plt.tight_layout()
+
+    dirname = r'C:\Users\moses\Desktop\git\surmise\research\emucomp\figs'
+    fname = r'\{:s}_alph{:.3f}.png'.format(modelname, alpha)
+    plt.savefig(dirname + fname, dpi=75)
 
 
-def errors(emu, x, theta, model, modelname):
+def errors(emu, x, theta, model, modelname, random):
     results = {}
     results['method'] = emu.method.__name__.split('.')[-1]
     results['function'] = modelname
+    results['randomfailures'] = random
     results['nx'] = x.shape[0]
     if 'logvarc' in emu._info.keys():
+        results['dampalpha'] = emu._info['dampalpha']
         results['avgvarconstant'] = '{:.3f}'.format(np.mean(np.exp(emu._info['logvarc'])))
+        # print(emu._info['logvarc'])
+        # print(np.median(emu._info['gvar']), np.max(emu._info['gvar']), np.min(emu._info['gvar']))
         results['varc_status'] = emu._info['varc_status']
     else:
+        results['dampalpha'] = np.nan
         results['avgvarconstant'] = np.nan
         results['varc_status'] = 'n/a'
-    results['rmse'] = '{:.3f}'.format(rmse(emu, x, theta, model))
-    results['mae'] = '{:.3f}'.format(mae(emu, x, theta, model))
-    results['medae'] = '{:.3f}'.format(medae(emu, x, theta, model))
-    results['me'] = '{:.3f}'.format(me(emu, x, theta, model))
+
+    fstd = np.nanstd(model(x, theta))
+
+    results['rmse'] = '{:.3f}'.format(rmse(emu, x, theta, model) / fstd)
+    results['mae'] = '{:.3f}'.format(mae(emu, x, theta, model) / fstd)
+    results['medae'] = '{:.3f}'.format(medae(emu, x, theta, model) / fstd)
+    results['me'] = '{:.3f}'.format(me(emu, x, theta, model) / fstd)
     return results

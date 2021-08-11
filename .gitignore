@@ -39,3 +39,6 @@ examples/develop-example/
 .coverage
 
 scratch/
+research/emucomp/figs/
+
+research/emucomp/results/

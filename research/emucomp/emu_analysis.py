@@ -1,14 +1,21 @@
+import time
+
 import numpy as np
 import scipy.stats as sps
 from surmise.emulation import emulator
 from pyDOE import lhs
 from testdiagnostics import plot_fails, plot_marginal, errors
 import pandas as pd
+import json
 
 
 if __name__ == '__main__':
+    # if failures are random
+    random = False
+    dampalphas = [0, 1/8, 1/4, 1/3, 1/2, 1]
+
     error_results = []
-    for i in np.arange(3,4):
+    for i in np.arange(0, 4):
         if i == 0:
             import boreholetestfunctions as func
             from boreholetestfunctions import borehole_failmodel as failmodel
@@ -31,7 +38,6 @@ if __name__ == '__main__':
             from TestingfunctionWingweight import Wingweight_failmodel_random as failmodel_random
             from TestingfunctionWingweight import Wingweight_model as nofailmodel
 
-
         meta = func._dict
         modelname = meta['function']
         xdim = meta['xdim']
@@ -49,96 +55,105 @@ if __name__ == '__main__':
         testtheta = np.random.uniform(0, 1, (1000, thetadim))
 
         # number of training parameters
-        n = 100
+        n = 50
 
         # whether model can fail
-        random = False
         model = failmodel if not random else failmodel_random
 
         theta = np.copy(origtheta[0:n])
 
         f = model(x, theta)
 
-        results = {}
         # emuPCGPwM = emulator(x, theta, np.copy(f), method='PCGPwM',
         #                      options={'xrmnan': 'all',
         #                               'thetarmnan': 'never',
         #                               'return_grad': True})
 
-        emuPCGPwM = emulator(x, theta, np.copy(f), method='PCGPwM',
-                               args={'epsilon': 0.001,
-                                     'lognugmean': -15,
-                                     'lognugLB': -22},
-                               options={'xrmnan': 'all',
-                                        'thetarmnan': 'never',
-                                        'return_grad': True})
+        for j in np.arange(len(dampalphas)):
+            alpha = dampalphas[j]
 
-        emuPCGPwMtoosmall =  emulator(x, theta, np.copy(f), method='PCGPwM',
-                               args={'epsilon': 0.001,
-                                     'varconstant': np.exp(-6),
-                                     'lognugmean': -15,
-                                     'lognugLB': -22},
-                               options={'xrmnan': 'all',
-                                        'thetarmnan': 'never',
-                                        'return_grad': True})
+            emuPCGPwM = emulator(x, theta, np.copy(f), method='PCGPwM',
+                                   args={'epsilon': 0.001,
+                                         'lognugmean': -15,
+                                         'lognugLB': -22,
+                                         'dampalpha': alpha},
+                                   options={'xrmnan': 'all',
+                                            'thetarmnan': 'never',
+                                            'return_grad': True})
 
-        emuPCGPwMsmall =  emulator(x, theta, np.copy(f), method='PCGPwM',
-                               args={'epsilon': 0.001,
-                                     'varconstant': np.exp(-4),
-                                     'lognugmean': -15,
-                                     'lognugLB': -22},
-                               options={'xrmnan': 'all',
-                                        'thetarmnan': 'never',
-                                        'return_grad': True})
+            emuPCGPwMtoosmall =  emulator(x, theta, np.copy(f), method='PCGPwM',
+                                   args={'epsilon': 0.001,
+                                         'varconstant': np.exp(-12),
+                                         'lognugmean': -15,
+                                         'lognugLB': -22,
+                                         'dampalpha': alpha},
+                                   options={'xrmnan': 'all',
+                                            'thetarmnan': 'never',
+                                            'return_grad': True})
 
-        emuPCGPwMmed = emulator(x, theta, np.copy(f), method='PCGPwM',
-                               args={'epsilon': 0.001,
-                                     'varconstant': np.exp(0),
-                                     'lognugmean': -15,
-                                     'lognugLB': -22},
-                               options={'xrmnan': 'all',
-                                        'thetarmnan': 'never',
-                                        'return_grad': True})
+            emuPCGPwMsmall =  emulator(x, theta, np.copy(f), method='PCGPwM',
+                                   args={'epsilon': 0.001,
+                                         'varconstant': np.exp(-4),
+                                         'lognugmean': -15,
+                                         'lognugLB': -22,
+                                         'dampalpha': alpha},
+                                   options={'xrmnan': 'all',
+                                            'thetarmnan': 'never',
+                                            'return_grad': True})
 
-        emuPCGPwMbig = emulator(x, theta, np.copy(f), method='PCGPwM',
-                               args={'epsilon': 0.001,
-                                     'varconstant': np.exp(4),
-                                     'lognugmean': -15,
-                                     'lognugLB': -22},
-                               options={'xrmnan': 'all',
-                                        'thetarmnan': 'never',
-                                        'return_grad': True})
+            emuPCGPwMmed = emulator(x, theta, np.copy(f), method='PCGPwM',
+                                   args={'epsilon': 0.001,
+                                         'varconstant': np.exp(0),
+                                         'lognugmean': -15,
+                                         'lognugLB': -22,
+                                         'dampalpha': alpha},
+                                   options={'xrmnan': 'all',
+                                            'thetarmnan': 'never',
+                                            'return_grad': True})
 
-
-        emuPCGPwMtoobig = emulator(x, theta, np.copy(f), method='PCGPwM',
-                               args={'epsilon': 0.001,
-                                     'varconstant': np.exp(20),
-                                     'lognugmean': -15,
-                                     'lognugLB': -22},
-                               options={'xrmnan': 'all',
-                                        'thetarmnan': 'never',
-                                        'return_grad': True})
-
-        # emuGPy = emulator(x, theta, np.copy(f), method='GPy',
-        #                   options={'xrmnan': 'all',
-        #                            'thetarmnan': 'never'})
+            emuPCGPwMbig = emulator(x, theta, np.copy(f), method='PCGPwM',
+                                   args={'epsilon': 0.001,
+                                         'varconstant': np.exp(4),
+                                         'lognugmean': -15,
+                                         'lognugLB': -22,
+                                         'dampalpha': alpha},
+                                   options={'xrmnan': 'all',
+                                            'thetarmnan': 'never',
+                                            'return_grad': True})
 
 
-        # # train theta
-        # print('\n Train errors')
-        # for emu in [emuGPy, emuPCGPwM, emuPCGPwMHD]:
-        #     print(errors(emu, x, theta, borehole_model))
-        #
-        # # test theta
-        # print('\n Test errors')
-        # for emu in [emuGPy, emuPCGPwM, emuPCGPwMtoosmall, emuPCGPwMsmall, emuPCGPwMmed, emuPCGPwMbig, emuPCGPwMtoobig]: #, emuPCGPwM1, emuPCGPwM2, emuPCGPwM5]:
-        #     d = errors(emu, x, testtheta, model, modelname)
-        #     error_results.append(d)
-        #     print(d)
+            emuPCGPwMtoobig = emulator(x, theta, np.copy(f), method='PCGPwM',
+                                   args={'epsilon': 0.001,
+                                         'varconstant': np.exp(20),
+                                         'lognugmean': -15,
+                                         'lognugLB': -22,
+                                         'dampalpha': alpha},
+                                   options={'xrmnan': 'all',
+                                            'thetarmnan': 'never',
+                                            'return_grad': True})
 
-        # plot_fails(x, testtheta, model)
+            print('Gpy now')
 
-        plot_marginal(x, testtheta, model, [emuPCGPwM, emuPCGPwMtoobig]) # , emuPCGPwMtoosmall, emuPCGPwMsmall, emuPCGPwMmed, emuPCGPwMbig, emuPCGPwMtoobig]) # , emuPCGPwMtoosmall, emuPCGPwMtoobig]) # emuPCGPwMtoosmall,
+            emuGPy = emulator(x, theta, np.copy(f), method='GPy',
+                              options={'xrmnan': 'all',
+                                       'thetarmnan': 'never'})
+
+
+            # test theta
+            print('\n Test errors')
+            for emu in [emuGPy, emuPCGPwM, emuPCGPwMtoosmall, emuPCGPwMsmall, emuPCGPwMmed, emuPCGPwMbig, emuPCGPwMtoobig]: #, emuPCGPwM1, emuPCGPwM2, emuPCGPwM5]:
+                d = errors(emu, x, testtheta, model, modelname, random)
+                error_results.append(d)
+                print(d)
+
+            # plot_fails(x, testtheta, model)
+
+            plot_marginal(x, testtheta, model, modelname, [emuGPy, emuPCGPwM, emuPCGPwMtoosmall, emuPCGPwMbig, emuPCGPwMtoobig]) # , emuPCGPwMtoosmall, emuPCGPwMtoobig]) # emuPCGPwMtoosmall,
 
     error_df = pd.DataFrame(error_results)
-    error_df.to_json()
+    df = error_df.to_json()
+
+    dirname = r'C:\Users\moses\Desktop\git\surmise\research\emucomp\results'
+    fname = r'\errors_{:s}_random{:s}.json'.format(time.strftime('%Y%m%d%H%M%S'), str(random))
+    with open(dirname+fname, 'w') as f:
+        json.dump(df, f)
