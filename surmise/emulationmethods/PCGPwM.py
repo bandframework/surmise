@@ -12,7 +12,7 @@ from surmise.emulationsupport.matern_covmat import covmat as __covmat
 
 
 def fit(fitinfo, x, theta, f, epsilon=0.1, lognugmean=-10,
-        lognugLB=-20, varconstant=None, dampalpha=0, verbose=0, **kwargs):
+        lognugLB=-20, varconstant=None, dampalpha=0.3, verbose=0, **kwargs):
     '''
     The purpose of fit is to take information and plug all of our fit
     information into fitinfo, which is a python dictionary.
@@ -657,7 +657,7 @@ def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant):
     return emulist
 
 
-def __fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar=None, dampalpha=0.3, hypstarts=None, hypinds=None,
+def __fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar=None, dampalpha=None, hypstarts=None, hypinds=None,
               prevsubmodel=None):
     """Return a fitted model from the emulator model using smart method."""
     hypvarconstmean = 4 if hypvarconst is None else hypvarconst
