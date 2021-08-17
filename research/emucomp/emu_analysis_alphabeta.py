@@ -12,6 +12,8 @@ import json
 if __name__ == '__main__':
     # if failures are random
     random = True
+    dampalphas = [0, 1/8, 1/4, 1/3, 1/2, 3/4, 1]
+
     error_results = []
     for k in np.arange(5):
         for i in np.arange(0, 4):
@@ -68,11 +70,14 @@ if __name__ == '__main__':
             #                               'thetarmnan': 'never',
             #                               'return_grad': True})
 
+            for j in np.arange(len(dampalphas)):
+                alpha = dampalphas[j]
 
                 emuPCGPwM = emulator(x, theta, np.copy(f), method='PCGPwM',
                                        args={'epsilon': 0.001,
                                              'lognugmean': -15,
-                                             'lognugLB': -22},
+                                             'lognugLB': -22,
+                                             'dampalpha': alpha},
                                        options={'xrmnan': 'all',
                                                 'thetarmnan': 'never',
                                                 'return_grad': True})
