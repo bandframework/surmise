@@ -58,7 +58,7 @@ def fit(fitinfo, x, theta, f, epsilon=0.1, lognugmean=-10,
     dampalpha : scalar
         A parameter to control the rate of increase of variance as amount of missing
         values increases.  Default is 0.3, otherwise an appropriate range is (0, 0.5).
-        Values larger than 0.5 are permitted but it leads to poor empirical performance. 
+        Values larger than 0.5 are permitted but it leads to poor empirical performance.
     verbose : scalar
         A parameter to suppress in-method console output.  Use 0 to suppress output,
         use 1 to show output.
