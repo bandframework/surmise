@@ -1,41 +1,102 @@
 import time
-
 import numpy as np
 import scipy.stats as sps
 from surmise.emulation import emulator
 from pyDOE import lhs
 from testdiagnostics import plot_fails, plot_marginal, errors
+from multiprocessing import Process
 import pandas as pd
 import json
+
+
+class NumpyEncoder(json.JSONEncoder):
+    """ Special json encoder for numpy types """
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+
+
+def maintest(emuname, x, theta, f, model, modelname, ntheta, random, j):
+    try:
+        emutime0 = time.time()
+
+        if emuname == 'PCGPwM':
+            withgrad = True
+            args = {'epsilon': 0.001,
+                    'lognugmean': -15,
+                    'lognugLB': -22}
+        elif emuname == 'PCGPwMatComp':
+            args = {'epsilon': 0.001}
+            withgrad = False
+        else:
+            args = {}
+            withgrad = False
+
+        emu = emulator(x, theta, np.copy(f), method=emuname,
+                       args=args,
+                       options={'xrmnan': 'all',
+                                'thetarmnan': 'never',
+                                'return_grad': withgrad})
+        emutime1 = time.time()
+
+        res = errors(x, theta, model, modelname, random,
+                     ntheta=ntheta,
+                     emu=emu,
+                     emutime=emutime1-emutime0,
+                     method=emuname)
+
+    except Exception as e:
+        print(e)
+        res = errors(x, theta, model, modelname, random,
+                     ntheta=ntheta,
+                     emu=None,
+                     emutime=None,
+                     method=emuname)
+
+    dumper = json.dumps(res, cls=NumpyEncoder)
+    directory = r'C:\Users\moses\Desktop\git\surmise\research\emucomp\emucomparison'
+    with open(directory+r'\{:s}_{:s}_{:d}_rep{:d}.json'.format(emuname, modelname, n, j), 'w') as fn:
+        json.dump(dumper, fn)
 
 
 if __name__ == '__main__':
     # if failures are random
     random = True
     error_results = []
-    for k in np.arange(5):
+    ns = [10, 25, 50, 100, 250, 500]
+
+    timeout = 900
+    for j in np.arange(5):
         for i in np.arange(0, 4):
             if i == 0:
                 import boreholetestfunctions as func
                 from boreholetestfunctions import borehole_failmodel as failmodel
                 from boreholetestfunctions import borehole_failmodel_random as failmodel_random
                 from boreholetestfunctions import borehole_model as nofailmodel
+                from boreholetestfunctions import borehole_true as truemodel
             elif i == 1:
                 import TestingfunctionPiston as func
                 from TestingfunctionPiston import Piston_failmodel as failmodel
                 from TestingfunctionPiston import Piston_failmodel_random as failmodel_random
                 from TestingfunctionPiston import Piston_model as nofailmodel
+                from TestingfunctionPiston import Piston_true as truemodel
             elif i == 2:
                 import TestingfunctionOTLcircuit as func
                 from TestingfunctionOTLcircuit import OTLcircuit_failmodel as failmodel
                 from TestingfunctionOTLcircuit import OTLcircuit_failmodel_random as failmodel_random
                 from TestingfunctionOTLcircuit import OTLcircuit_model as nofailmodel
-
+                from TestingfunctionOTLcircuit import OTLcircuit_true as truemodel
             elif i == 3:
                 import TestingfunctionWingweight as func
                 from TestingfunctionWingweight import Wingweight_failmodel as failmodel
                 from TestingfunctionWingweight import Wingweight_failmodel_random as failmodel_random
                 from TestingfunctionWingweight import Wingweight_model as nofailmodel
+                from TestingfunctionWingweight import Wingweight_true as truemodel
 
             meta = func._dict
             modelname = meta['function']
@@ -49,107 +110,29 @@ if __name__ == '__main__':
             np.random.seed()
 
             # number of parameters
-            ntheta = 100
+            ntheta = 500
             origtheta = lhs(thetadim, ntheta)
             testtheta = np.random.uniform(0, 1, (1000, thetadim))
+            for k in np.arange(len(ns)):
+                # number of training parameters
+                n = ns[k]
+                # whether model can fail
+                model = failmodel if not random else failmodel_random
+                theta = np.copy(origtheta[0:n])
+                f = model(x, theta)
 
-            # number of training parameters
-            n = 50
+                proc_GPy = Process(target=maintest('GPy', x, theta, f, model, modelname, n, random, j), name='Process_GPy_{:d}_{:s}_random{:s}'.format(n, modelname, str(random)))
+                proc_PCGPwM = Process(target=maintest('PCGPwM', x, theta, f, model, modelname, n, random, j), name='Process_PCGPwM_{:d}_{:s}_random{:s}'.format(n, modelname, str(random)))
+                proc_PCGPwMC = Process(target=maintest('PCGPwMatComp', x, theta, f, model, modelname, n, random, j), name='Process_PCGPwMatComp_{:d}_{:s}_random{:s}'.format(n, modelname, str(random)))
 
-            # whether model can fail
-            model = failmodel if not random else failmodel_random
+                proc_GPy.start()
+                proc_PCGPwM.start()
+                proc_PCGPwMC.start()
 
-            theta = np.copy(origtheta[0:n])
+                proc_GPy.join(timeout=timeout)
+                proc_PCGPwM.join(timeout=timeout)
+                proc_PCGPwMC.join(timeout=timeout)
 
-            f = model(x, theta)
-
-            # emuPCGPwM = emulator(x, theta, np.copy(f), method='PCGPwM',
-            #                      options={'xrmnan': 'all',
-            #                               'thetarmnan': 'never',
-            #                               'return_grad': True})
-
-
-                emuPCGPwM = emulator(x, theta, np.copy(f), method='PCGPwM',
-                                       args={'epsilon': 0.001,
-                                             'lognugmean': -15,
-                                             'lognugLB': -22},
-                                       options={'xrmnan': 'all',
-                                                'thetarmnan': 'never',
-                                                'return_grad': True})
-                #
-                # emuPCGPwMtoosmall =  emulator(x, theta, np.copy(f), method='PCGPwM',
-                #                        args={'epsilon': 0.001,
-                #                              'varconstant': np.exp(-12),
-                #                              'lognugmean': -15,
-                #                              'lognugLB': -22,
-                #                              'dampalpha': alpha},
-                #                        options={'xrmnan': 'all',
-                #                                 'thetarmnan': 'never',
-                #                                 'return_grad': True})
-                #
-                # emuPCGPwMsmall =  emulator(x, theta, np.copy(f), method='PCGPwM',
-                #                        args={'epsilon': 0.001,
-                #                              'varconstant': np.exp(-4),
-                #                              'lognugmean': -15,
-                #                              'lognugLB': -22,
-                #                              'dampalpha': alpha},
-                #                        options={'xrmnan': 'all',
-                #                                 'thetarmnan': 'never',
-                #                                 'return_grad': True})
-
-                emuPCGPwMmed = emulator(x, theta, np.copy(f), method='PCGPwM',
-                                       args={'epsilon': 0.001,
-                                             'varconstant': np.exp(0),
-                                             'lognugmean': -15,
-                                             'lognugLB': -22,
-                                             'dampalpha': alpha},
-                                       options={'xrmnan': 'all',
-                                                'thetarmnan': 'never',
-                                                'return_grad': True})
-                #
-                # emuPCGPwMbig = emulator(x, theta, np.copy(f), method='PCGPwM',
-                #                        args={'epsilon': 0.001,
-                #                              'varconstant': np.exp(4),
-                #                              'lognugmean': -15,
-                #                              'lognugLB': -22,
-                #                              'dampalpha': alpha},
-                #                        options={'xrmnan': 'all',
-                #                                 'thetarmnan': 'never',
-                #                                 'return_grad': True})
-                #
-                #
-                # emuPCGPwMtoobig = emulator(x, theta, np.copy(f), method='PCGPwM',
-                #                        args={'epsilon': 0.001,
-                #                              'varconstant': np.exp(20),
-                #                              'lognugmean': -15,
-                #                              'lognugLB': -22,
-                #                              'dampalpha': alpha},
-                #                        options={'xrmnan': 'all',
-                #                                 'thetarmnan': 'never',
-                #                                 'return_grad': True})
-
-                print('Gpy now')
-                #
-                # emuGPy = emulator(x, theta, np.copy(f), method='GPy',
-                #                   options={'xrmnan': 'all',
-                #                            'thetarmnan': 'never'})
-
-
-                # test theta
-                print('\n Test errors')
-                for emu in [emuPCGPwM, emuPCGPwMmed]: # [emuGPy, emuPCGPwM, emuPCGPwMtoosmall, emuPCGPwMsmall, emuPCGPwMmed, emuPCGPwMbig, emuPCGPwMtoobig]: #, emuPCGPwM1, emuPCGPwM2, emuPCGPwM5]:
-                    d = errors(emu, x, testtheta, model, modelname, random)
-                    error_results.append(d)
-                    print(d)
-
-            # plot_fails(x, testtheta, model)
-
-            # plot_marginal(x, testtheta, model, modelname, [emuGPy, emuPCGPwM, emuPCGPwMtoosmall, emuPCGPwMbig, emuPCGPwMtoobig]) # , emuPCGPwMtoosmall, emuPCGPwMtoobig]) # emuPCGPwMtoosmall,
-
-    error_df = pd.DataFrame(error_results)
-    df = error_df.to_json()
-
-    dirname = r'C:\Users\moses\Desktop\git\surmise\research\emucomp\results'
-    fname = r'\errors_{:s}_random{:s}.json'.format(time.strftime('%Y%m%d%H%M%S'), str(random))
-    with open(dirname+fname, 'w') as f:
-        json.dump(df, f)
+                proc_GPy.terminate()
+                proc_PCGPwM.terminate()
+                proc_PCGPwMC.terminate()

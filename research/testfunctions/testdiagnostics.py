@@ -76,27 +76,43 @@ def plot_marginal(x, theta, model, modelname, emus=()):
     plt.savefig(dirname + fname, dpi=75)
 
 
-def errors(emu, x, theta, model, modelname, random):
+def errors(x, testtheta, model, modelname, random, ntheta, emu=None, emutime=None, method=None):
     results = {}
-    results['method'] = emu.method.__name__.split('.')[-1]
+    results['method'] = method
     results['function'] = modelname
     results['randomfailures'] = random
     results['nx'] = x.shape[0]
-    if 'logvarc' in emu._info.keys():
-        results['dampalpha'] = emu._info['dampalpha']
-        results['avgvarconstant'] = '{:.3f}'.format(np.mean(np.exp(emu._info['logvarc'])))
-        # print(emu._info['logvarc'])
-        # print(np.median(emu._info['gvar']), np.max(emu._info['gvar']), np.min(emu._info['gvar']))
-        results['varc_status'] = emu._info['varc_status']
+    results['n'] = ntheta
+
+    if emu is not None:
+        if 'logvarc' in emu._info.keys():
+            results['dampalpha'] = emu._info['dampalpha']
+            results['avgvarconstant'] = '{:.3f}'.format(np.mean(np.exp(emu._info['logvarc'])))
+            # print(emu._info['logvarc'])
+            # print(np.median(emu._info['gvar']), np.max(emu._info['gvar']), np.min(emu._info['gvar']))
+            results['varc_status'] = emu._info['varc_status']
+        else:
+            results['dampalpha'] = np.nan
+            results['avgvarconstant'] = np.nan
+            results['varc_status'] = 'n/a'
+
+        fstd = np.nanstd(model(x, testtheta))
+
+        results['rmse'] = '{:.3f}'.format(rmse(emu, x, testtheta, model) / fstd)
+        results['mae'] = '{:.3f}'.format(mae(emu, x, testtheta, model) / fstd)
+        results['medae'] = '{:.3f}'.format(medae(emu, x, testtheta, model) / fstd)
+        results['me'] = '{:.3f}'.format(me(emu, x, testtheta, model) / fstd)
     else:
         results['dampalpha'] = np.nan
         results['avgvarconstant'] = np.nan
         results['varc_status'] = 'n/a'
+        results['rmse'] = np.nan
+        results['mae'] = np.nan
+        results['medae'] = np.nan
+        results['me'] = np.nan
 
-    fstd = np.nanstd(model(x, theta))
-
-    results['rmse'] = '{:.3f}'.format(rmse(emu, x, theta, model) / fstd)
-    results['mae'] = '{:.3f}'.format(mae(emu, x, theta, model) / fstd)
-    results['medae'] = '{:.3f}'.format(medae(emu, x, theta, model) / fstd)
-    results['me'] = '{:.3f}'.format(me(emu, x, theta, model) / fstd)
+    if emutime is not None:
+        results['emutime'] = emutime
+    else:
+        results['emutime'] = np.nan
     return results
