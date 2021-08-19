@@ -130,7 +130,7 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
               at all x at `theta[k]`.
             - `predinfo['var']` : `predinfo['var'][k]` is variance of the
               prediction at all x at `theta[k]`.
-            - `predinfo['cov']` : `predinfo['cov'][k]` is mean of the prediction
+            - `predinfo['cov']` : `predinfo['cov'][k]` is covariance matrix of the prediction
               at all x at `theta[k]`.
             - `predinfo['covhalf']` : if `A = predinfo['covhalf'][k]` then
               `A.T @ A = predinfo['cov'][k]`.
