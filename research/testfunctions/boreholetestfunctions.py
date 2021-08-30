@@ -3,20 +3,37 @@ import numpy as np
 _dict = {
     'function':     'Borehole',
     'xdim':         2,
-    'thetadim':     4
+    'thetadim':     4,
+    'c_structfail_high': 0.7,
+    'c_structfail_low': 1.8,
+    'p_randfail_high': 0.75,
+    'p_randfail_low': 0.25
 }
 
-def borehole_failmodel(x, theta):
+
+def query_func_meta():
+    return _dict
+
+
+def borehole_failmodel(x, theta, fail='low'):
     """Given x and theta, return matrix of [row x] times [row theta] of values."""
+    if fail == 'high':
+        c = _dict['c_structfail_high']
+    else:
+        c = _dict['c_structfail_low']
 
     f = borehole_model(x, theta)
-    wheretoobig = np.where((f / borehole_true(x)) > 1.25)
+    wheretoobig = np.where((f / borehole_true(x)) > c)
     f[wheretoobig[0], wheretoobig[1]] = np.nan
 
     return f
 
 
-def borehole_failmodel_random(x, theta, p=0.2):
+def borehole_failmodel_random(x, theta, fail='low'):
+    if fail == 'high':
+        p = _dict['p_randfail_high']
+    else:
+        p = _dict['p_randfail_low']
 
     f = borehole_model(x, theta)
     wheretoobig = np.where(np.random.choice([0, 1], f.shape, replace=True, p=[1-p, p]))

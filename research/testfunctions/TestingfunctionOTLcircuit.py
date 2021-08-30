@@ -5,7 +5,11 @@ import numpy as np
 _dict = {
     'function': 'OTLcircuit',
     'xdim':     4,
-    'thetadim': 2
+    'thetadim': 2,
+    'c_structfail_high': (0.6, 0.55),
+    'c_structfail_low': (0.85, 0.7),
+    'p_randfail_high': 0.75,
+    'p_randfail_low': 0.25
 }
 
 
@@ -14,12 +18,16 @@ def query_func_meta():
 
 
 
-def OTLcircuit_failmodel(x, theta):
+def OTLcircuit_failmodel(x, theta, fail='low'):
     """Given x and theta, return matrix of [row x] times [row theta] of values."""
+    if fail == 'high':
+        c = _dict['c_structfail_high']
+    else:
+        c = _dict['c_structfail_low']
 
     f = OTLcircuit_model(x, theta)
-    wherextoobig = np.where(np.linalg.norm(x, axis=1, ord=np.inf) > 0.75)
-    wherethetatoobig = np.where(np.linalg.norm(theta, axis=1, ord=np.inf) > 0.75)
+    wherextoobig = np.where(np.linalg.norm(x, axis=1, ord=np.inf) > c[0])
+    wherethetatoobig = np.where(np.linalg.norm(theta, axis=1, ord=np.inf) > c[1])
     faillist = np.array([(i, j) for i in wherextoobig[0] for j in wherethetatoobig[0]]).T
 
     f[faillist[0], faillist[1]] = np.nan
@@ -27,8 +35,12 @@ def OTLcircuit_failmodel(x, theta):
     return f
 
 
-def OTLcircuit_failmodel_random(x, theta, p=0.2):
-    """    """
+def OTLcircuit_failmodel_random(x, theta, fail='low'):
+    if fail == 'high':
+        p = _dict['p_randfail_high']
+    else:
+        p = _dict['p_randfail_low']
+
     f = OTLcircuit_model(x, theta)
     wheretoobig = np.where(np.random.choice([0, 1], f.shape, replace=True, p=[1-p, p]))
     f[wheretoobig[0], wheretoobig[1]] = np.nan
