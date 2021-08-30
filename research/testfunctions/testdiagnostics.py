@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.stats import norm
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
@@ -18,6 +19,43 @@ def medae(emu, x, theta, model):
 
 def me(emu, x, theta, model):
     return np.nanmean(emu.predict(x, theta).mean() - model(x, theta))
+
+
+def interval_stats(emu, x, theta, model, pr=0.9):
+    p = emu.predict(x, theta)
+    mean = p.mean()
+    stdev = np.sqrt(p.var())
+
+    alph = 1 - pr
+
+    f = model(x, theta)
+    mask = ~np.isnan(f)
+
+    ci = np.zeros((2, *mean.shape))
+    ci[0] = mean + norm.ppf(alph/2) * stdev
+    ci[1] = mean + norm.ppf(1 - alph/2) * stdev
+
+    under = np.less(f[mask], ci[0][mask])
+    over = np.greater(f[mask], ci[1][mask])
+
+    coverage = (1 - np.logical_or(under, over)).mean()
+    avgintwidth = (ci[1] - ci[0]).mean()
+    intScore = np.nanmean((ci[1] - ci[0])[mask] +
+                2/alph * (ci[0] - f)[mask] * under +
+               2/alph * (f - ci[1])[mask] * over)
+    return coverage, avgintwidth, intScore
+
+
+def crps(emu, x, theta, model):
+    p = emu.predict(x, theta)
+    mean = p.mean()
+    var = p.var()
+    stdev = np.sqrt(var) + 10 ** (-12)
+
+    z = (model(x, theta) - mean) / stdev
+
+    crpss = -stdev * (z * (2*norm.cdf(z) - 1) + 2*norm.ppf(z) - 1 / np.sqrt(np.pi))
+    return np.nanmean(crpss)
 
 
 def plot_fails(x, theta, model):
@@ -102,6 +140,11 @@ def errors(x, testtheta, model, modelname, random, ntheta, emu=None, emutime=Non
         results['mae'] = '{:.3f}'.format(mae(emu, x, testtheta, model) / fstd)
         results['medae'] = '{:.3f}'.format(medae(emu, x, testtheta, model) / fstd)
         results['me'] = '{:.3f}'.format(me(emu, x, testtheta, model) / fstd)
+        results['crps'] = '{:.3f}'.format(crps(emu, x, testtheta, model) / fstd)
+        int_stats = interval_stats(emu, x, testtheta, model)
+        results['coverage'] = int_stats[0]
+        results['avgintwidth'] = int_stats[1]
+        results['intscore'] = int_stats[2]
     else:
         results['dampalpha'] = np.nan
         results['avgvarconstant'] = np.nan
@@ -110,6 +153,10 @@ def errors(x, testtheta, model, modelname, random, ntheta, emu=None, emutime=Non
         results['mae'] = np.nan
         results['medae'] = np.nan
         results['me'] = np.nan
+        results['crps'] = np.nan
+        results['coverage'] = np.nan
+        results['avgintwidth'] = np.nan
+        results['intscore'] = np.nan
 
     if emutime is not None:
         results['emutime'] = emutime

@@ -5,7 +5,7 @@ from surmise.emulation import emulator
 from pyDOE import lhs
 from testdiagnostics import plot_fails, plot_marginal, errors
 from multiprocessing import Process
-import pandas as pd
+from pathlib import Path
 import json
 
 
@@ -21,7 +21,7 @@ class NumpyEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def maintest(emuname, x, theta, f, model, modelname, ntheta, random, j):
+def maintest(emuname, x, theta, f, model, modelname, ntheta, random, j, directory):
     try:
         emutime0 = time.time()
 
@@ -59,19 +59,25 @@ def maintest(emuname, x, theta, f, model, modelname, ntheta, random, j):
                      method=emuname)
 
     dumper = json.dumps(res, cls=NumpyEncoder)
-    directory = r'C:\Users\moses\Desktop\git\surmise\research\emucomp\emucomparison'
-    with open(directory+r'\{:s}_{:s}_{:d}_rep{:d}.json'.format(emuname, modelname, n, j), 'w') as fn:
+    with open(directory+r'\{:s}_{:s}_{:d}_rep{:d}.json'.format(emuname, modelname, ntheta, j), 'w') as fn:
         json.dump(dumper, fn)
 
 
 if __name__ == '__main__':
+    todaystr = time.strftime(r'%Y%m%d%H%M%S', time.gmtime())
+    todaystrdir = time.strftime(r'\%Y%m%d%H%M%S', time.gmtime())
+    parent_dir = r'C:\Users\moses\Desktop\git\surmise\research\emucomp\emucomparison'
+    directory = parent_dir + todaystrdir
+    Path(directory).mkdir()
+
     # if failures are random
     random = True
     error_results = []
-    ns = [10, 25, 50, 100, 250, 500]
+    ns = [10, 25, 50, 100, 250, 500, 1000, 1500]
 
-    timeout = 900
-    for j in np.arange(5):
+    TIMEOUT = 1800
+    processes = []
+    for j in np.arange(2):
         for i in np.arange(0, 4):
             if i == 0:
                 import boreholetestfunctions as func
@@ -105,34 +111,35 @@ if __name__ == '__main__':
 
             # number of locations
             np.random.seed(10)
-            nx = 25
+            nx = 10
             x = sps.uniform.rvs(0, 1, (nx, xdim))
             np.random.seed()
-
             # number of parameters
-            ntheta = 500
+            ntheta = 1500
             origtheta = lhs(thetadim, ntheta)
             testtheta = np.random.uniform(0, 1, (1000, thetadim))
+
             for k in np.arange(len(ns)):
                 # number of training parameters
                 n = ns[k]
+
                 # whether model can fail
                 model = failmodel if not random else failmodel_random
                 theta = np.copy(origtheta[0:n])
                 f = model(x, theta)
 
-                proc_GPy = Process(target=maintest('GPy', x, theta, f, model, modelname, n, random, j), name='Process_GPy_{:d}_{:s}_random{:s}'.format(n, modelname, str(random)))
-                proc_PCGPwM = Process(target=maintest('PCGPwM', x, theta, f, model, modelname, n, random, j), name='Process_PCGPwM_{:d}_{:s}_random{:s}'.format(n, modelname, str(random)))
-                proc_PCGPwMC = Process(target=maintest('PCGPwMatComp', x, theta, f, model, modelname, n, random, j), name='Process_PCGPwMatComp_{:d}_{:s}_random{:s}'.format(n, modelname, str(random)))
+                for method in ['GPy', 'PCGPwM', 'PCGPwMatComp']:
+                    p = Process(target=maintest, args=(method, x, theta, f, model, modelname, n, random, j, directory),
+                                name='Process_{:s}_{:d}_{:s}_random{:s}'.format(method, n, modelname, str(random)))
+                    p.start()
+                    processes.append(p)
 
-                proc_GPy.start()
-                proc_PCGPwM.start()
-                proc_PCGPwMC.start()
+    for p in processes:
+        p.join(timeout=TIMEOUT)
+        if p.is_alive():
+            p.terminate()
 
-                proc_GPy.join(timeout=timeout)
-                proc_PCGPwM.join(timeout=timeout)
-                proc_PCGPwMC.join(timeout=timeout)
+    summary = [(p.name, p.exitcode) for p in processes]
 
-                proc_GPy.terminate()
-                proc_PCGPwM.terminate()
-                proc_PCGPwMC.terminate()
+    with open(parent_dir+r'\summary_{:s}.json'.format(todaystr), 'w') as file:
+        json.dump(summary, file)
