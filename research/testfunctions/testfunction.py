@@ -54,13 +54,24 @@ if __name__ == '__main__':
         from TestingfunctionWingweight import Wingweight_model as nofailmodel
         from TestingfunctionWingweight import Wingweight_true as truemodel
 
-    ntheta = 5000
+    ntheta = 100
     nx = 15
 
     func_meta = func.query_func_meta()
 
     x = np.random.uniform(0, 1, (nx, func_meta['xdim']))
     theta = np.random.uniform(0, 1, (ntheta, func_meta['thetadim']))
+
+    import matrix_completion
+    f = failmodel_random(x, theta, 'low')
+
+    from sklearn.preprocessing import MinMaxScaler
+    scaler = MinMaxScaler()
+    scaler.fit(f)
+    f_scaled = scaler.transform(f)
+    ffix_scaled = matrix_completion.svt_solve(f_scaled, ~np.isnan(f).astype(int))
+    ffix = scaler.inverse_transform(ffix_scaled)
+
     #
     # print_struc_fails(func_meta, failmodel, (0.25, 0.6))  #, 1.8)
     # # print_struc_fails(func_meta, failmodel, 0.7)

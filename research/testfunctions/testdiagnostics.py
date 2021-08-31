@@ -55,11 +55,12 @@ def crps(emu, x, theta, model):
     return np.nanmean(crpss)
 
 
-def errors(x, testtheta, model, modelname, random, ntheta, emu=None, emutime=None, method=None):
+def errors(x, testtheta, model, modelname, random, mode, ntheta, emu=None, emutime=None, method=None):
     results = {}
     results['method'] = method
     results['function'] = modelname
     results['randomfailures'] = random
+    results['failureslevel'] = mode
     results['nx'] = x.shape[0]
     results['n'] = ntheta
 
