@@ -146,7 +146,7 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
         An matrix (vector) of parameters to prediction.
 
     kwargs : dict
-        A dictionary containing options passed to you.
+        A dictionary containing additional options
     """
     return_grad = False
     if (kwargs is not None) and ('return_grad' in kwargs.keys()) and \
@@ -665,8 +665,7 @@ def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant):
     return emulist
 
 
-def __fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar=None, dampalpha=None, hypstarts=None, hypinds=None,
-              prevsubmodel=None):
+def __fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar=None, dampalpha=None, hypstarts=None, hypinds=None):
     """Return a fitted model from the emulator model using smart method."""
     hypvarconstmean = 4 if hypvarconst is None else hypvarconst
     hypvarconstLB = -8 if hypvarconst is None else hypvarconst - 0.5
