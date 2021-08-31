@@ -90,7 +90,7 @@ if __name__ == '__main__':
 
     TIMEOUT = 3600
     processes = []
-    for j in np.arange(1):
+    for j in np.arange(5):
         for i in np.arange(0, 4):
             if i == 0:
                 import boreholetestfunctions as func

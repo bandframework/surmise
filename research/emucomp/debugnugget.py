@@ -23,7 +23,7 @@ class thetaprior:
 def maintest(x, theta, emuname):
     f = borehole_model(x, theta)
     try:
-        if emuname == 'PCGPwM':
+        if emuname == 'PCGPwMatComp':
             withgrad = True
         else:
             withgrad = False
@@ -48,8 +48,7 @@ def maintest(x, theta, emuname):
 if __name__ == '__main__':
     # number of locations
     nx = 5
-    x = sps.uniform.rvs(0, 1, (nx, 3))
-    x[:, 2] = x[:, 2] > 0.5
+    x = sps.uniform.rvs(0, 1, (nx, 2))
 
     # number of parameters
     ntheta = 50
@@ -68,7 +67,7 @@ if __name__ == '__main__':
         print('RUN#{:d}'.format(i))
         # result[i, 0] = "{:.3E}".format(maintest(x, thetas[i], 'GPy'))
         # result[i, 1] = "{:.3E}".format(maintest(x, thetas[i], 'PCGP'))
-        result[i, 2] = "{:.3E}".format(maintest(x, thetas[i], 'PCGPwM'))
+        result[i, 2] = "{:.3E}".format(maintest(x, thetas[i], 'PCGPwMatComp'))
 
     np.set_printoptions(precision=3)
     print('MSE (Training)')
