@@ -55,19 +55,22 @@ def crps(emu, x, theta, model):
     return np.nanmean(crpss)
 
 
-def errors(x, testtheta, model, modelname, random, mode, ntheta, emu=None, emutime=None, method=None):
+def errors(x, testtheta, model, modelname, random, mode, bigM, ntheta,
+           failfraction, emu=None, emutime=None, method=None):
     results = {}
     results['method'] = method
     results['function'] = modelname
-    results['randomfailures'] = random
-    results['failureslevel'] = mode
+    results['randomfailures'] = str(random)
+    results['failureslevel'] = str(mode)
+    results['failfraction'] = failfraction
     results['nx'] = x.shape[0]
     results['n'] = ntheta
+    results['bigM'] = bigM
 
     if emu is not None:
         if 'logvarc' in emu._info.keys():
             results['dampalpha'] = emu._info['dampalpha']
-            results['avgvarconstant'] = '{:.3f}'.format(np.mean(np.exp(emu._info['logvarc'])))
+            results['avgvarconstant'] = np.mean(np.exp(emu._info['logvarc']))
             # print(emu._info['logvarc'])
             # print(np.median(emu._info['gvar']), np.max(emu._info['gvar']), np.min(emu._info['gvar']))
             results['varc_status'] = emu._info['varc_status']
@@ -78,11 +81,11 @@ def errors(x, testtheta, model, modelname, random, mode, ntheta, emu=None, emuti
 
         fstd = np.nanstd(model(x, testtheta))
 
-        results['rmse'] = '{:.3f}'.format(rmse(emu, x, testtheta, model) / fstd)
-        results['mae'] = '{:.3f}'.format(mae(emu, x, testtheta, model) / fstd)
-        results['medae'] = '{:.3f}'.format(medae(emu, x, testtheta, model) / fstd)
-        results['me'] = '{:.3f}'.format(me(emu, x, testtheta, model) / fstd)
-        results['crps'] = '{:.3f}'.format(crps(emu, x, testtheta, model) / fstd)
+        results['rmse'] = rmse(emu, x, testtheta, model) / fstd
+        results['mae'] = mae(emu, x, testtheta, model) / fstd
+        results['medae'] = medae(emu, x, testtheta, model) / fstd
+        results['me'] = me(emu, x, testtheta, model) / fstd
+        results['crps'] = crps(emu, x, testtheta, model) / fstd
         int_stats = interval_stats(emu, x, testtheta, model)
         results['coverage'] = int_stats[0]
         results['avgintwidth'] = int_stats[1]

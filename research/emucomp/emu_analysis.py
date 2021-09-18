@@ -22,7 +22,7 @@ class NumpyEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def maintest(emuname, x, theta, f, model, modelname, ntheta, random, mode, j, directory):
+def maintest(emuname, x, theta, f, model, modelname, ntheta, random, mode, bigM, j, directory):
     emuname_orig = emuname
     try:
         emutime0 = time.time()
@@ -30,15 +30,16 @@ def maintest(emuname, x, theta, f, model, modelname, ntheta, random, mode, j, di
             withgrad = True
             args = {'epsilon': 0.001,
                     'lognugmean': -15,
-                    'lognugLB': -22}
-        elif emuname == 'PCGPwM_KNN':
+                    'lognugLB': -22,
+                    'bigM': bigM}
+        elif emuname == 'PCGP_KNN':
             emuname = 'PCGPwMatComp'
             args = {'epsilon': 0.001,
                     'lognugmean': -15,
                     'lognugLB': -22,
                     'compmethod': 'KNN'}
             withgrad = True
-        elif emuname == 'PCGPwM_BR':
+        elif emuname == 'PCGP_BR':
             emuname = 'PCGPwMatComp'
             args = {'epsilon': 0.001,
                     'lognugmean': -15,
@@ -56,7 +57,8 @@ def maintest(emuname, x, theta, f, model, modelname, ntheta, random, mode, j, di
                                 'return_grad': withgrad})
         emutime1 = time.time()
 
-        res = errors(x, theta, model, modelname, random, mode,
+        res = errors(x, theta, model, modelname, random, mode, bigM,
+                     failfraction=(np.isnan(f).sum() / f.size),
                      ntheta=ntheta,
                      emu=emu,
                      emutime=emutime1-emutime0,
@@ -64,15 +66,16 @@ def maintest(emuname, x, theta, f, model, modelname, ntheta, random, mode, j, di
 
     except Exception as e:
         print(e)
-        res = errors(x, theta, model, modelname, random, mode,
+        res = errors(x, theta, model, modelname, random, mode, bigM,
+                     failfraction=(np.isnan(f).sum() / f.size),
                      ntheta=ntheta,
                      emu=None,
                      emutime=None,
                      method=emuname_orig)
 
     dumper = json.dumps(res, cls=NumpyEncoder)
-    with open(directory+r'\{:s}_{:s}_{:d}_rand{:s}{:s}_rep{:d}.json'.format(
-            emuname_orig, modelname, ntheta, str(random), mode, j), 'w') as fn:
+    with open(directory+r'\{:s}_{:s}_{:d}_rand{:s}{:s}_bigM{:d}_rep{:d}.json'.format(
+            emuname_orig, modelname, ntheta, str(random), mode, bigM, j), 'w') as fn:
         json.dump(dumper, fn)
 
 
@@ -84,14 +87,15 @@ if __name__ == '__main__':
     Path(directory).mkdir()
 
     # if failures are random
-    random = True
+    random = False
     error_results = []
     ns = [25, 50, 100, 250, 500, 1000, 1500, 2500]
-
+    ns = [10, 25, 50, 100, 250, 500]
+    bigMs = [5, 10, 100]
     TIMEOUT = 3600
     processes = []
     for j in np.arange(1):
-        for i in np.arange(0, 4):
+        for i in np.arange(0, 1):
             if i == 0:
                 import boreholetestfunctions as func
                 from boreholetestfunctions import borehole_failmodel as failmodel
@@ -138,43 +142,48 @@ if __name__ == '__main__':
 
                 # whether model can fail
                 model = failmodel if not random else failmodel_random
+                # model = nofailmodel
                 theta = np.copy(origtheta[0:n])
 
-                for mode in ['low', 'high']:
+                for mode in ['high']:
                     f = model(x, theta, mode)
                     print(r'failure %: {:.3f}'.format(np.isnan(f).sum() / f.size))
 
-                    for method in ['PCGPwM_BR', 'GPy', 'PCGPwM', 'PCGPwM_KNN']:
-                        p = Process(target=maintest, args=(method, x, theta, f, model,
-                                                           modelname, n, random, mode,
-                                                           j, directory),
-                                    name='Process_{:s}_{:d}_{:s}_random{:s}_{:s}'.format(
-                                        method, n, modelname, str(random), mode))
-                        processes.append(p)
-
-    for p in processes:
-        try:
-            print(p.name)
-            start_time = time.time()
-            p.start()
-            time.sleep(1)
-            while True:
-                if time.time() - start_time > TIMEOUT or p.exitcode is not None:
-                    print(time.time() - start_time)
-                    p.terminate()
-                    time.sleep(1)
-                    if p.exitcode != 0:
-                        print("Killed process. Exitcode: ", p.exitcode)
-                    else:
-                        print("Process {:s} completed.".format(p.name))
-                    break
-                else:
-                    pass
-                time.sleep(1)
-        except:
-            pass
-
-    summary = [(p.name, p.exitcode) for p in processes]
-
-    with open(parent_dir+r'\summary_{:s}.json'.format(todaystr), 'w') as file:
-        json.dump(summary, file)
+                    for method in ['PCGPwM']: #'PCGP_BR', 'PCGP_KNN', ]:#, 'GPy']:
+                        for bigM in bigMs:
+                            maintest(method, x, theta, f, model,
+                                   modelname, n, random, mode, bigM,
+                                   j, directory)
+                        # p = Process(target=maintest, args=(method, x, theta, f, model,
+                        #                                    modelname, n, random, mode,
+                        #                                    j, directory),
+                        #             name='Process_{:s}_{:d}_{:s}_random{:s}_{:s}'.format(
+                        #                 method, n, modelname, str(random), mode))
+                        # processes.append(p)
+    #
+    # for p in processes:
+    #     try:
+    #         print(p.name)
+    #         start_time = time.time()
+    #         p.start()
+    #         time.sleep(1)
+    #         while True:
+    #             if time.time() - start_time > TIMEOUT or p.exitcode is not None:
+    #                 print(time.time() - start_time)
+    #                 p.terminate()
+    #                 time.sleep(1)
+    #                 if p.exitcode != 0:
+    #                     print("Killed process. Exitcode: ", p.exitcode)
+    #                 else:
+    #                     print("Process {:s} completed.".format(p.name))
+    #                 break
+    #             else:
+    #                 pass
+    #             time.sleep(1)
+    #     except:
+    #         pass
+    #
+    # summary = [(p.name, p.exitcode) for p in processes]
+    #
+    # with open(parent_dir+r'\summary_{:s}.json'.format(todaystr), 'w') as file:
+    #     json.dump(summary, file)

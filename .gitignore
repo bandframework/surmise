@@ -39,8 +39,11 @@ examples/develop-example/
 .coverage
 
 scratch/
+
+research/emucomp/emulator_PCGPwM_results/
+
+research/emucomp/emucomparison/
+
 research/emucomp/figs/
 
 research/emucomp/results/
-
-research/emucomp/emucomparison/*.json
