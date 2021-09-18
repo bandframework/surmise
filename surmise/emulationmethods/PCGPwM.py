@@ -12,7 +12,7 @@ from surmise.emulationsupport.matern_covmat import covmat as __covmat
 
 
 def fit(fitinfo, x, theta, f, epsilon=0.1, lognugmean=-10,
-        lognugLB=-20, varconstant=None, dampalpha=0.3, verbose=0, **kwargs):
+        lognugLB=-20, varconstant=None, dampalpha=0.3, bigM=10, verbose=0, **kwargs):
     '''
     The purpose of fit is to take information and plug all of our fit
     information into fitinfo, which is a python dictionary.
@@ -87,6 +87,7 @@ def fit(fitinfo, x, theta, f, epsilon=0.1, lognugmean=-10,
     hypvarconst = np.log(varconstant) if varconstant is not None else None
 
     fitinfo['dampalpha'] = dampalpha
+    fitinfo['bigM'] = bigM
 
     fitinfo['theta'] = theta
     fitinfo['f'] = f
@@ -646,6 +647,7 @@ def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant):
                                             hypvarconst=varconstant,
                                             gvar=fitinfo['unscaled_pcstdvar'][:, pcanum],
                                             dampalpha=fitinfo['dampalpha'],
+                                            bigM=fitinfo['bigM'],
                                             hypstarts=hypstarts[hypwhere, :],
                                             hypinds=hypwhere)
             else:
@@ -655,7 +657,8 @@ def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant):
                                             hyp2=hyp2,
                                             hypvarconst=varconstant,
                                             gvar=fitinfo['unscaled_pcstdvar'][:, pcanum],
-                                            dampalpha=fitinfo['dampalpha'])
+                                            dampalpha=fitinfo['dampalpha'],
+                                            bigM=fitinfo['bigM'])
                 hypstarts = np.zeros((numpcs, emulist[pcanum]['hyp'].shape[0]))
             emulist[pcanum]['hypind'] = min(pcanum, emulist[pcanum]['hypind'])
             hypstarts[pcanum, :] = emulist[pcanum]['hyp']
@@ -665,7 +668,7 @@ def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant):
     return emulist
 
 
-def __fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar=None, dampalpha=None, hypstarts=None, hypinds=None):
+def __fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar=None, dampalpha=None, bigM=None, hypstarts=None, hypinds=None):
     """Return a fitted model from the emulator model using smart method."""
     hypvarconstmean = 4 if hypvarconst is None else hypvarconst
     hypvarconstLB = -8 if hypvarconst is None else hypvarconst - 0.5
@@ -691,8 +694,10 @@ def __fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar=None, dampalpha=None, hyps
     subinfo['theta'] = theta[thetac, :]
     subinfo['g'] = g[thetac]
 
-    maxgvar = np.max(gvar)
-    gvar = gvar / ((np.abs(maxgvar*1.001 - gvar)) ** dampalpha)
+    # maxgvar = np.max(gvar)
+    # gvar = gvar / ((np.abs(maxgvar*1.001 - gvar)) ** dampalpha)
+
+    gvar = np.minimum(bigM, gvar / ((1 - gvar)**dampalpha))
 
     subinfo['gvar'] = gvar[thetac]
     hypind0 = -1
