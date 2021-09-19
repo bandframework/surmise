@@ -2,10 +2,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import json
 import seaborn as sns
-
-plt.style.use('seaborn-whitegrid')
-
+plt.style.use('seaborn-colorblind')
 fail_configs = [(True, 'low'), (True, 'high'), (False, 'low'), (False, 'high'), (None, 'none')]
+
+# Plotting adjustments
+markers = ['D', 'v', 'X', 's']
 
 
 def run_plots(plot_dir, listJSONs):
@@ -42,10 +43,18 @@ def run_plots(plot_dir, listJSONs):
             for y, ylabel in ylabels.items():
                 plt.figure()
                 if len(pd.unique(subdf.bigM)) > 1:
-                    sns.lineplot(x=subdf.npts, y=subdf[y], hue=subdf.bigM)
-                    plt.legend()
+                    hue = subdf.bigM
                 else:
-                    sns.lineplot(x=subdf.npts, y=subdf[y])
+                    hue = None
+                sns.lineplot(x=subdf.npts, y=subdf[y],
+                             hue=hue,
+                             markers=markers,
+                             markersize=10,
+                             lw=3,
+                             alpha=0.8,
+                             estimator='mean',
+                             ci=None,
+                             err_kws={'alpha': 0.0},)
                 plt.xscale('log')
                 plt.yscale('log')
                 plt.ylabel(ylabel)
@@ -53,8 +62,3 @@ def run_plots(plot_dir, listJSONs):
                 plt.tight_layout()
                 plt.savefig(plot_dir + '\\' + y + func + 'random' + str(fail_random) + fail_level + r'.png')
                 plt.close()
-
-import glob
-filelist = glob.glob(r'C:\Users\moses\Desktop\git\surmise\research\emucomp\emulator_PCGPwM_results\1\data' + r'\*.json')
-run_plots(r'C:\Users\moses\Desktop\git\surmise\research\emucomp\emulator_PCGPwM_results\1\plot', filelist)
-

@@ -36,7 +36,7 @@ def make_dirs():
 
 def run_experiment(data_dir):
     # Macro replication
-    nrep = 10
+    nrep = 5
     js = np.arange(nrep)
 
     # Number of input locations
