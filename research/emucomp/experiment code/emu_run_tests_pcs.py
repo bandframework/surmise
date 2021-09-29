@@ -45,7 +45,7 @@ def run_experiment(data_dir):
     ns = [250]
 
     # Knobs options
-    fail_configs = [(True, 'low'), (True, 'high')] #, (False, 'low'), (False, 'high'), (None, 'none')]
+    fail_configs = [(True, 'low'), (True, 'med'), (True, 'high')] #, (False, 'low'), (False, 'high'), (None, 'none')]
     bigMs = [10]
     models = ['piston'] # 'borehole', 'otlcircuit', 'wingweight',
     emulator_methods = ['PCGPwM']# , 'GPy'] #, 'PCGP_KNN', 'PCGP_BR'] #
@@ -85,7 +85,13 @@ def run_experiment(data_dir):
                         result_fname = \
                             single_test(method, x, theta, f, model, testtheta,
                                         function_name, n, fail_random, fail_level,
-                                        bigM, j, data_dir, caller=func_caller)
+                                        bigM, j, data_dir, skip_std=True)
+                        single_test(method, x, theta, f, model, testtheta,
+                                    function_name, n, fail_random, fail_level,
+                                    bigM, j, data_dir, skip_std=True, caller=func_caller)
+                        single_test(method, x, theta, f, model, testtheta,
+                                    function_name, n, fail_random, fail_level,
+                                    bigM, j, data_dir, skip_std=False)
                         resultJSONs.append(result_fname)
                         print(result_fname)
     return resultJSONs
@@ -99,4 +105,4 @@ if __name__ == '__main__':
     run_time = time.time() - start_time
     print('total runtime: {:.3f} seconds'.format(run_time))
 
-    run_plots(plot_dir, listJSONs)
+    # run_plots(plot_dir, listJSONs)
