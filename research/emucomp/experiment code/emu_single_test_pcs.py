@@ -22,7 +22,7 @@ def single_test(emuname, x, theta, f, model, testtheta, modelname, ntheta,
                 skip_std=False, caller=None):
     emuname_orig = emuname
     try:
-        epsilon = 0.001
+        epsilon = 0.0000001
         if skip_std:
             if caller is None:
                 offset = np.nanmean(f, 1)
@@ -30,7 +30,10 @@ def single_test(emuname, x, theta, f, model, testtheta, modelname, ntheta,
                 scale[scale == 0] = 0.0001
                 fs = ((f.T - offset) / scale).T
                 fs_comp = fs.copy()
-                fs_comp[np.isnan(fs)] = np.nanmean(fs_comp)
+                from sklearn import impute
+                imputer = impute.KNNImputer()
+                fs_comp = imputer.fit_transform(fs_comp)
+                # fs_comp[np.isnan(fs)] = np.nanmean(fs_comp)
             else:
                 f_comp = caller['nofailmodel'](x, theta)
                 offset = np.mean(f_comp, 1)
@@ -94,6 +97,9 @@ def single_test(emuname, x, theta, f, model, testtheta, modelname, ntheta,
                      emutime=emutime1-emutime0,
                      method=emuname_orig)
 
+        print(skip_std, caller)
+        print(res)
+        return emu
     except Exception as e:
         print(e)
         res = errors(x, testtheta, model, modelname, fail_random, fail_level, bigM,
@@ -104,11 +110,9 @@ def single_test(emuname, x, theta, f, model, testtheta, modelname, ntheta,
                      method=emuname_orig)
 
     dumper = json.dumps(res, cls=NumpyEncoder)
-    print(skip_std, caller)
-    print(res)
-    fname = directory+r'\{:s}_{:s}_{:d}_rand{:s}{:s}_bigM{:d}_rep{:d}.json'.format(
-            emuname_orig, modelname, ntheta, str(fail_random), fail_level, bigM, j)
-    with open(fname, 'w') as fn:
-        json.dump(dumper, fn)
+    # fname = directory+r'\{:s}_{:s}_{:d}_rand{:s}{:s}_bigM{:d}_rep{:d}.json'.format(
+    #         emuname_orig, modelname, ntheta, str(fail_random), fail_level, bigM, j)
+    # with open(fname, 'w') as fn:
+    #     json.dump(dumper, fn)
 
-    return fname
+    return emu
