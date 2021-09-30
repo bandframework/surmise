@@ -31,7 +31,7 @@ f2 = f.copy()
 f2 = f2[:,:250]
 
 emu1 = single_test('PCGPwM', x, theta, f1, model, testtheta,
-            'piston', 500, 'none', 'none', 10, 0, '')
+            'piston', 500, 'none', 'none', 10**9, 0, '')
 
 emu2 = single_test('PCGPwM', x, theta[:250], f2, model, testtheta,
-            'piston', 250, 'none', 'none', 10, 0, '')
+            'piston', 250, 'none', 'none', 10**9, 0, '')

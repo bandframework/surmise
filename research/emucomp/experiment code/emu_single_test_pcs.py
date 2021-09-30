@@ -19,43 +19,46 @@ class NumpyEncoder(json.JSONEncoder):
 
 def single_test(emuname, x, theta, f, model, testtheta, modelname, ntheta,
                 fail_random, fail_level, bigM, j, directory,
-                skip_std=False, caller=None):
+                stdfinfo=None, skip_std=False, caller=None):
     emuname_orig = emuname
     try:
         epsilon = 0.0000001
-        if skip_std:
-            if caller is None:
-                offset = np.nanmean(f, 1)
-                scale = np.nanstd(f, 1)
-                scale[scale == 0] = 0.0001
-                fs = ((f.T - offset) / scale).T
-                fs_comp = fs.copy()
-                from sklearn import impute
-                imputer = impute.KNNImputer()
-                fs_comp = imputer.fit_transform(fs_comp)
-                # fs_comp[np.isnan(fs)] = np.nanmean(fs_comp)
+        if stdfinfo is None:
+            if skip_std:
+                if caller is None:
+                    offset = np.nanmean(f, 1)
+                    scale = np.nanstd(f, 1)
+                    scale[scale == 0] = 0.0001
+                    fs = ((f.T - offset) / scale).T
+                    fs_comp = fs.copy()
+                    from sklearn import impute
+                    imputer = impute.KNNImputer()
+                    fs_comp = imputer.fit_transform(fs_comp)
+                    # fs_comp[np.isnan(fs)] = np.nanmean(fs_comp)
+                else:
+                    f_comp = caller['nofailmodel'](x, theta)
+                    offset = np.mean(f_comp, 1)
+                    scale = np.std(f_comp, 1)
+                    fs_comp = ((f_comp.T - offset) / scale).T
+                    fs = fs_comp.copy()
+                    fs[np.isnan(f)] = np.nan
+
+                U, S, _ = np.linalg.svd(fs_comp, full_matrices=False)
+                Sp = S**2 - epsilon
+                Up = U[:, Sp > 0]
+                extravar = np.nanmean((fs_comp.T - fs_comp.T @ Up @ Up.T) ** 2, 0) * (scale ** 2)
+
+                standardpcinfo = {'offset': offset,
+                                  'scale': scale,
+                                  'fs': fs.T,
+                                  'U': U,
+                                  'S': S,
+                                  'extravar': extravar
+                                  }
             else:
-                f_comp = caller['nofailmodel'](x, theta)
-                offset = np.mean(f_comp, 1)
-                scale = np.std(f_comp, 1)
-                fs_comp = ((f_comp.T - offset) / scale).T
-                fs = fs_comp.copy()
-                fs[np.isnan(f)] = np.nan
-
-            U, S, _ = np.linalg.svd(fs_comp, full_matrices=False)
-            Sp = S**2 - epsilon
-            Up = U[:, Sp > 0]
-            extravar = np.nanmean((fs_comp.T - fs_comp.T @ Up @ Up.T) ** 2, 0) * (scale ** 2)
-
-            standardpcinfo = {'offset': offset,
-                              'scale': scale,
-                              'fs': fs.T,
-                              'U': U,
-                              'S': S,
-                              'extravar': extravar
-                              }
+                standardpcinfo = None
         else:
-            standardpcinfo = None
+            standardpcinfo = stdfinfo
 
         emutime0 = time.time()
         if emuname == 'PCGPwM':
@@ -90,6 +93,7 @@ def single_test(emuname, x, theta, f, model, testtheta, modelname, ntheta,
                                 'return_grad': withgrad})
         emutime1 = time.time()
 
+        # print(emu._info['pct'], emu._info['standardpcinfo'])
         res = errors(x, testtheta, model, modelname, fail_random, fail_level, bigM,
                      failfraction=(np.isnan(f).sum() / f.size),
                      ntheta=ntheta,
