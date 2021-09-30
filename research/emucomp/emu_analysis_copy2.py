@@ -4,7 +4,6 @@ import scipy.stats as sps
 from surmise.emulation import emulator
 from pyDOE import lhs
 from testdiagnostics import errors
-# from testplots import plot_fails, plot_marginal
 from multiprocessing import Process
 from pathlib import Path
 import json
@@ -22,7 +21,7 @@ class NumpyEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def maintest(emuname, x, theta, f, model, modelname, ntheta, random, mode, j, directory):
+def maintest(emuname, x, theta, testtheta, f, model, modelname, ntheta, random, mode, bigM, j, directory):
     emuname_orig = emuname
     try:
         emutime0 = time.time()
@@ -30,15 +29,16 @@ def maintest(emuname, x, theta, f, model, modelname, ntheta, random, mode, j, di
             withgrad = True
             args = {'epsilon': 0.001,
                     'lognugmean': -15,
-                    'lognugLB': -22}
-        elif emuname == 'PCGPwM_KNN':
+                    'lognugLB': -22,
+                    'bigM': bigM}
+        elif emuname == 'PCGP_KNN':
             emuname = 'PCGPwMatComp'
             args = {'epsilon': 0.001,
                     'lognugmean': -15,
                     'lognugLB': -22,
                     'compmethod': 'KNN'}
             withgrad = True
-        elif emuname == 'PCGPwM_BR':
+        elif emuname == 'PCGP_BR':
             emuname = 'PCGPwMatComp'
             args = {'epsilon': 0.001,
                     'lognugmean': -15,
@@ -56,7 +56,8 @@ def maintest(emuname, x, theta, f, model, modelname, ntheta, random, mode, j, di
                                 'return_grad': withgrad})
         emutime1 = time.time()
 
-        res = errors(x, theta, model, modelname, random, mode,
+        res = errors(x, testtheta, model, modelname, random, mode, bigM,
+                     failfraction=(np.isnan(f).sum() / f.size),
                      ntheta=ntheta,
                      emu=emu,
                      emutime=emutime1-emutime0,
@@ -64,15 +65,16 @@ def maintest(emuname, x, theta, f, model, modelname, ntheta, random, mode, j, di
 
     except Exception as e:
         print(e)
-        res = errors(x, theta, model, modelname, random, mode,
+        res = errors(x, testtheta, model, modelname, random, mode, bigM,
+                     failfraction=(np.isnan(f).sum() / f.size),
                      ntheta=ntheta,
                      emu=None,
                      emutime=None,
                      method=emuname_orig)
 
     dumper = json.dumps(res, cls=NumpyEncoder)
-    with open(directory+r'\{:s}_{:s}_{:d}_rand{:s}{:s}_rep{:d}.json'.format(
-            emuname_orig, modelname, ntheta, str(random), mode, j), 'w') as fn:
+    with open(directory+r'\{:s}_{:s}_{:d}_rand{:s}{:s}_bigM{:d}_rep{:d}.json'.format(
+            emuname_orig, modelname, ntheta, str(random), mode, bigM, j), 'w') as fn:
         json.dump(dumper, fn)
 
 
@@ -84,14 +86,15 @@ if __name__ == '__main__':
     Path(directory).mkdir()
 
     # if failures are random
-    random = False
+    randoms = [True, False]
     error_results = []
-    ns = [25, 50, 100, 250, 500, 1000, 1500, 2500]
-
+    ns = [50, 100, 250, 500, 1000, 1500, 2500]
+    # ns = [10, 25, 50, 100, 250, 500]
+    bigMs = [10]
     TIMEOUT = 3600
     processes = []
-    for j in np.arange(4):
-        for i in np.arange(0, 4):
+    for j in np.arange(2):
+        for i in np.arange(1, 4):
             if i == 0:
                 import boreholetestfunctions as func
                 from boreholetestfunctions import borehole_failmodel as failmodel
@@ -129,28 +132,35 @@ if __name__ == '__main__':
             np.random.seed()
             # number of parameters
             ntheta = 2500
-            origtheta = lhs(thetadim, ntheta)
+            # origtheta = lhs(thetadim, ntheta)
             testtheta = np.random.uniform(0, 1, (1000, thetadim))
 
             for k in np.arange(len(ns)):
                 # number of training parameters
                 n = ns[k]
+                theta = lhs(thetadim, n)
+                for random in randoms:
+                    # whether model can fail
+                    model = failmodel if not random else failmodel_random
+                    # model = nofailmodel
 
-                # whether model can fail
-                model = failmodel if not random else failmodel_random
-                theta = np.copy(origtheta[0:n])
+                    for mode in ['low']:
+                        f = model(x, theta, mode)
+                        print(r'failure %: {:.3f}'.format(np.isnan(f).sum() / f.size))
 
-                for mode in ['low', 'high']:
-                    f = model(x, theta, mode)
-                    print(r'failure %: {:.3f}'.format(np.isnan(f).sum() / f.size))
-
-                    for method in ['PCGPwM_BR', 'GPy', 'PCGPwM', 'PCGPwM_KNN']:
-                        p = Process(target=maintest, args=(method, x, theta, f, model,
-                                                           modelname, n, random, mode,
-                                                           j, directory),
-                                    name='Process_{:s}_{:d}_{:s}_random{:s}_{:s}'.format(
-                                        method, n, modelname, str(random), mode))
-                        processes.append(p)
+                        for method in ['PCGPwM', 'PCGP_BR', 'PCGP_KNN', 'GPy']:
+                            if n > 1000 and method == 'GPy':
+                                continue
+                            for bigM in bigMs:
+                                # maintest(method, x, theta, f, model,
+                                #        modelname, n, random, mode, bigM,
+                                #        j, directory)
+                                p = Process(target=maintest, args=(method, x, theta, testtheta, f, model,
+                                                                   modelname, n, random, mode, bigM,
+                                                                   j, directory),
+                                            name='Process_{:s}_{:d}_{:s}_random{:s}_{:s}_bigM{:d}'.format(
+                                                method, n, modelname, str(random), mode, bigM))
+                                processes.append(p)
 
     for p in processes:
         try:

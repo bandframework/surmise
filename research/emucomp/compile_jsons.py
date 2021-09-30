@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set(font_scale=1.25, style='ticks', palette='colorblind')
 # plt.style.use('science')
-figdir = r'C:\Users\moses\Desktop\git\surmise\research\emucomp\figs\emucomparison_PCGPwM_MatComp_GPy'
-directory = r'C:\Users\moses\Desktop\git\surmise\research\emucomp\emucomparison\emucomparison_PCGPwM_MatComp_GPy_randFalse'
+figdir = r'C:\Users\moses\Desktop\git\surmise\research\emucomp\figs\emucomparisons_20210923'
+directory = r'C:\Users\moses\Desktop\git\surmise\research\emucomp\emucomparison\emucomparisons_20210923'
 
-file_list = glob.glob(directory+r'\*.json')
+file_list = glob.glob(directory+r'\*\*.json')
 
 d = []
 for fname in file_list:
@@ -41,11 +41,11 @@ randomlabels = {True: 'random missingness',
                 False: 'structured missingness'}
 
 for y in ['rmse', 'mae', 'medae', 'me', 'crps', 'coverage', 'avgintwidth', 'intscore', 'emutime']:
-    for random in [False]:
+    for random in [True, False]:
         for level in ['high', 'low']:
             fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(8, 6), sharey='all', sharex='all')
             for i, func in enumerate(funcs):
-                subdf = df[(df.function == func) & (df.randomfailures == random) & (df.failureslevel == level)]
+                subdf = df[(df.function == func) & (df.randomfailures == str(random)) & (df.failureslevel == level)]
                 r, c = divmod(i, 2)
                 npoints = subdf.npts * 0.75 if level == 'low' else subdf.npts * 0.25
                 sns.lineplot(x=npoints, y=y,
@@ -83,4 +83,5 @@ for y in ['rmse', 'mae', 'medae', 'me', 'crps', 'coverage', 'avgintwidth', 'ints
             fig.subplots_adjust(top=0.9, left=0.1, right=0.95, bottom=0.18)
             ax.flatten()[-1].legend(loc='upper right', bbox_to_anchor=(0.99, -0.3), ncol=4)
             plt.savefig(figdir + '\\' + y + 'random' + str(random) + level + r'.png', dpi=150)
+            fig.close()
             # print(figdir + '\\' + y + 'random' + str(random) + level + r'.png')

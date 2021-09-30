@@ -53,8 +53,8 @@ def run_plots(plot_dir, listJSONs):
                 plt.tight_layout()
                 plt.savefig(plot_dir + '\\' + y + func + 'random' + str(fail_random) + fail_level + r'.png')
                 plt.close()
-
-import glob
-filelist = glob.glob(r'C:\Users\moses\Desktop\git\surmise\research\emucomp\emulator_PCGPwM_results\1\data' + r'\*.json')
-run_plots(r'C:\Users\moses\Desktop\git\surmise\research\emucomp\emulator_PCGPwM_results\1\plot', filelist)
-
+#
+# import glob
+# filelist = glob.glob(r'C:\Users\moses\Desktop\git\surmise\research\emucomp\emulator_PCGPwM_results\1\data' + r'\*.json')
+# run_plots(r'C:\Users\moses\Desktop\git\surmise\research\emucomp\emulator_PCGPwM_results\1\plot', filelist)
+#

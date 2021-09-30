@@ -42,13 +42,13 @@ def run_experiment(data_dir):
     # Number of input locations
     nx = 15
     # Number of parameters
-    ns = [50, 100, 250, 500, 1000]#, 2500]
+    ns = [1000]#, 2500]
 
     # Knobs options
-    fail_configs = [ (False, 'low'), (False, 'high')] #(True, 'low'), (True, 'high')] #,, (None, 'none')]
+    fail_configs = [(False, 'low'), (False, 'high')] #(True, 'low'), (True, 'high')] #, , (None, 'none')]
     bigMs = [10]
     models = ['borehole', 'otlcircuit', 'wingweight', 'piston']
-    emulator_methods = ['PCGPwM', 'PCGP_KNN', 'PCGP_BR']#, 'GPy']
+    emulator_methods = ['GPy'] # 'PCGPwM', 'PCGP_KNN', 'PCGP_BR']#
 
     for model in models:        # Query test function for Borehole
         func_caller = TestFunc(model).info
