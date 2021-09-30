@@ -8,6 +8,7 @@ _dict = {
     'c_structfail_high': (0.6, 0.55),
     'c_structfail_low': (0.75, 0.85),
     'p_randfail_high': 0.75,
+    'p_randfail_med': 0.5,
     'p_randfail_low': 0.25
 }
 
@@ -36,6 +37,8 @@ def Piston_failmodel(x, theta, fail='low'):
 def Piston_failmodel_random(x, theta, fail='low'):
     if fail == 'high':
         p = _dict['p_randfail_high']
+    elif fail == 'med':
+        p = _dict['p_randfail_med']
     else:
         p = _dict['p_randfail_low']
 
