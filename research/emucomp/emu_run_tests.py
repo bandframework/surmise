@@ -36,7 +36,7 @@ def make_dirs():
 
 def run_experiment(data_dir):
     # Macro replication
-    nrep = 1
+    nrep = 3
     js = np.arange(nrep)
 
     # Number of input locations
@@ -45,7 +45,7 @@ def run_experiment(data_dir):
     ns = [50, 100, 250, 500, 1000]#, 2500]
 
     # Knobs options
-    fail_configs = [ (False, 'low'), (False, 'high')] #(True, 'low'), (True, 'high')] #,, (None, 'none')]
+    fail_configs = [ (False, 'low'), (False, 'high'), (True, 'low'), (True, 'high')] #,, (None, 'none')]
     bigMs = [10]
     models = ['borehole', 'otlcircuit', 'wingweight', 'piston']
     emulator_methods = ['PCGPwM', 'PCGP_KNN', 'PCGP_BR']#, 'GPy']
