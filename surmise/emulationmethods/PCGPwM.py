@@ -271,7 +271,6 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
 
     predinfo['var'][xnewind, :] = ((fitinfo['standardpcinfo']['extravar'][xind] +
                                     predvars @ (pctscale[xind, :] ** 2).T)).T
-    print(predinfo['var'][0, :10])
     predinfo['extravar'] = 1 * fitinfo['standardpcinfo']['extravar'][xind]
     predinfo['predvars'] = 1 * predvars
     predinfo['predvecs'] = 1 * predvecs
@@ -628,8 +627,6 @@ def __PCs(fitinfo):
     fitinfo['pct'] = pct * pcw / np.sqrt(np.sum(1-pcstdvar))
     fitinfo['pcti'] = pct * (np.sqrt(np.sum(1-pcstdvar)) / pcw)
     fitinfo['pc'] = pc * (np.sqrt(np.sum(1-pcstdvar)) / pcw)
-    print(np.sqrt(np.sum(1-pcstdvar)))
-    print(fitinfo['pct'][:, 0])
     fitinfo['unscaled_pcstdvar'] = pcstdvar
     return
 
