@@ -624,9 +624,14 @@ def __PCs(fitinfo):
             pcstdvar[rv, :] = 1 - (pcw ** 2 / epsilon + 1) * term3
     fitinfo['pcw'] = pcw
     fitinfo['pcto'] = 1 * pct
-    fitinfo['pct'] = pct * pcw / np.sqrt(np.sum(1-pcstdvar))
-    fitinfo['pcti'] = pct * (np.sqrt(np.sum(1-pcstdvar)) / pcw)
-    fitinfo['pc'] = pc * (np.sqrt(np.sum(1-pcstdvar)) / pcw)
+    # pcw contains the singular values from SVD, in complete data pcw
+    # scales with np.sqrt(pc.shape[0]), where pc.shape[0] is the number
+    # of parameters. With missing data, we approximate the growth to be
+    # np.sqrt(np.sum(1-pcstdvar)))
+    effn = np.sum(np.clip(1 - pcstdvar, 0, 1))
+    fitinfo['pct'] = pct * pcw / np.sqrt(effn)
+    fitinfo['pcti'] = pct * (np.sqrt(effn) / pcw)
+    fitinfo['pc'] = pc * (np.sqrt(effn) / pcw)
     fitinfo['unscaled_pcstdvar'] = pcstdvar
     return
 
