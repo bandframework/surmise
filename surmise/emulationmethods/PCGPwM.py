@@ -11,8 +11,8 @@ import copy
 from surmise.emulationsupport.matern_covmat import covmat as __covmat
 
 
-def fit(fitinfo, x, theta, f, epsilon=0.1, lognugmean=-10,
-        lognugLB=-20, varconstant=None, dampalpha=0.3, bigM=10,
+def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
+        lognugmean=-10, lognugLB=-20, varconstant=None, dampalpha=0.3, bigM=10,
         standardpcinfo=None, verbose=0, **kwargs):
     '''
     The purpose of fit is to take information and plug all of our fit
@@ -40,11 +40,13 @@ def fit(fitinfo, x, theta, f, epsilon=0.1, lognugmean=-10,
     f : numpy.ndarray
         An array of responses. Each column in f should correspond to a row in
         theta. Each row in f should correspond to a row in x.
-    epsilon : scalar
+    epsilonPC : scalar
         A parameter to control the number of PCs used.  The suggested range for
-        epsilon is (0.01, 0.1).  The larger epsilon is, the fewer PCs will be
-        used.  Note that epsilon here is *not* the unexplained variance in
+        epsilonPC is (0.001, 0.1).  The larger epsilonPC is, the fewer PCs will be
+        used.  Note that epsilonPC here is *not* the unexplained variance in
         typical principal component analysis.
+    epsilonImpute : scalar
+        A parameter to ensure covariance nonsingularity. Default is 10e-6.
     lognugmean : scalar
         A parameter to control the log of the nugget used in fitting the GPs.
         The suggested range for lognugmean is (-12, -4).  The nugget is estimated,
@@ -95,7 +97,8 @@ def fit(fitinfo, x, theta, f, epsilon=0.1, lognugmean=-10,
         fitinfo['mof'] = None
         fitinfo['mofrows'] = None
 
-    fitinfo['epsilon'] = epsilon
+    fitinfo['epsilonImpute'] = epsilonImpute
+    fitinfo['epsilonPC'] = epsilonPC
     hyp1 = lognugmean
     hyp2 = lognugLB
     hypvarconst = np.log(varconstant) if varconstant is not None else None
@@ -523,7 +526,8 @@ def __standardizef(fitinfo, offset=None, scale=None):
     f = fitinfo['f']
     mof = fitinfo['mof']
     mofrows = fitinfo['mofrows']
-    epsilon = fitinfo['epsilon']
+    epsilonPC = fitinfo['epsilonPC']
+    epsilonImpute = fitinfo['epsilonImpute']
 
     if (offset is not None) and (scale is not None):
         if offset.shape[0] == f.shape[1] and scale.shape[0] == f.shape[1]:
@@ -557,7 +561,7 @@ def __standardizef(fitinfo, offset=None, scale=None):
 
         for iters in range(0, 40):
             U, S, _ = np.linalg.svd(fs.T, full_matrices=False)
-            Sp = S ** 2 - epsilon
+            Sp = S ** 2 - epsilonPC
             Up = U[:, Sp > 0]
             Sp = np.sqrt(Sp[Sp > 0])
             for j in range(0, mofrows.shape[0]):
@@ -565,15 +569,15 @@ def __standardizef(fitinfo, offset=None, scale=None):
                 wheremof = np.where(mof[rv, :] > 0.5)[0]
                 wherenotmof = np.where(mof[rv, :] < 0.5)[0]
                 H = Up[wherenotmof, :].T @ Up[wherenotmof, :]
-                Amat = epsilon * np.diag(1 / (Sp ** 2)) + H
+                Amat = epsilonImpute * np.diag(1 / (Sp ** 2)) + H
                 J = Up[wherenotmof, :].T @ fs[rv, wherenotmof]
                 fs[rv, wheremof] = (Up[wheremof, :] *
-                                    ((Sp / np.sqrt(epsilon)) ** 2)) @ \
+                                    ((Sp / np.sqrt(epsilonImpute)) ** 2)) @ \
                                    (J - H @ (spla.solve(Amat, J, assume_a='pos')))
 
     # Assigning new values to the dictionary
     U, S, _ = np.linalg.svd(fs.T, full_matrices=False)
-    Sp = S ** 2 - epsilon
+    Sp = S ** 2 - epsilonPC
     Up = U[:, Sp > 0]
 
     extravar = np.nanmean((fs - fs @ Up @ Up.T) ** 2, 0) * (scale ** 2)
@@ -596,7 +600,8 @@ def __PCs(fitinfo):
     f = fitinfo['f']
     mof = fitinfo['mof']
     mofrows = fitinfo['mofrows']
-    epsilon = fitinfo['epsilon']
+    epsilonPC = fitinfo['epsilonPC']
+    epsilonImpute = fitinfo['epsilonImpute']
 
     fs = fitinfo['standardpcinfo']['fs']
     if 'U' in fitinfo['standardpcinfo']:
@@ -604,7 +609,7 @@ def __PCs(fitinfo):
         S = fitinfo['standardpcinfo']['S']
     else:
         U, S, _ = np.linalg.svd(fs.T, full_matrices=False)
-    Sp = S ** 2 - epsilon
+    Sp = S ** 2 - epsilonPC
     pct = U[:, Sp > 0]
     pcw = np.sqrt(Sp[Sp > 0])
     pc = fs @ pct
@@ -614,14 +619,14 @@ def __PCs(fitinfo):
             rv = mofrows[j]
             wherenotmof = np.where(mof[rv, :] < 0.5)[0]
             H = pct[wherenotmof, :].T @ pct[wherenotmof, :]
-            Amat = np.diag(epsilon / (pcw ** 2)) + H
+            Amat = np.diag(epsilonImpute / (pcw ** 2)) + H
             J = pct[wherenotmof, :].T @ fs[rv, wherenotmof]
-            pc[rv, :] = (pcw ** 2 / epsilon + 1) * \
+            pc[rv, :] = (pcw ** 2 / epsilonImpute + 1) * \
                         (J - H @ np.linalg.solve(Amat, J))
-            Qmat = np.diag(epsilon / pcw ** 2) + H
+            Qmat = np.diag(epsilonImpute / pcw ** 2) + H
             term3 = np.diag(H) - \
                 np.sum(H * spla.solve(Qmat, H, assume_a='pos'), 0)
-            pcstdvar[rv, :] = 1 - (pcw ** 2 / epsilon + 1) * term3
+            pcstdvar[rv, :] = 1 - (pcw ** 2 / epsilonImpute + 1) * term3
     fitinfo['pcw'] = pcw
     fitinfo['pcto'] = 1 * pct
     # pcw contains the singular values from SVD, in complete data pcw
@@ -641,7 +646,7 @@ def __getnewvar(fitinfo, pending):
     # Extracting from principal components fit dictionary.
     pct = copy.copy(fitinfo['pcto'])
     pcw = copy.copy(fitinfo['pcw'])
-    epsilon = fitinfo['epsilon']
+    epsilonImpute = fitinfo['epsilonImpute']
 
     realfail = np.logical_and(np.logical_not(pending), fitinfo['mof'])
     failrows = np.where(np.any(realfail, 1))[0]
@@ -651,9 +656,9 @@ def __getnewvar(fitinfo, pending):
         rv = failrows[j]
         wherenotmof = np.where(realfail[rv, :] < 0.5)[0]
         H = pct[wherenotmof, :].T @ pct[wherenotmof, :]
-        Qmat = np.diag(epsilon / pcw ** 2) + H
+        Qmat = np.diag(epsilonImpute / pcw ** 2) + H
         term3 = np.diag(H) - np.sum(H * spla.solve(Qmat, H, assume_a='pos'), 0)
-        pcstdvar[rv, :] = 1 - (pcw ** 2 / epsilon + 1) * term3
+        pcstdvar[rv, :] = 1 - (pcw ** 2 / epsilonImpute + 1) * term3
     return np.exp(fitinfo['logvarc']) * pcstdvar
 
 
