@@ -34,7 +34,7 @@ offset = f2.mean(1)
 scale = f2.std(1)
 fs = ((f2.T - offset) / scale).T
 U, S, _ = np.linalg.svd(fs, full_matrices=False)
-Sp = S**2 - 0.000001
+Sp = S**2 - 0.001
 Up = U[:, Sp > 0]
 extravar = np.nanmean((fs.T - fs.T @ Up @ Up.T) ** 2, 0) * (scale ** 2)
 

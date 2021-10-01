@@ -63,7 +63,8 @@ def single_test(emuname, x, theta, f, model, testtheta, modelname, ntheta,
         emutime0 = time.time()
         if emuname == 'PCGPwM':
             withgrad = True
-            args = {'epsilon': epsilon,
+            args = {'epsilonPC': 0.001,
+                    'epsilonImpute': 10e-6,
                     'lognugmean': -15,
                     'lognugLB': -22,
                     'bigM': bigM,
