@@ -5,7 +5,7 @@ import seaborn as sns
 
 plt.style.use('seaborn-whitegrid')
 
-fail_configs = [(True, 'low'), (True, 'high'), (False, 'low'), (False, 'high'), (None, 'none')]
+fail_configs = [(True, 'low'), (True, 'high')]# , (False, 'low'), (False, 'high'), (None, 'none')]
 
 
 def run_plots(plot_dir, listJSONs):

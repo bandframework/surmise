@@ -22,7 +22,7 @@ def single_test(emuname, x, theta, f, model, testtheta, modelname, ntheta,
                 stdfinfo=None, skip_std=False, caller=None):
     emuname_orig = emuname
     try:
-        epsilon = 0.0000001
+        epsilonPC = 0.0001
         if stdfinfo is None:
             if skip_std:
                 if caller is None:
@@ -63,7 +63,7 @@ def single_test(emuname, x, theta, f, model, testtheta, modelname, ntheta,
         emutime0 = time.time()
         if emuname == 'PCGPwM':
             withgrad = True
-            args = {'epsilonPC': 0.001,
+            args = {'epsilonPC': epsilonPC,
                     'epsilonImpute': 10e-6,
                     'lognugmean': -15,
                     'lognugLB': -22,
@@ -71,14 +71,14 @@ def single_test(emuname, x, theta, f, model, testtheta, modelname, ntheta,
                     'standardpcinfo': standardpcinfo}
         elif emuname == 'PCGP_KNN':
             emuname = 'PCGPwMatComp'
-            args = {'epsilon': epsilon,
+            args = {'epsilon': epsilonPC,
                     'lognugmean': -15,
                     'lognugLB': -22,
                     'compmethod': 'KNN'}
             withgrad = True
         elif emuname == 'PCGP_BR':
             emuname = 'PCGPwMatComp'
-            args = {'epsilon': epsilon,
+            args = {'epsilon': epsilonPC,
                     'lognugmean': -15,
                     'lognugLB': -22,
                     'compmethod': 'BayesianRidge'}

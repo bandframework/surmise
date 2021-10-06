@@ -29,8 +29,10 @@ def borehole_failmodel(x, theta, fail='low'):
     return f
 
 
-def borehole_failmodel_random(x, theta, fail='low'):
-    if fail == 'high':
+def borehole_failmodel_random(x, theta, fail='low', p=None):
+    if fail is None:
+        p = p
+    elif fail == 'high':
         p = _dict['p_randfail_high']
     else:
         p = _dict['p_randfail_low']

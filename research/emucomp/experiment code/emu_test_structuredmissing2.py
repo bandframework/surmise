@@ -30,30 +30,6 @@ f1[:,250:] = np.nan
 f2 = f.copy()
 f2 = f2[:,:250]
 
-offset = f2.mean(1)
-scale = f2.std(1)
-fs = ((f2.T - offset) / scale).T
-U, S, _ = np.linalg.svd(fs, full_matrices=False)
-Sp = S**2 - 0.001
-Up = U[:, Sp > 0]
-extravar = np.nanmean((fs.T - fs.T @ Up @ Up.T) ** 2, 0) * (scale ** 2)
-
-standardpcinfo1 = {'offset': offset,
-                  'scale': scale,
-                  'fs': np.vstack((fs.T, np.full((250, 15), np.nan))),
-                  'U': U,
-                  'S': S,
-                  'extravar': extravar
-                  }
-
-standardpcinfo2 = {'offset': offset,
-                  'scale': scale,
-                  'fs': fs.T,
-                  'U': U,
-                  'S': S,
-                  'extravar': extravar
-                  }
-
 emu1 = single_test('PCGPwM', x, theta, f1, model, testtheta,
             'piston', 500, 'none', 'none', 10, 0, '')#, stdfinfo=standardpcinfo1),# skip_std=True, caller=func_caller)
 

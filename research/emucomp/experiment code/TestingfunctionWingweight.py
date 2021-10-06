@@ -41,8 +41,10 @@ def Wingweight_failmodel(x, theta, fail='low'):
     return f
 
 
-def Wingweight_failmodel_random(x, theta, fail='low'):
-    if fail == 'high':
+def Wingweight_failmodel_random(x, theta, fail='low', p=None):
+    if fail is None:
+        p = p
+    elif fail == 'high':
         p = _dict['p_randfail_high']
     else:
         p = _dict['p_randfail_low']

@@ -1,6 +1,6 @@
 """OTL circuit function. (xdim = 4, thetadim=2)."""
 import numpy as np
-
+from missing_utils import MNAR_mask_quantiles
 
 _dict = {
     'function': 'OTLcircuit',
@@ -17,33 +17,51 @@ def query_func_meta():
     return _dict
 
 
-
-def OTLcircuit_failmodel(x, theta, fail='low'):
+def OTLcircuit_failmodel(x, theta, p):# fail='low'):
     """Given x and theta, return matrix of [row x] times [row theta] of values."""
-    if fail == 'high':
-        c = _dict['c_structfail_high']
-    else:
-        c = _dict['c_structfail_low']
-
+    # if fail == 'high':
+    #     c = _dict['c_structfail_high']
+    # else:
+    #     c = _dict['c_structfail_low']
     f = OTLcircuit_model(x, theta)
-    wherextoobig = np.where(np.linalg.norm(x, axis=1, ord=np.inf) > c[0])
-    wherethetatoobig = np.where(np.linalg.norm(theta, axis=1, ord=np.inf) > c[1])
-    faillist = np.array([(i, j) for i in wherextoobig[0] for j in wherethetatoobig[0]]).T
 
-    f[faillist[0], faillist[1]] = np.nan
+    # nm = f.size
+    # failn = np.ceil(nm * p).astype(int)
+
+    # xnorm = np.linalg.norm(x, axis=1)
+    # thetanorm = np.linalg.norm(theta, axis=1, ord=1)
+    #
+    # M = np.add.outer(xnorm, thetanorm)
+    # ind = np.argpartition(M.ravel(), failn)[-failn:]
+    # r, c = np.unravel_index(ind, M.shape)
+    # mask = MAR_mask(f, p, 0)
+    # q = np.quantile(f, 1-p)
+    # mask = MNAR_mask_logistic(f, p, p_params=0.1, exclude_inputs=True) #, cut='lower', MCAR=True)
+    mask = MNAR_mask_quantiles(f, p=p, q=p, p_params=0.2, cut='upper')
+
+    f[mask] = np.nan
+    # wherextoobig = np.where(np.linalg.norm(x, axis=1, ord=np.inf) > c[0])
+    # wherethetatoobig = np.where(np.linalg.norm(theta, axis=1, ord=np.inf) > c[1])
+    # faillist = np.array([(i, j) for i in wherextoobig[0] for j in wherethetatoobig[0]]).T
+
+    # f[faillist[0], faillist[1]] = np.nan
 
     return f
 
 
-def OTLcircuit_failmodel_random(x, theta, fail='low'):
-    if fail == 'high':
+def OTLcircuit_failmodel_random(x, theta, fail='low', p=None):
+    if fail is None:
+        p = p
+    elif fail == 'high':
         p = _dict['p_randfail_high']
     else:
         p = _dict['p_randfail_low']
 
     f = OTLcircuit_model(x, theta)
     wheretoobig = np.where(np.random.choice([0, 1], f.shape, replace=True, p=[1-p, p]))
+
     f[wheretoobig[0], wheretoobig[1]] = np.nan
+
 
     return f
 
