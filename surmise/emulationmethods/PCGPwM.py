@@ -268,7 +268,8 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
     # calculate predictive mean and variance
     predinfo['mean'] = np.full((x.shape[0], theta.shape[0]), np.nan)
     predinfo['var'] = np.full((x.shape[0], theta.shape[0]), np.nan)
-    pctscale = (fitinfo['pct'].T * fitinfo['standardpcinfo']['scale']).T
+    pctscale = (fitinfo['pcti'].T * fitinfo['standardpcinfo']['scale']).T
+    # pctscale = (fitinfo['pct'].T * fitinfo['standardpcinfo']['scale']).T
     predinfo['mean'][xnewind, :] = ((predvecs @ pctscale[xind, :].T) +
                                     fitinfo['standardpcinfo']['offset'][xind]).T
 
@@ -542,9 +543,9 @@ def __standardizef(fitinfo, offset=None, scale=None):
         scale = np.zeros(f.shape[1])
         for k in range(0, f.shape[1]):
             offset[k] = np.nanmean(f[:, k])
-            scale[k] = np.nanstd(f[:, k])
+            scale[k] = np.nanstd(f[:, k]) / np.sqrt(1-np.isnan(f[:, k]).mean())
             if scale[k] == 0:
-                scale[k] = 0.0001
+                raise ValueError("You have a row that is non-varying.")
 
     fs = np.zeros(f.shape)
     if mof is None:
@@ -623,6 +624,7 @@ def __PCs(fitinfo):
             J = pct[wherenotmof, :].T @ fs[rv, wherenotmof]
             pc[rv, :] = (pcw ** 2 / epsilonImpute + 1) * \
                         (J - H @ np.linalg.solve(Amat, J))
+            fs[rv,:] = pc[rv, :] @ pct.T
             Qmat = np.diag(epsilonImpute / pcw ** 2) + H
             term3 = np.diag(H) - \
                 np.sum(H * spla.solve(Qmat, H, assume_a='pos'), 0)
@@ -636,7 +638,8 @@ def __PCs(fitinfo):
     effn = np.sum(np.clip(1 - pcstdvar, 0, 1))
     fitinfo['pct'] = pct * pcw / np.sqrt(effn)
     fitinfo['pcti'] = pct * (np.sqrt(effn) / pcw)
-    fitinfo['pc'] = pc * (np.sqrt(effn) / pcw)
+    # fitinfo['pc'] = pc * (np.sqrt(effn) / pcw)
+    fitinfo['pc'] = fs @ fitinfo['pct']
     fitinfo['unscaled_pcstdvar'] = pcstdvar
     return
 
