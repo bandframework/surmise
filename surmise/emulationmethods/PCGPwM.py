@@ -584,12 +584,12 @@ def __standardizef(fitinfo, offset=None, scale=None):
     extravar = np.nanmean((fs - fs @ Up @ Up.T) ** 2, 0) * (scale ** 2)
 
     standardpcinfo = {'offset': offset,
-                     'scale': scale,
-                     'fs': fs,
-                     'U': U,
-                     'S': S,
-                     'extravar': extravar
-                     }
+                      'scale': scale,
+                      'fs': fs,
+                      'U': U,
+                      'S': S,
+                      'extravar': extravar
+                      }
 
     fitinfo['standardpcinfo'] = standardpcinfo
     return
@@ -624,7 +624,7 @@ def __PCs(fitinfo):
             J = pct[wherenotmof, :].T @ fs[rv, wherenotmof]
             pc[rv, :] = (pcw ** 2 / epsilonImpute + 1) * \
                         (J - H @ np.linalg.solve(Amat, J))
-            fs[rv,:] = pc[rv, :] @ pct.T
+            fs[rv, :] = pc[rv, :] @ pct.T
             Qmat = np.diag(epsilonImpute / pcw ** 2) + H
             term3 = np.diag(H) - \
                 np.sum(H * spla.solve(Qmat, H, assume_a='pos'), 0)
