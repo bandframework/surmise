@@ -274,8 +274,6 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
                                     fitinfo['standardpcinfo']['offset'][xind]).T
     predinfo['var'][xnewind, :] = ((fitinfo['standardpcinfo']['extravar'][xind] +
                                     predvars @ (pctscale[xind, :] ** 2).T)).T
-    predinfo['mean'] = predinfo['mean'].T
-    predinfo['var'] = predinfo['var'].T
 
     predinfo['extravar'] = 1 * fitinfo['standardpcinfo']['extravar'][xind]
     predinfo['predvars'] = 1 * predvars
