@@ -43,9 +43,9 @@ print('Dimension compatibility: ', emu.predict().mean().shape == ftrain.shape)
 predmean = pred.mean()
 
 mse = (predmean - ftest)**2
-frng = np.atleast_2d(np.nanmax(ftest, 0) - np.nanmin(ftest, 0)).T
-rmse_x = np.sqrt(np.nanmean((predmean - ftest)**2 / frng, axis=1))
-rmse_theta = np.sqrt(np.nanmean((predmean - ftest)**2 / frng, axis=0))
+frng = np.atleast_2d(np.nanmax(ftest, 0) - np.nanmin(ftest, 0))
+rmse_theta = np.sqrt(np.nanmean((predmean - ftest)**2 / frng, axis=1))
+rmse_x = np.sqrt(np.nanmean((predmean - ftest)**2 / frng, axis=0))
 
 import matplotlib.pyplot as plt
 plt.style.use(['science','high-vis','grid'])
