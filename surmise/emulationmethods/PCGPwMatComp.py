@@ -7,6 +7,7 @@ import numpy as np
 import surmise.emulationmethods.PCGPwM as semPCGPwM
 try:
     from sklearn.experimental import enable_iterative_imputer
+    tmpload = enable_iterative_imputer.IterativeImputer
     from sklearn.impute import IterativeImputer
     from sklearn.linear_model import BayesianRidge
     from sklearn.neighbors import KNeighborsRegressor
