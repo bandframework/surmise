@@ -18,10 +18,10 @@ if __name__ == '__main__':
     for k in np.arange(5):
         for i in np.arange(0, 4):
             if i == 0:
-                import boreholetestfunctions as func
-                from boreholetestfunctions import borehole_failmodel as failmodel
-                from boreholetestfunctions import borehole_failmodel_random as failmodel_random
-                from boreholetestfunctions import borehole_model as nofailmodel
+                import TestingfunctionBorehole as func
+                from TestingfunctionBorehole import borehole_failmodel as failmodel
+                from TestingfunctionBorehole import borehole_failmodel_random as failmodel_random
+                from TestingfunctionBorehole import borehole_model as nofailmodel
             elif i == 1:
                 import TestingfunctionPiston as func
                 from TestingfunctionPiston import Piston_failmodel as failmodel

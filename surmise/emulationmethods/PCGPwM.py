@@ -528,7 +528,6 @@ def __standardizef(fitinfo, offset=None, scale=None):
     mof = fitinfo['mof']
     mofrows = fitinfo['mofrows']
     epsilonPC = fitinfo['epsilonPC']
-    epsilonImpute = fitinfo['epsilonImpute']
 
     if (offset is not None) and (scale is not None):
         if offset.shape[0] == f.shape[1] and scale.shape[0] == f.shape[1]:
@@ -551,6 +550,7 @@ def __standardizef(fitinfo, offset=None, scale=None):
     if mof is None:
         fs = (f - offset) / scale
     else:
+        epsilonImpute = fitinfo['epsilonImpute']
         # Imputes missing values
         for k in range(0, f.shape[1]):
             fs[:, k] = (f[:, k] - offset[k]) / scale[k]
@@ -602,7 +602,6 @@ def __PCs(fitinfo):
     mof = fitinfo['mof']
     mofrows = fitinfo['mofrows']
     epsilonPC = fitinfo['epsilonPC']
-    epsilonImpute = fitinfo['epsilonImpute']
 
     fs = fitinfo['standardpcinfo']['fs']
     if 'U' in fitinfo['standardpcinfo']:
@@ -616,6 +615,7 @@ def __PCs(fitinfo):
     pc = fs @ pct
     pcstdvar = np.zeros((f.shape[0], pct.shape[1]))
     if mof is not None:
+        epsilonImpute = fitinfo['epsilonImpute']
         for j in range(0, mofrows.shape[0]):
             rv = mofrows[j]
             wherenotmof = np.where(mof[rv, :] < 0.5)[0]

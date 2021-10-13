@@ -29,7 +29,7 @@ methodoptionstr = ('\nTry one of the following: '
 suggeststr = '\nOtherwise, try emulation method \'PCGPwM\' to handle missing values.'
 
 
-def fit(fitinfo, x, theta, f, epsilon=0.1, lognugmean=-10,
+def fit(fitinfo, x, theta, f, epsilonPC=0.001, lognugmean=-10,
         lognugLB=-20, varconstant=1, dampalpha=0, bigM=1000, compmethod='KNN',
         verbose=0, **kwargs):
     """
@@ -78,7 +78,7 @@ def fit(fitinfo, x, theta, f, epsilon=0.1, lognugmean=-10,
     fitinfo['mof'] = None
     fitinfo['mofrows'] = None
 
-    fitinfo['epsilon'] = epsilon
+    fitinfo['epsilonPC'] = epsilonPC
     hyp1 = lognugmean
     hyp2 = lognugLB
     hypvarconst = np.log(varconstant) if varconstant is not None else None

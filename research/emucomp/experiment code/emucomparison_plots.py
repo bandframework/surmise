@@ -1,14 +1,17 @@
 import matplotlib.pyplot as plt
+import numpy as np
+import scipy.stats as sps
 import pandas as pd
 import seaborn as sns
 import json
 import glob
-plt.style.use(['science', 'vibrant', 'grid'])
+plt.style.use(['science', 'high-vis', 'grid'])
 
-parent_datadir = r'C:\Users\moses\Desktop\git\surmise\research\emucomp\experiment code\emulator_PCGPwM_after_effn_compiled'
+parent_datadir = r'C:\Users\moses\Desktop\git\surmise\research\emucomp\experiment code\data01\all'
 output_figdir = r'C:\Users\moses\Desktop\git\surmise\research\emucomp\figs\after_effn'
 
-flist = glob.glob(parent_datadir + r'\*\data\*.json')
+# flist = glob.glob(parent_datadir + r'\*\data\*.json')
+flist = glob.glob(parent_datadir + r'\*.json')
 d = []
 for fname in flist:
     with open(fname, 'r') as f:
@@ -20,28 +23,38 @@ root_df['npts'] = root_df.n * root_df.nx * (1 - root_df.failfraction.mean())
 root_df.randomfailures = root_df.randomfailures.astype(str)
 root_df[['rmse', 'mae', 'medae', 'me', 'crps']] = root_df[['rmse', 'mae', 'medae', 'me', 'crps']].astype(float)
 
-fail_configs = [(True, 'low'), (True, 'high'), (False, 'low'), (False, 'high')] #, (None, 'none')]
+fail_configs = [
+    (True, 0.01),
+    (True, 0.05),
+    (True, 0.25),
+    (False, 0.01),
+    (False, 0.05),
+    (False, 0.25),
+]
 
-markers = ['D', 'v', 'X', 's']
+markers = ['D', 'v', 'X', 's', 'o']
 ylabels = {'rmse': 'RMSE',
-           # 'mae': 'MAE',
-           # 'medae': 'median absolute error',
-           # 'me': 'mean error',
-           # 'crps': 'CRPS',
+           'mae': 'MAE',
+           'medae': 'median absolute error',
+           'me': 'mean error',
+           'crps': 'CRPS',
            'coverage': r'90\% coverage',
            'avgintwidth': r'90\% interval width',
-           # 'intscore': r'interval score',
+           'intscore': r'interval score',
            'emutime': r'construction time'
            }
 
 funcs = pd.unique(root_df.function)
+funcs[1], funcs[3] = funcs[3], funcs[1]
 
 for fail_random, fail_level in fail_configs:
     df = root_df[(root_df.randomfailures == str(fail_random)) &
-                 (root_df.failureslevel == str(fail_level))]
+                 (root_df.failfraction == fail_level)]
     df.method = df.method.str.replace(r'_', r'-')
 
     for y, ylabel in ylabels.items():
+        std = df[y].std()
+        df[y][df[y] > 10**6] = np.nan
         fig, ax = plt.subplots(nrows=2, ncols=2,
                                figsize=(8, 6),
                                sharex='all',
@@ -54,12 +67,12 @@ for fail_random, fail_level in fail_configs:
                          hue='method',
                          style='method',
                          markers=markers,
-                         markersize=10,
-                         lw=5,
-                         alpha=0.7,
+                         markersize=12,
+                         lw=4,
+                         alpha=0.65,
                          estimator='mean',
                          ci=None,
-                         err_kws={'alpha': 0.0},
+                         # err_kws={'alpha': 0.25},
                          ax=ax[r][c],
                          data=subdf
                          )
@@ -79,15 +92,14 @@ for fail_random, fail_level in fail_configs:
             axis.get_legend().remove()
 
         fig.add_subplot(111, frameon=False)
-        fig.legend(handles, labels, loc='lower center', ncol=4)
+        fig.legend(handles, labels, loc='lower center', ncol=5)
         plt.xticks([])
         plt.yticks([])
         plt.ylabel(ylabel, labelpad=40, fontsize=20)
         plt.xlabel('data size', labelpad=20, fontsize=20)
         plt.tight_layout()
-        plt.savefig(output_figdir + r'\{:s}_{:s}.png'.format(y, fail_level + '_random' + str(fail_random)))
+        plt.savefig(output_figdir + r'\{:s}_{:s}.png'.format(y, str(int(fail_level*100)) + '_random' + str(fail_random)))
         # plt.show()
-        # break
         plt.close()
 
         # break

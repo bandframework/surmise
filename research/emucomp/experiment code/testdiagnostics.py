@@ -2,30 +2,30 @@ import numpy as np
 from scipy.stats import norm
 
 
-def rmse(emu, x, theta, model):
-    return np.sqrt(np.nanmean((emu.predict(x, theta).mean() - model(x, theta)) ** 2))
+def rmse(emu, x, theta, testf):
+    return np.sqrt(np.nanmean((emu.predict(x, theta).mean() - testf) ** 2))
 
 
-def mae(emu, x, theta, model):
-    return np.nanmean(np.abs(emu.predict(x, theta).mean() - model(x, theta)))
+def mae(emu, x, theta, testf):
+    return np.nanmean(np.abs(emu.predict(x, theta).mean() - testf))
 
 
-def medae(emu, x, theta, model):
-    return np.nanmedian(np.abs(emu.predict(x, theta).mean() - model(x, theta)))
+def medae(emu, x, theta, testf):
+    return np.nanmedian(np.abs(emu.predict(x, theta).mean() - testf))
 
 
-def me(emu, x, theta, model):
-    return np.nanmean(emu.predict(x, theta).mean() - model(x, theta))
+def me(emu, x, theta, testf):
+    return np.nanmean(emu.predict(x, theta).mean() - testf)
 
 
-def interval_stats(emu, x, theta, model, pr=0.9):
+def interval_stats(emu, x, theta, testf, pr=0.9):
     p = emu.predict(x, theta)
     mean = p.mean()
     stdev = np.sqrt(p.var())
 
     alph = 1 - pr
 
-    f = model(x, theta)
+    f = testf
     mask = ~np.isnan(f)
 
     ci = np.zeros((2, *mean.shape))
@@ -43,29 +43,27 @@ def interval_stats(emu, x, theta, model, pr=0.9):
     return coverage, avgintwidth, intScore
 
 
-def crps(emu, x, theta, model):
+def crps(emu, x, theta, testf):
     p = emu.predict(x, theta)
     mean = p.mean()
     var = p.var()
     stdev = np.sqrt(var) + 10 ** (-12)
 
-    z = (model(x, theta) - mean) / stdev
+    z = (testf - mean) / stdev
 
     crpss = -stdev * (z * (2*norm.cdf(z) - 1) + 2*norm.ppf(z) - 1 / np.sqrt(np.pi))
     return np.nanmean(crpss)
 
 
-def errors(x, testtheta, model, modelname, random, mode, bigM, ntheta,
+def errors(x, testtheta, model, modelname, random, ntheta,
            failfraction, emu=None, emutime=None, method=None):
     results = {}
     results['method'] = method
     results['function'] = modelname
     results['randomfailures'] = str(random)
-    results['failureslevel'] = str(mode)
     results['failfraction'] = failfraction
     results['nx'] = x.shape[0]
     results['n'] = ntheta
-    results['bigM'] = bigM
 
     if emu is not None:
         if 'logvarc' in emu._info.keys():
@@ -79,14 +77,15 @@ def errors(x, testtheta, model, modelname, random, mode, bigM, ntheta,
             results['avgvarconstant'] = np.nan
             results['varc_status'] = 'n/a'
 
-        fstd = np.nanstd(model(x, testtheta))
+        testf = model(x, testtheta, failfraction)
+        frng = np.nanmax(testf) - np.nanmin(testf)
 
-        results['rmse'] = rmse(emu, x, testtheta, model) / fstd
-        results['mae'] = mae(emu, x, testtheta, model) / fstd
-        results['medae'] = medae(emu, x, testtheta, model) / fstd
-        results['me'] = me(emu, x, testtheta, model) / fstd
-        results['crps'] = crps(emu, x, testtheta, model) / fstd
-        int_stats = interval_stats(emu, x, testtheta, model)
+        results['rmse'] = rmse(emu, x, testtheta, testf) / frng
+        results['mae'] = mae(emu, x, testtheta, testf) / frng
+        results['medae'] = medae(emu, x, testtheta, testf) / frng
+        results['me'] = me(emu, x, testtheta, testf) / frng
+        results['crps'] = crps(emu, x, testtheta, testf)
+        int_stats = interval_stats(emu, x, testtheta, testf)
         results['coverage'] = int_stats[0]
         results['avgintwidth'] = int_stats[1]
         results['intscore'] = int_stats[2]

@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.stats as sps
-from boreholetestfunctions import borehole_model, borehole_failmodel, borehole_true, borehole_failmodel_random
+from TestingfunctionBorehole import borehole_model, borehole_failmodel, borehole_true, borehole_failmodel_random
 from surmise.emulation import emulator
 from surmise.calibration import calibrator
 from time import time

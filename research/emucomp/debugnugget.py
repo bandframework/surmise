@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.stats as sps
-from boreholetestfunctions import borehole_model
+from TestingfunctionBorehole import borehole_model
 from surmise.emulation import emulator
 import time
 import json

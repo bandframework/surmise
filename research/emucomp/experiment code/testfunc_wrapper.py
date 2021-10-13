@@ -1,4 +1,4 @@
-import boreholetestfunctions
+import TestingfunctionBorehole
 import TestingfunctionPiston
 import TestingfunctionWingweight
 import TestingfunctionOTLcircuit
@@ -7,10 +7,10 @@ import TestingfunctionOTLcircuit
 class TestFunc(object):
     def __init__(self, func):
         if func == 'borehole':
-            meta = boreholetestfunctions.query_func_meta()
-            failmodel = boreholetestfunctions.borehole_failmodel
-            failmodel_random = boreholetestfunctions.borehole_failmodel_random
-            nofailmodel = boreholetestfunctions.borehole_model
+            meta = TestingfunctionBorehole.query_func_meta()
+            failmodel = TestingfunctionBorehole.borehole_failmodel
+            failmodel_random = TestingfunctionBorehole.borehole_failmodel_random
+            nofailmodel = TestingfunctionBorehole.borehole_model
         elif func == 'otlcircuit':
             meta = TestingfunctionOTLcircuit.query_func_meta()
             failmodel = TestingfunctionOTLcircuit.OTLcircuit_failmodel

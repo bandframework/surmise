@@ -96,11 +96,11 @@ if __name__ == '__main__':
     for j in np.arange(2):
         for i in np.arange(1, 4):
             if i == 0:
-                import boreholetestfunctions as func
-                from boreholetestfunctions import borehole_failmodel as failmodel
-                from boreholetestfunctions import borehole_failmodel_random as failmodel_random
-                from boreholetestfunctions import borehole_model as nofailmodel
-                from boreholetestfunctions import borehole_true as truemodel
+                import TestingfunctionBorehole as func
+                from TestingfunctionBorehole import borehole_failmodel as failmodel
+                from TestingfunctionBorehole import borehole_failmodel_random as failmodel_random
+                from TestingfunctionBorehole import borehole_model as nofailmodel
+                from TestingfunctionBorehole import borehole_true as truemodel
             elif i == 1:
                 import TestingfunctionPiston as func
                 from TestingfunctionPiston import Piston_failmodel as failmodel

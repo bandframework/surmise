@@ -1,15 +1,10 @@
 import numpy as np
-
+from missing_utils import MNAR_mask_quantiles, MNAR_mask_logistic
 
 _dict = {
     'function': 'Piston',
     'xdim':     4,
     'thetadim': 3,
-    'c_structfail_high': (0.6, 0.55),
-    'c_structfail_low': (0.75, 0.85),
-    'p_randfail_high': 0.75,
-    'p_randfail_med': 0.5,
-    'p_randfail_low': 0.25
 }
 
 
@@ -17,37 +12,19 @@ def query_func_meta():
     return _dict
 
 
-def Piston_failmodel(x, theta, fail='low'):
+def Piston_failmodel(x, theta, p):
     """Given x and theta, return matrix of [row x] times [row theta] of values."""
-    if fail == 'high':
-        c = _dict['c_structfail_high']
-    else:
-        c = _dict['c_structfail_low']
-
     f = Piston_model(x, theta)
-    wherextoobig = np.where(np.linalg.norm(x, axis=1, ord=np.inf) > c[0])
-    wherethetatoobig = np.where(np.linalg.norm(theta, axis=1, ord=np.inf) > c[1])
-    faillist = np.array([(i, j) for i in wherextoobig[0] for j in wherethetatoobig[0]]).T
-
-    f[faillist[0], faillist[1]] = np.nan
+    mask = MNAR_mask_logistic(f, p, p_params=0.1, exclude_inputs=True)
+    f[mask] = np.nan
 
     return f
 
 
-def Piston_failmodel_random(x, theta, fail='low', p=None):
-    if fail is None:
-        p = p
-    elif fail == 'high':
-        p = _dict['p_randfail_high']
-    elif fail == 'med':
-        p = _dict['p_randfail_med']
-    else:
-        p = _dict['p_randfail_low']
-
+def Piston_failmodel_random(x, theta, p):
     f = Piston_model(x, theta)
     wheretoobig = np.where(np.random.choice([0, 1], f.shape, replace=True, p=[1-p, p]))
     f[wheretoobig[0], wheretoobig[1]] = np.nan
-
     return f
 
 
