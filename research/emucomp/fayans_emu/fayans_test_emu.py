@@ -20,8 +20,8 @@ completeinds = np.argwhere(simpleerr.sum(1) < 0.5).squeeze()
 incompleteinds = np.argwhere(simpleerr.sum(1) > 0.5).squeeze()
 
 # compile data
-train_inds = np.hstack((np.random.choice(completeinds, 400, replace=False),
-                     np.random.choice(incompleteinds, 100, replace=False)))
+train_inds = np.hstack((np.random.choice(completeinds, 50, replace=False),
+                     np.random.choice(incompleteinds, 10, replace=False)))
 ftrain = f[train_inds]
 thetatrain = theta[train_inds]
 test_inds = np.setdiff1d(np.arange(f.shape[0]), train_inds)
@@ -37,13 +37,15 @@ emu = emulator(inputs, thetatrain, np.copy(ftrain), method='PCGPwM',
 end = time.time()
 print('time taken: ', end - start)
 
+pred0 = emu.predict()
 pred = emu.predict(inputs, thetatest)
+print('Dimension compatibility: ', emu.predict().mean().shape == ftrain.shape)
 predmean = pred.mean()
 
-mse = (predmean - ftest.T)**2
-frng = np.atleast_2d(np.nanmax(ftest, 0) - np.nanmin(ftest, 0)).T
-rmse_x = np.sqrt(np.nanmean((predmean - ftest.T)**2 / frng, axis=1))
-rmse_theta = np.sqrt(np.nanmean((predmean - ftest.T)**2 / frng, axis=0))
+mse = (predmean - ftest)**2
+frng = np.atleast_2d(np.nanmax(ftest, 0) - np.nanmin(ftest, 0))
+rmse_theta = np.sqrt(np.nanmean((predmean - ftest)**2 / frng, axis=1))
+rmse_x = np.sqrt(np.nanmean((predmean - ftest)**2 / frng, axis=0))
 
 import matplotlib.pyplot as plt
 plt.style.use(['science','high-vis','grid'])
