@@ -12,12 +12,15 @@ try:
     from sklearn.neighbors import KNeighborsRegressor
     from sklearn.ensemble import RandomForestRegressor
 except ImportError as e:  # ModuleNotFoundError introduced in Python 3.6
+    print(e)
     raise ImportError('This emulation method requires installation of packages \'sklearn\' and '
                       'requires enabling of iterative imputer option.')
 try:
     from matrix_completion import svt_solve, pmf_solve, biased_mf_solve
 except ImportError as e:  # ModuleNotFoundError introduced in Python 3.6
-    raise ImportError('This emulation method requires installation of packages \'matrix_completion\' and \'cvxpy\'.')
+    print(e)
+    raise ImportError('This emulation method requires installation of packages \'matrix_completion\' '
+                      'and \'cvxpy\'.')
 
 
 methodoptionstr = ('\nTry one of the following: '
@@ -102,7 +105,6 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, lognugmean=-10,
 
 def __completef(fitinfo, compmethod=None):
     """Completes missing values in f using matrix-completion library (Duan, 2020)."""
-    mof = fitinfo['mof']
     f = fitinfo['f']
     if compmethod == 'KNN':
         estimator = KNeighborsRegressor()
