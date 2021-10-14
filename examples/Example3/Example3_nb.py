@@ -233,7 +233,7 @@ plot_pred(x_std, xrep, y, cal_3, theta_range)
 
 
 # %%
-# Fit a calibrator via method = 'directbayes' and 'sampler' : 'LMC'
+# Fit a calibrator via method = 'directbayes' and 'sampler' : 'PTLMC'
 cal_4 = calibrator(emu=emulator_1,
                    y=y,
                    x=xrep_std,

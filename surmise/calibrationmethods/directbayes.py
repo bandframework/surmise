@@ -79,11 +79,12 @@ def fit(fitinfo, emu, x, y, **bayes_args):
     thetaprior = fitinfo['thetaprior']
 
     # Define the posterior function
-    def logpostfull(theta):
+    def logpostfull(theta, return_grad=False):
 
         logpost = thetaprior.lpdf(theta)
         inds = np.where(np.isfinite(logpost))[0]
-        logpost[inds] += loglik(fitinfo, emu, theta[inds, :], y, x)
+        if len(inds) > 0:
+            logpost[inds] += loglik(fitinfo, emu, theta[inds, :], y, x)
         return logpost
 
     # Define the draw function to sample from initial theta
