@@ -12,7 +12,6 @@ x.log
 
 .idea
 venv/
-scratch/
 examples/Example_Missingness_Benchmark_mosesyhc/
 
 build/lib.win-amd64-3.8/matern_covmat.cp38-win_amd64.pyd
@@ -38,3 +37,25 @@ CaseStudy/
 examples/develop-example/
 
 .coverage
+
+scratch/
+
+research/emucomp/emulator_PCGPwM_results/
+
+research/emucomp/emucomparison/
+
+research/emucomp/figs/
+
+research/emucomp/results/
+
+research/emucomp/experiment code/emulator_PCGPwM_results/
+
+research/emucomp/experiment code/emulator_results_randomFalse/
+
+research/emucomp/experiment code/emulator_PCGPwM_after_effn_compiled/
+
+research/emucomp/experiment code/data01/
+
+research/emucomp/old_emulator_PCGPwM_results/
+
+research/emucomp/fayans_emu/FayansFall2021.mat
