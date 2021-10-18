@@ -3,6 +3,7 @@ import GPy
 
 
 def fit(fitinfo, x, theta, f, ignore_nan=True, **kwargs):
+
     if x is None:
         col_no = theta.shape[1]
         # Train GP on those realizations
@@ -13,7 +14,10 @@ def fit(fitinfo, x, theta, f, ignore_nan=True, **kwargs):
             f = f[~fisnan]
             theta = theta[~fisnan]
 
-        kernel = GPy.kern.RBF(input_dim=col_no) + GPy.kern.White(1) # generalize for user input
+        kernel = GPy.kern.RBF(input_dim=col_no, variance=1., lengthscale=1.)  # generalize for user input
+        white_kern = GPy.kern.White(input_dim=1, variance=0.1)  # generalize for user input
+
+        kernel = (kernel + white_kern)
 
         emulator = GPy.models.GPRegression(theta, f, kernel)
         emulator.optimize()
@@ -34,20 +38,15 @@ def fit(fitinfo, x, theta, f, ignore_nan=True, **kwargs):
             xtheta = xtheta[~fisnan]
 
         # Train GP on those realizations
-
-        kernel = GPy.kern.Matern52(input_dim=col_flat)  # generalize for user input
-
+        kernel = GPy.kern.RBF(input_dim=col_flat, variance=1, lengthscale=1)  # generalize for user input
         emulator = GPy.models.GPRegression(xtheta, f_flat, kernel)
-        ret = emulator.optimize()
+        emulator.optimize()
 
         # raise some warning or error in this case
-        if 'Converged' not in ret.status:
-            print('Warning: GPy emulator did not converge.  '
-                  'See emu._info[\'emu_return\'] to see GPy output details.')
-            # emulator.optimize()
+        if np.isnan(emulator.objective_function()):
+            print('Warning: GPy emulator did not converge.')
 
     fitinfo['emu'] = emulator
-    fitinfo['emu_return'] = ret
     return
 
 

@@ -1,8 +1,5 @@
 """PCGPwM method - PCGP with Missingness, an extension to PCGP
-(Higdon et al., 2008). In addition, the PCGPwM method provides the functionality
-to suggest selections of next parameters and obviations of any parameters on
-a list.  Obviation refers to the stopping of value retrieval of `f` for a
-parameter."""
+(Higdon et al., 2008). """
 
 import numpy as np
 import scipy.optimize as spo
@@ -12,7 +9,7 @@ from surmise.emulationsupport.matern_covmat import covmat as __covmat
 
 
 def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
-        lognugmean=-10, lognugLB=-20, varconstant=None, dampalpha=0.3, bigM=10,
+        lognugmean=-10, lognugLB=-20, varconstant=None, dampalpha=0.3, eta=10,
         standardpcinfo=None, verbose=0, **kwargs):
     '''
     The purpose of fit is to take information and plug all of our fit
@@ -62,6 +59,8 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
         A parameter to control the rate of increase of variance as amount of missing
         values increases.  Default is 0.3, otherwise an appropriate range is (0, 0.5).
         Values larger than 0.5 are permitted but it leads to poor empirical performance.
+    eta : scalar
+        A parameter as an upper bound for the additional variance term.  Default is 10.
     standardpcinfo : dict
         A dictionary user supplies that contains information for standardization of `f`,
         in the following format, such that fs = (f - offset) / scale, U are the
@@ -104,7 +103,7 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
     hypvarconst = np.log(varconstant) if varconstant is not None else None
 
     fitinfo['dampalpha'] = dampalpha
-    fitinfo['bigM'] = bigM
+    fitinfo['eta'] = eta
 
     fitinfo['theta'] = theta
     fitinfo['f'] = f
@@ -272,9 +271,9 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
     # pctscale = (fitinfo['pct'].T * fitinfo['standardpcinfo']['scale']).T
     predinfo['mean'][xnewind, :] = ((predvecs @ pctscale[xind, :].T) +
                                     fitinfo['standardpcinfo']['offset'][xind]).T
-
     predinfo['var'][xnewind, :] = ((fitinfo['standardpcinfo']['extravar'][xind] +
                                     predvars @ (pctscale[xind, :] ** 2).T)).T
+
     predinfo['extravar'] = 1 * fitinfo['standardpcinfo']['extravar'][xind]
     predinfo['predvars'] = 1 * predvars
     predinfo['predvecs'] = 1 * predvecs
@@ -584,12 +583,12 @@ def __standardizef(fitinfo, offset=None, scale=None):
     extravar = np.nanmean((fs - fs @ Up @ Up.T) ** 2, 0) * (scale ** 2)
 
     standardpcinfo = {'offset': offset,
-                     'scale': scale,
-                     'fs': fs,
-                     'U': U,
-                     'S': S,
-                     'extravar': extravar
-                     }
+                      'scale': scale,
+                      'fs': fs,
+                      'U': U,
+                      'S': S,
+                      'extravar': extravar
+                      }
 
     fitinfo['standardpcinfo'] = standardpcinfo
     return
@@ -624,7 +623,7 @@ def __PCs(fitinfo):
             J = pct[wherenotmof, :].T @ fs[rv, wherenotmof]
             pc[rv, :] = (pcw ** 2 / epsilonImpute + 1) * \
                         (J - H @ np.linalg.solve(Amat, J))
-            fs[rv,:] = pc[rv, :] @ pct.T
+            fs[rv, :] = pc[rv, :] @ pct.T
             Qmat = np.diag(epsilonImpute / pcw ** 2) + H
             term3 = np.diag(H) - \
                 np.sum(H * spla.solve(Qmat, H, assume_a='pos'), 0)
@@ -689,7 +688,7 @@ def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant):
                                             hypvarconst=varconstant,
                                             gvar=fitinfo['unscaled_pcstdvar'][:, pcanum],
                                             dampalpha=fitinfo['dampalpha'],
-                                            bigM=fitinfo['bigM'],
+                                            eta=fitinfo['eta'],
                                             hypstarts=hypstarts[hypwhere, :],
                                             hypinds=hypwhere,
                                             sig2ofconst=0.01)
@@ -701,7 +700,7 @@ def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant):
                                             hypvarconst=varconstant,
                                             gvar=fitinfo['unscaled_pcstdvar'][:, pcanum],
                                             dampalpha=fitinfo['dampalpha'],
-                                            bigM=fitinfo['bigM'],
+                                            eta=fitinfo['eta'],
                                             sig2ofconst=0.01)
                 hypstarts = np.zeros((numpcs, emulist[pcanum]['hyp'].shape[0]))
             emulist[pcanum]['hypind'] = min(pcanum, emulist[pcanum]['hypind'])
@@ -712,7 +711,7 @@ def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant):
     return emulist
 
 
-def __fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar=None, dampalpha=None, bigM=None,
+def __fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar=None, dampalpha=None, eta=None,
               hypstarts=None, hypinds=None, sig2ofconst=None):
     """Return a fitted model from the emulator model using smart method."""
     hypvarconstmean = 4 if hypvarconst is None else hypvarconst
@@ -742,7 +741,7 @@ def __fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar=None, dampalpha=None, bigM
     # maxgvar = np.max(gvar)
     # gvar = gvar / ((np.abs(maxgvar*1.001 - gvar)) ** dampalpha)
 
-    gvar = np.minimum(bigM, gvar / ((1 - gvar)**dampalpha))
+    gvar = np.minimum(eta, gvar / ((1 - gvar)**dampalpha))
 
     subinfo['sig2ofconst'] = sig2ofconst
     subinfo['gvar'] = gvar[thetac]

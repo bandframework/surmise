@@ -1,37 +1,32 @@
 """
-PCGPwMatComp method - an extension of PCGP method (Higdon et al. 2008) to handle missingness in simulation data.
-Matrix completion methods are used to complete the data, using matrix-completion package (Duan 2020). Then,
-:py:mod:surmise.emulationmethods.PCGP is used with the completed data.
+PCGPwImpute method - an extension of PCGP method (Higdon et al. 2008) to handle missingness in simulation data.
+Missing values are first imputed using methods included in IterativeImputer in scikit-learn.
+Then, :py:mod:surmise.emulationmethods.PCGPwM is used with the completed data.
 """
 import numpy as np
 import surmise.emulationmethods.PCGPwM as semPCGPwM
 try:
     from sklearn.experimental import enable_iterative_imputer
+    tmpload = enable_iterative_imputer.IterativeImputer
     from sklearn.impute import IterativeImputer
     from sklearn.linear_model import BayesianRidge
     from sklearn.neighbors import KNeighborsRegressor
     from sklearn.ensemble import RandomForestRegressor
 except ImportError as e:  # ModuleNotFoundError introduced in Python 3.6
+    print(e)
     raise ImportError('This emulation method requires installation of packages \'sklearn\' and '
                       'requires enabling of iterative imputer option.')
-try:
-    from matrix_completion import svt_solve, pmf_solve, biased_mf_solve
-except ImportError as e:  # ModuleNotFoundError introduced in Python 3.6
-    raise ImportError('This emulation method requires installation of packages \'matrix_completion\' and \'cvxpy\'.')
-
 
 methodoptionstr = ('\nTry one of the following: '
-                   '\n\'svt\' (singular value thresholding), '
-                   '\n\'pmf\' (probabilistic matrix factorization), '
-                   '\n\'bmf\' (biased alterating least squares matrix factorization).')
-
+                   '\n\'KNN\' (k-nearest neighbor method), '
+                   '\n\'BayesianRidge\' (Bayesian ridge regression), '
+                   '\n\'RandomForest\' (random forest method).')
 
 suggeststr = '\nOtherwise, try emulation method \'PCGPwM\' to handle missing values.'
 
 
 def fit(fitinfo, x, theta, f, epsilonPC=0.001, lognugmean=-10,
-        lognugLB=-20, varconstant=1, dampalpha=0, bigM=1000, compmethod='KNN',
-        verbose=0, **kwargs):
+        lognugLB=-20, completionmethod='KNN', verbose=0, **kwargs):
     """
     The purpose of fit is to take information and plug all of our fit
     information into fitinfo, which is a python dictionary.
@@ -49,12 +44,17 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, lognugmean=-10,
     f : numpy.ndarray
         An array of responses. Each column in f should correspond to a row in
         theta. Each row in f should correspond to a row in x.
+    epsilonPC : scalar
+        A parameter to control the number of PCs used.  The suggested range for
+        epsilonPC is (0.001, 0.1).  The larger epsilonPC is, the fewer PCs will be
+        used.  Note that epsilonPC here is *not* the unexplained variance in
+        typical principal component analysis.
     completionmethod : str
         A string variable containing the name of matrix completion method. Options
         are:
-        - \'svt\' (singular value thresholding),
-        - \'pmf\' (probabilistic matrix factorization),
-        - \'bmf\' (biased alterating least squares matrix factorization).
+        - \'KNN\' (k-nearest neighbor method),
+        - \'BayesianRidge\' (Bayesian ridge regression),
+        - \'RandomForest\' (random forest method).
 
     Returns
     -------
@@ -69,8 +69,8 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, lognugmean=-10,
     # Check for missing or failed values
     if not np.all(np.isfinite(f)):
         fitinfo['mof'] = np.logical_not(np.isfinite(f))
-        __completef(fitinfo, compmethod=compmethod)
-        print('Completing f with method IterativeImputer:{:s}.'.format(compmethod))
+        __completef(fitinfo, compmethod=completionmethod)
+        print('Completing f with method IterativeImputer:{:s}.'.format(completionmethod))
     else:
         fitinfo['mof'] = None
         print('No missing values identified... Proceeding with PCGP method.')
@@ -79,12 +79,17 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, lognugmean=-10,
     fitinfo['mofrows'] = None
 
     fitinfo['epsilonPC'] = epsilonPC
+
     hyp1 = lognugmean
     hyp2 = lognugLB
-    hypvarconst = np.log(varconstant) if varconstant is not None else None
 
+    # parameters that are features of PCGPwM, but irrelevant with PCGP with imputation
+    varconstant = 1
+    dampalpha = 0
+    eta = 1000
+    hypvarconst = np.log(varconstant) if varconstant is not None else None
     fitinfo['dampalpha'] = dampalpha
-    fitinfo['bigM'] = bigM
+    fitinfo['eta'] = eta
 
     # standardize function evaluations f
     __standardizef(fitinfo)
@@ -101,8 +106,7 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, lognugmean=-10,
 
 
 def __completef(fitinfo, compmethod=None):
-    """Completes missing values in f using matrix-completion library (Duan, 2020)."""
-    mof = fitinfo['mof']
+    """Completes missing values in f using IterativeImpute from scikit-learn."""
     f = fitinfo['f']
     if compmethod == 'KNN':
         estimator = KNeighborsRegressor()
@@ -121,31 +125,6 @@ def __completef(fitinfo, compmethod=None):
 
     fitinfo['f'] = fhat
     fitinfo['completionmethod'] = 'IterativeImputer:{:s}'.format(compmethod)
-    return
-
-
-def __completef_matrix_completion(fitinfo, method=None):
-    """Completes missing values in f using matrix-completion library (Duan, 2020)."""
-    mof = fitinfo['mof']
-    f = fitinfo['f']
-
-    if method is None or method == 'svt':
-        # Singular value thresholding
-        fhat = svt_solve(f, ~mof)
-    elif method == 'pmf':
-        # Probablistic matrix factorization
-        fhat = pmf_solve(f, ~mof, k=10, mu=1e-2)
-    elif method == 'bmf':
-        # Biased alternating least squares
-        fhat = biased_mf_solve(f, ~mof, k=10, mu=1e-2)
-    else:
-        raise ValueError('Unsupported completion method. {:s}'.format(methodoptionstr))
-
-    if not np.isfinite(fhat).all():
-        raise ValueError('Completion method {:s} failed. {:s} {:s}'.format(method, methodoptionstr, suggeststr))
-
-    fitinfo['f'] = fhat
-    fitinfo['completionmethod'] = method
     return
 
 
