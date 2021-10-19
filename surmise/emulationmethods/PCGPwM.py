@@ -691,7 +691,7 @@ def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant):
                                             eta=fitinfo['eta'],
                                             hypstarts=hypstarts[hypwhere, :],
                                             hypinds=hypwhere,
-                                            sig2ofconst=0.01)
+                                            sig2ofconst=1)
             else:
                 emulist[pcanum] = __fitGP1d(theta=theta,
                                             g=fitinfo['pc'][:, pcanum],
@@ -701,7 +701,7 @@ def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant):
                                             gvar=fitinfo['unscaled_pcstdvar'][:, pcanum],
                                             dampalpha=fitinfo['dampalpha'],
                                             eta=fitinfo['eta'],
-                                            sig2ofconst=0.01)
+                                            sig2ofconst=1)
                 hypstarts = np.zeros((numpcs, emulist[pcanum]['hyp'].shape[0]))
             emulist[pcanum]['hypind'] = min(pcanum, emulist[pcanum]['hypind'])
             hypstarts[pcanum, :] = emulist[pcanum]['hyp']

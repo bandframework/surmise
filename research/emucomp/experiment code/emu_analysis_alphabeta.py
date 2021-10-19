@@ -11,10 +11,10 @@ import json
 if __name__ == '__main__':
     # if failures are random
     random = True
-    dampalphas = [0, 1/8, 1/4, 1/3, 1/2, 3/4, 1]
+    dampalphas = [0, 1/4, 1/2, 3/4, 1]
 
     error_results = []
-    for k in np.arange(5):
+    for k in np.arange(3):
         for i in np.arange(0, 4):
             if i == 0:
                 import TestingfunctionBorehole as func
@@ -45,53 +45,55 @@ if __name__ == '__main__':
 
             # number of locations
             np.random.seed(10)
-            nx = 25
+            nx = 15
             x = sps.uniform.rvs(0, 1, (nx, xdim))
             np.random.seed()
 
             # number of parameters
-            ntheta = 100
+            ntheta = 250
             sampler = sps.qmc.LatinHypercube(d=thetadim)
-            origtheta = sampler.random(ntheta)
+            theta = sampler.random(ntheta)
             testtheta = np.random.uniform(0, 1, (1000, thetadim))
 
-            # number of training parameters
-            n = 50
-
             # whether model can fail
-            model = failmodel if not random else failmodel_random
-
-            theta = np.copy(origtheta[0:n])
-
-            f = model(x, theta, p=0.05)
-
-            # emuPCGPwM = emulator(x, theta, np.copy(f), method='PCGPwM',
-            #                      options={'xrmnan': 'all',
-            #                               'thetarmnan': 'never',
-            #                               'return_grad': True})
+            model = failmodel_random
+            f = model(x, theta, p=0.25)
 
             for j in np.arange(len(dampalphas)):
                 alpha = dampalphas[j]
 
                 emuPCGPwM = emulator(x, theta, np.copy(f), method='PCGPwM',
-                                       args={'dampalpha': alpha},
+                                       args={'dampalpha': alpha,
+                                             'epsilonImpute': 10e-8,
+                                             'lognugmean': -15,
+                                             'lognugLB': -22,
+                                             },
                                        options={'xrmnan': 'all',
                                                 'thetarmnan': 'never',
                                                 'return_grad': True})
                 emuPCGPwMfixedb = emulator(x, theta, np.copy(f), method='PCGPwM',
                                            args={'dampalpha': alpha,
-                                                 'varconstant'})
+                                                 'epsilonImpute': 10e-8,
+                                                 'varconstant': 1,
+                                                 'lognugmean': -15,
+                                                 'lognugLB': -22,
+                                                 },
+                                           options={'xrmnan': 'all',
+                                                    'thetarmnan': 'never',
+                                                    'return_grad': True}
+                                           )
                 # test theta
                 print('\n Test errors')
-                for emu in [emuPCGPwM, emuPCGPwMmed]: # [emuGPy, emuPCGPwM, emuPCGPwMtoosmall, emuPCGPwMsmall, emuPCGPwMmed, emuPCGPwMbig, emuPCGPwMtoobig]: #, emuPCGPwM1, emuPCGPwM2, emuPCGPwM5]:
-                    d = errors(emu, x, testtheta, model, modelname, random)
+                for emu in [emuPCGPwM, emuPCGPwMfixedb]: # [emuGPy, emuPCGPwM, emuPCGPwMtoosmall, emuPCGPwMsmall, emuPCGPwMmed, emuPCGPwMbig, emuPCGPwMtoobig]: #, emuPCGPwM1, emuPCGPwM2, emuPCGPwM5]:
+                    d = errors(x, testtheta, model, modelname, random, ntheta,
+                               0.05, emu, emutime=0, method='PCGPwM')
                     error_results.append(d)
                     print(d)
 
     error_df = pd.DataFrame(error_results)
     df = error_df.to_json()
 
-    dirname = r'C:\Users\moses\Desktop\git\surmise\research\emucomp\results'
+    dirname = r'C:\Users\moses\Desktop\git\surmise\research\emucomp\results_alphabeta'
     fname = r'\errors_{:s}_random{:s}.json'.format(time.strftime('%Y%m%d%H%M%S'), str(random))
     with open(dirname+fname, 'w') as f:
         json.dump(df, f)
