@@ -22,7 +22,7 @@ setup(
     author_email="ozgesurer2019@u.northwestern.edu",
     description="A modular interface for surrogate models and tools",
     url="https://github.com/surmising/surmise",
-    packages=['surmise','surmise.emulation','surmise.calibration']
+    packages=['surmise','surmise.emulation','surmise.calibration'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
