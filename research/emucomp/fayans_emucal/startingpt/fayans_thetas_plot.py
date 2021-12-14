@@ -17,6 +17,10 @@ PCGPkNNpostthetas = np.loadtxt('PCGPkNNthetas.txt')
 PCGPwMpostthetas = np.loadtxt('PCGPwMposttheta.txt')
 Simplepostthetas = np.loadtxt('Simpleposttheta.txt')
 
+ciPCGPwM = np.array((-1, 1)) @ np.quantile(PCGPwMpostthetas, (0.05, 0.95), axis=0)
+ciPCGPkNN = np.array((-1, 1)) @ np.quantile(PCGPkNNpostthetas, (0.05, 0.95), axis=0)
+ciSimple = np.array((-1, 1)) @ np.quantile(Simplepostthetas, (0.05, 0.95), axis=0)
+
 dfwM = pd.DataFrame(PCGPwMpostthetas, columns=fayans_cols[:-1])
 dfkNN = pd.DataFrame(PCGPkNNpostthetas, columns=fayans_cols[:-1])
 dfSimple = pd.DataFrame(Simplepostthetas, columns=fayans_cols[:-1])
