@@ -7,8 +7,8 @@ import copy
 from surmise.emulationsupport.matern_covmat import covmat as __covmat
 
 def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
-        lognugmean=-10, lognugLB=-20, varconstant=None, eta=10,
-        simvars = None,
+        lognugmean=-10, lognugLB=-20, varconstant=None, dampalpha=0.3, eta=10,
+        simsd=None,
         standardpcinfo=None, verbose=0, **kwargs):
     '''
     The purpose of fit is to take information and plug all of our fit
@@ -54,6 +54,10 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
         A multiplying constant to control the inflation (deflation) of additional
         variances if missing values are present. Default is None, the parameter will
         be optimized in such case. A general working range is (np.exp(-4), np.exp(4)).
+    dampalpha : scalar
+        A parameter to control the rate of increase of variance as amount of missing
+        values increases.  Default is 0.3, otherwise an appropriate range is (0, 0.5).
+        Values larger than 0.5 are permitted but it leads to poor empirical performance.
     eta : scalar
         A parameter as an upper bound for the additional variance term.  Default is 10.
     standardpcinfo : dict
@@ -83,7 +87,13 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
 
     '''
     f = f.T
-
+    # Check for missing or failed values
+    if not np.all(np.isfinite(f)):
+        fitinfo['mof'] = np.logical_not(np.isfinite(f))
+        fitinfo['mofrows'] = np.where(np.any(fitinfo['mof'] > 0.5, 1))[0]
+    else:
+        fitinfo['mof'] = None
+        fitinfo['mofrows'] = None
 
     fitinfo['epsilonImpute'] = epsilonImpute
     fitinfo['epsilonPC'] = epsilonPC
@@ -91,6 +101,7 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
     hyp2 = lognugLB
     hypvarconst = np.log(varconstant) if varconstant is not None else None
 
+    fitinfo['dampalpha'] = dampalpha
     fitinfo['eta'] = eta
 
     fitinfo['theta'] = theta
@@ -103,11 +114,8 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
     else:
         fitinfo['standardpcinfo'] = standardpcinfo
 
-
-
     # Construct principal components
-    __PCs(fitinfo)
-    __PCerrorcalc(fitinfo, simvars)
+    __PCs(fitinfo,simsd)
     numpcs = fitinfo['pc'].shape[1]
 
     if verbose > 0:
@@ -116,12 +124,10 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
     # Fit emulators for all PCs
     emulist = __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, hypvarconst)
     fitinfo['varc_status'] = 'fixed' if varconstant is not None else 'optimized'
-    fitinfo['logvarc'] = np.array([emulist[i]['hypvarconst'] for i in range(numpcs)])
-    fitinfo['pcstdvar'] = np.exp(fitinfo['logvarc']) * fitinfo['unscaled_pcstdvar']
+    #fitinfo['logvarc'] = np.array([emulist[i]['hypvarconst'] for i in range(numpcs)])
+    fitinfo['pcstdvar'] = fitinfo['unscaled_pcstdvar']
     fitinfo['emulist'] = emulist
-
     return
-
 
 def predict(predinfo, fitinfo, x, theta, **kwargs):
     r"""
@@ -308,6 +314,7 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
                      (pctscale[xind, :].T)[None, :, :]).transpose(3, 1, 2, 0)
     return
 
+
 def predictlpdf(predinfo, f, return_grad=False, addvar=0, **kwargs):
     totvar = addvar + predinfo['extravar']
     rf = ((f.T - predinfo['mean'].T) * (1 / np.sqrt(totvar))).T
@@ -341,13 +348,15 @@ def predictlpdf(predinfo, f, return_grad=False, addvar=0, **kwargs):
     else:
         return (-likv / 2).reshape(-1, 1)
 
-
 def __standardizef(fitinfo, offset=None, scale=None):
     r'''Standardizes f by creating offset, scale and fs.  When appropriate,
     imputes values for `f`.'''
     # Extracting from input dictionary
     f = fitinfo['f']
+    mof = fitinfo['mof']
+    mofrows = fitinfo['mofrows']
     epsilonPC = fitinfo['epsilonPC']
+
     if (offset is not None) and (scale is not None):
         if offset.shape[0] == f.shape[1] and scale.shape[0] == f.shape[1]:
             if np.any(np.nanmean(np.abs(f - offset) / scale, 1) > 4):
@@ -364,16 +373,39 @@ def __standardizef(fitinfo, offset=None, scale=None):
             scale[k] = np.nanstd(f[:, k]) / np.sqrt(1-np.isnan(f[:, k]).mean())
             if scale[k] == 0:
                 raise ValueError("You have a row that is non-varying.")
-
-    fs = (f - offset) / scale
-
+    fs = np.zeros(f.shape)
+    if mof is None:
+        fs = (f - offset) / scale
+    else:
+        epsilonImpute = fitinfo['epsilonImpute']
+        # Imputes missing values
+        for k in range(0, f.shape[1]):
+            fs[:, k] = (f[:, k] - offset[k]) / scale[k]
+            if np.sum(mof[:, k]) > 0:
+                a = np.empty((np.sum(mof[:, k]),))
+                a[::2] = 2
+                a[1::2] = -2
+                fs[np.where(mof[:, k])[0], k] = (a - np.mean(a))
+        for iters in range(0, 40):
+            U, S, _ = np.linalg.svd(fs.T, full_matrices=False)
+            Sp = S ** 2 - epsilonPC
+            Up = U[:, Sp > 0]
+            Sp = np.sqrt(Sp[Sp > 0])
+            for j in range(0, mofrows.shape[0]):
+                rv = mofrows[j]
+                wheremof = np.where(mof[rv, :] > 0.5)[0]
+                wherenotmof = np.where(mof[rv, :] < 0.5)[0]
+                H = Up[wherenotmof, :].T @ Up[wherenotmof, :]
+                Amat = epsilonImpute * np.diag(1 / (Sp ** 2)) + H
+                J = Up[wherenotmof, :].T @ fs[rv, wherenotmof]
+                fs[rv, wheremof] = (Up[wheremof, :] *
+                                    ((Sp / np.sqrt(epsilonImpute)) ** 2)) @ \
+                                   (J - H @ (spla.solve(Amat, J, assume_a='pos')))
     # Assigning new values to the dictionary
     U, S, _ = np.linalg.svd(fs.T, full_matrices=False)
     Sp = S ** 2 - epsilonPC
     Up = U[:, Sp > 0]
-
     extravar = np.nanmean((fs - fs @ Up @ Up.T) ** 2, 0) * (scale ** 2)
-
     standardpcinfo = {'offset': offset,
                       'scale': scale,
                       'fs': fs,
@@ -386,12 +418,14 @@ def __standardizef(fitinfo, offset=None, scale=None):
     return
 
 
-def __PCs(fitinfo):
+def __PCs(fitinfo, simsd):
     "Apply PCA to reduce the dimension of `f`."
     # Extracting from input dictionary
     f = fitinfo['f']
+    mof = fitinfo['mof']
+    mofrows = fitinfo['mofrows']
     epsilonPC = fitinfo['epsilonPC']
-    print(epsilonPC)
+
     fs = fitinfo['standardpcinfo']['fs']
     if 'U' in fitinfo['standardpcinfo']:
         U = fitinfo['standardpcinfo']['U']
@@ -403,7 +437,21 @@ def __PCs(fitinfo):
     pcw = np.sqrt(Sp[Sp > 0])
     pc = fs @ pct
     pcstdvar = np.zeros((f.shape[0], pct.shape[1]))
-
+    if mof is not None:
+        epsilonImpute = fitinfo['epsilonImpute']
+        for j in range(0, mofrows.shape[0]):
+            rv = mofrows[j]
+            wherenotmof = np.where(mof[rv, :] < 0.5)[0]
+            H = pct[wherenotmof, :].T @ pct[wherenotmof, :]
+            Amat = np.diag(epsilonImpute / (pcw ** 2)) + H
+            J = pct[wherenotmof, :].T @ fs[rv, wherenotmof]
+            pc[rv, :] = (pcw ** 2 / epsilonImpute + 1) * \
+                        (J - H @ np.linalg.solve(Amat, J))
+            fs[rv, :] = pc[rv, :] @ pct.T
+            Qmat = np.diag(epsilonImpute / pcw ** 2) + H
+            term3 = np.diag(H) - \
+                np.sum(H * spla.solve(Qmat, H, assume_a='pos'), 0)
+            pcstdvar[rv, :] = 1 - (pcw ** 2 / epsilonImpute + 1) * term3
     fitinfo['pcw'] = pcw
     fitinfo['pcto'] = 1 * pct
     # pcw contains the singular values from SVD, in complete data pcw
@@ -413,20 +461,13 @@ def __PCs(fitinfo):
     effn = np.sum(np.clip(1 - pcstdvar, 0, 1))
     fitinfo['pct'] = pct * pcw / np.sqrt(effn)
     fitinfo['pcti'] = pct * (np.sqrt(effn) / pcw)
+    # fitinfo['pc'] = pc * (np.sqrt(effn) / pcw)
     fitinfo['pc'] = fs @ fitinfo['pct']
-    fitinfo['unscaled_pcstdvar'] = pcstdvar
+    stdvarsadj = (simsd.T / fitinfo['standardpcinfo']['scale']) ** 2
+    fitinfo['unscaled_pcstdvar'] = (stdvarsadj @ (fitinfo['pct'] ** 2)) / (fitinfo['pc'].var(0))
     return
 
-def __PCerrorcalc(fitinfo,stderrors):
-    print('1+1')
-    s
-    fitinfo['pc'] = stderrors * fitinfo['pct']
-    stderrorsadj = stderrors / fitinfo['standardpcinfo']['scale']
 
-    print(fitinfo['pc'].shape)
-
-
-    return
 
 
 def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant):
@@ -452,9 +493,11 @@ def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant):
                                             hyp2=hyp2,
                                             hypvarconst=varconstant,
                                             gvar=fitinfo['unscaled_pcstdvar'][:, pcanum],
+                                            dampalpha=fitinfo['dampalpha'],
                                             eta=fitinfo['eta'],
                                             hypstarts=hypstarts[hypwhere, :],
-                                            hypinds=hypwhere)
+                                            hypinds=hypwhere,
+                                            sig2ofconst=0.00001)
             else:
                 emulist[pcanum] = __fitGP1d(theta=theta,
                                             g=fitinfo['pc'][:, pcanum],
@@ -462,7 +505,9 @@ def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant):
                                             hyp2=hyp2,
                                             hypvarconst=varconstant,
                                             gvar=fitinfo['unscaled_pcstdvar'][:, pcanum],
-                                            eta=fitinfo['eta'])
+                                            dampalpha=fitinfo['dampalpha'],
+                                            eta=fitinfo['eta'],
+                                            sig2ofconst=0.00001)
                 hypstarts = np.zeros((numpcs, emulist[pcanum]['hyp'].shape[0]))
             emulist[pcanum]['hypind'] = min(pcanum, emulist[pcanum]['hypind'])
             hypstarts[pcanum, :] = emulist[pcanum]['hyp']
@@ -472,24 +517,21 @@ def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant):
     return emulist
 
 
-def __fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar=None, eta=None,
-              hypstarts=None, hypinds=None):
+def __fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar=None, dampalpha=None, eta=None,
+              hypstarts=None, hypinds=None, sig2ofconst=None):
     """Return a fitted model from the emulator model using smart method."""
-    hypvarconstmean = 4 if hypvarconst is None else hypvarconst
-    hypvarconstLB = -8 if hypvarconst is None else hypvarconst - 0.5
-    hypvarconstUB = 8 if hypvarconst is None else hypvarconst + 0.5
+    hypvarconstmean = 0
+    hypvarconstLB = -3
+    hypvarconstUB = 3
 
     subinfo = {}
     subinfo['hypregmean'] = np.append(0 + 0.5 * np.log(theta.shape[1]) +
-                                      np.log(np.std(theta, 0)), (0, hypvarconstmean, hyp1))
+                                      np.log(np.std(theta, 0)), (0, hypvarconstmean, -17))
     subinfo['hypregLB'] = np.append(-4 + 0.5 * np.log(theta.shape[1]) +
-                                    np.log(np.std(theta, 0)), (-12, hypvarconstLB, hyp2))
-
+                                    np.log(np.std(theta, 0)), (-12, hypvarconstLB, -20))
     subinfo['hypregUB'] = np.append(4 + 0.5 * np.log(theta.shape[1]) +
-                                    np.log(np.std(theta, 0)), (2, hypvarconstUB, -8))
+                                    np.log(np.std(theta, 0)), (6, hypvarconstUB, -15))
     subinfo['hypregstd'] = (subinfo['hypregUB'] - subinfo['hypregLB']) / 8
-    subinfo['hypregstd'][-3] = 2
-    subinfo['hypregstd'][-1] = 4
     subinfo['hyp'] = 1 * subinfo['hypregmean']
     nhyptrain = np.max(np.min((20 * theta.shape[1], theta.shape[0])))
     if theta.shape[0] > nhyptrain:
@@ -499,6 +541,11 @@ def __fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar=None, eta=None,
     subinfo['theta'] = theta[thetac, :]
     subinfo['g'] = g[thetac]
 
+    # maxgvar = np.max(gvar)
+    # gvar = gvar / ((np.abs(maxgvar*1.001 - gvar)) ** dampalpha)
+    # gvar = np.minimum(eta, gvar / ((1 - gvar)**dampalpha))
+
+    subinfo['sig2ofconst'] = sig2ofconst
     subinfo['gvar'] = gvar[thetac]
     hypind0 = -1
 
@@ -544,7 +591,7 @@ def __fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar=None, eta=None,
                              options={'gtol': 0.1},
                              jac=scaledlikgrad,
                              bounds=spo.Bounds(newLB, newUB))
-
+        print(opval)
         hypn = subinfo['hypregmean'] + opval.x * subinfo['hypregstd']
         likdiff = (L0 - __negloglik(hypn, subinfo))
     else:
@@ -567,7 +614,7 @@ def __fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar=None, eta=None,
         fcenter = Vh.T @ g
         subinfo['Vh'] = Vh
         n = subinfo['R'].shape[0]
-        subinfo['sig2'] = np.mean(fcenter ** 2)
+        subinfo['sig2'] = (np.mean(fcenter ** 2) * n + sig2ofconst) / (n + sig2ofconst)
         subinfo['Rinv'] = V @ np.diag(1 / W) @ V.T
     else:
         subinfo['hyp'] = hypn
@@ -584,7 +631,7 @@ def __fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar=None, eta=None,
         W, V = np.linalg.eigh(subinfo['R'])
         Vh = V / np.sqrt(np.abs(W))
         fcenter = Vh.T @ g
-        subinfo['sig2'] = np.mean(fcenter ** 2)
+        subinfo['sig2'] = (np.mean(fcenter ** 2) * n + sig2ofconst) / (n + sig2ofconst)
         subinfo['Rinv'] = Vh @ Vh.T
         subinfo['Vh'] = Vh
     subinfo['pw'] = subinfo['Rinv'] @ g
@@ -599,14 +646,13 @@ def __negloglik(hyp, info):
 
     if info['gvar'] is not None:
         R += np.exp(hyp[-2])*np.diag(info['gvar'])
-
-
     W, V = np.linalg.eigh(R)
     Vh = V / np.sqrt(np.abs(W))
     fcenter = Vh.T @ info['g']
     n = info['g'].shape[0]
 
-    sig2hat = np.mean(fcenter ** 2)
+    sig2ofconst = info['sig2ofconst']
+    sig2hat = (n * np.mean(fcenter ** 2) + sig2ofconst) / (n + sig2ofconst)
     negloglik = 1 / 2 * np.sum(np.log(np.abs(W))) + 1 / 2 * n * np.log(sig2hat)
     negloglik += 0.5 * np.sum(((10 ** (-8) + hyp - info['hypregmean']) /
                                (info['hypregstd'])) ** 2)
@@ -635,14 +681,15 @@ def __negloglikgrad(hyp, info):
     fcenter = Vh.T @ info['g']
     n = info['g'].shape[0]
 
-    sig2hat = np.mean(fcenter ** 2)  / n
+    sig2ofconst = info['sig2ofconst']
+    sig2hat = (n * np.mean(fcenter ** 2) + sig2ofconst) / (n + sig2ofconst)
     dnegloglik = np.zeros(dR.shape[2])
     Rinv = Vh @ Vh.T
 
     for k in range(0, dR.shape[2]):
         dsig2hat = - np.sum((Vh @
                              np.multiply.outer(fcenter, fcenter) @
-                             Vh.T) * dR[:, :, k]) / n
+                             Vh.T) * dR[:, :, k]) / (n + sig2ofconst)
         dnegloglik[k] += 0.5 * n * dsig2hat / sig2hat
         dnegloglik[k] += 0.5 * np.sum(Rinv * dR[:, :, k])
 
