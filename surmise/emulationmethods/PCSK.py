@@ -432,38 +432,23 @@ def __PCs(fitinfo, simsd):
         S = fitinfo['standardpcinfo']['S']
     else:
         U, S, _ = np.linalg.svd(fs.T, full_matrices=False)
-    Sp = S ** 2 - epsilonPC
-    pct = U[:, Sp > 0]
-    pcw = np.sqrt(Sp[Sp > 0])
+    pc = fs @ U
+
+    stdvarsadj = (simsd.T / fitinfo['standardpcinfo']['scale']) ** 2
+    ucpcsc = (stdvarsadj @ (U ** 2)) / (pc.var(0))
+    Sp = S ** 2
+    pct = U[:, ucpcsc.mean(0)<1.]
+    pcw = np.sqrt(Sp[ucpcsc.mean(0)<1.])
     pc = fs @ pct
     pcstdvar = np.zeros((f.shape[0], pct.shape[1]))
-    if mof is not None:
-        epsilonImpute = fitinfo['epsilonImpute']
-        for j in range(0, mofrows.shape[0]):
-            rv = mofrows[j]
-            wherenotmof = np.where(mof[rv, :] < 0.5)[0]
-            H = pct[wherenotmof, :].T @ pct[wherenotmof, :]
-            Amat = np.diag(epsilonImpute / (pcw ** 2)) + H
-            J = pct[wherenotmof, :].T @ fs[rv, wherenotmof]
-            pc[rv, :] = (pcw ** 2 / epsilonImpute + 1) * \
-                        (J - H @ np.linalg.solve(Amat, J))
-            fs[rv, :] = pc[rv, :] @ pct.T
-            Qmat = np.diag(epsilonImpute / pcw ** 2) + H
-            term3 = np.diag(H) - \
-                np.sum(H * spla.solve(Qmat, H, assume_a='pos'), 0)
-            pcstdvar[rv, :] = 1 - (pcw ** 2 / epsilonImpute + 1) * term3
+    effn = np.sum(np.clip(1 - pcstdvar, 0, 1))
     fitinfo['pcw'] = pcw
     fitinfo['pcto'] = 1 * pct
-    # pcw contains the singular values from SVD, in complete data pcw
-    # scales with np.sqrt(pc.shape[0]), where pc.shape[0] is the number
-    # of parameters. With missing data, we approximate the growth to be
-    # np.sqrt(np.sum(1-pcstdvar)))
-    effn = np.sum(np.clip(1 - pcstdvar, 0, 1))
+
     fitinfo['pct'] = pct * pcw / np.sqrt(effn)
     fitinfo['pcti'] = pct * (np.sqrt(effn) / pcw)
     # fitinfo['pc'] = pc * (np.sqrt(effn) / pcw)
     fitinfo['pc'] = fs @ fitinfo['pct']
-    stdvarsadj = (simsd.T / fitinfo['standardpcinfo']['scale']) ** 2
     fitinfo['unscaled_pcstdvar'] = (stdvarsadj @ (fitinfo['pct'] ** 2)) / (fitinfo['pc'].var(0))
     return
 
@@ -591,7 +576,6 @@ def __fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar=None, dampalpha=None, eta=
                              options={'gtol': 0.1},
                              jac=scaledlikgrad,
                              bounds=spo.Bounds(newLB, newUB))
-        print(opval)
         hypn = subinfo['hypregmean'] + opval.x * subinfo['hypregstd']
         likdiff = (L0 - __negloglik(hypn, subinfo))
     else:
