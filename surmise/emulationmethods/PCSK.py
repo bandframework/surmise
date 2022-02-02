@@ -437,8 +437,9 @@ def __PCs(fitinfo, simsd):
     stdvarsadj = (simsd.T / fitinfo['standardpcinfo']['scale']) ** 2
     ucpcsc = (stdvarsadj @ (U ** 2)) / (pc.var(0))
     Sp = S ** 2
-    pct = U[:, ucpcsc.mean(0)<1.]
-    pcw = np.sqrt(Sp[ucpcsc.mean(0)<1.])
+    keepsinds = (ucpcsc.mean(0)<1.) * (S**2 > epsilonPC)
+    pct = U[:, keepsinds]
+    pcw = np.sqrt(Sp[keepsinds])
     pc = fs @ pct
     pcstdvar = np.zeros((f.shape[0], pct.shape[1]))
     effn = np.sum(np.clip(1 - pcstdvar, 0, 1))
