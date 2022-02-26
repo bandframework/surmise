@@ -93,8 +93,8 @@ def predict(predinfo, fitinfo, x, theta, computecov=True, **kwargs):
     prediction_val = np.array(prediction_val).reshape(-1, d)
     prediction_sig_val = np.array(prediction_sig_val).reshape(-1, d)
 
-    predinfo['mean'] = prediction_val
-    predinfo['var'] = prediction_sig_val
+    predinfo['mean'] = prediction_val.T
+    predinfo['var'] = (prediction_sig_val.T)**2
     
 def predict_observables(model_parameters, fitinfo):
     """Predicts the observables for any model parameter value using the trained emulators.
