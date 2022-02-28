@@ -11,7 +11,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.gaussian_process import GaussianProcessRegressor as gpr
 from sklearn.gaussian_process import kernels as krnl
 
-def fit(fitinfo, x, theta, f, epsilon=0.1, **kwargs):
+def fit(fitinfo, x, theta, f, epsilon=0.1, standardpcinfo=None, **kwargs):
     
     prior = kwargs['prior']
     f = f.T
@@ -21,7 +21,7 @@ def fit(fitinfo, x, theta, f, epsilon=0.1, **kwargs):
     fitinfo['epsilon'] = epsilon
     
     standardizef(fitinfo)
-    PCA(fitinfo)
+    PCA(fitinfo, standardpcinfo)
     numpcs = fitinfo['pc_scores'].shape[1]
     
     # create a dictionary to save the emu info for each PC
@@ -56,27 +56,40 @@ def standardizef(fitinfo):
     fs = SS.fit_transform(f)
     fitinfo['fs'] = fs
     fitinfo['ss'] = SS
+
     
-def PCA(fitinfo):
-    epsilon = 1 - fitinfo['epsilon']
+def PCA(fitinfo, standardpcinfo):
     fs = fitinfo['fs']
     SS = fitinfo['ss']
-    
-    u, s, vh = np.linalg.svd(fs, full_matrices=True)
+    if standardpcinfo == None:
+        epsilon = 1 - fitinfo['epsilon']
 
-    importance = np.square(s/math.sqrt(u.shape[0] - 1))
-    cum_importance = np.cumsum(importance)/np.sum(importance)
-    
-    pc_no = [c_id for c_id, c in enumerate(cum_importance) if c > epsilon][0]
+        u, s, vh = np.linalg.svd(fs, full_matrices=True)
 
-    # Scale Transformation from PC space to original data space
-    inverse_tf_matrix = np.diag(s[0:pc_no]) @ vh[0:pc_no, :] * SS.scale_.reshape(1, -1)/math.sqrt(u.shape[0]-1)
+        importance = np.square(s/math.sqrt(u.shape[0] - 1))
+        cum_importance = np.cumsum(importance)/np.sum(importance)
+        
+        pc_no = [c_id for c_id, c in enumerate(cum_importance) if c > epsilon][0]
     
-    print('pc_no:', pc_no)
-    pc_scores = u[:, 0:pc_no] * math.sqrt(u.shape[0] - 1)
-    
-    fitinfo['pc_scores'] = pc_scores
-    fitinfo['inverse_tf'] = inverse_tf_matrix
+        # Scale Transformation from PC space to original data space
+        inverse_tf_matrix = np.diag(s[0:pc_no]) @ vh[0:pc_no, :] * SS.scale_.reshape(1, -1)/math.sqrt(u.shape[0] - 1)
+        
+        print('pc_no:', pc_no)
+        pc_scores = u[:, 0:pc_no] * math.sqrt(u.shape[0] - 1)
+        
+        fitinfo['pc_scores'] = pc_scores
+        fitinfo['inverse_tf'] = inverse_tf_matrix
+    else:
+        u = standardpcinfo['U']
+        s = standardpcinfo['S']
+        vh = standardpcinfo['V']
+        inverse_tf_matrix = np.diag(s) @ vh * SS.scale_.reshape(1, -1)/math.sqrt(u.shape[0] - 1)
+        pc_scores = u * math.sqrt(u.shape[0] - 1)
+        
+        fitinfo['pc_scores'] = pc_scores
+        fitinfo['inverse_tf'] = inverse_tf_matrix
+        
+        
     
 def predict(predinfo, fitinfo, x, theta, computecov=True, **kwargs):
 
