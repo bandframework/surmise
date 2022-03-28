@@ -80,7 +80,6 @@ def fit(fitinfo, emu, x, y, **bayes_args):
 
     # Define the posterior function
     def logpostfull(theta, return_grad=False):
-
         logpost = thetaprior.lpdf(theta)
         inds = np.where(np.isfinite(logpost))[0]
         if len(inds) > 0:
@@ -105,9 +104,22 @@ def fit(fitinfo, emu, x, y, **bayes_args):
         return theta0
 
     # Call the sampler
-    sampler_obj = sampler(logpost_func=logpostfull,
-                          draw_func=draw_func,
-                          **bayes_args)
+    if 'sampler' in bayes_args.keys():
+        name = bayes_args['sampler']
+        print(f'Using {name} sampler')
+    else:
+        name = 'unspecified'
+    print(f'Using {name} sampler')
+    if name == 'PTMC':
+        def log_lik(theta): return loglik(fitinfo, emu, theta, y, x)
+
+        sampler_obj = sampler(logpostfull,thetaprior.rnd, log_likelihood=log_lik,
+                                log_prior =thetaprior.lpdf,
+                                **bayes_args)
+    else:
+        sampler_obj = sampler(logpost_func=logpostfull,
+                                draw_func=draw_func,
+                                **bayes_args)
 
     theta = sampler_obj.sampler_info['theta']
 
@@ -115,6 +127,7 @@ def fit(fitinfo, emu, x, y, **bayes_args):
     fitinfo['thetarnd'] = theta
     fitinfo['y'] = y
     fitinfo['x'] = x
+    fitinfo['emu'] = emu
     return
 
 
@@ -243,3 +256,21 @@ def loglik(fitinfo, emu, theta, y, x):
                                  0.5 * np.sum(np.log(CovMatEigS)))
 
     return loglikelihood
+
+def thetalpdf(info, theta, args=None):
+    '''
+    Returns log of the posterior of the given theta.
+
+    Not required.
+    '''
+    emu = info['emu']
+    y = info['y']
+    x = info['x']
+    thetaprior = info['thetaprior']
+    logpost = thetaprior.lpdf(theta)
+    if logpost.ndim > 0.5 and logpost.shape[0] > 1.5:
+        inds = np.where(np.isfinite(logpost))[0]
+        logpost[inds] += loglik(info, emu, theta[inds], y, x)
+    elif np.isfinite(logpost):
+        logpost += loglik(info, emu, theta, y, x)
+    return logpost
