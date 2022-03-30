@@ -8,7 +8,7 @@ from surmise.emulationsupport.matern_covmat import covmat as __covmat
 
 def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
         lognugmean=-10, lognugLB=-20, varconstant=None, dampalpha=0.3, eta=10,
-        simsd=None,
+        simsd=None, numpcs = -1,
         standardpcinfo=None, verbose=0, **kwargs):
     '''
     The purpose of fit is to take information and plug all of our fit
@@ -60,6 +60,9 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
         Values larger than 0.5 are permitted but it leads to poor empirical performance.
     eta : scalar
         A parameter as an upper bound for the additional variance term.  Default is 10.
+    numpcs : integer
+        An optional parameter to let a user pick the number of PCs.  Default is -1, which
+        automates the choice.
     standardpcinfo : dict
         A dictionary user supplies that contains information for standardization of `f`,
         in the following format, such that fs = (f - offset) / scale, U are the
@@ -107,6 +110,7 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
     fitinfo['theta'] = theta
     fitinfo['f'] = f
     fitinfo['x'] = x
+    fitinfo['numpcs'] = numpcs
 
     # Standardize the function evaluations f
     if standardpcinfo is None:
@@ -118,6 +122,7 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
     # Construct principal components
     __PCs(fitinfo,simsd)
     numpcs = fitinfo['pc'].shape[1]
+    fitinfo['numpcs'] = numpcs
 
     if verbose > 0:
         print(fitinfo['method'], 'considering ', numpcs, 'PCs')
@@ -396,6 +401,7 @@ def __PCs(fitinfo, simsd):
     mof = fitinfo['mof']
     mofrows = fitinfo['mofrows']
     epsilonPC = fitinfo['epsilonPC']
+    numpcs = fitinfo['numpcs']
 
     fs = fitinfo['standardpcinfo']['fs']
     if 'U' in fitinfo['standardpcinfo']:
@@ -411,7 +417,10 @@ def __PCs(fitinfo, simsd):
         stdvarsadj = (simsd.T / fitinfo['standardpcinfo']['scale']) ** 2
         ucpcsc = (stdvarsadj @ (U ** 2)) / (pc.var(0))
         Sp = S ** 2
-        keepsinds = (ucpcsc.mean(0)<1.) * (S**2 > epsilonPC)
+        if numpcs <= 0:
+            keepsinds = (ucpcsc.mean(0)<8.) * (S**2 > epsilonPC)
+        else:
+            keepsinds = range(0,numpcs)
         pct = U[:, keepsinds]
         pcw = np.sqrt(Sp[keepsinds])
     pc = fs @ pct
