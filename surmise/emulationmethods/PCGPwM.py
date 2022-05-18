@@ -918,7 +918,7 @@ def __verify_pcinfo(pcinfo, f):
         pcinfo['extravar'] = extravar
         return
 
-    if not 'U' in pcinfo.keys():
+    if 'U' not in pcinfo.keys():
         raise AttributeError('\'U\', the basis vectors must be provided.')
     if len(pcinfo.keys()) == 1:
         __fill_pcinfo(pcinfo, f)
