@@ -113,6 +113,7 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
     if standardpcinfo is None:
         __standardizef(fitinfo)
     else:
+        __verify_pcinfo(standardpcinfo, f)
         fitinfo['standardpcinfo'] = standardpcinfo
 
     # Construct principal components
@@ -894,3 +895,31 @@ def __negloglikgrad(hyp, info):
     dnegloglik += (10 ** (-8) +
                    hyp - info['hypregmean']) / ((info['hypregstd']) ** 2)
     return dnegloglik
+
+
+def __verify_pcinfo(pcinfo, f):
+    def __fill_pcinfo(pcinfo, f):
+        """
+        Completes pcinfo dictionary if only the basis vectors Phi (U) is given.
+        :return:
+        """
+        Phi = pcinfo['U']
+
+        offset = f.mean(0)
+        scale = np.ones(f.shape[1])
+        S = np.ones(Phi.shape[1])
+        fs = ((f - offset) / scale)
+        extravar = np.mean((fs.T - Phi @ Phi.T @ fs.T) ** 2, 1) * (scale ** 2)
+
+        pcinfo['offset'] = offset
+        pcinfo['scale'] = scale
+        pcinfo['S'] = S
+        pcinfo['fs'] = fs
+        pcinfo['extravar'] = extravar
+        return
+
+    if not 'U' in pcinfo.keys():
+        raise AttributeError('\'U\', the basis vectors must be provided.')
+    if len(pcinfo.keys()) == 1:
+        __fill_pcinfo(pcinfo, f)
+    return
