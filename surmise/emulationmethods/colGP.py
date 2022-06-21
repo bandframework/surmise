@@ -1,5 +1,4 @@
-"""PCGPwM method - PCGP with Missingness, an extension to PCGP
-(Higdon et al., 2008). """
+"""colGP method constructs an independent GP for every location. """
 
 import numpy as np
 import scipy.optimize as spo
@@ -11,15 +10,6 @@ def fit(fitinfo, x, theta, f,
     '''
     The purpose of fit is to take information and plug all of our fit
     information into fitinfo, which is a python dictionary.
-
-    .. note::
-       This is a modification of the method proposed by Higdon et al., 2008.
-       Refer to :py:func:`PCGP` for additional details.
-
-    Prior to performing the PCGP method (Higdon et al., 2008), the PCGPwM method
-    checks for missingness in `f` and provides imputations for the missing values
-    before conducting the PCGP method.  The method adds approximate variance at
-    each points requiring imputation.
 
     Parameters
     ----------
@@ -46,6 +36,7 @@ def fit(fitinfo, x, theta, f,
     # Check for missing or failed values
     fitinfo['mof'] = np.logical_not(np.isfinite(f))
     fitinfo['mofrows'] = np.where(np.any(fitinfo['mof'] > 0.5, 1))[0]
+    fitinfo['mofall'] = np.where(np.all(fitinfo['mof'], 1))[0]
 
     nx = x.shape[0]
 
@@ -71,19 +62,22 @@ def __standardizef(fitinfo):
     f = fitinfo['f']
     nx = fitinfo['nx']
     mof = fitinfo['mof']
+    mofall = fitinfo['mofall']
+    buildinds = np.delete(np.arange(nx), mofall)
+    fitinfo['buildinds'] = buildinds
 
-    offset = np.zeros(nx)
-    scale = np.zeros(nx)
+    offset = np.full(nx, np.nan)
+    scale = np.full(nx, np.nan)
 
     if mof is not None:
-        for k in range(0, nx):
+        for k in buildinds:
             offset[k] = np.nanmean(f[k])
             scale[k] = np.nanstd(f[k]) # / np.sqrt(1-np.isnan(f[:, k]).mean())
     else:
         offset = np.mean(f, 1)
         scale = np.std(f, 1)
     if (scale == 0).any():
-        raise ValueError('')
+        raise ValueError('One of the rows in f is non-varying.')
 
     fs = ((f.T - offset) / scale).T
 
@@ -94,9 +88,9 @@ def __standardizef(fitinfo):
 
 
 def __fitGPs(fitinfo, theta, nx, hyp1, hyp2):
-    """Fit emulators for all principle components."""
+    """Fit emulators for all locations (x)."""
     emulist = [dict() for x in range(nx)]
-    for j in range(0, nx):
+    for j in fitinfo['buildinds']:
         mask_j = fitinfo['mof'][j]
         emulist[j] = __fitGP1d(theta=theta[~mask_j],
                                g=fitinfo['fs'][j, ~mask_j],
@@ -184,7 +178,7 @@ def __negloglik(hyp, info):
 
 
 def __negloglikgrad(hyp, info):
-    """Return gradient of the penalized log likelihood of single demensional
+    """Return gradient of the penalized log likelihood of single dimensional
     GP model."""
     R0, dR = __covmat(info['theta'], info['theta'], hyp[:-1], True)
     nug = np.exp(hyp[-1]) / (1 + np.exp(hyp[-1]))
@@ -260,8 +254,8 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
             (kwargs['return_covx'] is False):
         return_covx = False
     infos = fitinfo['emulist']
-    predvecs = np.zeros((len(infos), theta.shape[0]))
-    predvars = np.zeros((len(infos), theta.shape[0]))
+    predvecs = np.full((len(infos), theta.shape[0]), np.nan)
+    predvars = np.full((len(infos), theta.shape[0]), np.nan)
 
     if return_grad:
         predvecs_gradtheta = np.zeros((theta.shape[0], len(infos),
@@ -294,7 +288,7 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
     rsave = np.array(np.ones(len(infos)), dtype=object)
 
     # loop over each x index
-    for k in range(0, len(infos)):
+    for k in fitinfo['buildinds']:
         # covariance matrix between new theta and thetas from fit.
         mask_k = fitinfo['mof'][k]
         if return_grad:
@@ -314,7 +308,7 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
             rVh2 = rVh @ (infos[k]['Vh']).T
         except Exception:
             for i in range(0, len(infos)):
-                print((i, infos[i]['hypind']))
+                print((i, k))
             raise ValueError('Something went wrong with fitted components')
 
         if rVh.ndim < 1.5:

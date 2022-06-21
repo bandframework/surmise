@@ -27,3 +27,13 @@ if __name__ == '__main__':
 
     emu_mis = emulator(x=x, theta=theta, f=f_mis, method='colGP')
     emupred_mis = emu_mis.predict()
+
+    f_misall = f.copy()
+    f_misall[5] = np.nan
+
+    emu_misall = emulator(x=x, theta=theta, f=f_misall, method='colGP',
+                          args={'warnings': True},
+                          options={'xrmnan': 'never',
+                                   'thetarmnan': 'never',
+                                   })
+    emupred_misall = emu_misall.predict()
