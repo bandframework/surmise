@@ -30,6 +30,7 @@ if __name__ == '__main__':
 
     f_misall = f.copy()
     f_misall[5] = np.nan
+    f_misall[1] = np.nan
 
     emu_misall = emulator(x=x, theta=theta, f=f_misall, method='colGP',
                           args={'warnings': True},

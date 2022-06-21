@@ -56,6 +56,7 @@ def fit(fitinfo, x, theta, f,
 
     return
 
+
 def __standardizef(fitinfo):
     r'''Standardizes f by creating offset, scale and fs.'''
     # Extracting from input dictionary
@@ -72,7 +73,7 @@ def __standardizef(fitinfo):
     if mof is not None:
         for k in buildinds:
             offset[k] = np.nanmean(f[k])
-            scale[k] = np.nanstd(f[k]) # / np.sqrt(1-np.isnan(f[:, k]).mean())
+            scale[k] = np.nanstd(f[k])  # / np.sqrt(1-np.isnan(f[:, k]).mean())
     else:
         offset = np.mean(f, 1)
         scale = np.std(f, 1)
@@ -116,8 +117,6 @@ def __fitGP1d(theta, g, hyp1, hyp2, sig2ofconst=1):
     subinfo['theta'] = theta
     subinfo['g'] = g
     subinfo['sig2ofconst'] = sig2ofconst
-
-    L0 = __negloglik(subinfo['hyp'], subinfo)
 
     def scaledlik(hypv):
         hyprs = subinfo['hypregmean'] + hypv * subinfo['hypregstd']
@@ -419,4 +418,3 @@ def predictlpdf(predinfo, f, return_grad=False, addvar=0, **kwargs):
         return (-likv / 2).reshape(-1, 1), (-dlikv / 2)
     else:
         return (-likv / 2).reshape(-1, 1)
-

@@ -4,6 +4,7 @@ import gpytorch
 from surmise.emulationsupport.LBFGS import FullBatchLBFGS
 from gpytorch.constraints.constraints import GreaterThan
 
+
 # Standard ExactGP model for exact inference
 class ExactGPModel(gpytorch.models.ExactGP):
     def __init__(self, train_x, train_y, likelihood):
@@ -27,7 +28,6 @@ def fit(fitinfo, x, theta, f, ignore_nan=True, max_iter=500, **kwargs):
         f = torch.from_numpy(f)
 
     if x is None:
-        col_no = theta.shape[1]
         # Train GP on those realizations
         f = f.T
 
@@ -53,7 +53,6 @@ def fit(fitinfo, x, theta, f, ignore_nan=True, max_iter=500, **kwargs):
                       for t_item in theta
                       for x_item in x]).reshape(row_flat, col_flat)
         )
-
 
         if ignore_nan:
             fisnan = torch.isnan(f_flat).squeeze()
@@ -86,8 +85,8 @@ def fit(fitinfo, x, theta, f, ignore_nan=True, max_iter=500, **kwargs):
     def closure():
         optimizer.zero_grad()
         output = model(xtheta)
-        l = -mll(output, f_flat)
-        return l
+        l0 = -mll(output, f_flat)
+        return l0
 
     loss = closure()
     loss.backward()
