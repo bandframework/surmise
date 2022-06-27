@@ -13,20 +13,30 @@ x.log
 .idea
 venv/
 examples/Example_Missingness_Benchmark_mosesyhc/
+examples/Example_Missingness_Benchmark_mosesyhc/fayans/newp2.npy
 
-build/lib.win-amd64-3.8/matern_covmat.cp38-win_amd64.pyd
+scratch/plumlee_lpdftesting/newp2.npy
 
-build/temp.win-amd64-3.8/Release/surmise/emulationsupport/matern_covmat.cp38-win_amd64.exp
+scratch/plumlee_lpdftesting/
 
-build/temp.win-amd64-3.8/Release/surmise/emulationsupport/matern_covmat.cp38-win_amd64.lib
+*.c
 
-build/temp.win-amd64-3.8/Release/surmise/emulationsupport/matern_covmat.obj
+OpenBLAS/
+
+*.pyd
+
+*.obj
 
 line_profiler/
 
-matern_covmat.cp38-win_amd64.pyd
+surmise/calibrationmethods/__pycache__/
+examples/Example_Missingness_Benchmark_mosesyhc/fayans/fayansdata/newp2.npy
+scratch/
+.spyproject/
+*.lib
+build/
 
-OpenBLAS/
+.eggs/
 
 surmise/emulationsupport/matern_covmat.c
 
