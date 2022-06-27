@@ -1,9 +1,8 @@
 """colGP method constructs an independent GP for every location. """
-
+import warnings
 import numpy as np
 import scipy.optimize as spo
 from surmise.emulationsupport.matern_covmat import covmat as __covmat
-
 
 def fit(fitinfo, x, theta, f,
         lognugmean=-10, lognugLB=-20, **kwargs):
@@ -38,6 +37,12 @@ def fit(fitinfo, x, theta, f,
     fitinfo['mofrows'] = np.where(np.any(fitinfo['mof'] > 0.5, 1))[0]
     fitinfo['mofall'] = np.where(np.all(fitinfo['mof'], 1))[0]
 
+    if len(fitinfo['mofall']) > 0:
+        warnings.warn("""Some rows are completely missing. An emulator will still be built, 
+                      but will return NaN predictions at those corresponding locations. 
+                      If you are to proceed with calibration with surmise, remove these 
+                      rows.""", stacklevel=2)
+
     nx = x.shape[0]
 
     hyp1 = lognugmean
@@ -64,6 +69,7 @@ def __standardizef(fitinfo):
     nx = fitinfo['nx']
     mof = fitinfo['mof']
     mofall = fitinfo['mofall']
+
     buildinds = np.delete(np.arange(nx), mofall)
     fitinfo['buildinds'] = buildinds
 
