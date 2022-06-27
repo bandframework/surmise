@@ -15,6 +15,13 @@ class Run_TestSuite(TestCommand):
 with open("README.rst", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
+extensions = [Extension('surmise.emulationsupport.matern_covmat',
+                        sources=['surmise/emulationsupport/matern_covmat.pyx'])
+              ]
+
+for e in extensions:
+    e.cython_directives = {'language_level': '3'}
+
 setup(
     name="surmise",
     version="0.1.1",
@@ -40,8 +47,6 @@ setup(
     extras_require={'extras': ['GPy'],
                     'docs': ['sphinx', 'sphinxcontrib.bibtex', 'sphinx_rtd_theme']},
     cmdclass={'test': Run_TestSuite},
-    ext_modules=[
-        Extension('surmise.emulationsupport.matern_covmat', sources=['surmise/emulationsupport/matern_covmat.pyx']),
-    ],
+    ext_modules=extensions,
     include_dirs=[numpy.get_include()]
 )
