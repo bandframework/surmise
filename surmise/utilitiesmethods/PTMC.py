@@ -69,10 +69,18 @@ def sampler(logpost_func,
         key 'logpost'.
 
     """
+    nburnin = int(nburnin)
+    ndim = int(ndim)
+    niterations= int(niterations)
+    ntemps= int(ntemps)
+    nthin= int(nthin)
+    nwalkers = int(nwalkers)
+    nthreads = int(nthreads)
+    Tmax = float(Tmax)
     global log_like
-    def log_like(x):return log_likelihood(x.reshape(-1,15))
+    def log_like(x):return log_likelihood(x.reshape(-1,ndim))
     global log_prior_fix
-    def log_prior_fix(x):return log_prior(x.reshape(-1,15))
+    def log_prior_fix(x):return log_prior(x.reshape(-1,ndim))
     #sampler=PTSampler(ntemps, nwalkers, ndim, logl, logp, threads=nthreads, betas=betas)
     ptsampler_ex=ptemcee.Sampler(nwalkers, ndim, log_like, log_prior_fix, ntemps, threads=nthreads, Tmax=Tmax)
 
