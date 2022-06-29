@@ -45,9 +45,9 @@ def fit(fitinfo, x, theta, f,
     fitinfo['mofall'] = np.where(np.all(fitinfo['mof'], 1))[0]
 
     if len(fitinfo['mofall']) > 0:
-        warnings.warn("""Some rows are completely missing. An emulator will still be built, 
-                      but will return NaN predictions at those corresponding locations. 
-                      If you are to proceed with calibration with surmise, remove these 
+        warnings.warn("""Some rows are completely missing. An emulator will still be built,
+                      but will return NaN predictions at those corresponding locations.
+                      If you are to proceed with calibration with surmise, remove these
                       rows.""", stacklevel=2)
 
     nx = x.shape[0]
