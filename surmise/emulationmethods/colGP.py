@@ -4,6 +4,7 @@ import numpy as np
 import scipy.optimize as spo
 from surmise.emulationsupport.matern_covmat import covmat as __covmat
 
+
 def fit(fitinfo, x, theta, f,
         lognugmean=-10, lognugLB=-20, **kwargs):
     '''
@@ -23,7 +24,13 @@ def fit(fitinfo, x, theta, f,
     f : numpy.ndarray
         An array of responses. Each column in f should correspond to a row in
         theta. Each row in f should correspond to a row in x.
-
+    lognugmean : scalar
+        A parameter to control the log of the nugget used in fitting the GPs.
+        The suggested range for lognugmean is (-12, -4).  The nugget is estimated,
+        and this parameter is used to guide the estimation.
+    lognugLB : scalar
+        A parameter to control the lower bound of the log of the nugget. The
+        suggested range for lognugLB is (-24, -12).
     kwargs : dict, optional
         A dictionary containing options. The default is None.
 
@@ -55,7 +62,7 @@ def fit(fitinfo, x, theta, f,
     # Standardize the function evaluations f
     __standardizef(fitinfo)
 
-    # Fit emulators for all PCs
+    # Fit emulators for all locations
     emulist = __fitGPs(fitinfo, theta, nx, hyp1, hyp2)
     fitinfo['emulist'] = emulist
 
@@ -107,7 +114,7 @@ def __fitGPs(fitinfo, theta, nx, hyp1, hyp2):
 
 
 def __fitGP1d(theta, g, hyp1, hyp2, sig2ofconst=1):
-    """Return a fitted model from the emulator model using smart method."""
+    """Return a fitted GP model."""
     subinfo = {}
     subinfo['hypregmean'] = np.append(0 + 0.5 * np.log(theta.shape[1]) +
                                       np.log(np.std(theta, 0)), (0, hyp1))
@@ -271,24 +278,6 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
     if predvecs.ndim < 1.5:
         predvecs = predvecs.reshape((1, -1))
         predvars = predvars.reshape((1, -1))
-    # try:
-    #     if x is None or np.all(np.equal(x, fitinfo['x'])) or \
-    #             np.allclose(x, fitinfo['x']):
-    #         xind = np.arange(0, x.shape[0])
-    #         xnewind = np.arange(0, x.shape[0])
-    #     else:
-    #         raise
-    # except Exception:
-    #     matchingmatrix = np.ones((x.shape[0], fitinfo['x'].shape[0]))
-    #     for k in range(0, x[0].shape[0]):
-    #         try:
-    #             matchingmatrix *= np.isclose(x[:, k][:, None],
-    #                                          fitinfo['x'][:, k])
-    #         except Exception:
-    #             matchingmatrix *= np.equal(x[:, k][:, None],
-    #                                        fitinfo['x'][:, k])
-    #     xind = np.argwhere(matchingmatrix > 0.5)[:, 1]
-    #     xnewind = np.argwhere(matchingmatrix > 0.5)[:, 0]
 
     rsave = np.array(np.ones(len(infos)), dtype=object)
 
@@ -362,33 +351,6 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
             predinfo['covxhalf'][:, :, k] = np.diag(CH[k])
         predinfo['covxhalf'] = predinfo['covxhalf'].transpose((2, 0, 1))
 
-    # if return_grad:
-    #     predinfo['mean_gradtheta'] = np.full((x.shape[0],
-    #                                           theta.shape[0],
-    #                                           theta.shape[1]), np.nan)
-    #     predinfo['mean_gradtheta'][xnewind, :, :] = \
-    #         ((predvecs_gradtheta.transpose(0, 2, 1) @
-    #           pctscale[xind, :].T)).transpose((2, 0, 1))
-    #     predinfo['predvars_gradtheta'] = 1 * predvars_gradtheta
-    #     predinfo['predvecs_gradtheta'] = 1 * predvecs_gradtheta
-    #
-    #     if return_covx:
-    #
-    #         dsqrtpredvars = 0.5 * (predvars_gradtheta.transpose(2, 0, 1) /
-    #                                np.sqrt(predvars)).transpose(1, 2, 0)
-    #
-    #         if np.allclose(xnewind, xind):
-    #             predinfo['covxhalf_gradtheta'] = \
-    #                 (dsqrtpredvars.transpose(2, 0, 1)[:, :, :, None] *
-    #                  (pctscale[xind, :].T)[None, :, :]).transpose(3, 1, 2, 0)
-    #         else:
-    #             predinfo['covxhalf_gradtheta'] = np.full((x.shape[0],
-    #                                                       theta.shape[0],
-    #                                                       CH.shape[1],
-    #                                                       theta.shape[1]), np.nan)
-    #             predinfo['covxhalf_gradtheta'][xnewind] = \
-    #                 (dsqrtpredvars.transpose(2, 0, 1)[:, :, :, None] *
-    #                  (pctscale[xind, :].T)[None, :, :]).transpose(3, 1, 2, 0)
     return
 
 
