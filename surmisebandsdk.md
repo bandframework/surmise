@@ -12,9 +12,9 @@
 > To suggest changes to these requirements or obtain more information, please contact [BAND](https://bandframework.github.io).
 
 
-**Website:** https://github.com/surmising/surmise\
-**Contact:** ozgesurer2019@u.northwestern.edu\
-**Icon:** https://avatars.githubusercontent.com/u/77858356?s=200&v=4\
+**Website:** https://github.com/surmising/surmise \
+**Contact:** ozgesurer2019@u.northwestern.edu \
+**Icon:** https://avatars.githubusercontent.com/u/77858356?s=200&v=4 \
 **Description:** surmise is a Python package that is designed to provide a surrogate model interface for calibration, uncertainty quantification, and other tools.
 
 
@@ -53,5 +53,5 @@ M4 details <a id="m4-details"></a>: This was chosen based on the MIT license bei
 |**R9.**| Use a limited and well-defined name space (e.g., symbol, macro, library, include) |Full| surmise uses `surmise` namespace. Modules have `surmise` prefix, and in `surmise` folder.|
 |**R10.**| Give best effort at portability to key architectures |Full| surmise is being regularly tested on Mac OS, Linux, and MS Windows. The current set of automatically tested, common architectures is viewable [here](https://github.com/surmising/surmise/blob/master/.github/workflows/python-package.yml) |
 |**R11.**| Install headers and libraries under `<prefix>/include` and `<prefix>/lib`, respectively |Full| The standard Python installation is used for Python dependencies. This installs external Python packages under `<install-prefix>/lib/python<X.Y>/site-packages/`.|
-|**R12.**| All BAND compatibility changes should be sustainable |Full| The BAND-compatible package is in the standard release path. All the changes here should be sustainable.|
+|**R12.**| All BAND compatibility changes should be sustainable |Full| The BAND-SDK-compatible package is in the standard release path. All the changes here should be sustainable.|
 |**R13.**| Respect system resources and settings made by other previously called packages |Full| surmise does not modify system resources or settings.|
