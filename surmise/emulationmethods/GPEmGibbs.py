@@ -5,6 +5,7 @@ import scipy.optimize as spo
 import scipy.linalg as spla
 from surmise.emulationsupport.GPEmGibbs_covmat_helper import setxcovf, setthetacovf
 
+
 def fit(fitinfo, x, theta, f, misval=None, cat=False,
         xcovfname='matern', thetacovfname='matern', **kwargs):
     '''
@@ -19,7 +20,7 @@ def fit(fitinfo, x, theta, f, misval=None, cat=False,
     fitinfo['xcovfname'] = xcovfname
     fitinfo['thetacovfname'] = thetacovfname
     if misval is not None:
-        if np.isnan(f).any() and (misval != np.isnan(f)).any():
+        if np.isnan(f).any() and np.any(misval != np.isnan(f)):
             fitinfo['misval'] = misval ^ np.isnan(f)
             warnings.warn('''The provided missing value matrix (mis) 
             is updated to include NaN values.''')
@@ -31,7 +32,7 @@ def fit(fitinfo, x, theta, f, misval=None, cat=False,
     emulation_hypest(emuinfo, 'indp')
 
     if emuinfo['misbool']:
-        Rs,Cs = emulation_matrixblockerfunction(emuinfo)
+        Rs, Cs = emulation_matrixblockerfunction(emuinfo)
         emulation_hypest(emuinfo)
         emulation_imputeiter(emuinfo, Rs, Cs, tol=10 ** (-3))
         emulation_hypest(emuinfo)
@@ -62,9 +63,9 @@ def __initialize(fitinfo, misval):
     x = fitinfo['x']
     theta = fitinfo['theta']
     n, m = f.shape
-    xval = (x[:, 0:(x.shape[1]-1)]).astype(float)
+    xval = (x[:, 0:(x.shape[1] - 1)]).astype(float)
     if fitinfo['cat']:
-        xcat = x[:, (x.shape[1]-1)]
+        xcat = x[:, (x.shape[1] - 1)]
     else:
         xcat = np.ones(m).astype(int)
 
@@ -92,30 +93,7 @@ def __initialize(fitinfo, misval):
     setxcovf(emuinfo, fitinfo['xcovfname'])
     setthetacovf(emuinfo, fitinfo['thetacovfname'])
 
-    gammasigmasq0 = np.ones(uniquecat.shape[0])
-    gammasigmasqLB = np.ones(uniquecat.shape[0])
-    gammasigmasqUB = np.ones(uniquecat.shape[0])
-    gammamu0 = np.ones(uniquecat.shape[0])
-    gammamuLB = np.ones(uniquecat.shape[0])
-    gammamuUB = np.ones(uniquecat.shape[0])
-    for k in range(numcat):
-        fconsid = f[np.squeeze(np.where(xcat == uniquecat[k]))]
-        meanvalsnow = np.nanmean(fconsid, 1)
-        gammasigmasq0[k] = 2+np.log(np.nanvar(fconsid))
-        gammasigmasqLB[k] = 0 + gammasigmasq0[k]
-        gammasigmasqUB[k] = 8 + gammasigmasq0[k]
-        gammamu0[k] = np.nanmean(meanvalsnow)
-        gammamuLB[k] = np.nanmin(meanvalsnow) - (np.nanmax(meanvalsnow)-np.nanmin(meanvalsnow))
-        gammamuUB[k] = np.nanmax(meanvalsnow) + (np.nanmax(meanvalsnow)-np.nanmin(meanvalsnow))
-    hypstatparstructure = [emuinfo['gammathetacovhyp0'].shape[0],
-                           emuinfo['gammathetacovhyp0'].shape[0]+emuinfo['gammaxcovhyp0'].shape[0],
-                           emuinfo['gammathetacovhyp0'].shape[0]+emuinfo['gammaxcovhyp0'].shape[0]+numcat,
-                           emuinfo['gammathetacovhyp0'].shape[0]+emuinfo['gammaxcovhyp0'].shape[0]+numcat+numcat]
-    emuinfo['gamma0'] = np.concatenate((emuinfo['gammathetacovhyp0'], emuinfo['gammaxcovhyp0'], gammasigmasq0, gammamu0))
-    emuinfo['gammaLB'] = np.concatenate((emuinfo['gammathetacovhypLB'], emuinfo['gammaxcovhypLB'], gammasigmasqLB, gammamuLB))
-    emuinfo['gammaUB'] = np.concatenate((emuinfo['gammathetacovhypUB'], emuinfo['gammaxcovhypUB'], gammasigmasqUB, gammamuUB))
-    emuinfo['hypstatparstructure'] = hypstatparstructure
-    emuinfo['gammahat'] = emuinfo['gamma0']
+    __sethyp(emuinfo)
 
     return emuinfo
 
@@ -132,128 +110,75 @@ def emulation_hypest(emuinfo, modeltype=None):
     if modeltype is None:
         modeltype = emuinfo['modeltype']
 
-    if modeltype == 'nonparasep':
-        try:
-            likeattempt = emulation_lik_nonparasep(emuinfo['gammahat'], emuinfo)
-            if likeattempt is float("inf"):
-                emuinfo['gammahat'] = emuinfo['gamma0']
-                likeattempt = emulation_lik_nonparasep(emuinfo['gammahat'],emuinfo)
-            myftol = 0.1 / np.max((np.abs(likeattempt),1))
-        except:
-            emuinfo['gammahat'] = emuinfo['gamma0']
-            likeattempt = emulation_lik_nonparasep(emuinfo['gammahat'],emuinfo)
-            myftol = 0.1 / np.max((np.abs(likeattempt),1))
-
-        bounds = spo.Bounds(emuinfo['gammaLB'],emuinfo['gammaUB'])
-        opval = spo.minimize(emulation_lik_nonparasep, emuinfo['gammahat'],
-                            args=(emuinfo),
-                            method='L-BFGS-B',
-                            options={'disp': False, 'ftol': myftol},
-                            jac = emulation_dlik_nonparasep,
-                            bounds=bounds)
-        emuinfo['gammahat'] = opval.x
-        emuinfo['R'] = emulation_getR(emuinfo)
-        emuinfo['mu'] = emulation_getmu(emuinfo)
-
-#        print(emuinfo['hypstatparstructure'])
-        emuinfo['gammathetacovhyp'] = emuinfo['gammahat'][0:(emuinfo['hypstatparstructure'][0])]
-        emuinfo['gammaxcovhyp'] = emuinfo['gammahat'][(emuinfo['hypstatparstructure'][0]):(emuinfo['hypstatparstructure'][1])]
-        emuinfo['gammasigmasq'] = np.exp(emuinfo['gammahat'][(emuinfo['hypstatparstructure'][1]):(emuinfo['hypstatparstructure'][2])])
-        emuinfo['gammamu'] = emuinfo['gammahat'][(emuinfo['hypstatparstructure'][2]):]
-
-        R = emulation_getR(emuinfo)
-        mu = emulation_getmu(emuinfo)
-        sigma2 = emulation_getsigma2(emuinfo)
-
-        Sigmapart1 = emulation_getS(emuinfo)
-        emuinfo['S_prior'] = (np.diag(np.sqrt(sigma2)) @ Sigmapart1 @ np.diag(np.sqrt(sigma2)))
-        emuinfo['Phi_prior'] = emuinfo['nu'] * emuinfo['S_prior']
-        emuinfo['R_chol'] , _ = spla.lapack.dpotrf(emuinfo['R'],True,True)
-
-        emuinfo['R_inv'] = spla.solve_triangular(emuinfo['R_chol'], spla.solve_triangular(emuinfo['R_chol'], np.diag(np.ones(emuinfo['n'])), lower=True), lower=True, trans=True)
-
-        resid = emuinfo['fpred'] - emuinfo['mu']
-        residhalf = spla.solve_triangular(emuinfo['R_chol'], resid, lower=True)
-        emuinfo['residinv'] = spla.solve_triangular(emuinfo['R_chol'], residhalf, lower=True, trans=True)
-
-        emuinfo['Phi_post'] = emuinfo['Phi_prior'] + np.matmul(residhalf.transpose(),residhalf)
-        emuinfo['nu_post'] = emuinfo['n'] + emuinfo['nu']
-        emuinfo['S_post'] = emuinfo['Phi_post'] / emuinfo['nu_post']
-
-
-        emuinfo['Phi_post_chol'] , _ = spla.lapack.dpotrf(emuinfo['Phi_post'],True,True)
-        emuinfo['S_post_chol'] = emuinfo['Phi_post_chol'] / np.sqrt(emuinfo['nu_post'])
-
-        emuinfo['Phi_post_inv'] = spla.solve_triangular(emuinfo['Phi_post_chol'], spla.solve_triangular(emuinfo['Phi_post_chol'], np.diag(np.ones(emuinfo['m'])), lower=True), lower=True, trans=True)
-
-        emuinfo['pw'] = np.linalg.solve(emuinfo['S_post_chol'].T, np.linalg.solve(emuinfo['S_post_chol'], emuinfo['residinv'].transpose()))
     if modeltype == 'parasep':
         try:
-            likeattempt = emulation_lik_parasep(emuinfo['gammahat'],emuinfo)
-            if likeattempt is float("inf"):
+            likeattempt = emulation_lik_parasep(emuinfo['gammahat'], emuinfo)
+            if np.isinf(likeattempt):
                 emuinfo['gammahat'] = emuinfo['gamma0']
-                likeattempt = emulation_lik_parasep(emuinfo['gammahat'],emuinfo)
-            myftol = 0.1 / np.max((np.abs(likeattempt),1))
+                likeattempt = emulation_lik_parasep(emuinfo['gammahat'], emuinfo)
+            myftol = 0.1 / np.max((np.abs(likeattempt), 1))
         except:
             emuinfo['gammahat'] = emuinfo['gamma0']
-            likeattempt = emulation_lik_parasep(emuinfo['gammahat'],emuinfo)
-            myftol = 0.1 / np.max((np.abs(likeattempt),1))
-        bounds = spo.Bounds(emuinfo['gammaLB'],emuinfo['gammaUB'])
+            likeattempt = emulation_lik_parasep(emuinfo['gammahat'], emuinfo)
+            myftol = 0.1 / np.max((np.abs(likeattempt), 1))
+        bounds = spo.Bounds(emuinfo['gammaLB'], emuinfo['gammaUB'])
         opval = spo.minimize(emulation_lik_parasep, emuinfo['gammahat'],
-                    args=(emuinfo),
-                    method='L-BFGS-B',
-                    options={'disp': False, 'ftol': myftol},
-                    jac = emulation_dlik_parasep,
-                    bounds=bounds)
+                             args=(emuinfo),
+                             method='L-BFGS-B',
+                             options={'disp': False, 'ftol': myftol},
+                             jac=emulation_dlik_parasep,
+                             bounds=bounds)
         emuinfo['gammahat'] = opval.x
         emuinfo['R'] = emulation_getR(emuinfo)
         emuinfo['mu'] = emulation_getmu(emuinfo)
 
-#        print(emuinfo['hypstatparstructure'])
-        emuinfo['gammathetacovhyp'] =  emuinfo['gammahat'][0:(emuinfo['hypstatparstructure'][0])]
-        emuinfo['gammaxcovhyp'] = emuinfo['gammahat'][(emuinfo['hypstatparstructure'][0]):(emuinfo['hypstatparstructure'][1])]
-        emuinfo['gammasigmasq'] = np.exp(emuinfo['gammahat'][(emuinfo['hypstatparstructure'][1]):(emuinfo['hypstatparstructure'][2])])
+        emuinfo['gammathetacovhyp'] = emuinfo['gammahat'][0:(emuinfo['hypstatparstructure'][0])]
+        emuinfo['gammaxcovhyp'] = emuinfo['gammahat'][
+                                  (emuinfo['hypstatparstructure'][0]):(emuinfo['hypstatparstructure'][1])]
+        emuinfo['gammasigmasq'] = np.exp(
+            emuinfo['gammahat'][(emuinfo['hypstatparstructure'][1]):(emuinfo['hypstatparstructure'][2])])
         emuinfo['gammamu'] = emuinfo['gammahat'][(emuinfo['hypstatparstructure'][2]):]
 
-        R = emulation_getR(emuinfo)
-        mu = emulation_getmu(emuinfo)
         sigma2 = emulation_getsigma2(emuinfo)
 
         Sigmapart1 = emulation_getS(emuinfo)
         emuinfo['S'] = (np.diag(np.sqrt(sigma2)) @ Sigmapart1 @ np.diag(np.sqrt(sigma2)))
-        emuinfo['R_chol'] , _ = spla.lapack.dpotrf(emuinfo['R'],True,True)
+        emuinfo['R_chol'], _ = spla.lapack.dpotrf(emuinfo['R'], True, True)
 
-        emuinfo['R_inv'] = spla.solve_triangular(emuinfo['R_chol'], spla.solve_triangular(emuinfo['R_chol'], np.diag(np.ones(emuinfo['n'])), lower=True), lower=True, trans=True)
+        emuinfo['R_inv'] = spla.solve_triangular(emuinfo['R_chol'],
+                                                 spla.solve_triangular(emuinfo['R_chol'], np.eye(emuinfo['n']),
+                                                                       lower=True), lower=True, trans=True)
 
         resid = emuinfo['fpred'] - emuinfo['mu']
         residhalf = spla.solve_triangular(emuinfo['R_chol'], resid, lower=True)
         emuinfo['residinv'] = spla.solve_triangular(emuinfo['R_chol'], residhalf, lower=True, trans=True)
 
-        emuinfo['S_chol'], _ = spla.lapack.dpotrf(emuinfo['S'],True,True)
-        emuinfo['S_inv'] = spla.solve_triangular(emuinfo['S_chol'], spla.solve_triangular(emuinfo['S_chol'], np.diag(np.ones(emuinfo['m'])), lower=True), lower=True, trans=True)
+        emuinfo['S_chol'], _ = spla.lapack.dpotrf(emuinfo['S'], True, True)
+        emuinfo['S_inv'] = spla.solve_triangular(emuinfo['S_chol'],
+                                                 spla.solve_triangular(emuinfo['S_chol'], np.eye(emuinfo['m']),
+                                                                       lower=True), lower=True, trans=True)
 
-        emuinfo['pw'] = np.linalg.solve(emuinfo['S_chol'].T, np.linalg.solve(emuinfo['S_chol'], emuinfo['residinv'].transpose()))
+        emuinfo['pw'] = np.linalg.solve(emuinfo['S_chol'].T,
+                                        np.linalg.solve(emuinfo['S_chol'], emuinfo['residinv'].transpose()))
     else:
-        #emulation_likderivativetester(emulation_lik_indp, emulation_dlik_indp, emuinfo)
-        #asdas
         try:
-            likeattempt = emulation_lik_indp(emuinfo['gammahat'],emuinfo)
-            if likeattempt is float("inf"):
+            likeattempt = emulation_lik_indp(emuinfo['gammahat'], emuinfo)
+            if np.isinf(likeattempt):
                 emuinfo['gammahat'] = emuinfo['gamma0']
-                likeattempt = emulation_lik_indp(emuinfo['gammahat'],emuinfo)
-            myftol = 0.25 / np.max((np.abs(likeattempt),1))
+                likeattempt = emulation_lik_indp(emuinfo['gammahat'], emuinfo)
+            myftol = 0.25 / np.max((np.abs(likeattempt), 1))
         except:
             emuinfo['gammahat'] = emuinfo['gamma0']
-            likeattempt = emulation_lik_indp(emuinfo['gammahat'],emuinfo)
-            myftol = 0.25 / np.max((np.abs(likeattempt),1))
+            likeattempt = emulation_lik_indp(emuinfo['gammahat'], emuinfo)
+            myftol = 0.25 / np.max((np.abs(likeattempt), 1))
 
-        bounds = spo.Bounds(emuinfo['gammaLB'],emuinfo['gammaUB'])
+        bounds = spo.Bounds(emuinfo['gammaLB'], emuinfo['gammaUB'])
         opval = spo.minimize(emulation_lik_indp, emuinfo['gammahat'],
-                            args=(emuinfo),
-                            method='L-BFGS-B',
-                            options={'disp': False, 'ftol': myftol},
-                            jac = emulation_dlik_indp,
-                            bounds=bounds)
+                             args=(emuinfo),
+                             method='L-BFGS-B',
+                             options={'disp': False, 'ftol': myftol},
+                             jac=emulation_dlik_indp,
+                             bounds=bounds)
         emuinfo['gammahat'] = opval.x
         emuinfo['R'] = emulation_getR(emuinfo)
         emuinfo['mu'] = emulation_getmu(emuinfo)
@@ -263,154 +188,135 @@ def emulation_hypest(emuinfo, modeltype=None):
             fpred = np.ones(emuinfo['f'].shape)
             donealr = np.zeros(emuinfo['m'])
             for k2 in range(0, emuinfo['m']):
-                inds = (np.where(emuinfo['misval'][:,k2] < 0.5)[0]).astype(int)
-                ninds = (np.where(emuinfo['misval'][:,k2] > 0.5)[0]).astype(int)
-                Robs = emuinfo['R'][np.ix_(inds,inds)]
-                Rnobsobs = emuinfo['R'][np.ix_(ninds,inds)]
-                cholRobs, _ = spla.lapack.dpotrf(Robs,True,True)
+                inds = (np.where(emuinfo['misval'][:, k2] < 0.5)[0]).astype(int)
+                ninds = (np.where(emuinfo['misval'][:, k2] > 0.5)[0]).astype(int)
+                Robs = emuinfo['R'][np.ix_(inds, inds)]
+                Rnobsobs = emuinfo['R'][np.ix_(ninds, inds)]
+                cholRobs, _ = spla.lapack.dpotrf(Robs, True, True)
                 for k in range(k2, emuinfo['m']):
-                    if (np.sum(np.abs(emuinfo['misval'][:,k] ^ emuinfo['misval'][:,k2])) < 0.5) and (donealr[k] < 0.5):
-                        resvalhalf = spla.solve_triangular(cholRobs, resid[inds,k], lower=True)
+                    if (np.sum(np.abs(emuinfo['misval'][:, k] ^ emuinfo['misval'][:, k2])) < 0.5) and (
+                            donealr[k] < 0.5):
+                        resvalhalf = spla.solve_triangular(cholRobs, resid[inds, k], lower=True)
                         resvalinv = spla.solve_triangular(cholRobs, resvalhalf, lower=True, trans=True)
-                        fpred[ninds,k] = emuinfo['mu'][k] + np.matmul(Rnobsobs,resvalinv)
-                        fpred[inds,k] = emuinfo['f'][inds,k]
+                        fpred[ninds, k] = emuinfo['mu'][k] + np.matmul(Rnobsobs, resvalinv)
+                        fpred[inds, k] = emuinfo['f'][inds, k]
                         donealr[k] = 1
             emuinfo['fpred'] = fpred[:]
         else:
             emuinfo['fpred'] = emuinfo['f'][:]
-    #print(np.max(np.abs(emuinfo['fpred'] - emuinfo['f'])))
-
     return None
 
 
+def __sethyp(emuinfo):
+    numcat = emuinfo['numcat']
+    f = emuinfo['f']
+    xcat = emuinfo['xcat']
+    uniquecat = emuinfo['uniquecat']
 
-def __hypest(emuinfo, modeltype = None):
+    gammasigmasq0 = np.ones(numcat)
+    gammasigmasqLB = np.ones(numcat)
+    gammasigmasqUB = np.ones(numcat)
+    gammamu0 = np.ones(numcat)
+    gammamuLB = np.ones(numcat)
+    gammamuUB = np.ones(numcat)
+
+    for k in range(numcat):
+        fconsid = f[np.squeeze(np.where(xcat == uniquecat[k]))]
+        meanvalsnow = np.nanmean(fconsid, 1)
+        gammasigmasq0[k] = 2 + np.log(np.nanvar(fconsid))
+        gammasigmasqLB[k] = 0 + gammasigmasq0[k]
+        gammasigmasqUB[k] = 8 + gammasigmasq0[k]
+        gammamu0[k] = np.nanmean(meanvalsnow)
+        gammamuLB[k] = np.nanmin(meanvalsnow) - (np.nanmax(meanvalsnow) - np.nanmin(meanvalsnow))
+        gammamuUB[k] = np.nanmax(meanvalsnow) + (np.nanmax(meanvalsnow) - np.nanmin(meanvalsnow))
+
+    numthetahyp = emuinfo['gammathetacovhyp0'].shape[0]
+    numxhyp = emuinfo['gammaxcovhyp0'].shape[0]
+    hypstatparstructure = [numthetahyp,
+                           numthetahyp + numxhyp,
+                           numthetahyp + numxhyp + numcat,
+                           numthetahyp + numxhyp + numcat + numcat]
+    emuinfo['gamma0'] = np.concatenate(
+        (emuinfo['gammathetacovhyp0'], emuinfo['gammaxcovhyp0'], gammasigmasq0, gammamu0))
+    emuinfo['gammaLB'] = np.concatenate(
+        (emuinfo['gammathetacovhypLB'], emuinfo['gammaxcovhypLB'], gammasigmasqLB, gammamuLB))
+    emuinfo['gammaUB'] = np.concatenate(
+        (emuinfo['gammathetacovhypUB'], emuinfo['gammaxcovhypUB'], gammasigmasqUB, gammamuUB))
+    emuinfo['hypstatparstructure'] = hypstatparstructure
+    emuinfo['gammahat'] = emuinfo['gamma0']
+    return
+
+
+def __hypest(emuinfo, modeltype=None):
     if modeltype is None:
         modeltype = emuinfo['modeltype']
-
-    if modeltype == 'nonparasep':
-        #dasd
-        try:
-            likeattempt = emulation_lik_nonparasep(emuinfo['gammahat'],emuinfo)
-            if likeattempt is float("inf"):
-                emuinfo['gammahat'] = emuinfo['gamma0']
-                likeattempt = emulation_lik_nonparasep(emuinfo['gammahat'],emuinfo)
-            myftol = 0.1 / np.max((np.abs(likeattempt),1))
-        except:
-            emuinfo['gammahat'] = emuinfo['gamma0']
-            likeattempt = emulation_lik_nonparasep(emuinfo['gammahat'],emuinfo)
-            myftol = 0.1 / np.max((np.abs(likeattempt),1))
-
-        bounds = spo.Bounds(emuinfo['gammaLB'],emuinfo['gammaUB'])
-        opval = spo.minimize(emulation_lik_nonparasep, emuinfo['gammahat'],
-                            args=(emuinfo),
-                            method='L-BFGS-B',
-                            options={'disp': False, 'ftol': myftol},
-                            jac = emulation_dlik_nonparasep,
-                            bounds=bounds)
-        emuinfo['gammahat'] = opval.x
-        emuinfo['R'] = emulation_getR(emuinfo)
-        emuinfo['mu'] = emulation_getmu(emuinfo)
-
-#        print(emuinfo['hypstatparstructure'])
-        emuinfo['gammathetacovhyp'] =  emuinfo['gammahat'][0:(emuinfo['hypstatparstructure'][0])]
-        emuinfo['gammaxcovhyp'] = emuinfo['gammahat'][(emuinfo['hypstatparstructure'][0]):(emuinfo['hypstatparstructure'][1])]
-        emuinfo['gammasigmasq'] = np.exp(emuinfo['gammahat'][(emuinfo['hypstatparstructure'][1]):(emuinfo['hypstatparstructure'][2])])
-        emuinfo['gammamu'] = emuinfo['gammahat'][(emuinfo['hypstatparstructure'][2]):]
-
-        R = emulation_getR(emuinfo)
-        mu = emulation_getmu(emuinfo)
-        sigma2 = emulation_getsigma2(emuinfo)
-
-        Sigmapart1 = emulation_getS(emuinfo)
-        emuinfo['S_prior'] = (np.diag(np.sqrt(sigma2)) @ Sigmapart1 @ np.diag(np.sqrt(sigma2)))
-        emuinfo['Phi_prior'] = emuinfo['nu'] * emuinfo['S_prior']
-        emuinfo['R_chol'] , _ = spla.lapack.dpotrf(emuinfo['R'],True,True)
-
-        emuinfo['R_inv'] = spla.solve_triangular(emuinfo['R_chol'], spla.solve_triangular(emuinfo['R_chol'], np.diag(np.ones(emuinfo['n'])), lower=True), lower=True, trans=True)
-
-        resid = emuinfo['fpred'] - emuinfo['mu']
-        residhalf = spla.solve_triangular(emuinfo['R_chol'], resid, lower=True)
-        emuinfo['residinv'] = spla.solve_triangular(emuinfo['R_chol'], residhalf, lower=True, trans=True)
-
-        emuinfo['Phi_post'] = emuinfo['Phi_prior'] + np.matmul(residhalf.transpose(),residhalf)
-        emuinfo['nu_post'] = emuinfo['n'] + emuinfo['nu']
-        emuinfo['S_post'] = emuinfo['Phi_post'] / emuinfo['nu_post']
-
-
-        emuinfo['Phi_post_chol'] , _ = spla.lapack.dpotrf(emuinfo['Phi_post'],True,True)
-        emuinfo['S_post_chol'] = emuinfo['Phi_post_chol'] / np.sqrt(emuinfo['nu_post'])
-
-        emuinfo['Phi_post_inv'] = spla.solve_triangular(emuinfo['Phi_post_chol'], spla.solve_triangular(emuinfo['Phi_post_chol'], np.diag(np.ones(emuinfo['m'])), lower=True), lower=True, trans=True)
-
-        emuinfo['pw'] = np.linalg.solve(emuinfo['S_post_chol'].T, np.linalg.solve(emuinfo['S_post_chol'], emuinfo['residinv'].transpose()))
     if modeltype == 'parasep':
         try:
-            likeattempt = emulation_lik_parasep(emuinfo['gammahat'],emuinfo)
-            if likeattempt is float("inf"):
+            likeattempt = emulation_lik_parasep(emuinfo['gammahat'], emuinfo)
+            if np.isinf(likeattempt):
                 emuinfo['gammahat'] = emuinfo['gamma0']
-                likeattempt = emulation_lik_parasep(emuinfo['gammahat'],emuinfo)
-            myftol = 0.1 / np.max((np.abs(likeattempt),1))
+                likeattempt = emulation_lik_parasep(emuinfo['gammahat'], emuinfo)
+            myftol = 0.1 / np.max((np.abs(likeattempt), 1))
         except:
             emuinfo['gammahat'] = emuinfo['gamma0']
-            likeattempt = emulation_lik_parasep(emuinfo['gammahat'],emuinfo)
-            myftol = 0.1 / np.max((np.abs(likeattempt),1))
-        bounds = spo.Bounds(emuinfo['gammaLB'],emuinfo['gammaUB'])
+            likeattempt = emulation_lik_parasep(emuinfo['gammahat'], emuinfo)
+            myftol = 0.1 / np.max((np.abs(likeattempt), 1))
+        bounds = spo.Bounds(emuinfo['gammaLB'], emuinfo['gammaUB'])
         opval = spo.minimize(emulation_lik_parasep, emuinfo['gammahat'],
-                    args=(emuinfo),
-                    method='L-BFGS-B',
-                    options={'disp': False, 'ftol': myftol},
-                    jac = emulation_dlik_parasep,
-                    bounds=bounds)
+                             args=(emuinfo),
+                             method='L-BFGS-B',
+                             options={'disp': False, 'ftol': myftol},
+                             jac=emulation_dlik_parasep,
+                             bounds=bounds)
         emuinfo['gammahat'] = opval.x
         emuinfo['R'] = emulation_getR(emuinfo)
         emuinfo['mu'] = emulation_getmu(emuinfo)
 
-#        print(emuinfo['hypstatparstructure'])
-        emuinfo['gammathetacovhyp'] =  emuinfo['gammahat'][0:(emuinfo['hypstatparstructure'][0])]
-        emuinfo['gammaxcovhyp'] = emuinfo['gammahat'][(emuinfo['hypstatparstructure'][0]):(emuinfo['hypstatparstructure'][1])]
-        emuinfo['gammasigmasq'] = np.exp(emuinfo['gammahat'][(emuinfo['hypstatparstructure'][1]):(emuinfo['hypstatparstructure'][2])])
+        emuinfo['gammathetacovhyp'] = emuinfo['gammahat'][0:(emuinfo['hypstatparstructure'][0])]
+        emuinfo['gammaxcovhyp'] = emuinfo['gammahat'][
+                                  (emuinfo['hypstatparstructure'][0]):(emuinfo['hypstatparstructure'][1])]
+        emuinfo['gammasigmasq'] = np.exp(
+            emuinfo['gammahat'][(emuinfo['hypstatparstructure'][1]):(emuinfo['hypstatparstructure'][2])])
         emuinfo['gammamu'] = emuinfo['gammahat'][(emuinfo['hypstatparstructure'][2]):]
 
-        R = emulation_getR(emuinfo)
-        mu = emulation_getmu(emuinfo)
         sigma2 = emulation_getsigma2(emuinfo)
 
         Sigmapart1 = emulation_getS(emuinfo)
         emuinfo['S'] = (np.diag(np.sqrt(sigma2)) @ Sigmapart1 @ np.diag(np.sqrt(sigma2)))
-        emuinfo['R_chol'] , _ = spla.lapack.dpotrf(emuinfo['R'],True,True)
+        emuinfo['R_chol'], _ = spla.lapack.dpotrf(emuinfo['R'], True, True)
 
-        emuinfo['R_inv'] = spla.solve_triangular(emuinfo['R_chol'], spla.solve_triangular(emuinfo['R_chol'], np.diag(np.ones(emuinfo['n'])), lower=True), lower=True, trans=True)
+        emuinfo['R_inv'] = spla.solve_triangular(emuinfo['R_chol'], spla.solve_triangular(emuinfo['R_chol'], np.diag(
+            np.ones(emuinfo['n'])), lower=True), lower=True, trans=True)
 
         resid = emuinfo['fpred'] - emuinfo['mu']
         residhalf = spla.solve_triangular(emuinfo['R_chol'], resid, lower=True)
         emuinfo['residinv'] = spla.solve_triangular(emuinfo['R_chol'], residhalf, lower=True, trans=True)
 
-        emuinfo['S_chol'], _ = spla.lapack.dpotrf(emuinfo['S'],True,True)
-        emuinfo['S_inv'] = spla.solve_triangular(emuinfo['S_chol'], spla.solve_triangular(emuinfo['S_chol'], np.diag(np.ones(emuinfo['m'])), lower=True), lower=True, trans=True)
+        emuinfo['S_chol'], _ = spla.lapack.dpotrf(emuinfo['S'], True, True)
+        emuinfo['S_inv'] = spla.solve_triangular(emuinfo['S_chol'], spla.solve_triangular(emuinfo['S_chol'], np.diag(
+            np.ones(emuinfo['m'])), lower=True), lower=True, trans=True)
 
-        emuinfo['pw'] = np.linalg.solve(emuinfo['S_chol'].T, np.linalg.solve(emuinfo['S_chol'], emuinfo['residinv'].transpose()))
-    else:
-        #emulation_likderivativetester(emulation_lik_indp, emulation_dlik_indp, emuinfo)
-        #asdas
+        emuinfo['pw'] = np.linalg.solve(emuinfo['S_chol'].T,
+                                        np.linalg.solve(emuinfo['S_chol'], emuinfo['residinv'].transpose()))
+    elif modeltype == 'indp':
         try:
-            likeattempt = emulation_lik_indp(emuinfo['gammahat'],emuinfo)
-            if likeattempt is float("inf"):
+            likeattempt = emulation_lik_indp(emuinfo['gammahat'], emuinfo)
+            if np.isinf(likeattempt):
                 emuinfo['gammahat'] = emuinfo['gamma0']
-                likeattempt = emulation_lik_indp(emuinfo['gammahat'],emuinfo)
-            myftol = 0.25 / np.max((np.abs(likeattempt),1))
+                likeattempt = emulation_lik_indp(emuinfo['gammahat'], emuinfo)
+            myftol = 0.25 / np.max((np.abs(likeattempt), 1))
         except:
             emuinfo['gammahat'] = emuinfo['gamma0']
-            likeattempt = emulation_lik_indp(emuinfo['gammahat'],emuinfo)
-            myftol = 0.25 / np.max((np.abs(likeattempt),1))
+            likeattempt = emulation_lik_indp(emuinfo['gammahat'], emuinfo)
+            myftol = 0.25 / np.max((np.abs(likeattempt), 1))
 
-        bounds = spo.Bounds(emuinfo['gammaLB'],emuinfo['gammaUB'])
+        bounds = spo.Bounds(emuinfo['gammaLB'], emuinfo['gammaUB'])
         opval = spo.minimize(emulation_lik_indp, emuinfo['gammahat'],
-                            args=(emuinfo),
-                            method='L-BFGS-B',
-                            options={'disp': False, 'ftol': myftol},
-                            jac = emulation_dlik_indp,
-                            bounds=bounds)
+                             args=(emuinfo),
+                             method='L-BFGS-B',
+                             options={'disp': False, 'ftol': myftol},
+                             jac=emulation_dlik_indp,
+                             bounds=bounds)
         emuinfo['gammahat'] = opval.x
         emuinfo['R'] = emulation_getR(emuinfo)
         emuinfo['mu'] = emulation_getmu(emuinfo)
@@ -420,402 +326,259 @@ def __hypest(emuinfo, modeltype = None):
             fpred = np.ones(emuinfo['f'].shape)
             donealr = np.zeros(emuinfo['m'])
             for k2 in range(0, emuinfo['m']):
-                inds = (np.where(emuinfo['misval'][:,k2] < 0.5)[0]).astype(int)
-                ninds = (np.where(emuinfo['misval'][:,k2] > 0.5)[0]).astype(int)
-                Robs = emuinfo['R'][np.ix_(inds,inds)]
-                Rnobsobs = emuinfo['R'][np.ix_(ninds,inds)]
-                cholRobs, _ = spla.lapack.dpotrf(Robs,True,True)
+                inds = (np.where(emuinfo['misval'][:, k2] < 0.5)[0]).astype(int)
+                ninds = (np.where(emuinfo['misval'][:, k2] > 0.5)[0]).astype(int)
+                Robs = emuinfo['R'][np.ix_(inds, inds)]
+                Rnobsobs = emuinfo['R'][np.ix_(ninds, inds)]
+                cholRobs, _ = spla.lapack.dpotrf(Robs, True, True)
                 for k in range(k2, emuinfo['m']):
-                    if (np.sum(np.abs(emuinfo['misval'][:,k]-emuinfo['misval'][:,k2])) < 0.5) and (donealr[k] < 0.5):
-                        resvalhalf = spla.solve_triangular(cholRobs, resid[inds,k], lower=True)
+                    if (np.sum(np.abs(emuinfo['misval'][:, k] - emuinfo['misval'][:, k2])) < 0.5) and (
+                            donealr[k] < 0.5):
+                        resvalhalf = spla.solve_triangular(cholRobs, resid[inds, k], lower=True)
                         resvalinv = spla.solve_triangular(cholRobs, resvalhalf, lower=True, trans=True)
-                        fpred[ninds,k] = emuinfo['mu'][k] + np.matmul(Rnobsobs,resvalinv)
-                        fpred[inds,k] = emuinfo['f'][inds,k]
+                        fpred[ninds, k] = emuinfo['mu'][k] + np.matmul(Rnobsobs, resvalinv)
+                        fpred[inds, k] = emuinfo['f'][inds, k]
                         donealr[k] = 1
             emuinfo['fpred'] = fpred[:]
         else:
             emuinfo['fpred'] = emuinfo['f'][:]
-    #print(np.max(np.abs(emuinfo['fpred'] - emuinfo['f'])))
-
     return
 
 
-
 def emulation_lik_indp(gammav, emuinfo, fval=None):
-    # if emuinfo['thetasubset'] is None:
     R = emulation_getR(emuinfo, gammav, False)
-    # else:
-    #     R = emulation_getR(emuinfo, gammav, False, thetasubset = emuinfo['thetasubset'])
     (cholR, pd) = spla.lapack.dpotrf(R, True, True)
     if pd > 0.5:
-        print('here ind')
-        return float("inf")
+        warnings.warn('Cholesky decomposition encounters a near-singular matrix', stacklevel=2)
+        return np.inf
 
-    mu = emulation_getmu(emuinfo, gammav, False)
-    sigma2 = emulation_getsigma2(emuinfo, gammav, False)
+    mu = emulation_getmu(emuinfo, gammav)
+    sigma2 = emulation_getsigma2(emuinfo, gammav)
     if fval is None:
-        # if emuinfo['thetasubset'] is None:
-        resid = emuinfo['f'] - mu
-        missval = emuinfo['misval']
-        # else:
-        #     resid = emuinfo['f'][emuinfo['thetasubset'], :] - mu
-        #     missval = emuinfo['misval'][emuinfo['thetasubset'],:]
-    else:
-        # if emuinfo['thetasubset'] is None:
-        resid = fval - mu
-        missval = emuinfo['misval']
-        # else:
-        #     resid = fval[emuinfo['thetasubset'], :] - mu
-        #     missval = emuinfo['misval'][emuinfo['thetasubset'],:]
-
+        fval = emuinfo['f']
+    resid = fval - mu
+    missval = emuinfo['misval']
 
     logs2sum = 0
     logdetRsum = 0
     donealr = np.zeros(emuinfo['m'])
     for k2 in range(0, emuinfo['m']):
-        nhere = np.sum(1-missval[:,k2])
-        inds = (np.where(missval[:,k2] < 0.5)[0]).astype(int)
-        Robs = R[np.ix_(inds,inds)]
-        #!!!
-        (cholRobs ,pd) = spla.lapack.dpotrf(Robs, True, True) # essentially cholesky
+        nhere = np.sum(1 - missval[:, k2])
+        inds = (np.where(missval[:, k2] < 0.5)[0]).astype(int)
+        Robs = R[np.ix_(inds, inds)]
+
+        (cholRobs, pd) = spla.lapack.dpotrf(Robs, True, True)
         if pd > 0.5:
-            print('here ind')
-            return float("inf")
-        logdetval = 2*np.sum(np.log(np.diag(cholRobs)))
+            warnings.warn('Cholesky decomposition encounters a near-singular matrix', stacklevel=2)
+            return np.inf
+        logdetval = 2 * np.sum(np.log(np.diag(cholRobs)))
         for k in range(k2, emuinfo['m']):
-            if (np.sum(np.abs(missval[:,k] ^ missval[:,k2])) < 0.5) and (donealr[k] < 0.5):
+            if (np.sum(np.abs(missval[:, k] ^ missval[:, k2])) < 0.5) and (donealr[k] < 0.5):
                 resvalhalf = spla.solve_triangular(cholRobs, resid[inds, k], lower=True)
-                logs2sum += (nhere/2+emuinfo['nu']) * np.log(1/2 * np.sum(resvalhalf * resvalhalf) + emuinfo['nu']*sigma2[k]) - emuinfo['nu']*np.log(emuinfo['nu']*sigma2[k])
+                logs2sum += (nhere / 2 + emuinfo['nu']) * np.log(
+                    1 / 2 * np.sum(resvalhalf * resvalhalf) + emuinfo['nu'] * sigma2[k]) - emuinfo['nu'] * np.log(
+                    emuinfo['nu'] * sigma2[k])
                 logdetRsum += logdetval
                 donealr[k] = 1
-    gammanorm = (gammav-emuinfo['gamma0'])/(emuinfo['gammaUB']-emuinfo['gammaLB'])
-    loglik = logs2sum + 0.5 * logdetRsum + 8*np.sum(gammanorm ** 2)
+    gammanorm = (gammav - emuinfo['gamma0']) / (emuinfo['gammaUB'] - emuinfo['gammaLB'])
+    loglik = logs2sum + 0.5 * logdetRsum + 8 * np.sum(gammanorm ** 2)
     return loglik
 
-def emulation_dlik_indp(gammav, emuinfo, fval = None):
-    # if emuinfo['thetasubset'] is None:
+
+def emulation_dlik_indp(gammav, emuinfo, fval=None):
     R, dR = emulation_getR(emuinfo, gammav, True)
-    # else:
-    #     R, dR = emulation_getR(emuinfo, gammav, True, thetasubset = emuinfo['thetasubset'])
     (cholR, pd) = spla.lapack.dpotrf(R, True, True)
     if pd > 0.5:
-        print('here ind')
-        return float("inf")
+        warnings.warn('Cholesky decomposition encounters a near-singular matrix', stacklevel=2)
+        return np.inf
 
-    mu = emulation_getmu(emuinfo, gammav, False)
-    sigma2 = emulation_getsigma2(emuinfo, gammav, False)
+    mu = emulation_getmu(emuinfo, gammav)
+    sigma2 = emulation_getsigma2(emuinfo, gammav)
     if fval is None:
-        # if emuinfo['thetasubset'] is None:
-        resid = emuinfo['f'] - mu
-        missval = emuinfo['misval']
-        # else:
-        #     resid = emuinfo['f'][emuinfo['thetasubset'], :] - mu
-        #     missval = emuinfo['misval'][emuinfo['thetasubset'],:]
-    else:
-        # if emuinfo['thetasubset'] is None:
-        resid = fval - mu
-        missval = emuinfo['misval']
-        # else:
-        #     resid = fval[emuinfo['thetasubset'], :] - mu
-        #     missval = emuinfo['misval'][emuinfo['thetasubset'],:]
-
+        fval = emuinfo['f']
+    resid = fval - mu
+    missval = emuinfo['misval']
 
     dlogs2sum = np.zeros(gammav.shape)
     dlogdetsum = np.zeros(gammav.shape)
     donealr = np.zeros(emuinfo['m'])
     for k2 in range(0, emuinfo['m']):
-        nhere = np.sum(1-missval[:,k2]).astype(int)
-        inds = (np.where(missval[:,k2] < 0.5)[0]).astype(int)
-        Robs = R[inds,:][:,inds]
-        (cholRobs ,pd) = spla.lapack.dpotrf(Robs, True, True)
+        nhere = np.sum(1 - missval[:, k2]).astype(int)
+        inds = (np.where(missval[:, k2] < 0.5)[0]).astype(int)
+        Robs = R[inds, :][:, inds]
+        (cholRobs, pd) = spla.lapack.dpotrf(Robs, True, True)
         if pd > 0.5:
-            print('here ind')
-            return float("inf")
-        Ri = spla.solve_triangular(cholRobs,spla.solve_triangular(cholRobs,np.diag(np.ones(nhere)), lower=True), lower=True, trans=True)
+            warnings.warn('Cholesky decomposition encounters a near-singular matrix', stacklevel=2)
+            return np.inf
+        Ri = spla.solve_triangular(cholRobs, spla.solve_triangular(cholRobs, np.diag(np.ones(nhere)), lower=True),
+                                   lower=True, trans=True)
         addterm = np.zeros(gammav.shape)
-        for l in range(0,emuinfo['hypstatparstructure'][0]):
-            addterm[l] = np.sum(Ri*(dR[inds,:,l][:,inds]))
+        for l in range(0, emuinfo['hypstatparstructure'][0]):
+            addterm[l] = np.sum(Ri * (dR[inds, :, l][:, inds]))
 
         for k in range(k2, emuinfo['m']):
-            if (np.sum(np.abs(missval[:,k] ^ missval[:,k2])) < 0.5) and (donealr[k] < 0.5):
+            if (np.sum(np.abs(missval[:, k] ^ missval[:, k2])) < 0.5) and (donealr[k] < 0.5):
                 dlogdetsum = dlogdetsum + addterm
-                resvalhalf = spla.solve_triangular(cholRobs, resid[inds,k], lower=True)
+                resvalhalf = spla.solve_triangular(cholRobs, resid[inds, k], lower=True)
                 resvalinv = spla.solve_triangular(cholRobs, resvalhalf, lower=True, trans=True)
-                s2calc = (1/2 * np.sum(resvalhalf * resvalhalf) + emuinfo['nu'] * sigma2[k])
-                for l in range(0,emuinfo['hypstatparstructure'][0]):
-                    dnum = - resvalinv.T @ dR[inds,:,l][:,inds] @ resvalinv
-                    dlogs2sum[l] =   dlogs2sum[l] +  (1/2* (nhere/2+emuinfo['nu'] ) * dnum) / s2calc
-                for l in range(0,emuinfo['numcat']):
-                     if (emuinfo['xcat'][k] == emuinfo['uniquecat'][l]):
-                         dlogs2sum[emuinfo['hypstatparstructure'][1] + l] += emuinfo['nu'] * (((nhere/2+emuinfo['nu'] ) * sigma2[k]) / s2calc-1)
-                         dnum = - 2 * np.sum(resvalinv)
-                         dlogs2sum[emuinfo['hypstatparstructure'][2] + l] += (1/2* (nhere/2+emuinfo['nu'] ) * dnum) / s2calc
+                s2calc = (1 / 2 * np.sum(resvalhalf * resvalhalf) + emuinfo['nu'] * sigma2[k])
+                for l in range(0, emuinfo['hypstatparstructure'][0]):
+                    dnum = - resvalinv.T @ dR[inds, :, l][:, inds] @ resvalinv
+                    dlogs2sum[l] = dlogs2sum[l] + (1 / 2 * (nhere / 2 + emuinfo['nu']) * dnum) / s2calc
+                for l in range(0, emuinfo['numcat']):
+                    if (emuinfo['xcat'][k] == emuinfo['uniquecat'][l]):
+                        dlogs2sum[emuinfo['hypstatparstructure'][1] + l] += emuinfo['nu'] * (
+                                    ((nhere / 2 + emuinfo['nu']) * sigma2[k]) / s2calc - 1)
+                        dnum = - 2 * np.sum(resvalinv)
+                        dlogs2sum[emuinfo['hypstatparstructure'][2] + l] += (1 / 2 * (
+                                    nhere / 2 + emuinfo['nu']) * dnum) / s2calc
                 donealr[k] = 1
-    dloglik = dlogs2sum + 0.5 * dlogdetsum + 16 * (gammav-emuinfo['gamma0'])/((emuinfo['gammaUB']-emuinfo['gammaLB']) ** 2)
+    dloglik = dlogs2sum + 0.5 * dlogdetsum + 16 * (gammav - emuinfo['gamma0']) / (
+                (emuinfo['gammaUB'] - emuinfo['gammaLB']) ** 2)
     return dloglik
 
 
-def emulation_lik_nonparasep(gammav, emuinfo, fval = None):
-    # if emuinfo['thetasubset'] is None:
+def emulation_lik_parasep(gammav, emuinfo, fval=None):
     R = emulation_getR(emuinfo, gammav, False)
-    # else:
-    #     R = emulation_getR(emuinfo, gammav, False, thetasubset = emuinfo['thetasubset'])
-
-
-    mu = emulation_getmu(emuinfo, gammav, False)
-    sigma2 = emulation_getsigma2(emuinfo, gammav, False)
+    mu = emulation_getmu(emuinfo, gammav)
+    sigma2 = emulation_getsigma2(emuinfo, gammav)
     if fval is None:
-        # if emuinfo['thetasubset'] is None:
-        resid = emuinfo['fpred'] - mu
-        # else:
-        #     resid = emuinfo['fpred'][emuinfo['thetasubset'], :] - mu
-    else:
-        # if emuinfo['thetasubset'] is None:
-        resid = fval - mu
-        # else:
-        #     resid = fval[emuinfo['thetasubset'], :] - mu
-
-    (cholR ,pd) = spla.lapack.dpotrf(R, True, True)
-    if pd > 0.5:
-        return float("inf")
-
+        fval = emuinfo['fpred']
+    resid = fval - mu
     nhere = resid.shape[0]
-    logdetR = 2*np.sum(np.log(np.diag(cholR)))
+    (cholR, pd) = spla.lapack.dpotrf(R, True, True)
+    if pd > 0.5:
+        return np.inf
+    logdetR = 2 * np.sum(np.log(np.diag(cholR)))
     residhalf = spla.solve_triangular(cholR, resid, lower=True)
-    Sigmapart1 = emulation_getS(emuinfo, gammav, withdir = False)
-    Sigma = emuinfo['nu'] * (np.diag(np.sqrt(sigma2)) @ Sigmapart1 @ np.diag(np.sqrt(sigma2)))
-    (cholSigma ,pd) = spla.lapack.dpotrf(Sigma, True, True)
-    if pd > 0.5:
-        return float("inf")
-    logdetSigma = 2*np.sum(np.log(np.diag(cholSigma)))
-    Sigmapost = residhalf.T @ residhalf + Sigma
-    (cholSigmapost ,pd) = spla.lapack.dpotrf(Sigmapost, True, True)
-    if pd < 0.5:
-        logdetSigmapost = 2*np.sum(np.log(np.diag(cholSigmapost)))
-        gammanorm = (gammav-emuinfo['gamma0'])/(emuinfo['gammaUB']-emuinfo['gammaLB'])
-        loglik = (nhere+emuinfo['nu'])*logdetSigmapost - emuinfo['nu']*logdetSigma + emuinfo['m']*logdetR + 8*np.sum(gammanorm ** 2)
-        return loglik
-    else:
-        return float("inf")
-
-def emulation_dlik_nonparasep(gammav, emuinfo, fval = None):
-    # if emuinfo['thetasubset'] is None:
-    R, dR = emulation_getR(emuinfo, gammav, True)
-    # else:
-    #     R, dR = emulation_getR(emuinfo, gammav, True, thetasubset = emuinfo['thetasubset'])
-
-    mu = emulation_getmu(emuinfo, gammav, False)
-    sigma2 = emulation_getsigma2(emuinfo, gammav, False)
-    if fval is None:
-        # if emuinfo['thetasubset'] is None:
-        resid = emuinfo['fpred'] - mu
-        # else:
-        #     resid = emuinfo['fpred'][emuinfo['thetasubset'], :] - mu
-    else:
-        # if emuinfo['thetasubset'] is None:
-        resid = fval - mu
-        # else:
-        #     resid = fval[emuinfo['thetasubset'], :] - mu
-
-    (cholR ,pd) = spla.lapack.dpotrf(R, True, True)
-    if pd > 0.5:
-        return float("inf")
-
-    nhere = resid.shape[0]
-    invR = spla.solve_triangular(cholR,spla.solve_triangular(cholR,np.diag(np.ones(resid.shape[0])), lower=True), lower=True, trans=True)
-    Sigmapart1, dSigmapart1 = emulation_getS(emuinfo, gammav, withdir = True)
-    Sigma = emuinfo['nu'] * (np.diag(np.sqrt(sigma2)) @ Sigmapart1 @ np.diag(np.sqrt(sigma2)))
-    residhalf = spla.solve_triangular(cholR, resid, lower=True)
-    residinv = spla.solve_triangular(cholR, residhalf, lower=True, trans=True)
-    (cholSigma ,pd) = spla.lapack.dpotrf(Sigma, True, True)
-    if pd > 0.5:
-        return float("inf")
-    invSigma = spla.solve_triangular(cholSigma,spla.solve_triangular(cholSigma,np.diag(np.ones(emuinfo['m'])), lower=True), lower=True, trans=True)
-    Sigmapost = residhalf.T @ residhalf + Sigma
-    (cholSigmapost ,pd) = spla.lapack.dpotrf(Sigmapost, True, True)
-    if pd < 0.5:
-        invSigmapost = spla.solve_triangular(cholSigmapost,spla.solve_triangular(cholSigmapost,np.diag(np.ones(emuinfo['m'])), lower=True), lower=True, trans=True)
-        dlogdetR = np.zeros(gammav.shape)
-        dlogdetSigma = np.zeros(gammav.shape)
-        dlogdetSigmapost = np.zeros(gammav.shape)
-        A5 = residinv @ invSigmapost @ residinv.T
-        A12 = np.diag(np.sqrt(sigma2)) @ invSigmapost @ np.diag(np.sqrt(sigma2))
-        A11 = np.diag(np.sqrt(sigma2)) @ invSigma @ np.diag(np.sqrt(sigma2))
-        for k in range(0,emuinfo['hypstatparstructure'][0]):
-            dlogdetR[k] = np.sum(invR * np.squeeze(dR[:,:,k]))
-            dlogdetSigmapost[k] = -np.sum(A5 * np.squeeze(dR[:,:,k]))
-        for k in range(emuinfo['hypstatparstructure'][0],emuinfo['hypstatparstructure'][1]):
-            A10 = np.squeeze(dSigmapart1[:,:, k- emuinfo['hypstatparstructure'][0]])
-            dlogdetSigmapost[k] = emuinfo['nu'] *np.sum(A12 * A10)
-            dlogdetSigma[k] = emuinfo['nu'] *np.sum(A11 * A10)
-        for k in range(emuinfo['hypstatparstructure'][1],emuinfo['hypstatparstructure'][2]):
-            typevalnow = k-emuinfo['hypstatparstructure'][1]
-            Dhere = np.zeros(emuinfo['m'])
-            Dhere[emuinfo['xcat'] == emuinfo['uniquecat'][typevalnow]] = 1
-            A3 = emuinfo['nu']/2*(np.diag((Dhere/np.sqrt(sigma2))) @ Sigmapart1 @ np.diag((np.sqrt(sigma2))) + np.diag((np.sqrt(sigma2))) @ Sigmapart1 @ np.diag((Dhere/np.sqrt(sigma2))))
-            dlogdetSigmapost[k] = np.sum(invSigmapost*A3) * np.exp(gammav[emuinfo['hypstatparstructure'][1]+typevalnow])
-            dlogdetSigma[k] = np.sum(invSigma*A3) * np.exp(gammav[emuinfo['hypstatparstructure'][1]+typevalnow])
-            dresidval = spla.solve_triangular(cholR, np.squeeze(0*resid + Dhere), lower=True)
-            A4 = dresidval.T @ residhalf + residhalf.T @ dresidval
-            dlogdetSigmapost[k +emuinfo['hypstatparstructure'][2] - emuinfo['hypstatparstructure'][1]] = -np.sum(invSigmapost * A4)
-        dloglik = (nhere+emuinfo['nu'])*dlogdetSigmapost - emuinfo['nu']*dlogdetSigma + emuinfo['m']*dlogdetR +  16 * (gammav-emuinfo['gamma0'])/((emuinfo['gammaUB']-emuinfo['gammaLB']) ** 2)
-        return dloglik
-    else:
-        return float("inf")
-
-
-def emulation_lik_parasep(gammav, emuinfo, fval = None):
-    # if emuinfo['thetasubset'] is None:
-    R = emulation_getR(emuinfo, gammav, False)
-    # else:
-    #     R = emulation_getR(emuinfo, gammav, False, thetasubset = emuinfo['thetasubset'])
-
-    mu = emulation_getmu(emuinfo, gammav, False)
-    sigma2 = emulation_getsigma2(emuinfo, gammav, False)
-    if fval is None:
-        # if emuinfo['thetasubset'] is None:
-            resid = emuinfo['fpred'] - mu
-        # else:
-        #     resid = emuinfo['fpred'][emuinfo['thetasubset'], :] - mu
-    else:
-        # if emuinfo['thetasubset'] is None:
-        resid = fval - mu
-        # else:
-        #     resid = fval[emuinfo['thetasubset'], :] - mu
-    nhere = resid.shape[0]
-    (cholR ,pd) = spla.lapack.dpotrf(R, True, True)
-    if pd > 0.5:
-        return float("inf")
-    logdetR = 2*np.sum(np.log(np.diag(cholR)))
-    residhalf = spla.solve_triangular(cholR, resid, lower=True)
-    residinv = spla.solve_triangular(cholR, residhalf, lower=True, trans=True)
-    Sigmapart1 = emulation_getS(emuinfo, gammav, withdir = False)
+    Sigmapart1 = emulation_getS(emuinfo, gammav, withdir=False)
     Sigma = (np.diag(np.sqrt(sigma2)) @ Sigmapart1 @ np.diag(np.sqrt(sigma2)))
-    (cholSigma ,pd) = spla.lapack.dpotrf(Sigma, True, True)
+    (cholSigma, pd) = spla.lapack.dpotrf(Sigma, True, True)
 
-
-    invSigma = spla.solve_triangular(cholSigma,spla.solve_triangular(cholSigma,np.diag(np.ones(emuinfo['m'])), lower=True), lower=True, trans=True)
+    invSigma = spla.solve_triangular(cholSigma,
+                                     spla.solve_triangular(cholSigma, np.diag(np.ones(emuinfo['m'])), lower=True),
+                                     lower=True, trans=True)
 
     if pd > 0.5:
-        return float("inf")
-    logdetSigma = 2*np.sum(np.log(np.diag(cholSigma)))
-    if pd < 0.5:
-        gammanorm = (gammav-emuinfo['gamma0'])/(emuinfo['gammaUB']-emuinfo['gammaLB'])
-        dosomestuff = spla.solve_triangular(cholSigma, residhalf.T)
-        loglik =np.sum(invSigma * (residhalf.T @ residhalf)) + nhere*logdetSigma + emuinfo['m']*logdetR + 8*np.sum(gammanorm ** 2)
+        return np.inf
+    else:
+        logdetSigma = 2 * np.sum(np.log(np.diag(cholSigma)))
+        gammanorm = (gammav - emuinfo['gamma0']) / (emuinfo['gammaUB'] - emuinfo['gammaLB'])
+        loglik = np.sum(invSigma * (residhalf.T @ residhalf)) + nhere * logdetSigma + emuinfo[
+            'm'] * logdetR + 8 * np.sum(gammanorm ** 2)
         return loglik
-    else:
-        return float("inf")
 
-def emulation_dlik_parasep(gammav, emuinfo, fval = None):
-    # if emuinfo['thetasubset'] is None:
+
+def emulation_dlik_parasep(gammav, emuinfo, fval=None):
     R, dR = emulation_getR(emuinfo, gammav, True)
-    # else:
-    #     R, dR = emulation_getR(emuinfo, gammav, True, thetasubset = emuinfo['thetasubset'])
-
-    mu = emulation_getmu(emuinfo, gammav, False)
-    sigma2 = emulation_getsigma2(emuinfo, gammav, False)
+    mu = emulation_getmu(emuinfo, gammav)
+    sigma2 = emulation_getsigma2(emuinfo, gammav)
     if fval is None:
-        # if emuinfo['thetasubset'] is None:
-        resid = emuinfo['fpred'] - mu
-        # else:
-        #     resid = emuinfo['fpred'][emuinfo['thetasubset'], :] - mu
-    else:
-        # if emuinfo['thetasubset'] is None:
-        resid = fval - mu
-        # else:
-        #     resid = fval[emuinfo['thetasubset'], :] - mu
-    (cholR ,pd) = spla.lapack.dpotrf(R, True, True)
+        fval = emuinfo['fpred']
+    resid = fval - mu
+    (cholR, pd) = spla.lapack.dpotrf(R, True, True)
     if pd > 0.5:
-        return float("inf")
+        return np.inf
     nhere = resid.shape[0]
 
-    invR = spla.solve_triangular(cholR,spla.solve_triangular(cholR,np.diag(np.ones(nhere)), lower=True), lower=True, trans=True)
-    Sigmapart1, dSigmapart1 = emulation_getS(emuinfo, gammav, withdir = True)
+    invR = spla.solve_triangular(cholR, spla.solve_triangular(cholR, np.diag(np.ones(nhere)), lower=True), lower=True,
+                                 trans=True)
+    Sigmapart1, dSigmapart1 = emulation_getS(emuinfo, gammav, withdir=True)
     Sigma = (np.diag(np.sqrt(sigma2)) @ Sigmapart1 @ np.diag(np.sqrt(sigma2)))
     residhalf = spla.solve_triangular(cholR, resid, lower=True)
     residinv = spla.solve_triangular(cholR, residhalf, lower=True, trans=True)
-    (cholSigma ,pd) = spla.lapack.dpotrf(Sigma, True, True)
+    (cholSigma, pd) = spla.lapack.dpotrf(Sigma, True, True)
     if pd > 0.5:
-        return float("inf")
-    invSigma = spla.solve_triangular(cholSigma,spla.solve_triangular(cholSigma,np.diag(np.ones(emuinfo['m'])), lower=True), lower=True, trans=True)
+        return np.inf
+    invSigma = spla.solve_triangular(cholSigma,
+                                     spla.solve_triangular(cholSigma, np.diag(np.ones(emuinfo['m'])), lower=True),
+                                     lower=True, trans=True)
 
-    residinvinv = (invSigma @ residinv.T).T
     if pd < 0.5:
         dlogdetR = np.zeros(gammav.shape)
         dlogdetSigma = np.zeros(gammav.shape)
         ddosomestuff = np.zeros(gammav.shape)
-        for k in range(0,emuinfo['hypstatparstructure'][0]):
-            A1 = invR @ np.squeeze(dR[:,:,k])
-            A2 = residinv.T @ np.squeeze(dR[:,:,k]) @ residinv
-            dlogdetR[k] = np.sum(invR * np.squeeze(dR[:,:,k]))
+        for k in range(0, emuinfo['hypstatparstructure'][0]):
+            A1 = invR @ np.squeeze(dR[:, :, k])
+            A2 = residinv.T @ np.squeeze(dR[:, :, k]) @ residinv
+            dlogdetR[k] = np.sum(invR * np.squeeze(dR[:, :, k]))
             ddosomestuff[k] = -np.sum(invSigma * A2)
-        for k in range(emuinfo['hypstatparstructure'][0],emuinfo['hypstatparstructure'][1]):
-            A3 = (np.diag(np.sqrt(sigma2)) @ np.squeeze(dSigmapart1[:,:,k-emuinfo['hypstatparstructure'][0]]) @ (np.diag(np.sqrt(sigma2))))
-            dlogdetSigma[k] = np.sum(invSigma*A3)
+        for k in range(emuinfo['hypstatparstructure'][0], emuinfo['hypstatparstructure'][1]):
+            A3 = (np.diag(np.sqrt(sigma2)) @ np.squeeze(dSigmapart1[:, :, k - emuinfo['hypstatparstructure'][0]]) @ (
+                np.diag(np.sqrt(sigma2))))
+            dlogdetSigma[k] = np.sum(invSigma * A3)
             ddosomestuff[k] = -np.sum((invSigma @ A3 @ invSigma) * (residhalf.T @ residhalf))
-        for k in range(emuinfo['hypstatparstructure'][1],emuinfo['hypstatparstructure'][2]):
-            typevalnow = k-emuinfo['hypstatparstructure'][1]
+        for k in range(emuinfo['hypstatparstructure'][1], emuinfo['hypstatparstructure'][2]):
+            typevalnow = k - emuinfo['hypstatparstructure'][1]
             Dhere = np.zeros(emuinfo['m'])
             Dhere[emuinfo['xcat'] == emuinfo['uniquecat'][typevalnow]] = 1
-            ddosomestuff[k+emuinfo['numcat']] = - 2 * np.sum((resid.T @ invR @ (0*resid + Dhere)) * invSigma)
-            A4 = 0.5*(np.diag((Dhere/np.sqrt(sigma2))) @ Sigmapart1 @ np.diag((np.sqrt(sigma2))) + np.diag((np.sqrt(sigma2))) @ Sigmapart1 @ np.diag((Dhere/np.sqrt(sigma2))))
-            dlogdetSigma[k] = np.sum(invSigma*A4) * np.exp(gammav[k])
+            ddosomestuff[k + emuinfo['numcat']] = - 2 * np.sum((resid.T @ invR @ (0 * resid + Dhere)) * invSigma)
+            A4 = 0.5 * (np.diag((Dhere / np.sqrt(sigma2))) @ Sigmapart1 @ np.diag((np.sqrt(sigma2))) + np.diag(
+                (np.sqrt(sigma2))) @ Sigmapart1 @ np.diag((Dhere / np.sqrt(sigma2))))
+            dlogdetSigma[k] = np.sum(invSigma * A4) * np.exp(gammav[k])
             ddosomestuff[k] = -np.sum((invSigma @ A4 @ invSigma) * (residhalf.T @ residhalf)) * np.exp(gammav[k])
-        dloglik = nhere*dlogdetSigma + ddosomestuff + emuinfo['m']*dlogdetR +  16 * (gammav-emuinfo['gamma0'])/((emuinfo['gammaUB']-emuinfo['gammaLB']) ** 2)
+        dloglik = nhere * dlogdetSigma + ddosomestuff + emuinfo['m'] * dlogdetR + 16 * (gammav - emuinfo['gamma0']) / (
+                    (emuinfo['gammaUB'] - emuinfo['gammaLB']) ** 2)
         return dloglik
     else:
-        return float("inf")
+        return np.inf
 
 
-def emulation_getR(emuinfo, gammav = None, withdir = False, diffTheta = None, sameTheta = None, thetasubset = None):
+def emulation_getR(emuinfo, gammav=None, withdir=False, diffTheta=None, sameTheta=None, thetasubset=None):
     if gammav is None:
         gammav = emuinfo['gammahat']
 
     gammathetacovhyp = gammav[0:emuinfo['hypstatparstructure'][0]]
     if thetasubset is None:
-        return emuinfo['covthetaf'](emuinfo['theta'], emuinfo['theta'], gammathetacovhyp, returndir = withdir, diffX = diffTheta, sameX = sameTheta)
+        return emuinfo['covthetaf'](emuinfo['theta'], emuinfo['theta'], gammathetacovhyp, returndir=withdir,
+                                    diffX=diffTheta, sameX=sameTheta)
     else:
-        return emuinfo['covthetaf'](emuinfo['theta'][thetasubset,:], emuinfo['theta'][thetasubset,:], gammathetacovhyp, returndir = withdir, diffX = diffTheta, sameX = sameTheta)
+        return emuinfo['covthetaf'](emuinfo['theta'][thetasubset, :], emuinfo['theta'][thetasubset, :],
+                                    gammathetacovhyp, returndir=withdir, diffX=diffTheta, sameX=sameTheta)
 
-def emulation_getmu(emuinfo, gammav = None, withdir = False):
+
+def emulation_getmu(emuinfo, gammav=None):
     if gammav is None:
         gammav = emuinfo['gammahat']
 
     gammamuhyp = gammav[(emuinfo['hypstatparstructure'][2]):]
     mu = np.ones(emuinfo['m'])
-    for k in range(0,gammamuhyp.shape[0]):
+    for k in range(0, gammamuhyp.shape[0]):
         mu[emuinfo['xcat'] == emuinfo['uniquecat'][k]] = gammamuhyp[k]
 
     return mu
 
-def emulation_getsigma2(emuinfo, gammav = None, withdir = False):
+
+def emulation_getsigma2(emuinfo, gammav=None):
     if gammav is None:
         gammav = emuinfo['gammahat']
 
     gammasigmasqhyp = gammav[(emuinfo['hypstatparstructure'][1]):(emuinfo['hypstatparstructure'][2])]
     sigma2 = np.ones(emuinfo['m'])
-    for k in range(0,gammasigmasqhyp.shape[0]):
+    for k in range(0, gammasigmasqhyp.shape[0]):
         sigma2[emuinfo['xcat'] == emuinfo['uniquecat'][k]] = np.exp(gammasigmasqhyp[k])
 
     return sigma2
 
-def emulation_getS(emuinfo, gammav = None, withdir = False):
+
+def emulation_getS(emuinfo, gammav=None, withdir=False):
     if gammav is None:
         gammav = emuinfo['gammahat']
 
     gammaxcovhyp = gammav[(emuinfo['hypstatparstructure'][0]):(emuinfo['hypstatparstructure'][1])]
     if withdir:
-        return emuinfo['covxf'](emuinfo['xval'], emuinfo['xval'], gammaxcovhyp ,type1 = emuinfo['xcat'], type2 = emuinfo['xcat'], returndir = True)
+        return emuinfo['covxf'](emuinfo['xval'], emuinfo['xval'], gammaxcovhyp, type1=emuinfo['xcat'],
+                                type2=emuinfo['xcat'], returndir=True)
     else:
-        return emuinfo['covxf'](emuinfo['xval'], emuinfo['xval'], gammaxcovhyp ,type1 = emuinfo['xcat'], type2 = emuinfo['xcat'], returndir = False)
+        return emuinfo['covxf'](emuinfo['xval'], emuinfo['xval'], gammaxcovhyp, type1=emuinfo['xcat'],
+                                type2=emuinfo['xcat'], returndir=False)
 
 
 def emulation_matrixblockerfunction(emuinfo):
     missingmat = emuinfo['misval']
     Rs = np.zeros((np.int(np.sum(missingmat)), missingmat.shape[0]))
     Cs = np.zeros((np.int(np.sum(missingmat)), missingmat.shape[1]))
-    # breakintoblocks
+
     ivaltr = np.where(np.sum(missingmat, 1))[0]
     jvaltr = np.where(np.sum(missingmat, 0))[0]
     missingmat = missingmat[np.ix_(ivaltr, jvaltr)]
@@ -837,118 +600,42 @@ def emulation_matrixblockerfunction(emuinfo):
                 k = k + 1
                 break
 
-        if emuinfo['blocking'] == 'row':
-            if n == 1:
-                Rs[k, ivaltr] = 1
-                Cs[k, jvaltr] = 1
-                k = k + 1
-                break
-            blockrow = np.zeros(missingmat.shape[0])
-            blockrow[0] = 1
-            blockcol = missingmat[0, :]
-            Rs[k, ivaltr[np.where(blockrow)[0]]] = 1
-            Cs[k, jvaltr[np.where(blockcol)[0]]] = 1
-            missingmat[np.ix_(np.where(blockrow)[0], np.where(blockcol)[0])] = 0
-        if emuinfo['blocking'] == 'column':
-            if n == 1:
-                Rs[k, ivaltr] = 1
-                Cs[k, jvaltr] = 1
-                k = k + 1
-                break
-            blockcol = np.zeros(missingmat.shape[1])
-            blockcol[0] = 1
-            blockrow = missingmat[:, 0]
-            Rs[k, ivaltr[np.where(blockrow)[0]]] = 1
-            Cs[k, jvaltr[np.where(blockcol)[0]]] = 1
-            missingmat[np.ix_(np.where(blockrow)[0], np.where(blockcol)[0])] = 0
-        else:
-            if n == 1:
-                Rs[k, ivaltr] = 1
-                Cs[k, jvaltr] = 1
-                k = k + 1
-                break
-            blockrow = np.zeros(missingmat.shape[0])
-            blockrow[0] = 1
-            blockcol = missingmat[0, :]
-
-            numrow = np.sum(blockrow)
-            numcol = np.sum(blockcol)
-
-            newsize = np.zeros(n)
-            for j in range(0, n):
-                newsize = 0 * newsize
-                for i in range(0, n):
-                    if (blockrow[i] == 0):
-                        numcolpot = np.sum(blockcol * missingmat[i, :])
-                        newsize[i] = numcolpot * (numrow + 1)
-                    else:
-                        newsize[i] = 0
-                if ((numrow * numcol + 0.5) < np.max(newsize)):
-                    istar = np.argmax(newsize)
-                    blockrow[istar] = 1
-                    blockcol = blockcol * missingmat[istar, :]
-                    numrow = numrow + 1
-                    numcol = np.sum(blockcol)
-                else:
-                    break
-            Rs[k, ivaltr[np.where(blockrow)[0]]] = 1
-            Cs[k, jvaltr[np.where(blockcol)[0]]] = 1
-            missingmat[np.ix_(np.where(blockrow)[0], np.where(blockcol)[0])] = 0
         k = k + 1
     Rs = Rs[:k, ]
     Cs = Cs[:k, ]
     return Rs, Cs
 
 
+def emulation_imputeiter(emuinfo, Rs, Cs, tol=10 ** (-6)):
+    tolcutoff = tol * np.mean(np.abs(
+        emuinfo['fpred'][np.where(1 - emuinfo['misval'])] - np.mean(emuinfo['fpred'][np.where(1 - emuinfo['misval'])])))
 
-def emulation_imputeiter(emuinfo, Rs, Cs, tol = 10 ** (-6)):
-    tolcutoff = tol*np.mean(np.abs(emuinfo['fpred'][np.where(1-emuinfo['misval'])]-np.mean(emuinfo['fpred'][np.where(1-emuinfo['misval'])])))
+    for itera in range(0, 800):
+        fpredbefore = 1 * emuinfo['fpred'][np.where(emuinfo['misval'])]
+        Sinv = emuinfo['S_inv']
+        for k in range(0, Rs.shape[0]):
+            emulation_blockimputation(emuinfo, Rs[k, :], Cs[k, :], Sinv=Sinv)
+        scalev = np.mean(np.abs(emuinfo['fpred'][np.where(emuinfo['misval'])] - fpredbefore))
 
-    for itera in range(0,800):
-        fpredbefore = 1*emuinfo['fpred'][np.where(emuinfo['misval'])]
-        if emuinfo['modeltype'] == 'parasep':
-            Sinv = emuinfo['S_inv']
-        else:
-            if emuinfo['em_gibbs']:
-                emuinfo['resid'] = emuinfo['fpred'] - emuinfo['mu']
-                residhalf = spla.solve_triangular(emuinfo['R_chol'], emuinfo['resid'], lower=True)
-                emuinfo['Phi_post'] = emuinfo['Phi_prior'] + np.matmul(residhalf.transpose(),residhalf)
-                emuinfo['Phi_post_inv'] = np.linalg.inv(emuinfo['Phi_post'])
-                Sinv = emuinfo['Phi_post_inv'] * (emuinfo['nu_post'] + emuinfo['m']+1)
-            else:
-                emuinfo['resid'] = emuinfo['fpred'] - emuinfo['mu']
-                residhalf = spla.solve_triangular(emuinfo['R_chol'], emuinfo['resid'], lower=True)
-                emuinfo['Phi_post'] = emuinfo['Phi_prior'] + np.matmul(residhalf.transpose(),residhalf)
-                emuinfo['Phi_post_inv'] = np.linalg.inv(emuinfo['Phi_post'])
-        for k in range(0,Rs.shape[0]):
-            if emuinfo['em_gibbs'] or (emuinfo['modeltype'] == 'parasep'):
-                emulation_blockimputation(emuinfo, Rs[k,:], Cs[k,:], Sinv = Sinv)
-            else:
-                try:
-                    emulation_blockimputation(emuinfo, Rs[k,:], Cs[k,:])
-                except:
-                    emuinfo['resid'] = emuinfo['fpred'] - emuinfo['mu']
-                    residhalf = spla.solve_triangular(emuinfo['R_chol'], emuinfo['resid'], lower=True)
-                    emuinfo['Phi_post'] = emuinfo['Phi_prior'] + np.matmul(residhalf.transpose(),residhalf)
-                    emuinfo['Phi_post_inv'] = np.linalg.inv(emuinfo['Phi_post'])
-                    emulation_blockimputation(emuinfo, Rs[k,:], Cs[k,:])
-        scalev = np.mean(np.abs(emuinfo['fpred'][np.where(emuinfo['misval'])]-fpredbefore))
-        if (scalev < tolcutoff):
+        if scalev < tolcutoff:
             break
     return emuinfo
 
 
-def emulation_blockimputation(emuinfo, paramiso, inputmiso, Sinv = None):
+def emulation_blockimputation(emuinfo, paramiso, inputmiso, Sinv=None):
     paramis = np.array(np.where(paramiso)[0])
     inputmis = np.array(np.where(inputmiso)[0])
-    inputobs = np.array(np.where(inputmiso<0.5)[0])
+    inputobs = np.array(np.where(inputmiso < 0.5)[0])
 
     if Sinv is None:
-        residnew, Phi, Phi_inv = emulation_blockingsubfunc(paramis, inputmis, inputobs, emuinfo['Phi_post'], emuinfo['Phi_post_inv'], emuinfo['R_inv'], emuinfo['fpred'] - emuinfo['mu'], emuinfo['nu_post'])
+        residnew, Phi, Phi_inv = emulation_blockingsubfunc(paramis, inputmis, inputobs, emuinfo['Phi_post'],
+                                                           emuinfo['Phi_post_inv'], emuinfo['R_inv'],
+                                                           emuinfo['fpred'] - emuinfo['mu'], emuinfo['nu_post'])
         emuinfo['Phi_post'] = Phi
         emuinfo['Phi_post_inv'] = Phi_inv
     else:
-        residnew = emulation_blockingsubfunc_emg(paramis, inputmis, inputobs, Sinv, emuinfo['R_inv'], emuinfo['fpred'] - emuinfo['mu'])
+        residnew = emulation_blockingsubfunc_emg(paramis, inputmis, inputobs, Sinv, emuinfo['R_inv'],
+                                                 emuinfo['fpred'] - emuinfo['mu'])
     emuinfo['fpred'] = residnew + emuinfo['mu']
 
     return emuinfo
