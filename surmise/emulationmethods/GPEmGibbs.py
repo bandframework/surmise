@@ -53,7 +53,14 @@ def predict(predinfo, fitinfo, x, theta, computecov=True, **kwargs):
     r = emuinfo['covthetaf'](theta, emuinfo['theta'], emuinfo['gammathetacovhyp'])
     yhat = emuinfo['mu'] + r @ emuinfo['residinv']
 
+
+    r0 = np.diag(emuinfo['covthetaf'](theta, theta, emuinfo['gammathetacovhyp']))
+
+    varhat =
+
     predinfo['mean'] = yhat
+
+
     return
 
 
@@ -86,9 +93,8 @@ def __initialize(fitinfo, misval):
 
     emuinfo['misval'] = misval
     emuinfo['misbool'] = misval.any()
-    emuinfo['blocking'] = 'individual'
-    emuinfo['modeltype'] = 'parasep'
-    emuinfo['em_gibbs'] = True
+    # emuinfo['blocking'] = 'individual'
+    # emuinfo['modeltype'] = 'parasep'
 
     setxcovf(emuinfo, fitinfo['xcovfname'])
     setthetacovf(emuinfo, fitinfo['thetacovfname'])
@@ -106,10 +112,7 @@ def predictvar(predinfo, **kwargs):
     return predinfo['var']
 
 
-def emulation_hypest(emuinfo, modeltype=None):
-    if modeltype is None:
-        modeltype = emuinfo['modeltype']
-
+def emulation_hypest(emuinfo, modeltype='parasep'):
     if modeltype == 'parasep':
         try:
             likeattempt = emulation_lik_parasep(emuinfo['gammahat'], emuinfo)
@@ -159,7 +162,7 @@ def emulation_hypest(emuinfo, modeltype=None):
                                                                        lower=True), lower=True, trans=True)
 
         emuinfo['pw'] = np.linalg.solve(emuinfo['S_chol'].T,
-                                        np.linalg.solve(emuinfo['S_chol'], emuinfo['residinv'].transpose()))
+                                        np.linalg.solve(emuinfo['S_chol'], emuinfo['residinv'].T))
     else:
         try:
             likeattempt = emulation_lik_indp(emuinfo['gammahat'], emuinfo)
@@ -204,7 +207,7 @@ def emulation_hypest(emuinfo, modeltype=None):
             emuinfo['fpred'] = fpred[:]
         else:
             emuinfo['fpred'] = emuinfo['f'][:]
-    return None
+    return
 
 
 def __sethyp(emuinfo):
@@ -263,7 +266,7 @@ def __hypest(emuinfo, modeltype=None):
             myftol = 0.1 / np.max((np.abs(likeattempt), 1))
         bounds = spo.Bounds(emuinfo['gammaLB'], emuinfo['gammaUB'])
         opval = spo.minimize(emulation_lik_parasep, emuinfo['gammahat'],
-                             args=(emuinfo),
+                             args=emuinfo,
                              method='L-BFGS-B',
                              options={'disp': False, 'ftol': myftol},
                              jac=emulation_dlik_parasep,
@@ -297,7 +300,7 @@ def __hypest(emuinfo, modeltype=None):
             np.ones(emuinfo['m'])), lower=True), lower=True, trans=True)
 
         emuinfo['pw'] = np.linalg.solve(emuinfo['S_chol'].T,
-                                        np.linalg.solve(emuinfo['S_chol'], emuinfo['residinv'].transpose()))
+                                        np.linalg.solve(emuinfo['S_chol'], emuinfo['residinv'].T))
     elif modeltype == 'indp':
         try:
             likeattempt = emulation_lik_indp(emuinfo['gammahat'], emuinfo)
@@ -590,15 +593,15 @@ def emulation_matrixblockerfunction(emuinfo):
         jvaltr = jvaltr[jval]
         missingmat = missingmat[np.ix_(ival, jval)]
         n = missingmat.shape[0]
-        if emuinfo['blocking'] == 'individual':
-            istar = 0
-            jstar = np.where(missingmat[0, :])[0][0]
-            Rs[k, ivaltr[istar]] = 1
-            Cs[k, jvaltr[jstar]] = 1
-            missingmat[istar, jstar] = 0
-            if n == 1:
-                k = k + 1
-                break
+        # if emuinfo['blocking'] == 'individual':
+        istar = 0
+        jstar = np.where(missingmat[0, :])[0][0]
+        Rs[k, ivaltr[istar]] = 1
+        Cs[k, jvaltr[jstar]] = 1
+        missingmat[istar, jstar] = 0
+        if n == 1:
+            k = k + 1
+            break
 
         k = k + 1
     Rs = Rs[:k, ]
@@ -622,20 +625,13 @@ def emulation_imputeiter(emuinfo, Rs, Cs, tol=10 ** (-6)):
     return emuinfo
 
 
-def emulation_blockimputation(emuinfo, paramiso, inputmiso, Sinv=None):
+def emulation_blockimputation(emuinfo, paramiso, inputmiso, Sinv):
     paramis = np.array(np.where(paramiso)[0])
     inputmis = np.array(np.where(inputmiso)[0])
     inputobs = np.array(np.where(inputmiso < 0.5)[0])
 
-    if Sinv is None:
-        residnew, Phi, Phi_inv = emulation_blockingsubfunc(paramis, inputmis, inputobs, emuinfo['Phi_post'],
-                                                           emuinfo['Phi_post_inv'], emuinfo['R_inv'],
-                                                           emuinfo['fpred'] - emuinfo['mu'], emuinfo['nu_post'])
-        emuinfo['Phi_post'] = Phi
-        emuinfo['Phi_post_inv'] = Phi_inv
-    else:
-        residnew = emulation_blockingsubfunc_emg(paramis, inputmis, inputobs, Sinv, emuinfo['R_inv'],
-                                                 emuinfo['fpred'] - emuinfo['mu'])
+    residnew = emulation_blockingsubfunc_emg(paramis, inputmis, inputobs, Sinv, emuinfo['R_inv'],
+                                             emuinfo['fpred'] - emuinfo['mu'])
     emuinfo['fpred'] = residnew + emuinfo['mu']
 
     return emuinfo
@@ -648,59 +644,14 @@ def emulation_blockingsubfunc_emg(paramis, inputmis, inputobs, S_inv, R_inv, res
     a21 = np.matmul(cholresidvarR.T, a3)
 
     b9 = np.linalg.solve(S_inv[inputmis, :][:, inputmis], S_inv[inputmis, :])
-    resid[np.ix_(paramis, inputmis)] -= np.matmul(a21, b9.transpose())
+    resid[np.ix_(paramis, inputmis)] -= np.matmul(a21, b9.T)
 
     if doDraw:
         S_inv_22_chol_draw, pr = spla.lapack.dpotrf(
             np.linalg.inv(0.5 * (S_inv[inputmis, :][:, inputmis] + (S_inv[inputmis, :][:, inputmis]).T)), True, True)
-        if (pr < 0.5):
+        if pr < 0.5:
             resid[np.ix_(paramis, inputmis)] += np.matmul(
                 np.matmul(cholresidvarR, np.random.normal(0, 1, (cholresidvarR.shape[1], S_inv_22_chol_draw.shape[1]))),
-                S_inv_22_chol_draw.transpose())
+                S_inv_22_chol_draw.T)
 
     return resid
-
-
-def emulation_blockingsubfunc(paramis, inputmis, inputobs, Phi, Phi_inv, R_inv, resid, nu, doDraw=False):
-    cholresidvarR = np.linalg.inv(spla.lapack.dpotrf(R_inv[paramis, :][:, paramis], True, True)[0])
-    a3 = np.matmul(np.matmul(cholresidvarR, R_inv[paramis, :]), resid)
-
-    a21 = np.matmul(cholresidvarR.T, a3)
-    Phi_update = Phi - np.matmul(a3.transpose(), a3)
-    if (a3.shape[1] > (1.5 * (a3.shape[0] - 1))):
-        a4 = np.matmul(Phi_inv, a3.transpose())
-        a8 = np.matmul(a4, np.linalg.solve(np.identity(a4.shape[1]) - np.matmul(a3, a4), a4.transpose()))
-        Phi_update_inv = Phi_inv + 0.5 * (a8 + a8.T)
-    else:
-        Phi_update_inv = np.linalg.inv(Phi_update)
-
-    b9 = np.linalg.solve(Phi_update_inv[inputmis, :][:, inputmis], Phi_update_inv[inputmis, :])
-    resid[np.ix_(paramis, inputmis)] -= np.matmul(a21, b9.transpose())
-    if doDraw:
-        choltildePhi22now, _ = spla.lapack.dpotrf(Phi_update_inv[inputmis, :][:, inputmis], True, True)
-        if (a3.shape[1] < (1.5 * (a3.shape[0] - 1))):
-            Phi_update_11_inv = np.linalg.inv(Phi_update[inputobs, :][:, inputobs])
-        else:
-            Phi_update_11_inv = Phi_update_inv[inputobs, :][:, inputobs] - np.matmul(
-                Phi_update_inv[inputobs, :][:, inputmis], b9[:, inputobs])
-        Xforsamp = np.matmul(choltildePhi22now,
-                             np.random.normal(0, 1, (choltildePhi22now.shape[1], nu - paramis.shape[0])))
-        Phi_update_22_chol_draw, _ = spla.lapack.dpotrf(np.linalg.inv(np.matmul(Xforsamp, Xforsamp.T)), True, True)
-
-        b5 = np.matmul(np.matmul(a21[:, inputobs], Phi_update_11_inv), a21[:, inputobs].T)
-        mat2 = np.matmul(cholresidvarR,
-                         spla.lapack.dpotrf(np.identity(a21.shape[0]) + 0.5 * (b5 + b5.T), True, True)[0])
-        resid[np.ix_(paramis, inputmis)] += np.matmul(
-            np.matmul(mat2, np.random.normal(0, 1, (mat2.shape[1], Phi_update_22_chol_draw.shape[1]))),
-            Phi_update_22_chol_draw.transpose())
-
-    a6 = np.matmul(np.matmul(cholresidvarR, R_inv[paramis, :]), resid)
-    Phi = Phi_update + np.matmul(a6.transpose(), a6)
-    if (a6.shape[1] > (1.5 * (a6.shape[0] - 1))):
-        a10 = np.matmul(Phi_update_inv, a6.transpose())
-        a12 = np.matmul(a10, np.linalg.solve(np.identity(a4.shape[1]) + np.matmul(a6, a10), a10.transpose()))
-        Phi_inv = Phi_update_inv - 0.5 * (a12 + a12.T)
-    else:
-        Phi_inv = np.linalg.inv(Phi)
-
-    return resid, Phi, Phi_inv

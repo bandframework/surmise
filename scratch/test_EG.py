@@ -17,7 +17,6 @@ if __name__ == "__main__":
     missingmat = np.full_like(ftrain, False).astype(bool)
     missingmat[0:100, 0:15] = (np.random.rand(100, 15) > 0.75)
 
-
     ftrainmis = ftrain.copy()
     ftrainmis[missingmat] = np.nan
 
@@ -32,3 +31,12 @@ if __name__ == "__main__":
     ftrainmisfill[missingmat] = ftrain.mean()
     print(np.nanmean((ftrain - ftrainmisfill) ** 2))
     print(np.nanmean((pred.mean() - ftrainmis) ** 2))
+
+    ftestmis = ftest.copy()
+
+    missingmattest = np.full_like(ftest, False).astype(bool)
+    missingmattest[0:100, 0:15] = (np.random.rand(100, 15) > 0.75)
+    ftestmis[missingmattest] = np.nan
+    testpred = emu.predict(x=inputtrain, theta=paramtest)
+
+    print(np.nanmean((testpred.mean() - ftestmis) ** 2))
