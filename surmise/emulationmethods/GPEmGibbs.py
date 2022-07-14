@@ -7,7 +7,7 @@ from surmise.emulationsupport.GPEmGibbs_covmat_helper import setxcovf, setthetac
 
 
 def fit(fitinfo, x, theta, f, misval=None, cat=False,
-        xcovfname='matern', thetacovfname='matern', **kwargs):
+        xcovfname='exp', thetacovfname='exp', **kwargs):
     '''
 
     '''
@@ -15,7 +15,7 @@ def fit(fitinfo, x, theta, f, misval=None, cat=False,
 
     fitinfo['theta'] = theta
     fitinfo['x'] = x
-    fitinfo['f'] = f  # here
+    fitinfo['f'] = f
     fitinfo['cat'] = cat
     fitinfo['xcovfname'] = xcovfname
     fitinfo['thetacovfname'] = thetacovfname
@@ -60,15 +60,18 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
         xval = x[:, :-1].astype(float)
         xcat = x[:, -1]
         s0 = np.diag(emuinfo['covxf'](xval, xval, emuinfo['gammaxcovhyp'], type1=xcat, type2=xcat))
+        s = emuinfo['covxf'](xval, emuinfo['xval'], emuinfo['gammaxcovhyp'], type1=xcat, type2=emuinfo['xcat'])
     else:
         xval = x
         s0 = np.diag(emuinfo['covxf'](xval, xval, emuinfo['gammaxcovhyp']))
+        s = emuinfo['covxf'](xval, emuinfo['xval'], emuinfo['gammaxcovhyp'])
     varhatR = r0 - np.diag(r @ emuinfo['R_inv'] @ r.T)
-    varhatS = s0 - np.diag()
+    varhatS = s0 - np.diag(s @ emuinfo['S_inv'] @ s.T)
 
     predinfo['mean'] = yhat
-    predinfo['var'] = varhat
-
+    predinfo['varR'] = varhatR
+    predinfo['varS'] = varhatS
+    predinfo['var'] = np.outer(varhatR, varhatS)
 
     return
 

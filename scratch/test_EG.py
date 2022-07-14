@@ -22,8 +22,7 @@ if __name__ == "__main__":
 
     emu = emulator(f=ftrainmis, theta=paramtrain, x=inputtrain,
                    method='GPEmGibbs',
-                   args={'misval': missingmat, 'cat': True,
-                         'thetacovfname': 'exp'})
+                   args={'misval': missingmat, 'cat': True})
 
     pred = emu.predict()
 
@@ -40,3 +39,4 @@ if __name__ == "__main__":
     testpred = emu.predict(x=inputtrain, theta=paramtest)
 
     print(np.nanmean((testpred.mean() - ftestmis) ** 2))
+    print(testpred.var())
