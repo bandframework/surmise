@@ -47,18 +47,27 @@ def fit(fitinfo, x, theta, f, misval=None, cat=False,
     return
 
 
-def predict(predinfo, fitinfo, x, theta, computecov=True, **kwargs):
+def predict(predinfo, fitinfo, x, theta, **kwargs):
     emuinfo = fitinfo['emuinfo']
 
     r = emuinfo['covthetaf'](theta, emuinfo['theta'], emuinfo['gammathetacovhyp'])
-    yhat = emuinfo['mu'] + r @ emuinfo['residinv']
 
+    yhat = emuinfo['mu'] + r @ emuinfo['residinv']
 
     r0 = np.diag(emuinfo['covthetaf'](theta, theta, emuinfo['gammathetacovhyp']))
 
-    varhat =
+    if fitinfo['cat']:
+        xval = x[:, :-1].astype(float)
+        xcat = x[:, -1]
+        s0 = np.diag(emuinfo['covxf'](xval, xval, emuinfo['gammaxcovhyp'], type1=xcat, type2=xcat))
+    else:
+        xval = x
+        s0 = np.diag(emuinfo['covxf'](xval, xval, emuinfo['gammaxcovhyp']))
+    varhatR = r0 - np.diag(r @ emuinfo['R_inv'] @ r.T)
+    varhatS = s0 - np.diag()
 
     predinfo['mean'] = yhat
+    predinfo['var'] = varhat
 
 
     return
@@ -143,8 +152,8 @@ def emulation_hypest(emuinfo, modeltype='parasep'):
         emuinfo['gammamu'] = emuinfo['gammahat'][(emuinfo['hypstatparstructure'][2]):]
 
         sigma2 = emulation_getsigma2(emuinfo)
-
         Sigmapart1 = emulation_getS(emuinfo)
+
         emuinfo['S'] = (np.diag(np.sqrt(sigma2)) @ Sigmapart1 @ np.diag(np.sqrt(sigma2)))
         emuinfo['R_chol'], _ = spla.lapack.dpotrf(emuinfo['R'], True, True)
 
