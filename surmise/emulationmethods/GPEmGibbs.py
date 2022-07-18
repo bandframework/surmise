@@ -21,7 +21,7 @@ def fit(fitinfo, x, theta, f, misval=None, cat=False,
     fitinfo['thetacovfname'] = thetacovfname
     if misval is not None:
         if np.isnan(f).any() and np.any(misval != np.isnan(f)):
-            fitinfo['misval'] = misval ^ np.isnan(f)
+            misval = misval ^ np.isnan(f)
             warnings.warn('''The provided missing value matrix (mis) 
             is updated to include NaN values.''')
     else:
@@ -38,8 +38,8 @@ def fit(fitinfo, x, theta, f, misval=None, cat=False,
         emulation_hypest(emuinfo)
         emulation_imputeiter(emuinfo, Rs, Cs)
         emulation_hypest(emuinfo)
-        emulation_imputeiter(emuinfo, Rs, Cs, tol=10 ** (-7))
-        emulation_hypest(emuinfo)
+        # emulation_imputeiter(emuinfo, Rs, Cs, tol=10 ** (-7))
+        # emulation_hypest(emuinfo)
     else:
         emulation_hypest(emuinfo)
 
@@ -82,10 +82,11 @@ def __initialize(fitinfo, misval):
     x = fitinfo['x']
     theta = fitinfo['theta']
     n, m = f.shape
-    xval = (x[:, 0:(x.shape[1] - 1)]).astype(float)
     if fitinfo['cat']:
-        xcat = x[:, (x.shape[1] - 1)]
+        xval = (x[:, :-1]).astype(float)
+        xcat = x[:, -1]
     else:
+        xval = x
         xcat = np.ones(m).astype(int)
 
     uniquecat = np.unique(xcat)
