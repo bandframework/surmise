@@ -73,6 +73,12 @@ def single_test(emuname, x, theta, f, model, testtheta, modelname, ntheta,
                     'lognugLB': -22,
                     'standardpcinfo': standardpcinfo}
             withgrad = True
+        elif emuname == 'colGP':
+            args = {}
+            withgrad = False
+        elif emuname == 'GPEmGibbs':
+            args = {'cat': False}
+            withgrad = False
         else:
             args = {}
             withgrad = False
