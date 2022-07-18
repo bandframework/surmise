@@ -107,20 +107,12 @@ def covmat_maternone(x1, x2, gammav, type1=None, type2=None,
                      diffX=None, sameX=None, sameType=None):
     if gethyp:
         xrange = np.max(x1, axis=0) - np.min(x1, axis=0)
-        gammacovhypls0 = np.log(xrange) - 0
-        gammacovhyplsUB = np.log(xrange) + 3
-        gammacovhyplsLB = np.log(xrange) - 4
-        gammacovhyplf0 = np.array(np.log(10 ** (-3)))
-        gammacovhyplfLB = np.array(np.log(10 ** (-5)))
-        gammacovhyplfUB = np.array(np.log(10 ** (1)))
-        gammacovhyphf0 = np.array(np.log(10 ** (-4)))
-        gammacovhyphfLB = np.array(np.log(10 ** (-7)))
-        gammacovhyphfUB = np.array(np.log(10 ** (-1)))
-        gammacovhyp0 = np.concatenate((gammacovhypls0, [gammacovhyplf0], [gammacovhyphf0]))
-        gammacovhypLB = np.concatenate((gammacovhyplsLB, [gammacovhyplfLB], [gammacovhyphfLB]))
-        gammacovhypUB = np.concatenate((gammacovhyplsUB, [gammacovhyplfUB], [gammacovhyphfUB]))
 
-        valdiff = np.zeros([x1.shape[0], x2.shape[0], gammacovhypls0.shape[0]])
+        hyp0 = np.concatenate((np.log(xrange), [np.log(1e-3)], [np.log(1e-3)]))
+        hypLB = np.concatenate((np.log(xrange) - 4, [np.log(1e-5)], [np.log(1e-7)]))
+        hypUB = np.concatenate((np.log(xrange) + 3, [np.log(10)], [np.log(1e-1)]))
+
+        valdiff = np.zeros([x1.shape[0], x2.shape[0], xrange.shape[0]])
         valsame = np.ones([x1.shape[0], x2.shape[0]])
         if x1.ndim < 1.5:
             d = x1.shape[0]
@@ -129,15 +121,15 @@ def covmat_maternone(x1, x2, gammav, type1=None, type2=None,
             d = x1.shape[1]
         for k in range(0, d):
             valdiff[:, :, k] = np.abs(np.subtract.outer(x1[:, k], x2[:, k]))
-            valdiffadj = valdiff[:, :, k] / np.exp(gammacovhyp0[k])
+            valdiffadj = valdiff[:, :, k] / np.exp(hyp0[k])
             valsame *= (valdiffadj < (10 ** -12))
 
         if type1 is None:
-            return gammacovhyp0, gammacovhypLB, gammacovhypUB, valdiff, valsame
+            return hyp0, hypLB, hypUB, valdiff, valsame
         else:
             typesame = np.equal.outer(type1, type2)
             valsame *= typesame
-            return gammacovhyp0, gammacovhypLB, gammacovhypUB, valdiff, valsame, typesame
+            return hyp0, hypLB, hypUB, valdiff, valsame, typesame
     else:
         if x1.ndim < 1.5:
             d = x1.shape[0]
