@@ -12,7 +12,7 @@ from emu_single_test import single_test
 
 def make_dirs():
     current_dir = abspath(dirname(getsourcefile(lambda: 0)))  # where this script is
-    results_dir = r'\emulator_PCGPwM_results'
+    results_dir = r'\emulator_timing_results'
     parent_dir = current_dir + results_dir
     if not os.path.exists(parent_dir):
         Path(parent_dir).mkdir(exist_ok=True)
@@ -34,25 +34,25 @@ def make_dirs():
 
 def run_experiment(data_dir):
     # Macro replication
-    nrep = 1
+    nrep = 5
     js = np.arange(nrep)
 
     # Number of input locations
     nx = 15
     # Number of parameters
-    ns = [50, 100, 250, 1000] #, 2500]
+    ns = [50, 100, 250, 1000, 2500]
 
     # Knobs options
     fail_configs = [
-                    (True, 0.01),
-                    (True, 0.05),
+                    # (True, 0.01),
+                    # (True, 0.05),
                     (True, 0.25),
-                    (False, 0.01),
-                    (False, 0.05),
-                    (False, 0.25),
+                    # (False, 0.01),
+                    # (False, 0.05),
+                    # (False, 0.25),
                     ]
-    models = ['piston', 'otlcircuit', 'wingweight'] # 'borehole',
-    emulator_methods = ['PCGP_KNN', 'PCGP_BR', 'PCGPwM', 'PCGP_benchmark'] # 'GPy' #
+    models = ['borehole'] #, 'piston', 'otlcircuit', 'wingweight'] # 'borehole',
+    emulator_methods = ['GPEmGibbs', 'colGP', 'PCGPwM' ]  # 'GPy' #
 
 
     # JSON filelist
