@@ -9,7 +9,7 @@ if __name__ == "__main__":
     inputval = np.loadtxt('testingdata/inputdata.csv',delimiter=',',dtype='object')
     paramtrain = paramval[2920:3150,:]
     ftrain = fval[2920:3150,0:30]
-    inputtrain = inputval[0:30]
+    inputtrain = inputval[0:30, :-1].astype(float)
 
     paramtest = paramval[1500:2749, :]
     ftest = fval[1500:2749, 0:30]
@@ -22,7 +22,8 @@ if __name__ == "__main__":
 
     emu = emulator(f=ftrainmis, theta=paramtrain, x=inputtrain,
                    method='GPEmGibbs',
-                   args={'misval': missingmat, 'cat': True})
+                   args={'misval': missingmat, 'cat': False},
+                   options={'warning': True})
 
     pred = emu.predict()
 
