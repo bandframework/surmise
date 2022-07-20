@@ -46,13 +46,13 @@ def run_experiment(data_dir):
     fail_configs = [
                     # (True, 0.01),
                     # (True, 0.05),
-                    (True, 0.25),
+                    # (True, 0.25),
                     # (False, 0.01),
                     # (False, 0.05),
-                    # (False, 0.25),
+                    (False, 0.25),
                     ]
     models = ['borehole'] #, 'piston', 'otlcircuit', 'wingweight'] # 'borehole',
-    emulator_methods = ['GPEmGibbs', 'colGP', 'PCGPwM' ]  # 'GPy' #
+    emulator_methods = ['GPEmGibbs', 'colGP', 'PCGPwM', 'GPy' ]  # 'GPy' #
 
 
     # JSON filelist
@@ -87,13 +87,14 @@ def run_experiment(data_dir):
                         raise ValueError('Invalid failures configuration.')
 
                     for method in emulator_methods:
-                        result_fname = single_test(method, x, theta, f, model, testtheta,
+                        if not (method == 'GPEmGibbs' and n > 1000) or (method == 'GPy' and n > 250):
+                            result_fname = single_test(method, x, theta, f, model, testtheta,
                                                    function_name, n, fail_random, fail_level,
                                                    j, data_dir, func_caller)
-                        resultJSONs.append(result_fname)
-                        # if divmod(len(resultJSONs), 10) == 0:
-                        print('{:d} of {:d} runs completed'.format(len(resultJSONs), totalruns))
-                        print(result_fname)
+                            resultJSONs.append(result_fname)
+                            # if divmod(len(resultJSONs), 10) == 0:
+                            print('{:d} of {:d} runs completed'.format(len(resultJSONs), totalruns))
+                            print(result_fname)
     return resultJSONs
 
 

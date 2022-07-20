@@ -68,10 +68,10 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
     varhatR = r0 - np.diag(r @ emuinfo['R_inv'] @ r.T)
     varhatS = s0 - np.diag(s @ emuinfo['S_inv'] @ s.T)
 
-    predinfo['mean'] = yhat
+    predinfo['mean'] = yhat.T
     predinfo['varR'] = varhatR
     predinfo['varS'] = varhatS
-    predinfo['var'] = np.outer(varhatR, varhatS)
+    predinfo['var'] = np.outer(varhatR, varhatS).T
 
     return
 
