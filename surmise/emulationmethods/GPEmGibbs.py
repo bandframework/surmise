@@ -470,14 +470,12 @@ def emulation_lik_parasep(gammav, emuinfo, fval=None):
     Sigmapart1 = emulation_getS(emuinfo, gammav, withdir=False)
     Sigma = (np.diag(np.sqrt(sigma2)) @ Sigmapart1 @ np.diag(np.sqrt(sigma2)))
     (cholSigma, pd) = spla.lapack.dpotrf(Sigma, True, True)
-
-    invSigma = spla.solve_triangular(cholSigma,
-                                     spla.solve_triangular(cholSigma, np.diag(np.ones(emuinfo['m'])), lower=True),
-                                     lower=True, trans=True)
-
     if pd > 0.5:
         return np.inf
     else:
+        invSigma = spla.solve_triangular(cholSigma,
+                                         spla.solve_triangular(cholSigma, np.diag(np.ones(emuinfo['m'])), lower=True),
+                                         lower=True, trans=True)
         logdetSigma = 2 * np.sum(np.log(np.diag(cholSigma)))
         gammanorm = (gammav - emuinfo['gamma0']) / (emuinfo['gammaUB'] - emuinfo['gammaLB'])
         loglik = np.sum(invSigma * (residhalf.T @ residhalf)) + nhere * logdetSigma + emuinfo[
