@@ -56,13 +56,13 @@ def single_test(emuname, x, theta, f, model, testtheta, modelname, ntheta,
             args = {'lognugmean': -15,
                     'lognugLB': -22}
         elif emuname == 'PCGP_KNN':
-            emuname = 'PCGPwMatComp'
+            emuname = 'PCGPwImpute'
             args = {'lognugmean': -15,
                     'lognugLB': -22,
                     'compmethod': 'KNN'}
             withgrad = True
         elif emuname == 'PCGP_BR':
-            emuname = 'PCGPwMatComp'
+            emuname = 'PCGPwImpute'
             args = {'lognugmean': -15,
                     'lognugLB': -22,
                     'compmethod': 'BayesianRidge'}
