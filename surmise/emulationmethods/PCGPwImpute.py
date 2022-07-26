@@ -26,7 +26,7 @@ suggeststr = '\nOtherwise, try emulation method \'PCGPwM\' to handle missing val
 
 
 def fit(fitinfo, x, theta, f, epsilonPC=0.001, lognugmean=-10,
-        lognugLB=-20, completionmethod='KNN', verbose=0, **kwargs):
+        lognugLB=-20, completionmethod='KNN', nmaxhyptrain=None, verbose=0, **kwargs):
     """
     The purpose of fit is to take information and plug all of our fit
     information into fitinfo, which is a python dictionary.
@@ -55,6 +55,9 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, lognugmean=-10,
         - \'KNN\' (k-nearest neighbor method),
         - \'BayesianRidge\' (Bayesian ridge regression),
         - \'RandomForest\' (random forest method).
+    nmaxhyptrain : int
+        Maximum number of parameters used in hyperparameter training.  Default is
+        max(theta.shape[0], 20 * theta.shape[1]).
 
     Returns
     -------
@@ -79,6 +82,9 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, lognugmean=-10,
     fitinfo['mofrows'] = None
 
     fitinfo['epsilonPC'] = epsilonPC
+    if nmaxhyptrain is None:
+        nmaxhyptrain = np.max(np.min((20 * theta.shape[1], theta.shape[0])))
+    fitinfo['nmaxhyptrain'] = nmaxhyptrain
 
     hyp1 = lognugmean
     hyp2 = lognugLB
@@ -141,8 +147,10 @@ def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant):
     return semPCGPwM.__fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant)
 
 
-def __fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar=None, dampalpha=None, hypstarts=None, hypinds=None):
-    return semPCGPwM.__fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar, dampalpha, hypstarts, hypinds)
+def __fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar=None, dampalpha=None, eta=None,
+              nmaxhyptrain=None, hypstarts=None, hypinds=None, sig2ofconst=None):
+    return semPCGPwM.__fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar, dampalpha, eta,
+                               nmaxhyptrain, hypstarts, hypinds, sig2ofconst)
 
 
 def __negloglik(hyp, info):

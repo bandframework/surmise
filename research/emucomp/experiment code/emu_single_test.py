@@ -54,24 +54,28 @@ def single_test(emuname, x, theta, f, model, testtheta, modelname, ntheta,
         if emuname == 'PCGPwM':
             withgrad = True
             args = {'lognugmean': -15,
-                    'lognugLB': -22}
+                    'lognugLB': -22,
+                    'nmaxhyptrain': 1000}
         elif emuname == 'PCGP_KNN':
             emuname = 'PCGPwImpute'
             args = {'lognugmean': -15,
                     'lognugLB': -22,
-                    'compmethod': 'KNN'}
+                    'compmethod': 'KNN',
+                    'nmaxhyptrain': 1000}
             withgrad = True
         elif emuname == 'PCGP_BR':
             emuname = 'PCGPwImpute'
             args = {'lognugmean': -15,
                     'lognugLB': -22,
-                    'compmethod': 'BayesianRidge'}
+                    'compmethod': 'BayesianRidge',
+                    'nmaxhyptrain': 1000}
             withgrad = True
         elif emuname == 'PCGP_benchmark':
             emuname = 'PCGPwM'
             args = {'lognugmean': -15,
                     'lognugLB': -22,
-                    'standardpcinfo': standardpcinfo}
+                    'standardpcinfo': standardpcinfo,
+                    'nmaxhyptrain': 1000}
             withgrad = True
         elif emuname == 'colGP':
             args = {}
@@ -109,6 +113,74 @@ def single_test(emuname, x, theta, f, model, testtheta, modelname, ntheta,
     dumper = json.dumps(res, cls=NumpyEncoder)
     fname = directory+r'\{:s}_{:s}_{:d}_rand{:s}{:s}_rep{:d}_{:d}.json'.format(
             emuname_orig, modelname, ntheta, str(fail_random), str(int(fail_frac*100)), j, np.random.randint(1000,99999))
+    with open(fname, 'w') as fn:
+        json.dump(dumper, fn)
+
+    return fname
+
+
+
+def single_test_fayans(emuname, x, theta, f, model, testtheta,
+                       directory):
+    emuname_orig = emuname
+    modelname = 'fayans'
+    try:
+        emutime0 = time.time()
+        if emuname == 'PCGPwM':
+            withgrad = True
+            args = {'lognugmean': -15,
+                    'lognugLB': -22,
+                    'nmaxhyptrain': 1000}
+        elif emuname == 'PCGP_KNN':
+            emuname = 'PCGPwImpute'
+            args = {'lognugmean': -15,
+                    'lognugLB': -22,
+                    'compmethod': 'KNN',
+                    'nmaxhyptrain': 1000}
+            withgrad = True
+        elif emuname == 'PCGP_BR':
+            emuname = 'PCGPwImpute'
+            args = {'lognugmean': -15,
+                    'lognugLB': -22,
+                    'compmethod': 'BayesianRidge',
+                    'nmaxhyptrain': 1000}
+            withgrad = True
+        elif emuname == 'colGP':
+            args = {}
+            withgrad = False
+        elif emuname == 'GPEmGibbs':
+            args = {'cat': False}
+            withgrad = False
+        else:
+            args = {}
+            withgrad = False
+
+        emu = emulator(x, theta, np.copy(f), method=emuname,
+                       args=args,
+                       options={'xrmnan': 'all',
+                                'thetarmnan': 'never',
+                                'return_grad': withgrad})
+        emutime1 = time.time()
+
+        res = errors(x, testtheta, model, modelname, None,
+                     failfraction=None,
+                     ntheta=theta.shape[0],
+                     emu=emu,
+                     emutime=emutime1-emutime0,
+                     method=emuname_orig)
+
+    except Exception as e:
+        print(e)
+        res = errors(x, testtheta, model, modelname, None,
+                     failfraction=None,
+                     ntheta=theta.shape[0],
+                     emu=None,
+                     emutime=None,
+                     method=emuname_orig)
+
+    dumper = json.dumps(res, cls=NumpyEncoder)
+    fname = directory+r'\{:s}_{:s}.json'.format(
+            emuname_orig, modelname)
     with open(fname, 'w') as fn:
         json.dump(dumper, fn)
 

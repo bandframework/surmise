@@ -107,3 +107,56 @@ def errors(x, testtheta, model, modelname, random, ntheta,
     else:
         results['emutime'] = np.nan
     return results
+
+
+def errors_fayans(x, testtheta, testf, modelname, ntheta,
+                  emu=None, emutime=None, method=None):
+    results = {}
+    results['method'] = method
+    results['function'] = modelname
+    results['randomfailures'] = None
+    results['failfraction'] = None
+    results['nx'] = x.shape[0]
+    results['n'] = ntheta
+
+    if emu is not None:
+        if 'logvarc' in emu._info.keys():
+            results['dampalpha'] = emu._info['dampalpha']
+            results['avgvarconstant'] = np.mean(np.exp(emu._info['logvarc']))
+            # print(emu._info['logvarc'])
+            # print(np.median(emu._info['gvar']), np.max(emu._info['gvar']), np.min(emu._info['gvar']))
+            results['varc_status'] = emu._info['varc_status']
+        else:
+            results['dampalpha'] = np.nan
+            results['avgvarconstant'] = np.nan
+            results['varc_status'] = 'n/a'
+
+        frng = np.nanmax(testf) - np.nanmin(testf)
+
+        results['rmse'] = rmse(emu, x, testtheta, testf) / frng
+        results['mae'] = mae(emu, x, testtheta, testf) / frng
+        results['medae'] = medae(emu, x, testtheta, testf) / frng
+        results['me'] = me(emu, x, testtheta, testf) / frng
+        results['crps'] = crps(emu, x, testtheta, testf)
+        int_stats = interval_stats(emu, x, testtheta, testf)
+        results['coverage'] = int_stats[0]
+        results['avgintwidth'] = int_stats[1]
+        results['intscore'] = int_stats[2]
+    else:
+        results['dampalpha'] = np.nan
+        results['avgvarconstant'] = np.nan
+        results['varc_status'] = 'n/a'
+        results['rmse'] = np.nan
+        results['mae'] = np.nan
+        results['medae'] = np.nan
+        results['me'] = np.nan
+        results['crps'] = np.nan
+        results['coverage'] = np.nan
+        results['avgintwidth'] = np.nan
+        results['intscore'] = np.nan
+
+    if emutime is not None:
+        results['emutime'] = emutime
+    else:
+        results['emutime'] = np.nan
+    return results

@@ -34,13 +34,13 @@ def make_dirs():
 
 def run_experiment(data_dir):
     # Macro replication
-    nrep = 5
+    nrep = 1
     js = np.arange(nrep)
 
     # Number of input locations
     nx = 15
     # Number of parameters
-    ns = [50, 100, 250, 1000, 2500]
+    ns = [1000, 2500]
 
     # Knobs options
     fail_configs = [
@@ -52,7 +52,7 @@ def run_experiment(data_dir):
                     (False, 0.25),
                     ]
     models = ['borehole'] #, 'piston', 'otlcircuit', 'wingweight'] # 'borehole',
-    emulator_methods = ['GPEmGibbs', 'colGP', 'PCGPwM', 'GPy']  # 'GPy' #
+    emulator_methods = ['PCGPwM'] #, 'PCGP_KNN']  # 'GPy' #
 
 
     # JSON filelist
@@ -87,12 +87,12 @@ def run_experiment(data_dir):
                         raise ValueError('Invalid failures configuration.')
 
                     for method in emulator_methods:
+                        print('{:d} of {:d} runs completed'.format(len(resultJSONs), totalruns))
                         result_fname = single_test(method, x, theta, f, model, testtheta,
                                                    function_name, n, fail_random, fail_level,
                                                    j, data_dir, func_caller)
                         resultJSONs.append(result_fname)
                         # if divmod(len(resultJSONs), 10) == 0:
-                        print('{:d} of {:d} runs completed'.format(len(resultJSONs), totalruns))
                         print(result_fname)
     return resultJSONs
 
