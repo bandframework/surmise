@@ -2,11 +2,13 @@ import json
 import numpy as np
 import time
 from surmise.emulation import emulator
-from testdiagnostics import errors
+from surmise.calibration import calibrator
+from testdiagnostics import errors, errors_fayans, calresults_fayans
 
 
 class NumpyEncoder(json.JSONEncoder):
     """ Special json encoder for numpy types """
+
     def default(self, obj):
         if isinstance(obj, np.integer):
             return int(obj)
@@ -38,7 +40,7 @@ def single_test(emuname, x, theta, f, model, testtheta, modelname, ntheta,
             fs[np.isnan(f)] = np.nan
 
             U, S, _ = np.linalg.svd(fs_comp, full_matrices=False)
-            Sp = S**2 - epsilonPC
+            Sp = S ** 2 - epsilonPC
             Up = U[:, Sp > 0]
             extravar = np.nanmean((fs_comp.T - fs_comp.T @ Up @ Up.T) ** 2, 0) * (scale ** 2)
 
@@ -98,7 +100,7 @@ def single_test(emuname, x, theta, f, model, testtheta, modelname, ntheta,
                      failfraction=fail_frac,
                      ntheta=ntheta,
                      emu=emu,
-                     emutime=emutime1-emutime0,
+                     emutime=emutime1 - emutime0,
                      method=emuname_orig)
 
     except Exception as e:
@@ -111,17 +113,16 @@ def single_test(emuname, x, theta, f, model, testtheta, modelname, ntheta,
                      method=emuname_orig)
 
     dumper = json.dumps(res, cls=NumpyEncoder)
-    fname = directory+r'\{:s}_{:s}_{:d}_rand{:s}{:s}_rep{:d}_{:d}.json'.format(
-            emuname_orig, modelname, ntheta, str(fail_random), str(int(fail_frac*100)), j, np.random.randint(1000,99999))
+    fname = directory + r'\{:s}_{:s}_{:d}_rand{:s}{:s}_rep{:d}_{:d}.json'.format(
+        emuname_orig, modelname, ntheta, str(fail_random), str(int(fail_frac * 100)), j, np.random.randint(1000, 99999))
     with open(fname, 'w') as fn:
         json.dump(dumper, fn)
 
     return fname
 
 
-
-def single_test_fayans(emuname, x, theta, f, model, testtheta,
-                       directory):
+def single_test_fayans(emuname, x, theta, f, testtheta,
+                       testf, y, yvar, prior_fayans, directory):
     emuname_orig = emuname
     modelname = 'fayans'
     try:
@@ -149,7 +150,7 @@ def single_test_fayans(emuname, x, theta, f, model, testtheta,
             args = {}
             withgrad = False
         elif emuname == 'GPEmGibbs':
-            args = {'cat': False}
+            args = {'cat': True}
             withgrad = False
         else:
             args = {}
@@ -162,26 +163,38 @@ def single_test_fayans(emuname, x, theta, f, model, testtheta,
                                 'return_grad': withgrad})
         emutime1 = time.time()
 
-        res = errors(x, testtheta, model, modelname, None,
-                     failfraction=None,
-                     ntheta=theta.shape[0],
-                     emu=emu,
-                     emutime=emutime1-emutime0,
-                     method=emuname_orig)
+        res = errors_fayans(x, testtheta, testf, modelname, theta.shape[0],
+                            emu=emu,
+                            emutime=emutime1 - emutime0,
+                            method=emuname_orig)
+
+        cal = calibrator(emu=emu, y=y, yvar=yvar,
+                       x=x, thetaprior=prior_fayans,
+                       method='directbayeswoodbury',
+                       args={'sampler': 'PTLMC'})
+
+        rescal = calresults_fayans(cal, emu, x, thetatest=testtheta, ftest=testf, ftrain=f)
+
 
     except Exception as e:
         print(e)
-        res = errors(x, testtheta, model, modelname, None,
-                     failfraction=None,
-                     ntheta=theta.shape[0],
-                     emu=None,
-                     emutime=None,
-                     method=emuname_orig)
-
+        res = errors_fayans(x, testtheta, testf, modelname, theta.shape[0],
+                            emu=None,
+                            emutime=None,
+                            method=emuname_orig)
+        rescal = {'CI90width': None,
+                  'postmean': None}
     dumper = json.dumps(res, cls=NumpyEncoder)
-    fname = directory+r'\{:s}_{:s}.json'.format(
-            emuname_orig, modelname)
+    fname = directory + r'\{:s}_{:s}.json'.format(
+        emuname_orig, modelname)
     with open(fname, 'w') as fn:
         json.dump(dumper, fn)
+
+    dumper_f = json.dumps(rescal, cls=NumpyEncoder)
+
+    fayans_fname = directory + r'\{:s}_{:s}_cal.json'.format(
+        emuname_orig, modelname)
+    with open(fayans_fname, 'w') as fn:
+        json.dump(dumper_f, fn)
 
     return fname

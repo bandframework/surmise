@@ -160,3 +160,20 @@ def errors_fayans(x, testtheta, testf, modelname, ntheta,
     else:
         results['emutime'] = np.nan
     return results
+
+
+def calresults_fayans(cal, emu, x, thetatest, ftest, ftrain):
+
+    posttheta = cal.theta.rnd(5000)
+    CI90 = np.quantile(posttheta, q=(0.05, 0.95), axis=0).T
+
+    CI90width = CI90[:, 1] - CI90[:, 0]
+    postmean = posttheta.mean(0)
+
+    emupred = emu.predict(x=x, theta=thetatest)
+
+    me_x = np.nanmean((emupred.mean() - ftest) / emupred.var(), axis=1)
+    results = {'CI90width': CI90width,
+               'postmean': postmean,
+               'me_x': me_x}
+    return results
