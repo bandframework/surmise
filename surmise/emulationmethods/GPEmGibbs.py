@@ -139,7 +139,7 @@ def emulation_hypest(emuinfo, modeltype='parasep'):
             myftol = 0.1 / np.max((np.abs(likeattempt), 1))
         bounds = spo.Bounds(emuinfo['gammaLB'], emuinfo['gammaUB'])
         opval = spo.minimize(emulation_lik_parasep, emuinfo['gammahat'],
-                             args=(emuinfo),
+                             args=emuinfo,
                              method='L-BFGS-B',
                              options={'disp': False, 'ftol': myftol},
                              jac=emulation_dlik_parasep,
@@ -237,8 +237,8 @@ def __sethyp(emuinfo):
     gammamuUB = np.ones(numcat)
 
     for k in range(numcat):
-        fconsid = f[np.squeeze(np.where(xcat == uniquecat[k]))]
-        meanvalsnow = np.nanmean(fconsid, 1)
+        fconsid = f[:, np.squeeze(np.where(xcat == uniquecat[k]))]
+        meanvalsnow = np.nanmean(fconsid, 0)
         gammasigmasq0[k] = 2 + np.log(np.nanvar(fconsid))
         gammasigmasqLB[k] = 0 + gammasigmasq0[k]
         gammasigmasqUB[k] = 8 + gammasigmasq0[k]
@@ -471,6 +471,9 @@ def emulation_lik_parasep(gammav, emuinfo, fval=None):
     Sigma = (np.diag(np.sqrt(sigma2)) @ Sigmapart1 @ np.diag(np.sqrt(sigma2)))
     (cholSigma, pd) = spla.lapack.dpotrf(Sigma, True, True)
     if pd > 0.5:
+        # nSigma = Sigma.shape[0]
+        # (cholSigma, pd) = spla.lapack.dpotrf(Sigma, True, True)
+        # if pd > 0.5:
         return np.inf
     else:
         invSigma = spla.solve_triangular(cholSigma,
