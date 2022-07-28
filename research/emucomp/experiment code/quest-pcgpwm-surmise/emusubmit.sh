@@ -21,8 +21,6 @@ module load python/anaconda3.6
 source activate surmise-venv
 
 # By default all file paths are relative to the directory where you submitted the job.
-# To change to another path, use `cd <path>`, for example:
-# cd /projects/<allocationID>
 cd ~/research/surmise/research/emucomp/quest-pcgpwm-surmise
 
 python emucompare.py --n=${n} --function=${function} --failrandom=${failrandom} --failfraction=${failfraction} --method=${method} --rep=${rep}
@@ -33,4 +31,3 @@ EOJ
 echo "JobID = ${JOB} for parameters submitted on `date`"
 done < params.txt
 exit
-
