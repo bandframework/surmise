@@ -4,11 +4,12 @@ do
     JOB=`sbatch - << EOJ
 
 #!/bin/bash
-#SBATCH -A p30845
+#SBATCH --account=p30845
 #SBATCH --partition=short
 #SBATCH --time=01:00:00
 #SBATCH --mail-user=mosesyhc@u.northwestern.edu
 #SBATCH -J emucompSurmise
+#SBATCH --output=outlog ## standard out and standard error goes to this file
 #SBATCH --nodes=1
 #SBATCH -n 1
 
