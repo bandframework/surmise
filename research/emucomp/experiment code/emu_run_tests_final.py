@@ -38,9 +38,9 @@ def run_experiment(data_dir):
     js = np.arange(nrep)
 
     # Number of input locations
-    nx = 15
+    nx = 200
     # Number of parameters
-    ns = [1000, 2500]
+    ns = [500] #, 2500]
 
     # Knobs options
     fail_configs = [
@@ -52,7 +52,7 @@ def run_experiment(data_dir):
                     (False, 0.25),
                     ]
     models = ['borehole'] #, 'piston', 'otlcircuit', 'wingweight'] # 'borehole',
-    emulator_methods = ['PCGPwM'] #, 'PCGP_KNN']  # 'GPy' #
+    emulator_methods = ['GPEmGibbs'] #, 'PCGP_KNN']  # 'GPy' #
 
 
     # JSON filelist
@@ -109,6 +109,21 @@ def run_fayans_local(data_dir):
     bigmap = np.loadtxt(r'C:\Users\moses\Desktop\git\surmise\research\emucomp\fayans_emucal\startingpt\errmap.txt', delimiter=',', dtype=int)
     inputs = np.loadtxt(r'C:\Users\moses\Desktop\git\surmise\research\emucomp\fayans_emucal\startingpt\inputdata.csv', delimiter=',', dtype=object)
 
+    xval = inputs[:, :-1].astype(float)
+    xvalmean = xval.mean(0)
+    xvalstd = xval.std(0)
+    xvalrng = np.max(xval, 0) - np.min(xval, 0)
+    xval = (xval - xvalmean) / xvalrng
+    xcat = inputs[:, -1]
+
+    uniquecat = np.unique(xcat)
+    xcatnum = np.zeros((xcat.shape[0], uniquecat.shape[0]-1))
+    for i in range(uniquecat.shape[0]-1):
+        xcatnum[:, i][xcat == uniquecat[i]] = 1
+
+
+    inputs = np.column_stack((xval, xcatnum))
+
     fvals = mat['Fhist']
     errvals = mat['Errorhist']
     thetavals = mat['X0mat'].T
@@ -118,7 +133,7 @@ def run_fayans_local(data_dir):
 
     fvals[errvalssimple] = np.nan
 
-    n = 500  ## CHANGE
+    n = 50  ## CHANGE
     thetanorm = np.linalg.norm(thetavals - 0.5, ord=1, axis=1)
     thetatopinds = np.argpartition(thetanorm, -n)[-n:]
 
@@ -133,7 +148,7 @@ def run_fayans_local(data_dir):
     y = np.zeros(198)
     yvar = np.ones(198)
 
-    emulator_methods = ['GPEmGibbs', 'colGP']  # 'GPy' #'PCGPwM', 'PCGP_KNN',
+    emulator_methods = ['GPEmGibbs'] #, 'PCGPwM', 'PCGP_KNN', 'colGP']  # 'GPy' #'PCGPwM', 'PCGP_KNN',
 
     # JSON filelist
     totalruns = len(emulator_methods)

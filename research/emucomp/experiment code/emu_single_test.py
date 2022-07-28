@@ -150,13 +150,13 @@ def single_test_fayans(emuname, x, theta, f, testtheta,
             args = {}
             withgrad = False
         elif emuname == 'GPEmGibbs':
-            args = {'cat': True}
-            withgrad = False
+            args = {'cat': False}
+            withgrad = True
         else:
             args = {}
             withgrad = False
 
-        emu = emulator(x, theta, np.copy(f), method=emuname,
+        emu = emulator(x=x, theta=theta, f=np.copy(f), method=emuname,
                        args=args,
                        options={'xrmnan': 'all',
                                 'thetarmnan': 'never',
@@ -168,12 +168,12 @@ def single_test_fayans(emuname, x, theta, f, testtheta,
                             emutime=emutime1 - emutime0,
                             method=emuname_orig)
 
-        cal = calibrator(emu=emu, y=y, yvar=yvar,
-                       x=x, thetaprior=prior_fayans,
-                       method='directbayeswoodbury',
-                       args={'sampler': 'PTLMC'})
-
-        rescal = calresults_fayans(cal, emu, x, thetatest=testtheta, ftest=testf, ftrain=f)
+        # cal = calibrator(emu=emu, y=y, yvar=yvar,
+        #                x=x, thetaprior=prior_fayans,
+        #                method='directbayeswoodbury',
+        #                args={'sampler': 'PTLMC'})
+        #
+        # rescal = calresults_fayans(cal, emu, x, thetatest=testtheta, ftest=testf, ftrain=f)
 
 
     except Exception as e:
@@ -190,11 +190,11 @@ def single_test_fayans(emuname, x, theta, f, testtheta,
     with open(fname, 'w') as fn:
         json.dump(dumper, fn)
 
-    dumper_f = json.dumps(rescal, cls=NumpyEncoder)
-
-    fayans_fname = directory + r'\{:s}_{:s}_cal.json'.format(
-        emuname_orig, modelname)
-    with open(fayans_fname, 'w') as fn:
-        json.dump(dumper_f, fn)
+    # dumper_f = json.dumps(rescal, cls=NumpyEncoder)
+    #
+    # fayans_fname = directory + r'\{:s}_{:s}_cal.json'.format(
+    #     emuname_orig, modelname)
+    # with open(fayans_fname, 'w') as fn:
+    #     json.dump(dumper_f, fn)
 
     return fname
