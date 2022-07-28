@@ -4,15 +4,13 @@ do
     JOB=`sbatch - << EOJ
 
 #!/bin/bash
-#SBATCH -A <allocationID>
-#SBATCH --partition=<queueName>
-#SBATCH --time=<hh:mm:ss>
-#SBATCH --mail-user=<emailAddress>
-#SBATCH --output=<combined out and err file path>
-#SBATCH -J <jobName>
+#SBATCH -A p30845
+#SBATCH --partition=short
+#SBATCH --time=01:00:00
+#SBATCH --mail-user=mosesyhc@u.northwestern.edu
+#SBATCH -J emucompSurmise
 #SBATCH --nodes=1
-#SBATCH -n <core count>
-#SBATCH --mem=<Total memory in MB>
+#SBATCH -n 1
 
 # unload modules that may have been loaded when job was submitted
 module purge all
