@@ -28,6 +28,6 @@ EOJ
 `
 
 # print out the job id for reference later
-echo "JobID = ${JOB} for parameters submitted on `date`"
+echo "JobID = ${JOB} for parameters (${n} ${function} ${failrandom} ${failfraction} ${method} ${rep}) submitted on `date`"
 done < params.txt
 exit
