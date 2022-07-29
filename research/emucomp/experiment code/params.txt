@@ -1,0 +1,2 @@
+50	borehole	False	0.1	PCGPwM	1
+50	borehole	True	0.05	PCGPwM	0

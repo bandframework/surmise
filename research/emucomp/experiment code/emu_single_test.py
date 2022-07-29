@@ -113,7 +113,7 @@ def single_test(emuname, x, theta, f, model, testtheta, modelname, ntheta,
                      method=emuname_orig)
 
     dumper = json.dumps(res, cls=NumpyEncoder)
-    fname = directory + r'\{:s}_{:s}_{:d}_rand{:s}{:s}_rep{:d}_{:d}.json'.format(
+    fname = directory + r'/{:s}_{:s}_{:d}_rand{:s}{:s}_rep{:d}_{:d}.json'.format(
         emuname_orig, modelname, ntheta, str(fail_random), str(int(fail_frac * 100)), j, np.random.randint(1000, 99999))
     with open(fname, 'w') as fn:
         json.dump(dumper, fn)
@@ -185,14 +185,14 @@ def single_test_fayans(emuname, x, theta, f, testtheta,
         rescal = {'CI90width': None,
                   'postmean': None}
     dumper = json.dumps(res, cls=NumpyEncoder)
-    fname = directory + r'\{:s}_{:s}.json'.format(
+    fname = directory + r'/{:s}_{:s}.json'.format(
         emuname_orig, modelname)
     with open(fname, 'w') as fn:
         json.dump(dumper, fn)
 
     # dumper_f = json.dumps(rescal, cls=NumpyEncoder)
     #
-    # fayans_fname = directory + r'\{:s}_{:s}_cal.json'.format(
+    # fayans_fname = directory + r'/{:s}_{:s}_cal.json'.format(
     #     emuname_orig, modelname)
     # with open(fayans_fname, 'w') as fn:
     #     json.dump(dumper_f, fn)

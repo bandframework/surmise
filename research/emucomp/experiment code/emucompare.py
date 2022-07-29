@@ -1,9 +1,8 @@
 import argparse
 import numpy as np
-import scipy.stats as sps
+from scipy import stats as sps
 from testfunc_wrapper import TestFunc
 from emu_single_test import single_test
-
 parser = argparse.ArgumentParser(description='Takes argument to mainemutest().')
 
 parser.add_argument('--n', type=int, help='number of parameters')
@@ -45,5 +44,5 @@ np.random.seed(None)
 result_fname = single_test(emuname=args.method, x=x, theta=theta, f=f, model=model,
                            testtheta=testtheta, modelname=function_name,
                            ntheta=args.n, fail_random=args.failrandom, fail_frac=args.failfraction,
-                           j=args.rep, directory='save', caller=func_caller)
+                           j=args.rep, directory='./save', caller=func_caller)
 
