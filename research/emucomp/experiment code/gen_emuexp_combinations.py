@@ -16,5 +16,7 @@ for i in range(10):
         combs = comb.copy()
     else:
         combs = np.row_stack((combs, comb))
-
-np.savetxt('params.txt', combs, fmt='%s', delimiter='\t')
+np.savetxt('params0.txt', combs[:2100], fmt='%s', delimiter='\t')
+np.savetxt('params1.txt', combs[2100:4200], fmt='%s', delimiter='\t')
+np.savetxt('params2.txt', combs[4200:6300], fmt='%s', delimiter='\t')
+np.savetxt('params3.txt', combs[6300:], fmt='%s', delimiter='\t')
