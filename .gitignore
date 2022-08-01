@@ -48,6 +48,12 @@ research/emucomp/fayans_emucal/FayansFall2021.mat
 
 research/emucomp/results_alphabeta/
 
+research/emucomp/experiment code/save
+
+research/emucomp/experiment code/error_output
+
+research/emucomp/experiment code/outfigs
+
 *.pyd
 
 build/temp.win-amd64-3.9/Release/surmise/emulationsupport/matern_covmat.cp39-win_amd64.exp

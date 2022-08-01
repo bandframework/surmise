@@ -1,6 +1,6 @@
 """OTL circuit function. (xdim = 4, thetadim=2)."""
 import numpy as np
-from missing_utils import MNAR_mask_quantiles, MNAR_mask_logistic
+from before_pcgpwm_rev.missing_utils import MNAR_mask_logistic
 
 _dict = {
     'function': 'OTLcircuit',

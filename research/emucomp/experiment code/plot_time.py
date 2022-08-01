@@ -1,3 +1,5 @@
+import numpy as np
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pandas as pd
 import json
@@ -6,8 +8,8 @@ import seaborn as sns
 
 plt.style.use(['science', 'no-latex', 'high-vis', 'grid'])
 
-parent_datadir = r'C:\Users\cmyh\Documents\git\surmise\research\emucomp\experiment code\emulator_timing_results\3\data'
-output_figdir = r'C:\Users\cmyh\Documents\git\surmise\research\emucomp\experiment code\emulator_timing_results\3\plot'
+parent_datadir = r'C:\Users\moses\Desktop\git\surmise\research\emucomp\experiment code\save'
+output_figdir = r'C:\Users\moses\Desktop\git\surmise\research\emucomp\experiment code\outfigs'
 flist = glob.glob(parent_datadir + r'\*.json')
 d = []
 for fname in flist:
@@ -15,10 +17,17 @@ for fname in flist:
         x = json.load(f)
         d.append(json.loads(x))
 
-root_df = pd.DataFrame(d)
-root_df['npts'] = root_df.n * root_df.nx * (1 - root_df.failfraction.mean())
+df = pd.DataFrame(d)
+df1 = df
+df1['npts'] = df1.n * df1.nx * (1 - df1.failfraction.mean())
 
-markers = ['D', 'v', 'X', 'o']
+# create valid markers from mpl.markers
+valid_markers = ([item[0] for item in mpl.markers.MarkerStyle.markers.items() if
+                  item[1] is not 'nothing' and not item[1].startswith('tick') and not item[1].startswith('caret')])
+
+# valid_markers = mpl.markers.MarkerStyle.filled_markers
+markers = np.random.choice(valid_markers, df.method.nunique(), replace=False)
+
 ylabels = {'rmse': 'RMSE',
            'mae': 'MAE',
            'medae': 'median absolute error',
@@ -32,19 +41,19 @@ ylabels = {'rmse': 'RMSE',
 
 for y, ylabel in ylabels.items():
     fig, ax = plt.subplots(1, 1, figsize=(6, 4.5))
-    p = sns.lineplot(x='npts', y=root_df[y],
+    p = sns.lineplot(x='npts', y=df1[y],
                      hue='method',
                      style='method',
                      markersize=12,
                      lw=4,
                      alpha=0.65,
-                     estimator='mean',
+                     estimator='median',
                      ci=None,
                      # logx=True,
                      # s=80,
                      # alpha=0.5,
                      # lw=4,
-                     data=root_df)
+                     data=df1)
     # p.axhline(3600, color='k', linestyle='--')
     p.set(xscale="log")
     if y != 'coverage':
