@@ -3,7 +3,7 @@ import numpy as np
 import time
 from surmise.emulation import emulator
 from surmise.calibration import calibrator
-from testdiagnostics import errors, errors_fayans, calresults_fayans, errors_fayans_EMGPind
+from testdiagnostics import errors, errors_fayans, calresults_fayans #, errors_fayans_EMGPind
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -161,27 +161,27 @@ def single_test_fayans(emuname, x, theta, f, testtheta,
                    'thetarmnan': 'never',
                    'return_grad': withgrad}
 
-        if not emuname == 'GPEmGibbs':
-            emu = emulator(x, theta, np.copy(f), method=emuname,
-                           args=args,
-                           options=options)
-            emutime1 = time.time()
+        # if not emuname == 'GPEmGibbs':
+        emu = emulator(x, theta, np.copy(f), method=emuname,
+                       args=args,
+                       options=options)
+        emutime1 = time.time()
 
-            res = errors_fayans(x, testtheta, testf, modelname, theta.shape[0],
-                                emu=emu,
-                                emutime=emutime1 - emutime0,
-                                method=emuname_orig)
+        res = errors_fayans(x, testtheta, testf, modelname, theta.shape[0],
+                            emu=emu,
+                            emutime=emutime1 - emutime0,
+                            method=emuname_orig)
 
-        else:
-            emus = emulator_EMGPind(x=x, theta=theta, f=f, method=emuname,
-                                    args=args, options=options)
-
-            emutime1 = time.time()
-
-            res = errors_fayans_EMGPind(x, testtheta, testf, modelname, theta.shape[0],
-                                        emu=emus,
-                                        emutime=emutime1 - emutime0,
-                                        method=emuname_orig)
+        # else:
+        #     emus = emulator_EMGPind(x=x, theta=theta, f=f, method=emuname,
+        #                             args=args, options=options)
+        #
+        #     emutime1 = time.time()
+        #
+        #     res = errors_fayans_EMGPind(x, testtheta, testf, modelname, theta.shape[0],
+        #                                 emu=emus,
+        #                                 emutime=emutime1 - emutime0,
+        #                                 method=emuname_orig)
 
         # cal = calibrator(emu=emu, y=y, yvar=yvar,
         #                x=x, thetaprior=prior_fayans,
@@ -224,9 +224,6 @@ def emulator_EMGPind(x, theta, f, method, args, options):
     ncat = uniquecat.shape[0]
 
     for i in range(ncat):
-        i = 4
-        if i == 4:
-            print('here')
         xi = xval[xcat == uniquecat[i]]
         fi = f[xcat == uniquecat[i]]
 
