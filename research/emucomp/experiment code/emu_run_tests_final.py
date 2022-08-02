@@ -122,7 +122,7 @@ def run_fayans_local(data_dir):
         xcatnum[:, i][xcat == uniquecat[i]] = 1
 
 
-    inputs = np.column_stack((xval, xcatnum))
+    # inputs = np.column_stack((xval, xcatnum))
 
     fvals = mat['Fhist']
     errvals = mat['Errorhist']
@@ -173,5 +173,7 @@ if __name__ == '__main__':
     # run_time = time.time() - start_time
     # print('total runtime: {:.3f} seconds'.format(run_time))
 
+    import warnings
+    warnings.simplefilter('error')
     data_fay_dir, plot_fay_dir = make_dirs()
     listJSONs = run_fayans_local(data_fay_dir)
