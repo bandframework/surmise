@@ -3,7 +3,7 @@ import numpy as np
 import time
 from surmise.emulation import emulator
 from surmise.calibration import calibrator
-from testdiagnostics import errors, errors_fayans, calresults_fayans
+from testdiagnostics import errors, errors_fayans, calresults_fayans #, errors_fayans_EMGPind
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -89,11 +89,12 @@ def single_test(emuname, x, theta, f, model, testtheta, modelname, ntheta,
             args = {}
             withgrad = False
 
+        options = {'xrmnan': 'all',
+                   'thetarmnan': 'never',
+                   'return_grad': withgrad}
         emu = emulator(x, theta, np.copy(f), method=emuname,
                        args=args,
-                       options={'xrmnan': 'all',
-                                'thetarmnan': 'never',
-                                'return_grad': withgrad})
+                       options=options)
         emutime1 = time.time()
 
         res = errors(x, testtheta, model, modelname, fail_random,
@@ -113,7 +114,7 @@ def single_test(emuname, x, theta, f, model, testtheta, modelname, ntheta,
                      method=emuname_orig)
 
     dumper = json.dumps(res, cls=NumpyEncoder)
-    fname = directory + r'\{:s}_{:s}_{:d}_rand{:s}{:s}_rep{:d}_{:d}.json'.format(
+    fname = directory + r'/{:s}_{:s}_{:d}_rand{:s}{:s}_rep{:d}_{:d}.json'.format(
         emuname_orig, modelname, ntheta, str(fail_random), str(int(fail_frac * 100)), j, np.random.randint(1000, 99999))
     with open(fname, 'w') as fn:
         json.dump(dumper, fn)
@@ -150,17 +151,20 @@ def single_test_fayans(emuname, x, theta, f, testtheta,
             args = {}
             withgrad = False
         elif emuname == 'GPEmGibbs':
-            args = {'cat': True}
-            withgrad = False
+            args = {'cat': False}
+            withgrad = True
         else:
             args = {}
             withgrad = False
 
+        options = {'xrmnan': 'all',
+                   'thetarmnan': 'never',
+                   'return_grad': withgrad}
+
+        # if not emuname == 'GPEmGibbs':
         emu = emulator(x, theta, np.copy(f), method=emuname,
                        args=args,
-                       options={'xrmnan': 'all',
-                                'thetarmnan': 'never',
-                                'return_grad': withgrad})
+                       options=options)
         emutime1 = time.time()
 
         res = errors_fayans(x, testtheta, testf, modelname, theta.shape[0],
@@ -168,12 +172,23 @@ def single_test_fayans(emuname, x, theta, f, testtheta,
                             emutime=emutime1 - emutime0,
                             method=emuname_orig)
 
-        cal = calibrator(emu=emu, y=y, yvar=yvar,
-                       x=x, thetaprior=prior_fayans,
-                       method='directbayeswoodbury',
-                       args={'sampler': 'PTLMC'})
+        # else:
+        #     emus = emulator_EMGPind(x=x, theta=theta, f=f, method=emuname,
+        #                             args=args, options=options)
+        #
+        #     emutime1 = time.time()
+        #
+        #     res = errors_fayans_EMGPind(x, testtheta, testf, modelname, theta.shape[0],
+        #                                 emu=emus,
+        #                                 emutime=emutime1 - emutime0,
+        #                                 method=emuname_orig)
 
-        rescal = calresults_fayans(cal, emu, x, thetatest=testtheta, ftest=testf, ftrain=f)
+        # cal = calibrator(emu=emu, y=y, yvar=yvar,
+        #                x=x, thetaprior=prior_fayans,
+        #                method='directbayeswoodbury',
+        #                args={'sampler': 'PTLMC'})
+        #
+        # rescal = calresults_fayans(cal, emu, x, thetatest=testtheta, ftest=testf, ftrain=f)
 
 
     except Exception as e:
@@ -185,16 +200,35 @@ def single_test_fayans(emuname, x, theta, f, testtheta,
         rescal = {'CI90width': None,
                   'postmean': None}
     dumper = json.dumps(res, cls=NumpyEncoder)
-    fname = directory + r'\{:s}_{:s}.json'.format(
+    fname = directory + r'/{:s}_{:s}.json'.format(
         emuname_orig, modelname)
     with open(fname, 'w') as fn:
         json.dump(dumper, fn)
 
-    dumper_f = json.dumps(rescal, cls=NumpyEncoder)
-
-    fayans_fname = directory + r'\{:s}_{:s}_cal.json'.format(
-        emuname_orig, modelname)
-    with open(fayans_fname, 'w') as fn:
-        json.dump(dumper_f, fn)
+    # dumper_f = json.dumps(rescal, cls=NumpyEncoder)
+    #
+    # fayans_fname = directory + r'/{:s}_{:s}_cal.json'.format(
+    #     emuname_orig, modelname)
+    # with open(fayans_fname, 'w') as fn:
+    #     json.dump(dumper_f, fn)
 
     return fname
+
+
+def emulator_EMGPind(x, theta, f, method, args, options):
+    xval = x[:, :-1].astype(float)
+    xcat = x[:, -1]
+    emulist = []
+
+    uniquecat = np.unique(xcat)
+    ncat = uniquecat.shape[0]
+
+    for i in range(ncat):
+        xi = xval[xcat == uniquecat[i]]
+        fi = f[xcat == uniquecat[i]]
+
+        emu = emulator(x=xi, f=fi, theta=theta, method=method, args=args, options=options)
+        emulist.append(emu)
+
+    print('complete emulation')
+    return emulist

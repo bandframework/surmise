@@ -9,7 +9,6 @@ from pathlib import Path
 from glob import glob
 from testfunc_wrapper import TestFunc
 from emu_single_test import single_test
-from emu_run_plots import run_plots
 
 
 def make_dirs():
