@@ -8,7 +8,7 @@ import seaborn as sns
 
 plt.style.use(['science', 'no-latex', 'high-vis', 'grid'])
 
-parent_datadir = r'./research/emucomp/experiment code/save_surmiserev1'
+parent_datadir = r'./research/emucomp/experiment code/save'
 output_figdir = r'./research/emucomp/experiment code/outfigs'
 flist = glob.glob(parent_datadir + r'\*.json')
 d = []
@@ -16,6 +16,7 @@ for fname in flist:
     with open(fname, 'r') as f:
         x = json.load(f)
         d.append(json.loads(x))
+
 
 df = pd.DataFrame(d)
 df1 = df
