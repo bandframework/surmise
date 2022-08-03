@@ -8,8 +8,8 @@ import seaborn as sns
 
 plt.style.use(['science', 'no-latex', 'high-vis', 'grid'])
 
-parent_datadir = r'C:\Users\moses\Desktop\git\surmise\research\emucomp\experiment code\save'
-output_figdir = r'C:\Users\moses\Desktop\git\surmise\research\emucomp\experiment code\outfigs'
+parent_datadir = r'./research/emucomp/experiment code/save_surmiserev1'
+output_figdir = r'./research/emucomp/experiment code/outfigs'
 flist = glob.glob(parent_datadir + r'\*.json')
 d = []
 for fname in flist:
