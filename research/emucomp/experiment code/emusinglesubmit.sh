@@ -16,6 +16,6 @@ module load python/anaconda3.6
 source activate surmise-venv
 
 # By default all file paths are relative to the directory where you submitted the job.
-python emucompare.py --n=50 --function=borehole --failrandom=True --failfraction=0.25 --method=GPy --rep=0
+python emudebug.py --n=50 --function=borehole --failrandom=False --failfraction=0.25 --method=GPy --rep=5
 
 exit

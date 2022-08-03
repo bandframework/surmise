@@ -5,7 +5,7 @@ do
 #!/bin/bash
 #SBATCH --account=p30845
 #SBATCH --partition=short
-#SBATCH --time=1:00:00
+#SBATCH --time=4:00:00
 #SBATCH --mail-user=mosesyhc@u.northwestern.edu
 #SBATCH -J emucompSurmise
 #SBATCH --output=error_output/R-%x.%j.out
@@ -24,8 +24,6 @@ python emucompare.py --n=${n} --function=${function} --failrandom=${failrandom} 
 EOJ
 `
 
-# print out the job id for reference later
-echo "JobID = ${JOB} for parameters (${n} ${function} ${failrandom} ${failfraction} ${method} ${rep}) submitted"
-done < params.txt
+done < params_long.txt
 exit
 
