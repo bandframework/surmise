@@ -69,3 +69,5 @@ build/temp.win-amd64-3.9/Release/surmise/emulationsupport/matern_covmat.cp39-win
 build/temp.win-amd64-3.9/Release/surmise/emulationsupport/matern_covmat.cp39-win_amd64.lib
 
 build/temp.win-amd64-3.9/Release/surmise/emulationsupport/matern_covmat.obj
+
+research/emucomp/experiment code/revfigs/panelplots/
