@@ -5,15 +5,23 @@ import pandas as pd
 import seaborn as sns
 import json
 import glob
-plt.style.use(['science', 'high-vis', 'grid'])
+plt.style.use(['science', 'bright', 'grid'])
 
-output_figdir = r'./research/emucomp/experiment code/revfigs/panelplots'
+def trim_mean(a):
+    return sps.trim_mean(a, 0.1)
+
+def q25(a):
+    return np.quantile(a, 0.25)
+
+
+output_figdir = r'./research/emucomp/experiment code/revfigs/panelplots_wobench'
 
 
 root_df = pd.read_json(r'./research/emucomp/experiment code/compiled_df.json')
 root_df['npts'] = root_df.n * root_df.nx * (1 - root_df.failfraction.mean())
-# root_df.randomfailures = root_df.randomfailures.astype(str)
+root_df.randomfailures = root_df.randomfailures.astype(str)
 root_df[['rmse', 'mae', 'medae', 'me', 'crps']] = root_df[['rmse', 'mae', 'medae', 'me', 'crps']].astype(float)
+root_df = root_df.loc[root_df.method != 'PCGP_benchmark']
 
 fail_configs = [
     (True, 0.01),
@@ -24,33 +32,53 @@ fail_configs = [
     (False, 0.25),
 ]
 
-markers = ['D', 'v', 'X', 's', 'o', '^', 'P']
-ylabels = {'rmse': 'RMSE',
-           'mae': 'MAE',
-           'medae': 'median absolute error',
-           'me': 'mean error',
-           'crps': 'CRPS',
+markers = ['D', 'v', 'X', 's', 'o', '^'] #, 'P']
+ylabels = {
+    'rmse': 'RMSE',
+           # 'mae': 'MAE',
+           # 'medae': 'median absolute error',
+           # 'me': 'mean error',
+           # 'crps': 'CRPS',
            'coverage': r'90\% coverage',
            'avgintwidth': r'90\% interval width',
-           'intscore': r'interval score',
-           'emutime': r'construction time'
+           # 'intscore': r'interval score',
+           # 'emutime': r'construction time'
            }
 
 funcs = pd.unique(root_df.function)
 funcs[1], funcs[3] = funcs[3], funcs[1]
 
+labels = ['colGP',
+             'EMGP',
+             'omit',
+             'PCGPwM',
+             # 'PCGP-benchmark',
+             'PCGP-BR',
+             'PCGP-KNN']
+
 for fail_random, fail_level in fail_configs:
-    df = root_df[(root_df.randomfailures == fail_random) &
+    df = root_df[(root_df.randomfailures == str(fail_random)) &
                  (root_df.failfraction == fail_level)]
     df.method = df.method.str.replace(r'_', r'-')
 
     for y, ylabel in ylabels.items():
         std = df[y].std()
-        df[y][df[y] > 10**6] = np.nan
+        if y == 'avgintwidth':
+            # df[y][df[y] > 1e2] = np.nan
+            pass
+        else:
+            df[y][df[y] > 10**6] = np.nan
+
+        if y in ['rmse']:
+            est = q25
+        elif y in ['coverage']:
+            est = 'max'
+        else:
+            est = trim_mean
         fig, ax = plt.subplots(nrows=2, ncols=2,
-                               figsize=(8, 6),
+                               figsize=(9, 6),
                                sharex='all',
-                               sharey='all')
+                               )
 
         for i, func in enumerate(funcs):
             subdf = df[df.function == func]
@@ -59,10 +87,10 @@ for fail_random, fail_level in fail_configs:
                          hue='method',
                          style='method',
                          markers=markers,
-                         markersize=12,
+                         markersize=18,
                          lw=4,
-                         alpha=0.65,
-                         estimator='median',
+                         alpha=0.8,
+                         estimator=est,
                          ci=None,
                          # err_kws={'alpha': 0.25},
                          ax=ax[r][c],
@@ -73,7 +101,7 @@ for fail_random, fail_level in fail_configs:
             ax[r][c].set_yticks([])
             ax[r][c].set_title(func)
 
-        handles, labels = ax[r][c].get_legend_handles_labels()
+        handles, _ = ax[r][c].get_legend_handles_labels()
         for axis in ax.flatten():
             axis.set_xscale('log')
             if y not in ['coverage']:
@@ -87,14 +115,16 @@ for fail_random, fail_level in fail_configs:
                 pass
 
         fig.add_subplot(111, frameon=False)
-        fig.legend(handles, labels, loc='lower center', ncol=5)
+        fig.legend(handles, labels, loc='lower center',
+                   frameon=False, bbox_to_anchor=(0.55, -0.02), ncol=3)
         plt.xticks([])
         plt.yticks([])
         plt.ylabel(ylabel, labelpad=40, fontsize=20)
-        plt.xlabel('data size', labelpad=20, fontsize=20)
+        plt.xlabel('$N$', labelpad=18, fontsize=20)
         plt.tight_layout()
         plt.savefig(output_figdir + r'\{:s}_{:s}.png'.format(y, str(int(fail_level*100)) + '_random' + str(fail_random)))
-        # plt.show()
+    #     break
+    # break
+
         plt.close()
-        # break
         # plt.show()
