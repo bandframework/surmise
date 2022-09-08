@@ -37,14 +37,14 @@ markers = np.random.choice(valid_markers, df.method.nunique(), replace=False)
 timedf = df1[(df1['function']=='OTLcircuit') & (df1['randomfailures']=='False') & \
              (df1['failfraction']==0.25)]
 timedf = timedf[(timedf.method == 'PCGPwM') | (timedf.method == 'colGP') | \
-                (timedf.method == 'GPEmGibbs') | (timedf.method == 'GPy')]
+                (timedf.method == 'EMGP') | (timedf.method == 'GPy')]
 timedf['N'] = timedf.n * timedf.nx
 timedf['logtime'] = np.log(timedf.emutime)
 timedf = timedf[timedf.emutime <= 3600]
 
 fig, ax = plt.subplots(figsize=(6, 6))
 p = sns.boxplot(x='N', y='emutime',
-                hue='method', hue_order=['GPy', 'colGP', 'GPEmGibbs', 'PCGPwM'],
+                hue='method', hue_order=['GPy', 'colGP', 'EMGP', 'PCGPwM'],
                 whis=3, fliersize=0,
                 data=timedf)
 p.axhline(3600, color='k', linestyle='--', linewidth=2)
