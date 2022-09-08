@@ -1,6 +1,6 @@
 """OTL circuit function. (xdim = 4, thetadim=2)."""
 import numpy as np
-from before_pcgpwm_rev.missing_utils import MNAR_mask_logistic
+from missing_utils import MNAR_mask_logistic, MAR_mask
 
 _dict = {
     'function': 'OTLcircuit',
@@ -28,9 +28,16 @@ def OTLcircuit_failmodel_random(x, theta, p):
     return f
 
 
+def OTLcircuit_failmodel_MAR(x, theta, p):
+    """Given x and theta, return matrix of [row x] times [row theta] of values."""
+    f = OTLcircuit_model(x, theta)
+    mask = MAR_mask(f, p=p, p_obs=0.5)
+    f[mask] = np.nan
+    return f
+
+
 def OTLcircuit_model(x, theta):
     """Given x and theta, return matrix of [row x] times [row theta] of values."""
-
     theta = tstd2theta(theta)
     x = xstd2x(x)
     p = x.shape[0]

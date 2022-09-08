@@ -1,5 +1,5 @@
 import numpy as np
-from before_pcgpwm_rev.missing_utils import MNAR_mask_logistic
+from missing_utils import MNAR_mask_logistic, MAR_mask
 
 _dict = {
     'function': 'Piston',
@@ -25,6 +25,14 @@ def Piston_failmodel_random(x, theta, p):
     f = Piston_model(x, theta)
     wheretoobig = np.where(np.random.choice([0, 1], f.shape, replace=True, p=[1-p, p]))
     f[wheretoobig[0], wheretoobig[1]] = np.nan
+    return f
+
+
+def Piston_failmodel_MAR(x, theta, p):
+    """Given x and theta, return matrix of [row x] times [row theta] of values."""
+    f = Piston_model(x, theta)
+    mask = MAR_mask(f, p=p, p_obs=0.5)
+    f[mask] = np.nan
     return f
 
 
