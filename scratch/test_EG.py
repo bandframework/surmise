@@ -21,7 +21,7 @@ if __name__ == "__main__":
     ftrainmis[missingmat] = np.nan
 
     emu = emulator(f=ftrainmis, theta=paramtrain, x=inputtrain,
-                   method='GPEmGibbs',
+                   method='EMGP',
                    args={'misval': missingmat, 'cat': False},
                    options={'warning': True})
 

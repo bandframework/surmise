@@ -3,7 +3,7 @@ import warnings
 import numpy as np
 import scipy.optimize as spo
 import scipy.linalg as spla
-from surmise.emulationsupport.GPEmGibbs_covmat_helper import setxcovf, setthetacovf
+from surmise.emulationsupport.EMGP_covmat_helper import setxcovf, setthetacovf
 
 
 def fit(fitinfo, x, theta, f, misval=None, cat=False,
