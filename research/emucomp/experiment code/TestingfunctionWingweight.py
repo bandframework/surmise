@@ -1,5 +1,5 @@
 import numpy as np
-
+from missing_utils import MAR_mask
 
 def query_func_meta():
     return _dict
@@ -22,6 +22,14 @@ def Wingweight_failmodel_random(x, theta, p):
     wheretoobig = np.where(np.random.choice([0, 1], f.shape, replace=True, p=[1 - p, p]))
     f[wheretoobig[0], wheretoobig[1]] = np.nan
 
+    return f
+
+
+def Wingweight_failmodel_MAR(x, theta, p):
+    """Given x and theta, return matrix of [row x] times [row theta] of values."""
+    f = Wingweight_model(x, theta)
+    mask = MAR_mask(f, p=p, p_obs=0.5)
+    f[mask] = np.nan
     return f
 
 

@@ -6,7 +6,7 @@ n = [50, 100, 250, 500, 1000]
 function = ['borehole']
 failrandom = ['False']
 failfrac = [0.25]
-method = ['PCGPwM', 'GPEmGibbs', 'colGP', 'GPy']
+method = ['PCGPwM', 'EMGP', 'colGP', 'GPy']
 
 base = np.array(np.meshgrid(n, function, failrandom, failfrac, method, reps)).T.reshape(-1, 6)
 

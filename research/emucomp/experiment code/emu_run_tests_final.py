@@ -52,7 +52,7 @@ def run_experiment(data_dir):
                     (False, 0.25),
                     ]
     models = ['borehole'] #, 'piston', 'otlcircuit', 'wingweight'] # 'borehole',
-    emulator_methods = ['GPEmGibbs'] #, 'PCGP_KNN']  # 'GPy' #
+    emulator_methods = ['EMGP'] #, 'PCGP_KNN']  # 'GPy' #
 
 
     # JSON filelist
@@ -148,7 +148,7 @@ def run_fayans_local(data_dir):
     y = np.zeros(198)
     yvar = np.ones(198)
 
-    emulator_methods = ['GPEmGibbs'] #, 'PCGPwM', 'PCGP_KNN', 'colGP']  # 'GPy' #'PCGPwM', 'PCGP_KNN',
+    emulator_methods = ['EMGP'] #, 'PCGPwM', 'PCGP_KNN', 'colGP']  # 'GPy' #'PCGPwM', 'PCGP_KNN',
 
     # JSON filelist
     totalruns = len(emulator_methods)

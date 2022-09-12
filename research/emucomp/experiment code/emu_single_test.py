@@ -82,7 +82,7 @@ def single_test(emuname, x, theta, f, model, testtheta, modelname, ntheta,
         elif emuname == 'colGP':
             args = {}
             withgrad = False
-        elif emuname == 'GPEmGibbs':
+        elif emuname == 'EMGP':
             args = {'cat': False}
             withgrad = False
         else:
@@ -150,7 +150,7 @@ def single_test_fayans(emuname, x, theta, f, testtheta,
         elif emuname == 'colGP':
             args = {}
             withgrad = False
-        elif emuname == 'GPEmGibbs':
+        elif emuname == 'EMGP':
             args = {'cat': False}
             withgrad = True
         else:
@@ -161,7 +161,7 @@ def single_test_fayans(emuname, x, theta, f, testtheta,
                    'thetarmnan': 'never',
                    'return_grad': withgrad}
 
-        # if not emuname == 'GPEmGibbs':
+        # if not emuname == 'EMGP':
         emu = emulator(x, theta, np.copy(f), method=emuname,
                        args=args,
                        options=options)
