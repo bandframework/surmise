@@ -1,11 +1,12 @@
-import matplotlib.pyplot as plt
 import numpy as np
-import scipy.stats as sps
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 import pandas as pd
-import seaborn as sns
 import json
 import glob
-plt.style.use(['science', 'bright', 'grid'])
+import seaborn as sns
+import itertools
+import scipy.stats as sps
 
 def trim_mean(a):
     return sps.trim_mean(a, 0.1)
@@ -13,23 +14,41 @@ def trim_mean(a):
 def q25(a):
     return np.quantile(a, 0.25)
 
+plt.style.use(['science', 'bright', 'grid'])
 
-output_figdir = r'./research/emucomp/experiment code/revfigs/panelplots_wobench2'
+# parent_datadir = r'./research/emucomp/experiment code/save_MAR_EMGP'
+output_figdir = r'./research/emucomp/experiment code/revfigs/MAR_all'
+if False:
+    flist = glob.glob(parent_datadir + r'\*.json')
+    d = []
+    for fname in flist:
+        with open(fname, 'r') as f:
+            x = json.load(f)
+            d.append(json.loads(x))
 
-root_df = pd.read_csv(r'root_df.csv')
-# root_df = pd.read_json(r'./research/emucomp/experiment code/compiled_df.json')
+
+    df = pd.DataFrame(d)
+    df.to_json(r'./research/emucomp/experiment code/compiled_dfMAREMGP.json')
+
+root_df = pd.read_csv(r'C:\Users\moses\Desktop\root_df.csv')
+
 root_df['npts'] = root_df.n * root_df.nx * (1 - root_df.failfraction.mean())
 root_df.randomfailures = root_df.randomfailures.astype(str)
 root_df[['rmse', 'mae', 'medae', 'me', 'crps']] = root_df[['rmse', 'mae', 'medae', 'me', 'crps']].astype(float)
 root_df = root_df.loc[root_df.method != 'PCGP_benchmark']
 
+# fail_configs = [
+#     (True, 0.01),
+#     (True, 0.05),
+#     (True, 0.25),
+#     (False, 0.01),
+#     (False, 0.05),
+#     (False, 0.25),
+# ]
 fail_configs = [
-    (True, 0.01),
-    (True, 0.05),
-    (True, 0.25),
-    (False, 0.01),
-    (False, 0.05),
-    (False, 0.25),
+    ('MAR', 0.01),
+    ('MAR', 0.05),
+    ('MAR', 0.25)
 ]
 
 markers = ['D', 'v', 'X', 's', 'o', '^'] #, 'P']
@@ -94,7 +113,7 @@ for fail_random, fail_level in fail_configs:
                          ci=None,
                          # err_kws={'alpha': 0.25},
                          ax=ax[r][c],
-                         data=subdf
+                         data=subdf,
                          )
             ax[r][c].set_xlabel('')
             ax[r][c].set_ylabel('')

@@ -5,7 +5,7 @@ import pandas as pd
 import seaborn as sns
 import json
 import glob
-plt.style.use(['science', 'bright', 'grid'])
+plt.style.use(['science', 'grid'])
 
 def trim_mean(a):
     return sps.trim_mean(a, 0.1)
@@ -14,14 +14,14 @@ def q25(a):
     return np.quantile(a, 0.25)
 
 
-output_figdir = r'./research/emucomp/experiment code/revfigs/panelplots_wobench2'
+output_figdir = r'./research/emucomp/experiment code/revfigs/panelplots_wbench'
 
-root_df = pd.read_csv(r'root_df.csv')
-# root_df = pd.read_json(r'./research/emucomp/experiment code/compiled_df.json')
+
+root_df = pd.read_json(r'./research/emucomp/experiment code/compiled_df_benchonly.json')
 root_df['npts'] = root_df.n * root_df.nx * (1 - root_df.failfraction.mean())
 root_df.randomfailures = root_df.randomfailures.astype(str)
 root_df[['rmse', 'mae', 'medae', 'me', 'crps']] = root_df[['rmse', 'mae', 'medae', 'me', 'crps']].astype(float)
-root_df = root_df.loc[root_df.method != 'PCGP_benchmark']
+root_df = root_df.loc[(root_df.method == 'PCGP_benchmark') | (root_df.method=='PCGPwM')]
 
 fail_configs = [
     (True, 0.01),
@@ -32,7 +32,7 @@ fail_configs = [
     (False, 0.25),
 ]
 
-markers = ['D', 'v', 'X', 's', 'o', '^'] #, 'P']
+markers = ['s', 'P'] #'D', 'v', 'X', 's', 'o', '^'] #, 'P']
 ylabels = {
     'rmse': 'RMSE',
            # 'mae': 'MAE',
@@ -48,13 +48,15 @@ ylabels = {
 funcs = pd.unique(root_df.function)
 funcs[1], funcs[3] = funcs[3], funcs[1]
 
-labels = ['colGP',
-             'EMGP',
-             'omit',
+labels = [
+    # 'colGP',
+    #          'EMGP',
+    #          'omit',
              'PCGPwM',
-             # 'PCGP-benchmark',
-             'PCGP-BR',
-             'PCGP-KNN']
+             'PCGP-benchmark',
+             # 'PCGP-BR',
+             # 'PCGP-KNN'
+]
 
 for fail_random, fail_level in fail_configs:
     df = root_df[(root_df.randomfailures == str(fail_random)) &
@@ -115,16 +117,14 @@ for fail_random, fail_level in fail_configs:
                 pass
 
         fig.add_subplot(111, frameon=False)
-        fig.legend(handles, labels, loc='lower center',
-                   frameon=False, bbox_to_anchor=(0.55, -0.02), ncol=3)
+        fig.legend(handles, labels, fontsize=18, loc='lower center',
+                   frameon=False, bbox_to_anchor=(0.55, -0.02), ncol=2)
         plt.xticks([])
         plt.yticks([])
         plt.ylabel(ylabel, labelpad=40, fontsize=20)
         plt.xlabel('$N$', labelpad=18, fontsize=20)
         plt.tight_layout()
-        plt.savefig(output_figdir + r'\{:s}_{:s}.png'.format(y, str(int(fail_level*100)) + '_random' + str(fail_random)))
-    #     break
-    # break
+        plt.savefig(output_figdir + r'\{:s}_{:s}_benchonly.png'.format(y, str(int(fail_level*100)) + '_random' + str(fail_random)))
 
         plt.close()
         # plt.show()

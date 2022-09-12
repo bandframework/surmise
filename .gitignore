@@ -75,3 +75,9 @@ research/emucomp/experiment code/revfigs/panelplots/
 research/emucomp/experiment code/revfigs/panelplots2/
 
 research/emucomp/experiment code/revfigs/panelplots_wobench/
+
+research/emucomp/experiment code/compiled_df.json
+
+*.json
+
+*.gz

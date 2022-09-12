@@ -1,1 +1,0 @@
-"{\"method\": \"GPEmGibbs\", \"function\": \"fayans\", \"randomfailures\": null, \"failfraction\": null, \"nx\": 198, \"n\": 50, \"dampalpha\": NaN, \"avgvarconstant\": NaN, \"varc_status\": \"n/a\", \"rmse\": NaN, \"mae\": NaN, \"medae\": NaN, \"me\": NaN, \"crps\": NaN, \"coverage\": NaN, \"avgintwidth\": NaN, \"intscore\": NaN, \"emutime\": NaN}"
