@@ -36,8 +36,6 @@
 | 7. | Must allow installing, building, and linking against an outside copy of all imported software that is externally developed and maintained |Full| surmise does not contain any other package's source code within. Note that Python packages are imported using the conventional `sys.path` system. Alternative instances of a package can be used, for example, by including them through an appropriate definition of the PYTHONPATH environment variable.|
 | 8. |  Have no hardwired print or IO statements that cannot be turned off |None.| There are statements that cannot be turned off (e.g., those are produced to document errors/exceptions, and warnings). We raised an issue on [issues page on GitHub](https://github.com/surmising/surmise/issues), are working on that to fulfill this policy. |
 
-M2 details <a id="m2-details"></a>: See the `README.rst` file in the `\tests` directory.
-
 M4 details <a id="m4-details"></a>: This was chosen based on the MIT license being the default license for BAND.
 
 
@@ -58,4 +56,6 @@ M4 details <a id="m4-details"></a>: This was chosen based on the MIT license bei
 |**R11.**| Install headers and libraries under `<prefix>/include` and `<prefix>/lib`, respectively |Full| The standard Python installation is used for Python dependencies. This installs external Python packages under `<install-prefix>/lib/python<X.Y>/site-packages/`.|
 |**R12.**| All BAND compatibility changes should be sustainable |Full| The BAND-compatible package is in the standard release path. All the changes here should be sustainable.|
 |**R13.**| Respect system resources and settings made by other previously called packages |Full| surmise does not modify system resources or settings.|
-|**R14.**| Provide a comprehensive test suite for correctness of installation verification |Full| surmise contains a comprehensive set of unit tests that can be run, individually or all at once, via pytest with a high coverage. Running the provided ``.\run_tests.sh`` performs comprehensive testing. [M2 details](#m2-details)|
+|**R14.**| Provide a comprehensive test suite for correctness of installation verification |Full| surmise contains a comprehensive set of unit tests that can be run, individually or all at once, via pytest with a high coverage. Running the provided ``.\run_tests.sh`` performs comprehensive testing. [R14 details](#r142-details)|
+
+R14 details <a id="r14-details"></a>: See the `README.rst` file in the `\tests` directory.
