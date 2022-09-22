@@ -1,4 +1,4 @@
-# BAND SDK v0.1 Community Policy Compatibility for surmise
+# BAND SDK v0.2 Community Policy Compatibility for surmise
 
 
 > This document summarizes the efforts of current and future BAND member packages to achieve compatibility with the BAND SDK community policies.  Additional details on the BAND SDK are available [here](https://raw.githubusercontent.com/bandframework/bandframework/main/resources/sdkpolicies/bandsdk.md) and should be considered when filling out this form. The most recent copy of this template exists [here](https://raw.githubusercontent.com/bandframework/bandframework/main/resources/sdkpolicies/template.md).
@@ -25,7 +25,7 @@
 | # | Policy                 |Support| Notes                   |
 |---|-----------------------|-------|-------------------------|
 | 1. | Support BAND community GNU Autoconf, CMake, or other build options |Full| surmise is a Python package and provides a setup.py file for installation. This is compatible with Python's built-in installation feature (``python setup.py install``) and with the pip installer. GNU Autoconf or CMake are unsuitable for a Python package. |
-| 2. | Provide a comprehensive test suite for correctness of installation verification |Full| surmise contains a comprehensive set of unit tests that can be run, individually or all at once, via pytest with a high coverage. Running the provided ``.\run_tests.sh`` performs comprehensive testing. [M2 details](#m2-details)|
+| 2. | Have a README file in the top directory that states a specific set of testing procedures for a user to verify the software was installed and run correctly. | Full| README explains full test procedure.|
 | 3. | Provide a documented, reliable way to contact the development team |Full| The surmise team can be contacted through the public [issues page on GitHub](https://github.com/surmising/surmise/issues) or via an e-mail to [Özge Sürer](ozgesurer2019@u.northwestern.edu).|
 | 4. | Come with an open-source license |Full| surmise uses the MIT license. [M4 details](#m4-details)|
 | 5. | Provide a runtime API to return the current version number of the software |Full| The version can be returned within Python via: `surmise.__version__`.|
@@ -55,3 +55,4 @@ M4 details <a id="m4-details"></a>: This was chosen based on the MIT license bei
 |**R11.**| Install headers and libraries under `<prefix>/include` and `<prefix>/lib`, respectively |Full| The standard Python installation is used for Python dependencies. This installs external Python packages under `<install-prefix>/lib/python<X.Y>/site-packages/`.|
 |**R12.**| All BAND compatibility changes should be sustainable |Full| The BAND-SDK-compatible package is in the standard release path. All the changes here should be sustainable.|
 |**R13.**| Respect system resources and settings made by other previously called packages |Full| surmise does not modify system resources or settings.|
+|**R14.**| Provide a comprehensive test suite for correctness of installation verification |Full| surmise contains a comprehensive set of unit tests that can be run, individually or all at once, via pytest with a high coverage. Running the provided ``.\run_tests.sh`` performs comprehensive testing. [M2 details](#m2-details)|
