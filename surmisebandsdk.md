@@ -56,6 +56,6 @@ M4 details <a id="m4-details"></a>: This was chosen based on the MIT license bei
 |**R11.**| Install headers and libraries under `<prefix>/include` and `<prefix>/lib`, respectively |Full| The standard Python installation is used for Python dependencies. This installs external Python packages under `<install-prefix>/lib/python<X.Y>/site-packages/`.|
 |**R12.**| All BAND compatibility changes should be sustainable |Full| The BAND-SDK-compatible package is in the standard release path. All the changes here should be sustainable.|
 |**R13.**| Respect system resources and settings made by other previously called packages |Full| surmise does not modify system resources or settings.|
-|**R14.**| Provide a comprehensive test suite for correctness of installation verification |Full| surmise contains a comprehensive set of unit tests that can be run, individually or all at once, via pytest with a high coverage. Running the provided ``.\run_tests.sh`` performs comprehensive testing. [R14 details](#r142-details)|
+|**R14.**| Provide a comprehensive test suite for correctness of installation verification |Full| surmise contains a comprehensive set of unit tests that can be run, individually or all at once, via pytest with a high coverage. Running the provided ``.\run_tests.sh`` performs comprehensive testing. [R14 details](#r14-details)|
 
 R14 details <a id="r14-details"></a>: See the `README.rst` file in the `\tests` directory.
