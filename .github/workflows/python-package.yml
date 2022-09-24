@@ -32,6 +32,7 @@ jobs:
         python -m pip install scipy==${{ matrix.scipy-version }}
         python -m pip install --upgrade pip
         python -m pip install flake8 pytest pytest-cov Cython
+        conda install clang_osx-64
         pip install -e .
     - name: Test with flake8
       run: |
@@ -61,6 +62,7 @@ jobs:
         python -m pip install scipy==${{ matrix.scipy-version }}
         python -m pip install --upgrade pip
         python -m pip install flake8 pytest pytest-cov Cython
+        conda install clang_osx-64
         pip install -e .
     - name: Test with flake8
       run: |
@@ -90,6 +92,7 @@ jobs:
         python -m pip install scipy==${{ matrix.scipy-version }}
         python -m pip install --upgrade pip
         python -m pip install flake8 pytest pytest-cov Cython
+        conda install clang_osx-64
         pip install -e .
     - name: Test with flake8
       run: |
@@ -119,6 +122,7 @@ jobs:
         python -m pip install scipy==${{ matrix.scipy-version }}
         python -m pip install --upgrade pip
         python -m pip install flake8 pytest pytest-cov Cython
+        conda install clang_osx-64
         pip install -e .
     - name: Lint with flake8
       run: |
