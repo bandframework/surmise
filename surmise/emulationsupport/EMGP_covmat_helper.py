@@ -9,8 +9,8 @@ def setthetacovf(emuinfo, covname):
         emuinfo['covthetaf'] = covmat_maternone
 
     emuinfo['gammathetacovhyp0'], emuinfo['gammathetacovhypLB'], \
-    emuinfo['gammathetacovhypUB'], emuinfo['diffTheta'], \
-    emuinfo['sameTheta'] = emuinfo['covthetaf'](emuinfo['theta'], emuinfo['theta'], None, gethyp=True)
+        emuinfo['gammathetacovhypUB'], emuinfo['diffTheta'], \
+        emuinfo['sameTheta'] = emuinfo['covthetaf'](emuinfo['theta'], emuinfo['theta'], None, gethyp=True)
     return None
 
 
@@ -22,8 +22,8 @@ def setxcovf(emuinfo, covname):
         emuinfo['covxf'] = covmat_maternone
 
     emuinfo['gammaxcovhyp0'], emuinfo['gammaxcovhypLB'], \
-    emuinfo['gammaxcovhypUB'], emuinfo['diffX'], \
-    emuinfo['sameX'], emuinfo['sameType'] = \
+        emuinfo['gammaxcovhypUB'], emuinfo['diffX'], \
+        emuinfo['sameX'], emuinfo['sameType'] = \
         emuinfo['covxf'](emuinfo['xval'], emuinfo['xval'], None,
                          type1=emuinfo['xcat'], type2=emuinfo['xcat'], gethyp=True)
     emuinfo['gammaxcovhyp0'][-1] = 10 ** (0)
@@ -92,7 +92,7 @@ def covmat_exp(x1, x2, gammav, type1=None, type2=None,
             dR = np.zeros([x1.shape[0], x2.shape[0], d + 2])
             for k in range(0, d):
                 S = np.abs(np.subtract.outer(x1[:, k], x2[:, k]) / np.exp(gammav[k]))
-                S2 = np.power(S, 2)
+                # S2 = np.power(S, 2)
                 dR[:, :, k] = R * S
 
             dR[:, :, d] = np.exp(gammav[d]) * Dn  # low freq stuff

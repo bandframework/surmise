@@ -22,7 +22,7 @@ def fit(fitinfo, x, theta, f, misval=None, cat=False,
     if misval is not None:
         if np.isnan(f).any() and np.any(misval != np.isnan(f)):
             misval = misval ^ np.isnan(f)
-            warnings.warn('''The provided missing value matrix (mis) 
+            warnings.warn('''The provided missing value matrix (mis)
             is updated to include NaN values.''')
     else:
         misval = np.isnan(f)
@@ -133,7 +133,7 @@ def emulation_hypest(emuinfo, modeltype='parasep'):
                 emuinfo['gammahat'] = emuinfo['gamma0']
                 likeattempt = emulation_lik_parasep(emuinfo['gammahat'], emuinfo)
             myftol = 0.1 / np.max((np.abs(likeattempt), 1))
-        except:
+        except Exception as e:
             emuinfo['gammahat'] = emuinfo['gamma0']
             likeattempt = emulation_lik_parasep(emuinfo['gammahat'], emuinfo)
             myftol = 0.1 / np.max((np.abs(likeattempt), 1))
@@ -183,7 +183,7 @@ def emulation_hypest(emuinfo, modeltype='parasep'):
                 emuinfo['gammahat'] = emuinfo['gamma0']
                 likeattempt = emulation_lik_indp(emuinfo['gammahat'], emuinfo)
             myftol = 0.25 / np.max((np.abs(likeattempt), 1))
-        except:
+        except Exception as e:
             emuinfo['gammahat'] = emuinfo['gamma0']
             likeattempt = emulation_lik_indp(emuinfo['gammahat'], emuinfo)
             myftol = 0.25 / np.max((np.abs(likeattempt), 1))
@@ -199,7 +199,7 @@ def emulation_hypest(emuinfo, modeltype='parasep'):
         emuinfo['R'] = emulation_getR(emuinfo)
         emuinfo['mu'] = emulation_getmu(emuinfo)
         resid = emuinfo['f'] - emuinfo['mu']
-        mu = emuinfo['mu']
+        # mu = emuinfo['mu']
         if emuinfo['misbool']:
             fpred = np.ones(emuinfo['f'].shape)
             donealr = np.zeros(emuinfo['m'])
@@ -273,7 +273,7 @@ def __hypest(emuinfo, modeltype=None):
                 emuinfo['gammahat'] = emuinfo['gamma0']
                 likeattempt = emulation_lik_parasep(emuinfo['gammahat'], emuinfo)
             myftol = 0.1 / np.max((np.abs(likeattempt), 1))
-        except:
+        except Exception as e:
             emuinfo['gammahat'] = emuinfo['gamma0']
             likeattempt = emulation_lik_parasep(emuinfo['gammahat'], emuinfo)
             myftol = 0.1 / np.max((np.abs(likeattempt), 1))
@@ -321,7 +321,7 @@ def __hypest(emuinfo, modeltype=None):
                 emuinfo['gammahat'] = emuinfo['gamma0']
                 likeattempt = emulation_lik_indp(emuinfo['gammahat'], emuinfo)
             myftol = 0.25 / np.max((np.abs(likeattempt), 1))
-        except:
+        except Exception as e:
             emuinfo['gammahat'] = emuinfo['gamma0']
             likeattempt = emulation_lik_indp(emuinfo['gammahat'], emuinfo)
             myftol = 0.25 / np.max((np.abs(likeattempt), 1))
@@ -337,7 +337,7 @@ def __hypest(emuinfo, modeltype=None):
         emuinfo['R'] = emulation_getR(emuinfo)
         emuinfo['mu'] = emulation_getmu(emuinfo)
         resid = emuinfo['f'] - emuinfo['mu']
-        mu = emuinfo['mu']
+        # mu = emuinfo['mu']
         if emuinfo['misbool']:
             fpred = np.ones(emuinfo['f'].shape)
             donealr = np.zeros(emuinfo['m'])
@@ -429,8 +429,8 @@ def emulation_dlik_indp(gammav, emuinfo, fval=None):
         Ri = spla.solve_triangular(cholRobs, spla.solve_triangular(cholRobs, np.diag(np.ones(nhere)), lower=True),
                                    lower=True, trans=True)
         addterm = np.zeros(gammav.shape)
-        for l in range(0, emuinfo['hypstatparstructure'][0]):
-            addterm[l] = np.sum(Ri * (dR[inds, :, l][:, inds]))
+        for l0 in range(0, emuinfo['hypstatparstructure'][0]):
+            addterm[l0] = np.sum(Ri * (dR[inds, :, l0][:, inds]))
 
         for k in range(k2, emuinfo['m']):
             if (np.sum(np.abs(missval[:, k] ^ missval[:, k2])) < 0.5) and (donealr[k] < 0.5):
@@ -438,15 +438,15 @@ def emulation_dlik_indp(gammav, emuinfo, fval=None):
                 resvalhalf = spla.solve_triangular(cholRobs, resid[inds, k], lower=True)
                 resvalinv = spla.solve_triangular(cholRobs, resvalhalf, lower=True, trans=True)
                 s2calc = (1 / 2 * np.sum(resvalhalf * resvalhalf) + emuinfo['nu'] * sigma2[k])
-                for l in range(0, emuinfo['hypstatparstructure'][0]):
-                    dnum = - resvalinv.T @ dR[inds, :, l][:, inds] @ resvalinv
-                    dlogs2sum[l] = dlogs2sum[l] + (1 / 2 * (nhere / 2 + emuinfo['nu']) * dnum) / s2calc
-                for l in range(0, emuinfo['numcat']):
-                    if (emuinfo['xcat'][k] == emuinfo['uniquecat'][l]):
-                        dlogs2sum[emuinfo['hypstatparstructure'][1] + l] += emuinfo['nu'] * (
+                for l0 in range(0, emuinfo['hypstatparstructure'][0]):
+                    dnum = - resvalinv.T @ dR[inds, :, l0][:, inds] @ resvalinv
+                    dlogs2sum[l0] = dlogs2sum[l0] + (1 / 2 * (nhere / 2 + emuinfo['nu']) * dnum) / s2calc
+                for l0 in range(0, emuinfo['numcat']):
+                    if (emuinfo['xcat'][k] == emuinfo['uniquecat'][l0]):
+                        dlogs2sum[emuinfo['hypstatparstructure'][1] + l0] += emuinfo['nu'] * (
                                     ((nhere / 2 + emuinfo['nu']) * sigma2[k]) / s2calc - 1)
                         dnum = - 2 * np.sum(resvalinv)
-                        dlogs2sum[emuinfo['hypstatparstructure'][2] + l] += (1 / 2 * (
+                        dlogs2sum[emuinfo['hypstatparstructure'][2] + l0] += (1 / 2 * (
                                     nhere / 2 + emuinfo['nu']) * dnum) / s2calc
                 donealr[k] = 1
     dloglik = dlogs2sum + 0.5 * dlogdetsum + 16 * (gammav - emuinfo['gamma0']) / (
@@ -516,7 +516,7 @@ def emulation_dlik_parasep(gammav, emuinfo, fval=None):
         dlogdetSigma = np.zeros(gammav.shape)
         ddosomestuff = np.zeros(gammav.shape)
         for k in range(0, emuinfo['hypstatparstructure'][0]):
-            A1 = invR @ np.squeeze(dR[:, :, k])
+            # A1 = invR @ np.squeeze(dR[:, :, k])
             A2 = residinv.T @ np.squeeze(dR[:, :, k]) @ residinv
             dlogdetR[k] = np.sum(invR * np.squeeze(dR[:, :, k]))
             ddosomestuff[k] = -np.sum(invSigma * A2)
