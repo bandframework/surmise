@@ -133,7 +133,7 @@ def emulation_hypest(emuinfo, modeltype='parasep'):
                 emuinfo['gammahat'] = emuinfo['gamma0']
                 likeattempt = emulation_lik_parasep(emuinfo['gammahat'], emuinfo)
             myftol = 0.1 / np.max((np.abs(likeattempt), 1))
-        except Exception as e:
+        except Exception:
             emuinfo['gammahat'] = emuinfo['gamma0']
             likeattempt = emulation_lik_parasep(emuinfo['gammahat'], emuinfo)
             myftol = 0.1 / np.max((np.abs(likeattempt), 1))
@@ -183,7 +183,7 @@ def emulation_hypest(emuinfo, modeltype='parasep'):
                 emuinfo['gammahat'] = emuinfo['gamma0']
                 likeattempt = emulation_lik_indp(emuinfo['gammahat'], emuinfo)
             myftol = 0.25 / np.max((np.abs(likeattempt), 1))
-        except Exception as e:
+        except Exception:
             emuinfo['gammahat'] = emuinfo['gamma0']
             likeattempt = emulation_lik_indp(emuinfo['gammahat'], emuinfo)
             myftol = 0.25 / np.max((np.abs(likeattempt), 1))
@@ -273,7 +273,7 @@ def __hypest(emuinfo, modeltype=None):
                 emuinfo['gammahat'] = emuinfo['gamma0']
                 likeattempt = emulation_lik_parasep(emuinfo['gammahat'], emuinfo)
             myftol = 0.1 / np.max((np.abs(likeattempt), 1))
-        except Exception as e:
+        except Exception:
             emuinfo['gammahat'] = emuinfo['gamma0']
             likeattempt = emulation_lik_parasep(emuinfo['gammahat'], emuinfo)
             myftol = 0.1 / np.max((np.abs(likeattempt), 1))
@@ -321,7 +321,7 @@ def __hypest(emuinfo, modeltype=None):
                 emuinfo['gammahat'] = emuinfo['gamma0']
                 likeattempt = emulation_lik_indp(emuinfo['gammahat'], emuinfo)
             myftol = 0.25 / np.max((np.abs(likeattempt), 1))
-        except Exception as e:
+        except Exception:
             emuinfo['gammahat'] = emuinfo['gamma0']
             likeattempt = emulation_lik_indp(emuinfo['gammahat'], emuinfo)
             myftol = 0.25 / np.max((np.abs(likeattempt), 1))
