@@ -9,7 +9,8 @@ from surmise.emulationsupport.matern_covmat import covmat as __covmat
 
 
 def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
-        lognugmean=-10, lognugLB=-20, varconstant=None, dampalpha=0.3, eta=10,
+        lognugmean=-10, lognugLB=-20, varconstant=None, dampalpha=0.3,
+        nmaxhyptrain=None, eta=10,
         standardpcinfo=None, verbose=0, **kwargs):
     '''
     The purpose of fit is to take information and plug all of our fit
@@ -59,6 +60,9 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
         A parameter to control the rate of increase of variance as amount of missing
         values increases.  Default is 0.3, otherwise an appropriate range is (0, 0.5).
         Values larger than 0.5 are permitted but it leads to poor empirical performance.
+    nmaxhyptrain : int
+        Maximum number of parameters used in hyperparameter training.  Default is
+        max(theta.shape[0], 20 * theta.shape[1]).
     eta : scalar
         A parameter as an upper bound for the additional variance term.  Default is 10.
     standardpcinfo : dict
@@ -98,6 +102,9 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
 
     fitinfo['epsilonImpute'] = epsilonImpute
     fitinfo['epsilonPC'] = epsilonPC
+    if nmaxhyptrain is None:
+        nmaxhyptrain = np.max(np.min((20 * theta.shape[1], theta.shape[0])))
+    fitinfo['nmaxhyptrain'] = nmaxhyptrain
     hyp1 = lognugmean
     hyp2 = lognugLB
     hypvarconst = np.log(varconstant) if varconstant is not None else None
@@ -690,9 +697,10 @@ def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant):
                                             gvar=fitinfo['unscaled_pcstdvar'][:, pcanum],
                                             dampalpha=fitinfo['dampalpha'],
                                             eta=fitinfo['eta'],
+                                            nmaxhyptrain=fitinfo['nmaxhyptrain'],
                                             hypstarts=hypstarts[hypwhere, :],
                                             hypinds=hypwhere,
-                                            sig2ofconst=0.01)
+                                            sig2ofconst=1)
             else:
                 emulist[pcanum] = __fitGP1d(theta=theta,
                                             g=fitinfo['pc'][:, pcanum],
@@ -702,7 +710,8 @@ def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant):
                                             gvar=fitinfo['unscaled_pcstdvar'][:, pcanum],
                                             dampalpha=fitinfo['dampalpha'],
                                             eta=fitinfo['eta'],
-                                            sig2ofconst=0.01)
+                                            nmaxhyptrain=fitinfo['nmaxhyptrain'],
+                                            sig2ofconst=1)
                 hypstarts = np.zeros((numpcs, emulist[pcanum]['hyp'].shape[0]))
             emulist[pcanum]['hypind'] = min(pcanum, emulist[pcanum]['hypind'])
             hypstarts[pcanum, :] = emulist[pcanum]['hyp']
@@ -713,7 +722,7 @@ def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant):
 
 
 def __fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar=None, dampalpha=None, eta=None,
-              hypstarts=None, hypinds=None, sig2ofconst=None):
+              nmaxhyptrain=None, hypstarts=None, hypinds=None, sig2ofconst=None):
     """Return a fitted model from the emulator model using smart method."""
     hypvarconstmean = 4 if hypvarconst is None else hypvarconst
     hypvarconstLB = -8 if hypvarconst is None else hypvarconst - 0.5
@@ -731,9 +740,8 @@ def __fitGP1d(theta, g, hyp1, hyp2, hypvarconst, gvar=None, dampalpha=None, eta=
     subinfo['hypregstd'][-3] = 2
     subinfo['hypregstd'][-1] = 4
     subinfo['hyp'] = 1 * subinfo['hypregmean']
-    nhyptrain = np.max(np.min((20 * theta.shape[1], theta.shape[0])))
-    if theta.shape[0] > nhyptrain:
-        thetac = np.random.choice(theta.shape[0], nhyptrain, replace=False)
+    if theta.shape[0] > nmaxhyptrain:
+        thetac = np.random.choice(theta.shape[0], nmaxhyptrain, replace=False)
     else:
         thetac = range(0, theta.shape[0])
     subinfo['theta'] = theta[thetac, :]
