@@ -56,8 +56,8 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
     outputArray = []
 
     for i, thetai in enumerate(theta):
-        amplitudeEm = rose_emu.predict(thetai)
-        outputArray.append(10*np.real(np.conj(amplitudeEm[x])*amplitudeEm[x]))
+        amplitudeEm = rose_emu.emulate_dsdo(thetai)
+        outputArray.append(amplitudeEm[x])
 
     predmean = np.array(outputArray).T.squeeze(0)
 
