@@ -80,18 +80,18 @@ jobs:
         numpy-version: [1.24.3]
         scipy-version: [1.10.1]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
+        cache: 'pip'
     - name: Install dependencies
       run: |
-        pip install --upgrade pip setuptools
+        pip install --upgrade pip setuptools Cython
         pip install numpy==${{ matrix.numpy-version }}
         pip install scipy==${{ matrix.scipy-version }}
         pip install --no-cache-dir -U -r requirements.txt | cat
-        pip install --upgrade numpy scipy Cython
         pip install -e .
         pip install flake8 pytest pytest-cov
     - name: Lint with flake8
