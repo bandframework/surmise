@@ -88,7 +88,7 @@ jobs:
         cache: 'pip'
     - name: Install dependencies
       run: |
-        pip install --upgrade pip setuptools Cython
+        pip install --upgrade pip setuptools Cython wheel
         pip install numpy==${{ matrix.numpy-version }}
         pip install scipy==${{ matrix.scipy-version }}
         pip install --no-cache-dir -U -r requirements.txt | cat
