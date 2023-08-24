@@ -44,7 +44,7 @@ class prior_balldrop:
 
 
 # Draw 100 random parameters from uniform prior
-n = 100
+n = 50
 theta = prior_balldrop.rnd(n)
 theta_range = np.array([1, 30])
 

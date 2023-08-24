@@ -3,6 +3,7 @@ from setuptools import setup, Extension
 from setuptools.command.test import test as TestCommand
 import numpy
 
+
 class Run_TestSuite(TestCommand):
     def run_tests(self):
         import os
@@ -11,6 +12,7 @@ class Run_TestSuite(TestCommand):
         print('Python version from setup.py is', py_version)
         run_string = "tests/run-tests.sh -p " + str(py_version)
         os.system(run_string)
+
 
 with open("README.rst", "r", encoding="utf-8") as fh:
     long_description = fh.read()
@@ -28,7 +30,7 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.5',
+    python_requires='>=3.7',
     setup_requires=[
         'setuptools>=18.0',
         'cython'
