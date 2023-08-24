@@ -20,10 +20,6 @@ with open("README.rst", "r", encoding="utf-8") as fh:
 setup(
     name="surmise",
     version="0.1.1",
-    author="Matthew Plumlee, Özge Sürer, Stefan M. Wild",
-    author_email="ozgesurer2019@u.northwestern.edu",
-    description="A modular interface for surrogate models and tools",
-    url="https://github.com/surmising/surmise",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -43,7 +39,8 @@ setup(
                     'docs': ['sphinx', 'sphinxcontrib.bibtex', 'sphinx_rtd_theme']},
     cmdclass={'test': Run_TestSuite},
     ext_modules=[
-        Extension('surmise.emulationsupport.matern_covmat', sources=['surmise/emulationsupport/matern_covmat.pyx']),
+        Extension('surmise.emulationsupport.matern_covmat',
+                  sources=['surmise/emulationsupport/matern_covmat.pyx']),
     ],
     include_dirs=[numpy.get_include()]
 )
