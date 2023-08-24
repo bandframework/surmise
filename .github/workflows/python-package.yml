@@ -11,13 +11,13 @@ on:
 
 jobs:
 
-  build37_38:
+  build38:
 
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.7", "3.8"]
+        python-version: ["3.8"]
         numpy-version: ["1.18", "1.19"]
         scipy-version: ["1.4"]
     steps:
