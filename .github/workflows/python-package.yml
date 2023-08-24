@@ -32,7 +32,7 @@ jobs:
         pip install --upgrade pip setuptools Cython
         pip install numpy==${{ matrix.numpy-version }}
         pip install scipy==${{ matrix.scipy-version }}
-        pip install --no-cache-dir -U -r requirements.txt | cat
+        pip install -r requirements.txt
         pip install -e .
         pip install flake8 pytest pytest-cov
     - name: Test with flake8
@@ -64,7 +64,7 @@ jobs:
         pip install --upgrade pip setuptools Cython
         pip install numpy==${{ matrix.numpy-version }}
         pip install scipy==${{ matrix.scipy-version }}
-        pip install --no-cache-dir -U -r requirements.txt | cat
+        pip install -r requirements.txt
         pip install -e .
         pip install flake8 pytest pytest-cov
     - name: Lint with flake8
