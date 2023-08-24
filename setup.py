@@ -21,6 +21,15 @@ setup(
     name="surmise",
     version="0.1.1",
     packages=setuptools.find_packages(),
+    python_requires='>=3.8',
+    setup_requires=[
+        'setuptools>=50.0',
+        'cython'
+    ],
+    install_requires=[
+                      'numpy>=1.18.3',
+                      'scipy>=1.7'
+                      ],
     extras_require={'docs': ['sphinx', 'sphinxcontrib.bibtex', 'sphinx_rtd_theme']},
     cmdclass={'test': Run_TestSuite},
     ext_modules=[
