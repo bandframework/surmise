@@ -25,7 +25,7 @@ Repository = "https://github.com/surmising/surmise"
 [build-system]
 requires = [
     "setuptools>=50.0",
-    "wheel>=0.33",
+#    "wheel>=0.33",
     "numpy>=1.16",
     "cython"
 ]
