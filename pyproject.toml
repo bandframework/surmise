@@ -1,0 +1,31 @@
+[project]
+name = "surmise"
+authors = [
+    {name = "Matthew Plumlee"},
+    {name = "Özge Sürer", email = "surero@miamioh.edu"},
+    {name = "Stefan M. Wild"}
+]
+description = "A modular interface for surrogate models and tools"
+license = {file = "LICENSE"}
+readme = "README.rst"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.7"
+dependencies = [
+    'numpy>=1.18.3',
+    'scipy>=1.10.1']
+dynamic = ["version"]
+
+[project.urls]
+Repository = "https://github.com/surmising/surmise"
+
+[build-system]
+requires = [
+    "setuptools>=50.0",
+    "wheel>=0.33",
+    "numpy>=1.16",
+    "cython"
+]
