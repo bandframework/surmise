@@ -239,8 +239,8 @@ def sampler(logpostfunc,
             dfval = (1 / temps) * dfvaln[orderprop, :]
         # if we have to tune, let's move tau up or down which gives bigger or smaller jumps
         if (k < samptunning) and (k % 10 == 0):  # if not done with tuning
-            tau = tau + 1 / np.sqrt(1 + k/10) * \
-                  ((numtimes / 10) - taracc)
+            tau = tau + 1 / np.sqrt(1 + k/10) \
+                  * ((numtimes / 10) - taracc)
             rho = 2 * (1 + (np.exp(2 * tau) - 1) / (np.exp(2 * tau) + 1))
             adjrho = rho*(temps**(1/3))  # adjusting rho across the chain
             numtimes = 0
