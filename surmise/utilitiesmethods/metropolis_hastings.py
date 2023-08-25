@@ -39,7 +39,7 @@ def sampler(logpost_func,
         returns numsamp random draws from posterior.
 
     '''
-   
+
     # scaling parameter
     if stepParam is None:
         stepParam = np.std(draw_func(burnSamples), axis=0)
@@ -60,8 +60,8 @@ def sampler(logpost_func,
 
     for i in range(1, burnSamples + numsamp):
         if verbose:
-            if i % 30000==0:
-                print("At sample {}, acceptance rate is {}.".format(i,n_acc/i))
+            if i % 30000 == 0:
+                print("At sample {}, acceptance rate is {}.".format(i, n_acc/i))
         # Candidate theta
         theta_cand = None
         if stepType == 'normal':
