@@ -13,8 +13,7 @@ class calibrator(object):
                  thetaprior=None,
                  yvar=None,
                  method='directbayes',
-                 args={},
-                 options={}):
+                 args={}):
         '''
         A class to represent a calibrator. Fits a calibrator model provided
         in ``calibrationmethods/[method].py`` where [method] is the user
@@ -187,13 +186,7 @@ class calibrator(object):
         except Exception:
             raise ValueError('Module not found!')
 
-        self.__options = copy.copy(options)
-
-        if 'autofit' in self.__options.keys():
-            if self.__options['autofit'] is not False:
-                self.fit()
-        else:
-            self.fit()
+        self.fit()
 
     def __repr__(self):
         object_method = [method_name for method_name in dir(self)
@@ -479,8 +472,8 @@ class thetadist(object):
                                                       args))
         elif (pfstr+opstr) in self.cal.info.keys():
             return self.cal.info['thetarnd'][
-                   np.random.choice(self.cal.info['thetarnd'].shape[0],
-                                    size=s), :]
+                        np.random.choice(self.cal.info['thetarnd'].shape[0],
+                                         size=s), :]
         else:
             raise ValueError(self.__methodnotfoundstr(pfstr, opstr))
 

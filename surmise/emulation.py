@@ -158,8 +158,8 @@ class emulator(object):
         try:
             self.method = \
                 importlib.import_module('surmise.emulationmethods.' + method)
-        except Exception as e:
-            raise ValueError('Module not loaded correctly. Error: {:s}'.format(str(e)))
+        except Exception:
+            raise ValueError('Module not loaded correctly.')
         if "fit" not in dir(self.method):
             raise ValueError('Function fit not found in module!')
         if "predict" not in dir(self.method):
