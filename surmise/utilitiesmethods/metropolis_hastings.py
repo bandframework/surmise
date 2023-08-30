@@ -10,8 +10,6 @@ def sampler(logpost_func,
             theta0=None,
             stepType='normal',
             stepParam=None,
-            burnSamples=1000,
-            verbose=True,
             **mh_options):
     '''
 
@@ -42,15 +40,15 @@ def sampler(logpost_func,
 
     # scaling parameter
     if stepParam is None:
-        stepParam = np.std(draw_func(burnSamples), axis=0)
+        stepParam = np.std(draw_func(1000), axis=0)
 
     # intial theta to start the chain
     if theta0 is None:
         theta0 = draw_func(1)
 
     p = theta0.shape[1]
-    lposterior = np.zeros(burnSamples + numsamp)
-    theta = np.zeros((burnSamples + numsamp, theta0.shape[1]))
+    lposterior = np.zeros(1000 + numsamp)
+    theta = np.zeros((1000 + numsamp, theta0.shape[1]))
     # print(theta0)
     lposterior[0] = logpost_func(theta0, return_grad=False)
     theta[0, :] = theta0
@@ -62,8 +60,8 @@ def sampler(logpost_func,
         if verbose:
             if i % 30000 == 0:
                 print("At sample {}, acceptance rate is {}.".format(i, n_acc/i))
+
         # Candidate theta
-        theta_cand = None
         if stepType == 'normal':
             theta_cand = [theta[i-1, :][k] + stepParam[k] *
                           sps.norm.rvs(0, 1, size=1) for k in range(p)]
@@ -87,17 +85,12 @@ def sampler(logpost_func,
             # Update position
             theta[i, :] = theta_cand
             lposterior[i] = logpost
-            lposterior_list.append(logpost)
-            if i >= burnSamples:
+            if i >= numsamp:
                 n_acc += 1
         else:
             theta[i, :] = theta[i-1, :]
             lposterior[i] = lposterior[i-1]
-            lposterior_list.append(logpost)
 
-    theta = theta[(burnSamples):(burnSamples + numsamp), :]
-    sampler_info = {'theta': theta, 'acc_rate': n_acc/numsamp,
-                    'lpostlist': np.array(lposterior_list)}
-    if verbose:
-        print("Final Acceptance Rate: ", n_acc/numsamp)
+    theta = theta[(1000):(1000 + numsamp), :]
+    sampler_info = {'theta': theta, 'acc_rate': n_acc/numsamp}
     return sampler_info
