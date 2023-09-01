@@ -64,7 +64,7 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
         amplitudeEm = rose_emu.emulate_dsdo(thetai)
         outputArray.append(amplitudeEm[x])
 
-    predmean = np.array(outputArray)
+    predmean = np.array(outputArray).T
 
     predinfo['mean'] = predmean
     predinfo['var'] = np.zeros_like(predmean)
