@@ -7,6 +7,10 @@ def fit(fitinfo, rose_emu, **kwargs):
     The purpose of fit is to take information and plug all of our fit
     information into fitinfo, which is a python dictionary.
 
+    Example usage for ROSE:
+    rbm = emulator(method='nuclear-ROSE',
+            args={'rose_emu': <<insert rose.ScatteringAmplitudeEmulator object>>})
+
     Parameters
     ----------
     fitinfo : dict
@@ -14,7 +18,8 @@ def fit(fitinfo, rose_emu, **kwargs):
         complete.
         The dictionary is passed by reference, so it returns None.
     args : dict, optional
-        A dictionary containing options. The default is None.
+        A dictionary containing options. The default is None. Insert ROSE emulator with
+        key = 'rose_emu'.
 
     Returns
     -------
@@ -59,7 +64,7 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
         amplitudeEm = rose_emu.emulate_dsdo(thetai)
         outputArray.append(amplitudeEm[x])
 
-    predmean = np.array(outputArray).T.squeeze(0)
+    predmean = np.array(outputArray)
 
     predinfo['mean'] = predmean
     predinfo['var'] = np.zeros_like(predmean)
