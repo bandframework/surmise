@@ -1,4 +1,4 @@
-"""colGP method constructs an independent GP for every location. """
+"""indGP method constructs an independent GP for every location. """
 import warnings
 import numpy as np
 import scipy.optimize as spo
