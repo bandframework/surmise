@@ -27,3 +27,4 @@ examples/develop-example/
 build/
 
 *.pyd
+.DS_Store
