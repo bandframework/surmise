@@ -3,8 +3,8 @@ name = "surmise"
 authors = [
     {name = "Matthew Plumlee"},
     {name = "Özge Sürer", email = "surero@miamioh.edu"},
-    {name = "Moses Y-H. Chan", email = "mosesyhc@u.northwestern.edu"},
-    {name = "Stefan M. Wild"}
+    {name = "Stefan M. Wild"},
+    {name = "Moses Y-H. Chan", email = "mosesyhc@u.northwestern.edu"}    
 ]
 description = "A modular interface for surrogate models and tools"
 license = {file = "LICENSE"}
