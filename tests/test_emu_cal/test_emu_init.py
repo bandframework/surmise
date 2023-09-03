@@ -220,13 +220,13 @@ def test_options2(input1, expectation):
 @pytest.mark.parametrize(
     "input1,expectation",
     [
-     #(True, does_not_raise()),
+     # (True, does_not_raise()),
      (False, does_not_raise()),
-     #(0, does_not_raise()),
+     # (0, does_not_raise()),
      (1, does_not_raise()),
      (0.5, does_not_raise()),
      (2, pytest.raises(ValueError)),
-     #('any', does_not_raise()),
+     # ('any', does_not_raise()),
      ('some', does_not_raise()),
      ('most', does_not_raise()),
      ('alot', does_not_raise()),
@@ -248,13 +248,13 @@ def test_options3(input1, expectation):
 @pytest.mark.parametrize(
     "input1,expectation",
     [
-     #(True, does_not_raise()),
+     # (True, does_not_raise()),
      (False, does_not_raise()),
-     #(0, does_not_raise()),
+     # (0, does_not_raise()),
      (1, does_not_raise()),
      (0.5, does_not_raise()),
      (2, pytest.raises(ValueError)),
-     #('any', does_not_raise()),
+     # ('any', does_not_raise()),
      ('some', does_not_raise()),
      ('most', does_not_raise()),
      ('alot', does_not_raise()),

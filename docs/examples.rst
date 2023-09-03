@@ -38,10 +38,3 @@ Recovered (SIR) type epidemic model via ``surmise``'s  ``emulator`` and ``calibr
 Although there are many model parameters, we estimated most of them based on the epidemiological studies of COVID-19, and infer only 10 influential parameters in this example.
 
 `Link to Example 4 <https://nbviewer.jupyter.org/github/surmising/surmise/blob/main/examples/Example4/Example4_nb.ipynb>`_.
-
-Example 5
-##################################################
-
-This example illustrates how to use GPy (an external package) as an emulator within surmise’s framework.
-
-`Link to Example 5 <https://nbviewer.jupyter.org/github/surmising/surmise/blob/main/examples/Example5/Example5_nb.ipynb>`_.

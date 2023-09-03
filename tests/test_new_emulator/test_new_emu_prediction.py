@@ -3,10 +3,12 @@ import scipy.stats as sps
 import pytest
 from contextlib import contextmanager
 from surmise.emulation import emulator
-from surmise.calibration import calibrator
 import pyximport
-pyximport.install(setup_args={"include_dirs":np.get_include()},
+
+pyximport.install(setup_args={"include_dirs": np.get_include()},
                   reload_support=True)
+
+
 ##############################################
 #            Simple scenarios                #
 ##############################################
@@ -58,9 +60,10 @@ xv = x.astype('float')
 
 class priorphys_lin:
     """ This defines the class instance of priors provided to the method. """
+
     def lpdf(theta):
         return (sps.norm.logpdf(theta[:, 0], 0, 5) +
-        sps.gamma.logpdf(theta[:, 1], 2, 0, 10)).reshape((len(theta), 1))
+                sps.gamma.logpdf(theta[:, 1], 2, 0, 10)).reshape((len(theta), 1))
 
     def rnd(n):
         return np.vstack((sps.norm.rvs(0, 5, size=n),
@@ -77,12 +80,14 @@ f0d = np.array(1)
 theta0d = np.array(1)
 x0d = np.array(1)
 
+
 def balldroptrue(x):
     def logcosh(x):
         # preventing crashing
         s = np.sign(x) * x
         p = np.exp(-2 * s)
         return s + np.log1p(p) - np.log(2)
+
     t = x[:, 0]
     h0 = x[:, 1]
     vter = 20
@@ -90,8 +95,11 @@ def balldroptrue(x):
     y = h0 - (vter ** 2) / g * logcosh(g * t / vter)
     return y
 
-obsvar = 4*np.ones(x.shape[0])
+
+obsvar = 4 * np.ones(x.shape[0])
 y = balldroptrue(xv)
+
+
 ##############################################
 # Unit tests to initialize an emulator class #
 ##############################################
@@ -108,43 +116,34 @@ def cmdopt1(request):
 
 
 # tests for prediction class methods:
-
 def test_accuracy(cmdopt1):
     emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
     theta_test = priorphys_lin.rnd(50)
     ftest = balldropmodel_linear(xv, theta_test)
     pred_test = emu.predict(x=x, theta=theta_test)
-    
+
     print('\n')
     print('R2: (as close to one as possible)')
-    rsq = 1 - np.mean((ftest - pred_test.mean())**2)/np.mean((ftest - np.mean(ftest))**2)
+    rsq = (1 - np.mean((ftest - pred_test.mean()) ** 2) /
+           np.mean((ftest - np.mean(ftest)) ** 2))
     print('test R2:', np.round(rsq, 2))
-    
-    print('RMSE : (as small as possible)')
-    rmse = np.sqrt(np.mean((ftest - pred_test.mean())**2))    
-    print('test rmse:', np.round(rmse, 2))
-    
-    print('mean((f-fhat)/sqrt(var)) (should be close to 0):' )
-    print(np.round(np.mean((ftest - pred_test.mean())/np.sqrt(pred_test.var())), 2))
 
-    print('mean((f-fhat)**2/var)(should be close to 1):' )
-    print(np.round(np.mean((ftest - pred_test.mean())**2/pred_test.var()), 2))
+    print('RMSE : (as small as possible)')
+    rmse = np.sqrt(np.mean((ftest - pred_test.mean()) ** 2))
+    print('test rmse:', np.round(rmse, 2))
+
+    print('mean((f-fhat)/sqrt(var)) (should be close to 0):')
+    print(np.round(np.mean((ftest - pred_test.mean()) / np.sqrt(pred_test.var())), 2))
+
+    print('mean((f-fhat)**2/var)(should be close to 1):')
+    print(np.round(np.mean((ftest - pred_test.mean()) ** 2 / pred_test.var()), 2))
 
     try:
         residstand = np.empty([50, pred_test.covxhalf().shape[2]])
         for k in range(0, 50):
-            residstand[k,:] = np.linalg.pinv(pred_test.covxhalf()[:,k,:]) @ (ftest[:,k] -pred_test.mean()[:,k])
-        print('average normalized value (should be close to 1)):' )
+            residstand[k, :] = (np.linalg.pinv(pred_test.covxhalf()[:, k, :]) @
+                                (ftest[:, k] - pred_test.mean()[:, k]))
+        print('average normalized value (should be close to 1)):')
         print(np.mean(residstand ** 2))
-    except:
+    except Exception:
         print('covxhalf is not provided.')
-        
-
-
-
-
-    
-
-    
-    
-    
