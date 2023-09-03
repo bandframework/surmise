@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from surmise.emulation import emulator
 from surmise.calibration import calibrator
 import pyximport
-pyximport.install(setup_args={"include_dirs":np.get_include()},
+pyximport.install(setup_args={"include_dirs": np.get_include()},
                   reload_support=True)
 ##############################################
 #            Simple scenarios                #
@@ -77,6 +77,7 @@ f0d = np.array(1)
 theta0d = np.array(1)
 x0d = np.array(1)
 
+
 def balldroptrue(x):
     def logcosh(x):
         # preventing crashing
@@ -89,6 +90,7 @@ def balldroptrue(x):
     g = 9.81
     y = h0 - (vter ** 2) / g * logcosh(g * t / vter)
     return y
+
 
 obsvar = 4*np.ones(x.shape[0])
 y = balldroptrue(xv)
@@ -114,8 +116,9 @@ def test_prediction_mean(cmdopt1):
     pred = emu.predict(x=x, theta=theta)
     try:
         pred.mean()
-    except:
+    except Exception as e:
         pytest.fail('mean() functionality does not exist in the method')
+
 
 # test to check the prediction.var()
 def test_prediction_var(cmdopt1):
@@ -123,8 +126,9 @@ def test_prediction_var(cmdopt1):
     pred = emu.predict(x=x, theta=theta)
     try:
         pred.var()
-    except:
+    except Exception as e:
         pytest.fail('var() functionality does not exist in the method')
+
 
 # test to check the prediction.covx()
 def test_prediction_covx(cmdopt1):
@@ -132,8 +136,9 @@ def test_prediction_covx(cmdopt1):
     pred = emu.predict(x=x, theta=theta)
     try:
         pred.covx()
-    except:
+    except Exception as e:
         pytest.fail('covx() functionality does not exist in the method')
+
 
 # test to check the prediction.covxhalf()
 def test_prediction_covxhalf(cmdopt1):
@@ -141,8 +146,9 @@ def test_prediction_covxhalf(cmdopt1):
     pred = emu.predict(x=x, theta=theta)
     try:
         pred.covxhalf()
-    except:
+    except Exception as e:
         pytest.fail('covxhalf() functionality does not exist in the method')
+
 
 # test to check the prediction.mean_gradtheta()
 def test_prediction_mean_gradtheta(cmdopt1):
@@ -150,9 +156,10 @@ def test_prediction_mean_gradtheta(cmdopt1):
     pred = emu.predict(x=x, theta=theta, args={'return_grad': True})
     try:
         pred.mean_gradtheta()
-    except:
+    except Exception as e:
         pytest.fail('mean_gradtheta() functionality does not exist in'
                     ' the method')
+
 
 # test to check the prediction.covx_gradtheta()
 def test_prediction_covxhalf_gradtheta(cmdopt1):
@@ -160,9 +167,10 @@ def test_prediction_covxhalf_gradtheta(cmdopt1):
     pred = emu.predict(x=x, theta=theta, args={'return_grad': True})
     try:
         pred.covxhalf_gradtheta()
-    except:
+    except Exception as e:
         pytest.fail('covxhalf_gradtheta() functionality does not exist in'
                     ' the method')
+
 
 # test to check the prediction.rnd()
 def test_prediction_rnd(cmdopt1):
@@ -170,8 +178,9 @@ def test_prediction_rnd(cmdopt1):
     pred = emu.predict(x=x, theta=theta)
     try:
         pred.rnd()
-    except:
+    except Exception as e:
         pytest.fail('rnd() functionality does not exist in the method')
+
 
 # test to check the prediction.lpdf()
 def test_prediction_lpdf(cmdopt1):
@@ -179,14 +188,16 @@ def test_prediction_lpdf(cmdopt1):
     pred = emu.predict(x=x, theta=theta)
     try:
         pred.lpdf()
-    except:
+    except Exception as e:
         pytest.fail('lpdf() functionality does not exist in the method')
+
 
 # test to check emulator.remove()
 def test_remove(cmdopt1):
     emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
     emu.remove(theta=theta1)
     assert len(emu._emulator__theta) == 25, 'Check emulator.remove()'
+
 
 # test to check emulator.remove() with a calibrator
 # def test_remove_cal(cmdopt1):
@@ -201,6 +212,7 @@ def test_remove(cmdopt1):
 #    assert len(emu._emulator__theta) <= 50, 'Check emulator.remove() with'
 #    ' calibration'
 
+
 # test to check emulator.update()
 def test_update(cmdopt1):
     emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
@@ -208,6 +220,7 @@ def test_update(cmdopt1):
     fnew = balldropmodel_linear(xv, thetanew)
     emu.update(x=None, theta=thetanew, f=fnew)
     assert len(emu._emulator__theta) == 60, 'Check emulator.update()'
+
 
 # test to check emulator.supplement()
 #def test_supplement(cmdopt1):
