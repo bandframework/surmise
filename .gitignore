@@ -23,7 +23,3 @@ CaseStudy/
 .eggs/
 examples/develop-example/
 .coverage
-
-build/
-
-*.pyd
