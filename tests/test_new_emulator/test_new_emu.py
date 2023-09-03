@@ -3,7 +3,6 @@ import scipy.stats as sps
 import pytest
 from contextlib import contextmanager
 from surmise.emulation import emulator
-from surmise.calibration import calibrator
 import pyximport
 pyximport.install(setup_args={"include_dirs": np.get_include()},
                   reload_support=True)
@@ -60,7 +59,7 @@ class priorphys_lin:
     """ This defines the class instance of priors provided to the method. """
     def lpdf(theta):
         return (sps.norm.logpdf(theta[:, 0], 0, 5) +
-        sps.gamma.logpdf(theta[:, 1], 2, 0, 10)).reshape((len(theta), 1))
+                sps.gamma.logpdf(theta[:, 1], 2, 0, 10)).reshape((len(theta), 1))
 
     def rnd(n):
         return np.vstack((sps.norm.rvs(0, 5, size=n),
@@ -116,7 +115,7 @@ def test_prediction_mean(cmdopt1):
     pred = emu.predict(x=x, theta=theta)
     try:
         pred.mean()
-    except Exception as e:
+    except Exception:
         pytest.fail('mean() functionality does not exist in the method')
 
 
@@ -126,7 +125,7 @@ def test_prediction_var(cmdopt1):
     pred = emu.predict(x=x, theta=theta)
     try:
         pred.var()
-    except Exception as e:
+    except Exception:
         pytest.fail('var() functionality does not exist in the method')
 
 
@@ -136,7 +135,7 @@ def test_prediction_covx(cmdopt1):
     pred = emu.predict(x=x, theta=theta)
     try:
         pred.covx()
-    except Exception as e:
+    except Exception:
         pytest.fail('covx() functionality does not exist in the method')
 
 
@@ -146,7 +145,7 @@ def test_prediction_covxhalf(cmdopt1):
     pred = emu.predict(x=x, theta=theta)
     try:
         pred.covxhalf()
-    except Exception as e:
+    except Exception:
         pytest.fail('covxhalf() functionality does not exist in the method')
 
 
@@ -156,7 +155,7 @@ def test_prediction_mean_gradtheta(cmdopt1):
     pred = emu.predict(x=x, theta=theta, args={'return_grad': True})
     try:
         pred.mean_gradtheta()
-    except Exception as e:
+    except Exception:
         pytest.fail('mean_gradtheta() functionality does not exist in'
                     ' the method')
 
@@ -167,7 +166,7 @@ def test_prediction_covxhalf_gradtheta(cmdopt1):
     pred = emu.predict(x=x, theta=theta, args={'return_grad': True})
     try:
         pred.covxhalf_gradtheta()
-    except Exception as e:
+    except Exception:
         pytest.fail('covxhalf_gradtheta() functionality does not exist in'
                     ' the method')
 
@@ -178,7 +177,7 @@ def test_prediction_rnd(cmdopt1):
     pred = emu.predict(x=x, theta=theta)
     try:
         pred.rnd()
-    except Exception as e:
+    except Exception:
         pytest.fail('rnd() functionality does not exist in the method')
 
 
@@ -188,7 +187,7 @@ def test_prediction_lpdf(cmdopt1):
     pred = emu.predict(x=x, theta=theta)
     try:
         pred.lpdf()
-    except Exception as e:
+    except Exception:
         pytest.fail('lpdf() functionality does not exist in the method')
 
 
@@ -223,7 +222,7 @@ def test_update(cmdopt1):
 
 
 # test to check emulator.supplement()
-#def test_supplement(cmdopt1):
+# def test_supplement(cmdopt1):
 #    emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
 #    thetanew = priorphys_lin.rnd(10)
 #    fnew = balldropmodel_linear(xv, thetanew)
