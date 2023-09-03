@@ -61,16 +61,16 @@ Documentation
 ~~~~~~~~~~~~~
 
 The documentation is stored in ``docs/`` and is compiled with the Sphinx Python
-documentation generator. It is written in the reStructuredText format. These
-files are hosted at `Read the Docs <http://surmise.readthedocs.io>`_.
+documentation generator. It is written in the reStructuredText format. The
+documentation is hosted at `Read the Docs <http://surmise.readthedocs.io>`_.
 
 To compile the documentation, first ensure that Sphinx is installed. Then, to
-generate documentation, run command ``make html`` from terminal within this directory as follows ::
+generate documentation, run command ``make html`` from a terminal within this directory as follows::
 
  cd docs
  make html
 
-The HTML files are then stored in ``docs/_build/html``
+The HTML files are then stored in ``docs/_build/html``.
 
 
 **Citation:**
@@ -80,7 +80,7 @@ The HTML files are then stored in ``docs/_build/html``
 .. code-block:: bibtex
 
    @techreport{surmise2023,
-     author      = {Matthew Plumlee and Özge Sürer and Moses Y-H. Chan and Stefan M. Wild},
+     author      = {Matthew Plumlee and \"Ozge S\"urer and Stefan M. Wild and Moses Y-H. Chan},
      title       = {{surmise 0.2.0} Users Manual},
      institution = {NAISE},
      number      = {Version 0.2.0},
