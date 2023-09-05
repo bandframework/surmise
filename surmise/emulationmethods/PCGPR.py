@@ -50,7 +50,7 @@ def emulation_fit(theta, pcaval, prior):
   
 def standardizef(fitinfo):
     
-    # Scaling the data to be zero mean and unit variance for each observables
+    # Scaling the data to be zero mean and unit variance for each observable
     f = fitinfo['f']
     SS = StandardScaler(copy=True)
     fs = SS.fit_transform(f)
