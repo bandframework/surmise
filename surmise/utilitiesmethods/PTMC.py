@@ -107,3 +107,4 @@ def sampler(logpost_func,
 
     sampler_info = {'theta': samples, 'acc_rate': mean_acc_frac}
     return sampler_info
+    
