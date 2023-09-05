@@ -90,6 +90,9 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001,
     '''
     f = f.T
 
+    # verify that simsd is provided
+    assert simsd is not None, 'Variable `simsd` must be provided for PCSK method.'
+
     fitinfo['epsilonPC'] = epsilonPC
     hyp1 = lognugmean
     hyp2 = lognugLB
