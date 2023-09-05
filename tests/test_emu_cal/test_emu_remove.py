@@ -3,7 +3,6 @@ import scipy.stats as sps
 import pytest
 from contextlib import contextmanager
 from surmise.emulation import emulator
-from surmise.calibration import calibrator
 
 
 ##############################################
@@ -56,7 +55,7 @@ xv = x.astype('float')
 class priorphys_lin:
     def lpdf(theta):
         return (sps.norm.logpdf(theta[:, 0], 0, 5) +
-                              sps.gamma.logpdf(theta[:, 1], 2, 0, 10)).reshape((len(theta), 1))
+                sps.gamma.logpdf(theta[:, 1], 2, 0, 10)).reshape((len(theta), 1))
 
     def rnd(n):
         return np.vstack((sps.norm.rvs(0, 5, size=n),
