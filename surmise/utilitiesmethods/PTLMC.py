@@ -244,7 +244,7 @@ def sampler(logpostfunc,
             rho = 2 * (1 + (np.exp(2 * tau) - 1) / (np.exp(2 * tau) + 1))
             adjrho = rho*(temps**(1/3))  # adjusting rho across the chain
             numtimes = 0
-        elif(k >= samptunning):  # if done with tuning
+        elif k >= samptunning:  # if done with tuning
             thetasave[:, k-samptunning, :] = 1 * thetac[numtemps:, ]
     # save the theta values in the temp=1 chains, squeezing flattening the values of all chains
     thetasave = np.reshape(thetasave, (-1, thetac.shape[1]))

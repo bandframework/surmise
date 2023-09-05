@@ -1,9 +1,4 @@
-from cmath import log
 import ptemcee
-import h5py
-import pickle
-from multiprocessing import Pool
-from multiprocessing import cpu_count
 import numpy as np
 
 '''
@@ -51,10 +46,10 @@ def sampler(logpost_func,
     nthreads:
         Number of threads for parallel computation
     ntemps: integer, optional
-        A positive integer that controls how many chains of varying temperature to run simultaneously. 
+        A positive integer that controls how many chains of varying temperature to run simultaneously.
         The default is 50.
     Tmax: double, optional
-        A positive number, larger than 1, that gives the maximum temperature used in parallel tempering. 
+        A positive number, larger than 1, that gives the maximum temperature used in parallel tempering.
         The default inf.
     **ptlmc_options: additional options
         This is a dictionary containing additional options a user might have passed but are not directly listed above.
