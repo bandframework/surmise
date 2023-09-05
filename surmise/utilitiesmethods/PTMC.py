@@ -18,6 +18,7 @@ def sampler(logpost_func,
             nwalkers=200,
             nthreads=10,
             Tmax=np.inf,
+            verbose=False,
             **ptmc_options):
     """
 
@@ -50,7 +51,9 @@ def sampler(logpost_func,
         The default is 50.
     Tmax: double, optional
         A positive number, larger than 1, that gives the maximum temperature used in parallel tempering.
-        The default inf.
+        The default is inf.
+    verbose: bool, optional
+        Boolean flag to control output printing.  Default is False (do not print).
     **ptlmc_options: additional options
         This is a dictionary containing additional options a user might have passed but are not directly listed above.
         In general, we should not pass options this way.
@@ -83,21 +86,26 @@ def sampler(logpost_func,
     ptsampler_ex = ptemcee.Sampler(nwalkers, ndim, log_like, log_prior_fix, ntemps, threads=nthreads, Tmax=Tmax)
 
     pos0 = np.array([draw_func(nwalkers) for n in range(0, ntemps)])
-    print("Running burn-in phase")
+    if verbose:
+        print("Running burn-in phase")
     for p, lnprob, lnlike in ptsampler_ex.sample(pos0, iterations=nburnin, adapt=True):
         pass
     ptsampler_ex.reset()  # Discard previous samples from the chain, but keep the position
 
-    print("Running MCMC chains")
+    if verbose:
+        print("Running MCMC chains")
     # 5. Now we sample for nwalkers*niterations, recording every nthin-th sample
     for p, lnprob, lnlike in ptsampler_ex.sample(p, iterations=niterations, thin=nthin, adapt=True):
         pass
 
-    print('Done MCMC')
+    if verbose:
+        print('Done MCMC')
 
     mean_acc_frac = np.mean(ptsampler_ex.acceptance_fraction)
-    print(f"Mean acceptance fraction: {mean_acc_frac:.3f}",
-          f"(in total {nwalkers*niterations} steps)")
+
+    if verbose:
+        print(f"Mean acceptance fraction: {mean_acc_frac:.3f}",
+              f"(in total {nwalkers*niterations} steps)")
 
     # We only analyze the zero temperature MCMC samples
 
