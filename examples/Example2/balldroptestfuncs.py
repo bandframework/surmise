@@ -26,13 +26,16 @@ def balldropmodel_grav(x, theta):
         f[k, :] = h0 - (g / 2) * (t ** 2)
     return f.T
 
+
 def balldroptrue(x):
     """Place description here."""
+
     def logcosh(x):
         # preventing crashing
         s = np.sign(x) * x
         p = np.exp(-2 * s)
         return s + np.log1p(p) - np.log(2)
+
     t = x[:, 0]
     h0 = x[:, 1]
     vter = 20

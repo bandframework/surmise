@@ -4,7 +4,7 @@ import pytest
 from contextlib import contextmanager
 from surmise.emulation import emulator
 import pyximport
-pyximport.install(setup_args={"include_dirs":np.get_include()},
+pyximport.install(setup_args={"include_dirs": np.get_include()},
                   reload_support=True)
 
 ##############################################

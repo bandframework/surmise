@@ -10,7 +10,7 @@ Example 1
 To illustrate how the ``surmise``'s  ``emulator`` object works in practice, we
 use the falling ball example.
 
-`Link to Example 1 <https://nbviewer.jupyter.org/github/surmising/surmise/blob/master/examples/Example1/Example1_nb.ipynb>`_.
+`Link to Example 1 <https://nbviewer.jupyter.org/github/surmising/surmise/blob/main/examples/Example1/Example1_nb.ipynb>`_.
 
 Example 2
 ##################################################
@@ -18,7 +18,7 @@ Example 2
 To illustrate how the ``surmise``'s  ``calibrator`` object works in practice, we
 use Example 1's falling ball example.
 
-`Link to Example 2 <https://nbviewer.jupyter.org/github/surmising/surmise/blob/master/examples/Example2/Example2_nb.ipynb>`_.
+`Link to Example 2 <https://nbviewer.jupyter.org/github/surmising/surmise/blob/main/examples/Example2/Example2_nb.ipynb>`_.
 
 Example 3
 ##################################################
@@ -27,7 +27,7 @@ This example is discussed in Chapter 8 in `Gramacy, 2020 <https://bookdown.org/r
 
 It demonstrates how to use ``surmise``'s  ``emulator`` and  ``calibrator`` objects.
 
-`Link to Example 3 <https://nbviewer.jupyter.org/github/surmising/surmise/blob/master/examples/Example3/Example3_nb.ipynb>`_.
+`Link to Example 3 <https://nbviewer.jupyter.org/github/surmising/surmise/blob/main/examples/Example3/Example3_nb.ipynb>`_.
 
 Example 4
 ##################################################
@@ -37,11 +37,4 @@ Recovered (SIR) type epidemic model via ``surmise``'s  ``emulator`` and ``calibr
 
 Although there are many model parameters, we estimated most of them based on the epidemiological studies of COVID-19, and infer only 10 influential parameters in this example.
 
-`Link to Example 4 <https://nbviewer.jupyter.org/github/surmising/surmise/blob/master/examples/Example4/Example4_nb.ipynb>`_.
-
-Example 5
-##################################################
-
-This example illustrates how to use GPy (an external package) as an emulator within surmise’s framework.
-
-`Link to Example 5 <https://nbviewer.jupyter.org/github/surmising/surmise/blob/master/examples/Example5/Example5_nb.ipynb>`_.
+`Link to Example 4 <https://nbviewer.jupyter.org/github/surmising/surmise/blob/main/examples/Example4/Example4_nb.ipynb>`_.
