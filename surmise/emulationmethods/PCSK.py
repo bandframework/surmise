@@ -1,4 +1,4 @@
-"""PCSK method - Principal componets with stocastic kriging. """
+"""PCSK method - Principal componets with stochastic kriging. """
 
 import numpy as np
 import scipy.optimize as spo
@@ -11,7 +11,7 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001,
         standardpcinfo=None, verbose=0, **kwargs):
     '''
     The purpose of fit is to take information and plug all of our fit
-    information into fitinfo, which is a python dictionary.
+    information into the python dictionary fitinfo.
 
     .. note::
        This is a modification of the method proposed by Higdon et al., 2008.
@@ -20,7 +20,7 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001,
     Prior to performing the PCGP method (Higdon et al., 2008), the PCGPwM method
     checks for missingness in `f` and provides imputations for the missing values
     before conducting the PCGP method.  The method adds approximate variance at
-    each points requiring imputation.
+    each point requiring imputation.
 
     Parameters
     ----------
@@ -52,20 +52,20 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001,
     varconstant : scalar
         A multiplying constant to control the inflation (deflation) of additional
         variances if missing values are present. Default is None, the parameter will
-        be optimized in such case. A general working range is (np.exp(-4), np.exp(4)).
+        be optimized in such a case. A general working range is (np.exp(-4), np.exp(4)).
     dampalpha : scalar
-        A parameter to control the rate of increase of variance as amount of missing
+        A parameter to control the rate of increase of variance as the number of missing
         values increases.  Default is 0.3, otherwise an appropriate range is (0, 0.5).
-        Values larger than 0.5 are permitted but it leads to poor empirical performance.
+        Values larger than 0.5 are permitted but can lead to poor empirical performance.
     eta : scalar
         A parameter as an upper bound for the additional variance term.  Default is 10.
     numpcs : integer
         An optional parameter to let a user pick the number of PCs.  Default is -1, which
         automates the choice.
     standardpcinfo : dict
-        A dictionary user supplies that contains information for standardization of `f`,
+        A dictionary a user supplies that contains information for standardization of `f`,
         in the following format, such that fs = (f - offset) / scale, U are the
-        orthogonal basis vectors, and S are the singular values from SVD of `fs`.
+        orthogonal basis vectors, and S are the singular values from the SVD of `fs`.
         The entry extravar contains the average squared residual for each column (x).
             {'offset': offset,
              'scale': scale,
