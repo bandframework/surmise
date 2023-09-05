@@ -97,7 +97,7 @@ def fit(fitinfo, emu, x, y, **bayes_args):
             theta0 = np.vstack((theta0, copy.copy(emu._emulator__theta)))
         n0 = len(theta0)
         if n0 < n:
-            theta0 = np.vstack((thetaprior.rnd(n-n0), theta0))
+            theta0 = np.vstack((thetaprior.rnd(n - n0), theta0))
         else:
             theta0 = theta0[np.random.randint(theta0.shape[0], size=n), :]
 
@@ -111,15 +111,16 @@ def fit(fitinfo, emu, x, y, **bayes_args):
         name = 'unspecified'
     print(f'Using {name} sampler')
     if name == 'PTMC':
-        def log_lik(theta): return loglik(fitinfo, emu, theta, y, x)
+        def log_lik(theta):
+            return loglik(fitinfo, emu, theta, y, x)
 
-        sampler_obj = sampler(logpostfull,thetaprior.rnd, log_likelihood=log_lik,
-                                log_prior =thetaprior.lpdf,
-                                **bayes_args)
+        sampler_obj = sampler(logpostfull, thetaprior.rnd, log_likelihood=log_lik,
+                              log_prior=thetaprior.lpdf,
+                              **bayes_args)
     else:
         sampler_obj = sampler(logpost_func=logpostfull,
-                                draw_func=draw_func,
-                                **bayes_args)
+                              draw_func=draw_func,
+                              **bayes_args)
 
     theta = sampler_obj.sampler_info['theta']
 
@@ -251,11 +252,12 @@ def loglik(fitinfo, emu, theta, y, x):
         # Calculate residuals
         resid = m0 - y
 
-        CovMatEigInv = CovMatEigW @ np.diag(1/CovMatEigS) @ CovMatEigW.T
+        CovMatEigInv = CovMatEigW @ np.diag(1 / CovMatEigS) @ CovMatEigW.T
         loglikelihood[k] = float(-0.5 * resid.T @ CovMatEigInv @ resid -
                                  0.5 * np.sum(np.log(CovMatEigS)))
 
     return loglikelihood
+
 
 def thetalpdf(info, theta, args=None):
     '''
