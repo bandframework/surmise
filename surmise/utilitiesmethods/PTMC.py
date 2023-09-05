@@ -10,50 +10,53 @@ import numpy as np
 Surmise wrapper ptemcee (https://github.com/willvousden/ptemcee)
 '''
 
+
 def sampler(logpost_func,
             draw_func,
             log_likelihood,
             log_prior,
-            nburnin = 100,
-            ndim = 15,
-            niterations= 200 ,
+            nburnin=100,
+            ndim=15,
+            niterations=200,
             ntemps=50,
             nthin=1,
-            nwalkers = 200 ,
-            nthreads = 10,
-            Tmax = np.inf,
+            nwalkers=200,
+            nthreads=10,
+            Tmax=np.inf,
             **ptmc_options):
     """
 
     Parameters
     ----------
-    logpostfunc : function, 
+    logpostfunc: function,
         Not used in PTMC sampler. It uses log_likelihood and log_prior instead.
 
-    draw_func : function, required
-        A function that produces approximate draws from the prior distribution.  
+    draw_func: function, required
+        A function that produces approximate draws from the prior distribution.
         This is used to initialize MCMC chains.
     log_likelihood: function, required
         Log of the likelihood
     log_prior: function, required
         Log of the prior
-    nburnin :
+    nburnin:
         Number of burnin samples.
-    ndim: 
+    ndim:
         Dimension of the model parameter space
     niterations:
         Number of MCMC samples for each chain after burnin
     nthin:
         Thining applied to MCMC chains. default is 1 which is no thining
-    nwalkers: 
+    nwalkers:
         Number of chains
     nthreads:
         Number of threads for parallel computation
-    ntemps : integer, optional
-        A positive integer that controls how many chains of varying temperature to run simultaneously. The default is 50
-    Tmax : double, optional
-        A positive number, larger than 1, that gives the maximum temperature used in parallel tempering. The default inf.
-    **ptlmc_options : additional options
+    ntemps: integer, optional
+        A positive integer that controls how many chains of varying temperature to run simultaneously. 
+        The default is 50.
+    Tmax: double, optional
+        A positive number, larger than 1, that gives the maximum temperature used in parallel tempering. 
+        The default inf.
+    **ptlmc_options: additional options
         This is a dictionary containing additional options a user might have passed but are not directly listed above.
         In general, we should not pass options this way.
 
@@ -71,40 +74,39 @@ def sampler(logpost_func,
     """
     nburnin = int(nburnin)
     ndim = int(ndim)
-    niterations= int(niterations)
-    ntemps= int(ntemps)
-    nthin= int(nthin)
+    niterations = int(niterations)
+    ntemps = int(ntemps)
+    nthin = int(nthin)
     nwalkers = int(nwalkers)
     nthreads = int(nthreads)
     Tmax = float(Tmax)
     global log_like
-    def log_like(x):return log_likelihood(x.reshape(-1,ndim))
+    def log_like(x): return log_likelihood(x.reshape(-1, ndim))
     global log_prior_fix
-    def log_prior_fix(x):return log_prior(x.reshape(-1,ndim))
-    #sampler=PTSampler(ntemps, nwalkers, ndim, logl, logp, threads=nthreads, betas=betas)
-    ptsampler_ex=ptemcee.Sampler(nwalkers, ndim, log_like, log_prior_fix, ntemps, threads=nthreads, Tmax=Tmax)
+    def log_prior_fix(x): return log_prior(x.reshape(-1, ndim))
+    # sampler = PTSampler(ntemps, nwalkers, ndim, logl, logp, threads=nthreads, betas=betas)
+    ptsampler_ex = ptemcee.Sampler(nwalkers, ndim, log_like, log_prior_fix, ntemps, threads=nthreads, Tmax=Tmax)
 
-    pos0 = np.array([draw_func(nwalkers) for n in range(0,ntemps)])
+    pos0 = np.array([draw_func(nwalkers) for n in range(0, ntemps)])
     print("Running burn-in phase")
-    for p, lnprob, lnlike in ptsampler_ex.sample(pos0, iterations=nburnin,adapt=True):
+    for p, lnprob, lnlike in ptsampler_ex.sample(pos0, iterations=nburnin, adapt=True):
         pass
-    ptsampler_ex.reset() # Discard previous samples from the chain, but keep the position
+    ptsampler_ex.reset()  # Discard previous samples from the chain, but keep the position
 
     print("Running MCMC chains")
     # 5. Now we sample for nwalkers*niterations, recording every nthin-th sample
-    for p, lnprob, lnlike in ptsampler_ex.sample(p, iterations=niterations, thin=nthin,adapt=True):
-        pass 
+    for p, lnprob, lnlike in ptsampler_ex.sample(p, iterations=niterations, thin=nthin, adapt=True):
+        pass
 
     print('Done MCMC')
 
     mean_acc_frac = np.mean(ptsampler_ex.acceptance_fraction)
     print(f"Mean acceptance fraction: {mean_acc_frac:.3f}",
           f"(in total {nwalkers*niterations} steps)")
-    
+
     # We only analyze the zero temperature MCMC samples
 
     samples = ptsampler_ex.chain[0, :, :, :].reshape((-1, ndim))
 
     sampler_info = {'theta': samples, 'acc_rate': mean_acc_frac}
     return sampler_info
-    
