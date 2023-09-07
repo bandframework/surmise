@@ -27,8 +27,12 @@ Repository = "https://github.com/surmising/surmise"
 [build-system]
 requires = [
     "setuptools>=50.0",
+    "setuptools_scm[toml]>=6.0",
     "numpy>=1.18.3",
     "cython",
     "wheel"
 ]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "surmise/_version.py"
