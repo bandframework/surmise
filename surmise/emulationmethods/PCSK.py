@@ -123,7 +123,7 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001,
         print(fitinfo['method'], 'considering ', numpcs, 'PCs')
 
     # Fit emulators for all PCs
-    emulist = __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, hypvarconst, verbose)
+    emulist = __fitGPs(fitinfo, theta, numpcs, verbose)
     fitinfo['varc_status'] = 'fixed' if varconstant is not None else 'optimized'
     fitinfo['pcstdvar'] = fitinfo['unscaled_pcstdvar']
     fitinfo['emulist'] = emulist
@@ -425,7 +425,7 @@ def __PCs(fitinfo, simsd):
     return
 
 
-def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant, verbose):
+def __fitGPs(fitinfo, theta, numpcs, verbose):
     """Fit emulators for all principle components."""
     if 'emulist' in fitinfo.keys():
         hypstarts = np.zeros((numpcs, fitinfo['emulist'][0]['hyp'].shape[0]))
@@ -449,29 +449,10 @@ def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant, verbose):
                 percentagec += percentagegap
             if np.sum(hypinds == np.array(range(0, numpcs))) > 0.5:
                 hypwhere = np.where(hypinds == np.array(range(0, numpcs)))[0]
-                emulist[pcanum] = __fitGP1d(
-                    theta=theta,
-                    g=fitinfo['pc'][:, pcanum],
-                    hyp1=hyp1,
-                    hyp2=hyp2,
-                    hypvarconst=varconstant,
-                    gvar=fitinfo['unscaled_pcstdvar'][:, pcanum],
-                    dampalpha=fitinfo['dampalpha'],
-                    eta=fitinfo['eta'],
-                    hypstarts=hypstarts[hypwhere, :],
-                    hypinds=hypwhere,
-                    sig2ofconst=0.01)
+                emulist[pcanum] = __fitGP1d(theta=theta, g=fitinfo['pc'][:, pcanum], hypstarts=hypstarts[hypwhere, :],
+                                            hypinds=hypwhere, sig2ofconst=0.01)
             else:
-                emulist[pcanum] = __fitGP1d(
-                    theta=theta,
-                    g=fitinfo['pc'][:, pcanum],
-                    hyp1=hyp1,
-                    hyp2=hyp2,
-                    hypvarconst=varconstant,
-                    gvar=fitinfo['unscaled_pcstdvar'][:, pcanum],
-                    dampalpha=fitinfo['dampalpha'],
-                    eta=fitinfo['eta'],
-                    sig2ofconst=0.00001)
+                emulist[pcanum] = __fitGP1d(theta=theta, g=fitinfo['pc'][:, pcanum], sig2ofconst=0.00001)
                 hypstarts = np.zeros((numpcs, emulist[pcanum]['hyp'].shape[0]))
             emulist[pcanum]['hypind'] = min(pcanum, emulist[pcanum]['hypind'])
             hypstarts[pcanum, :] = emulist[pcanum]['hyp']
@@ -481,8 +462,7 @@ def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant, verbose):
     return emulist
 
 
-def __fitGP1d(theta, g, gvar=None,
-              hypstarts=None, hypinds=None, sig2ofconst=None):
+def __fitGP1d(theta, g, hypstarts=None, hypinds=None, sig2ofconst=None):
     """Return a fitted model from the emulator model using smart method."""
     hypvarconstmean = 0
     hypvarconstLB = -3
@@ -508,7 +488,6 @@ def __fitGP1d(theta, g, gvar=None,
     subinfo['g'] = g[thetac]
 
     subinfo['sig2ofconst'] = sig2ofconst
-    subinfo['gvar'] = gvar[thetac]
     hypind0 = -1
 
     L0 = __negloglik(subinfo['hyp'], subinfo)
@@ -555,8 +534,6 @@ def __fitGP1d(theta, g, gvar=None,
         R = __covmat(theta, theta, subinfo['hypcov'])
 
         subinfo['R'] = (1 - subinfo['nug']) * R + subinfo['nug'] * np.eye(R.shape[0])
-        if gvar is not None:
-            subinfo['R'] += np.exp(subinfo['hypvarconst']) * np.diag(gvar)
 
         W, V = np.linalg.eigh(subinfo['R'])
         Vh = V / np.sqrt(np.abs(W))
@@ -574,8 +551,7 @@ def __fitGP1d(theta, g, gvar=None,
 
         R = __covmat(theta, theta, subinfo['hypcov'])
         subinfo['R'] = (1 - subinfo['nug']) * R + subinfo['nug'] * np.eye(R.shape[0])
-        if gvar is not None:
-            subinfo['R'] += np.exp(subinfo['hypvarconst']) * np.diag(gvar)
+
         n = subinfo['R'].shape[0]
         W, V = np.linalg.eigh(subinfo['R'])
         Vh = V / np.sqrt(np.abs(W))
@@ -593,8 +569,6 @@ def __negloglik(hyp, info):
     nug = np.exp(hyp[-1]) / (1 + np.exp(hyp[-1]))
     R = (1 - nug) * R0 + nug * np.eye(info['theta'].shape[0])
 
-    if info['gvar'] is not None:
-        R += np.exp(hyp[-2]) * np.diag(info['gvar'])
     W, V = np.linalg.eigh(R)
     Vh = V / np.sqrt(np.abs(W))
     fcenter = Vh.T @ info['g']
@@ -617,11 +591,7 @@ def __negloglikgrad(hyp, info):
     dR = (1 - nug) * dR
     dRappend2 = nug / (1 + np.exp(hyp[-1])) * (-R0 + np.eye(info['theta'].shape[0]))
 
-    if info['gvar'] is not None:
-        R += np.exp(hyp[-2]) * np.diag(info['gvar'])
-        dRappend1 = np.exp(hyp[-2]) * np.diag(info['gvar'])
-    else:
-        dRappend1 = 0 * np.eye(info['theta'].shape[0])
+    dRappend1 = 0 * np.eye(info['theta'].shape[0])
 
     dR = np.append(dR, dRappend1[:, :, None], axis=2)
     dR = np.append(dR, dRappend2[:, :, None], axis=2)
