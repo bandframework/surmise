@@ -28,5 +28,7 @@ Repository = "https://github.com/surmising/surmise"
 requires = [
     "setuptools>=50.0",
     "numpy>=1.18.3",
-    "cython"
+    "cython",
+    "wheel"
 ]
+build-backend = "setuptools.build_meta"
