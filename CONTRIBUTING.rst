@@ -20,7 +20,7 @@ close out the issues when they are pulled into the default branch (currently
 master).
 
 Testing contributions
-~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 
 Code should pass flake8 tests, allowing for the exceptions given in the flake8_
 file in the project directory. Some rules of flake8 can be seen here at https://www.flake8rules.com.
@@ -102,7 +102,7 @@ and:
 
 Developer's Certificate of Origin 1.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-```surmise`` is distributed under an MIT license (see LICENSE). The
+``surmise`` is distributed under an MIT license (see LICENSE). The
 act of submitting a pull request (with or without an explicit
 Signed-off-by tag) will be understood as an affirmation of the
 following:
