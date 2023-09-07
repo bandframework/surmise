@@ -94,8 +94,12 @@ Examples
 We provide examples in the ``examples/`` directory to illustrate the basic usage
 of surmise.
 
+In addition, for a gentle introduction of emulation and calibration using Gaussian processes, visit
+`surmise Jupyter notebook`_.
+
 .. _NumPy: http://www.numpy.org
 .. _pytest-cov: https://pypi.org/project/pytest-cov/
 .. _pytest: https://pypi.org/project/pytest/
 .. _Python: http://www.python.org
 .. _SciPy: http://www.scipy.org
+.. _`surmise Jupyter notebook`: https://colab.research.google.com/drive/1f4gKTCLEAGE8r-aMWOoGvY-O6zNqg1qj?usp=drive_link
