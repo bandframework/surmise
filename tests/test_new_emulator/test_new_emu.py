@@ -75,6 +75,7 @@ x1 = x[0:15, :]
 f0d = np.array(1)
 theta0d = np.array(1)
 x0d = np.array(1)
+simsd = 1e-3 * np.ones_like(f)
 
 
 def balldroptrue(x):
@@ -111,7 +112,10 @@ def cmdopt1(request):
 # tests for prediction class methods:
 # test to check the prediction.mean()
 def test_prediction_mean(cmdopt1):
-    emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+    if cmdopt1 == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+    else:
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
     pred = emu.predict(x=x, theta=theta)
     try:
         pred.mean()
@@ -121,7 +125,10 @@ def test_prediction_mean(cmdopt1):
 
 # test to check the prediction.var()
 def test_prediction_var(cmdopt1):
-    emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+    if cmdopt1 == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+    else:
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
     pred = emu.predict(x=x, theta=theta)
     try:
         pred.var()
@@ -131,7 +138,10 @@ def test_prediction_var(cmdopt1):
 
 # test to check the prediction.covx()
 def test_prediction_covx(cmdopt1):
-    emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+    if cmdopt1 == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+    else:
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
     pred = emu.predict(x=x, theta=theta)
     try:
         pred.covx()
@@ -141,7 +151,10 @@ def test_prediction_covx(cmdopt1):
 
 # test to check the prediction.covxhalf()
 def test_prediction_covxhalf(cmdopt1):
-    emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+    if cmdopt1 == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+    else:
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
     pred = emu.predict(x=x, theta=theta)
     try:
         pred.covxhalf()
@@ -151,7 +164,10 @@ def test_prediction_covxhalf(cmdopt1):
 
 # test to check the prediction.mean_gradtheta()
 def test_prediction_mean_gradtheta(cmdopt1):
-    emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+    if cmdopt1 == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+    else:
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
     pred = emu.predict(x=x, theta=theta, args={'return_grad': True})
     try:
         pred.mean_gradtheta()
@@ -162,7 +178,10 @@ def test_prediction_mean_gradtheta(cmdopt1):
 
 # test to check the prediction.covx_gradtheta()
 def test_prediction_covxhalf_gradtheta(cmdopt1):
-    emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+    if cmdopt1 == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+    else:
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
     pred = emu.predict(x=x, theta=theta, args={'return_grad': True})
     try:
         pred.covxhalf_gradtheta()
@@ -173,7 +192,10 @@ def test_prediction_covxhalf_gradtheta(cmdopt1):
 
 # test to check the prediction.rnd()
 def test_prediction_rnd(cmdopt1):
-    emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+    if cmdopt1 == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+    else:
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
     pred = emu.predict(x=x, theta=theta)
     try:
         pred.rnd()
@@ -183,7 +205,10 @@ def test_prediction_rnd(cmdopt1):
 
 # test to check the prediction.lpdf()
 def test_prediction_lpdf(cmdopt1):
-    emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+    if cmdopt1 == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+    else:
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
     pred = emu.predict(x=x, theta=theta)
     try:
         pred.lpdf()
@@ -193,7 +218,10 @@ def test_prediction_lpdf(cmdopt1):
 
 # test to check emulator.remove()
 def test_remove(cmdopt1):
-    emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+    if cmdopt1 == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+    else:
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
     emu.remove(theta=theta1)
     assert len(emu._emulator__theta) == 25, 'Check emulator.remove()'
 
@@ -214,7 +242,10 @@ def test_remove(cmdopt1):
 
 # test to check emulator.update()
 def test_update(cmdopt1):
-    emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+    if cmdopt1 == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+    else:
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
     thetanew = priorphys_lin.rnd(10)
     fnew = balldropmodel_linear(xv, thetanew)
     emu.update(x=None, theta=thetanew, f=fnew)
