@@ -81,6 +81,7 @@ theta0d = np.array(1)
 x0d = np.array(1)
 simsd = 1e-3 * np.ones_like(f)
 
+
 def balldroptrue(x):
     def logcosh(x):
         # preventing crashing

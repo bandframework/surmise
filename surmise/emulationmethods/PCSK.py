@@ -94,9 +94,6 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001,
     assert simsd is not None, 'Variable `simsd` must be provided for PCSK method.'
 
     fitinfo['epsilonPC'] = epsilonPC
-    hyp1 = lognugmean
-    hyp2 = lognugLB
-    hypvarconst = np.log(varconstant) if varconstant is not None else None
 
     fitinfo['dampalpha'] = dampalpha
     fitinfo['eta'] = eta
