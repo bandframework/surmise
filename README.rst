@@ -24,6 +24,8 @@ interface for calibration, uncertainty quantification, and sensitivity analysis.
 
 Dependencies
 ~~~~~~~~~~~~
+surmise is build for Python 3.8 or above, with the following dependencies:
+
 * numpy>=1.18.3
 * scipy>=1.7
 * scikit-learn>=1.2.0
