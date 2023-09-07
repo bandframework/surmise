@@ -1,5 +1,12 @@
-__version__ = "0.1.1"
-__author__ = 'Matthew Plumlee, Özge Sürer, Stefan M. Wild'
+from importlib.metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("surmise")
+except PackageNotFoundError:
+    # package is not installed
+    pass
+
+__author__ = 'Matthew Plumlee, Özge Sürer, Stefan M. Wild, Moses Y-H. Chan'
 __credits__ = 'Northwestern University, Argonne National Laboratory'
 
 import os
