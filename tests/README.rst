@@ -53,3 +53,6 @@ directory), run::
 
  ./run-tests.sh -b 'directbayes'
 
+
+.. _pytest-cov: https://pypi.org/project/pytest-cov/
+.. _pytest: https://pypi.org/project/pytest/

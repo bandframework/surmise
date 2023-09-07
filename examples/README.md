@@ -25,12 +25,4 @@ This example illustrates the Bayesian parameter inference of Susceptible-Infecte
 Although there are many model parameters, we estimated most of them based on the epidemiological studies of COVID-19, and infer only 10 influential parameters in this example.
 
 [Link to Example 4](http://localhost:8888/notebooks/Desktop/GitHub_Folders/ModCal/examples/Example4/Example4_nb.ipynb)
-  
-# Example 5
-  
-  This example shows how to integrate an existing package `GPy` to the `surmrise`'s framework.
-  
-  [Link to Example 5](http://localhost:8888/notebooks/Desktop/GitHub_Folders/ModCal/examples/Example5/Example5_nb.ipynb)
-  
-  
-  
+
