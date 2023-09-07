@@ -4,6 +4,25 @@ Release Notes
 
 Below are the notes from all surmise releases.
 
+Release 0.2.0
+-------------
+
+:Date: September 30, 2023, TBD
+
+* Emulation methods:
+    * Rename ``PCGPwMatComp`` to ``PCGPwImpute``.
+    * Include a new emulation method ``indGP``.
+    * Include a new emulation method ``PCGPR``, which requires ``scikit-learn``.
+    * Include a new emulation method ``PCSK``.
+    * Include a new emulation method ``nuclear-ROSE``, for integration with Python package ``nuclear-rose``.
+    * Remove ``GPy`` from the list of emulation methods.
+* Calibration methods:
+    * Modify ``directbayes`` to admit Python package ``ptemcee`` as sampler.
+* Utilities methods:
+    * Modify ``metropolis_hastings`` to allow control of console output.
+    * Include a new sampling method ``PTLMC``.
+    * Include a new sampling method ``PTMC``, using Python package ``ptemcee``.
+
 Release 0.1.1
 -------------
 
