@@ -106,10 +106,8 @@ def fit(fitinfo, emu, x, y, **bayes_args):
     # Call the sampler
     if 'sampler' in bayes_args.keys():
         name = bayes_args['sampler']
-        print(f'Using {name} sampler')
     else:
         name = 'unspecified'
-    print(f'Using {name} sampler')
     if name == 'PTMC':
         def log_lik(theta):
             return loglik(fitinfo, emu, theta, y, x)
