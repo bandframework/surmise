@@ -31,29 +31,29 @@ def sampler(logpost_func,
         A function that produces approximate draws from the prior distribution.
         This is used to initialize MCMC chains.
     log_likelihood: function, required
-        Log of the likelihood
+        Log of the likelihood.
     log_prior: function, required
-        Log of the prior
+        Log of the prior.
     nburnin:
         Number of burnin samples.
     ndim:
-        Dimension of the model parameter space
+        Dimension of the model parameter space.
     niterations:
-        Number of MCMC samples for each chain after burnin
+        Number of MCMC samples for each chain after burnin.
     nthin:
-        Thining applied to MCMC chains. default is 1 which is no thining
+        Thinning applied to MCMC chains. The default is 1, which is no thinning.
     nwalkers:
-        Number of chains
+        Number of chains.
     nthreads:
-        Number of threads for parallel computation
+        Number of threads for parallel computation.
     ntemps: integer, optional
         A positive integer that controls how many chains of varying temperature to run simultaneously.
         The default is 50.
     Tmax: double, optional
-        A positive number, larger than 1, that gives the maximum temperature used in parallel tempering.
+        A number larger than 1 that gives the maximum temperature used in parallel tempering.
         The default is inf.
     verbose: bool, optional
-        Boolean flag to control output printing.  Default is False (do not print).
+        Boolean flag to control output printing.  The default is False (do not print).
     **ptlmc_options: additional options
         This is a dictionary containing additional options a user might have passed but are not directly listed above.
         In general, we should not pass options this way.
@@ -61,7 +61,7 @@ def sampler(logpost_func,
     Raises
     ------
     ValueError
-        Indicates that something was not entered right, please check documentation.
+        Indicates that something was not entered right, please check the documentation.
 
     Returns
     -------
