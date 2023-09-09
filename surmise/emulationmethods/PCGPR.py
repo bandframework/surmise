@@ -72,7 +72,7 @@ def PCA(fitinfo, standardpcinfo):
 
         pc_no = [c_id for c_id, c in enumerate(cum_importance) if c > epsilon][0]
 
-        # Scale Transformation from PC space to original data space
+        # Scale transformation from PC space to original data space
         inverse_tf_matrix = np.diag(s[0:pc_no]) @ vh[0:pc_no, :] * SS.scale_.reshape(1, -1) / math.sqrt(u.shape[0] - 1)
 
         print('pc_no:', pc_no)
@@ -113,11 +113,11 @@ def predict_observables(model_parameters, fitinfo):
 
     Parameters
     ----------
-    Theta_input : Model parameter values. Should be an 1D array of 15 model parametrs.
+    Theta_input : Model parameter values. Should be a 1D array of 15 model parameters.
 
     Return
     ----------
-    Mean value and full error covaraiance matrix of the prediction is returened. """
+    Mean value and full error covariance matrix of the prediction. """
 
     emulist = fitinfo['emulist']
     SS = fitinfo['ss']
