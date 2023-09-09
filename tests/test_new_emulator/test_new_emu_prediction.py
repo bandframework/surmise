@@ -79,6 +79,7 @@ x1 = x[0:15, :]
 f0d = np.array(1)
 theta0d = np.array(1)
 x0d = np.array(1)
+simsd = 1e-3 * np.ones_like(f)
 
 
 def balldroptrue(x):
@@ -117,7 +118,10 @@ def cmdopt1(request):
 
 # tests for prediction class methods:
 def test_accuracy(cmdopt1):
-    emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+    if cmdopt1 == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+    else:
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
     theta_test = priorphys_lin.rnd(50)
     ftest = balldropmodel_linear(xv, theta_test)
     pred_test = emu.predict(x=x, theta=theta_test)
