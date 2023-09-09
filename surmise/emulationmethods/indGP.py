@@ -222,7 +222,7 @@ def __negloglikgrad(hyp, info):
 
 
 def predict(predinfo, fitinfo, x, theta, **kwargs):
-    """
+    r"""
     Finds prediction at theta and x given the dictionary fitinfo.
     This [emulationpredictdocstring] automatically filled by docinfo.py when
     running updatedocs.py
