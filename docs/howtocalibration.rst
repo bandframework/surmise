@@ -13,7 +13,7 @@ input method, and fits the corresponding calibrator.
 functionality of updating and manipulating the fitted calibrator by
 :py:meth:`surmise.calibration.calibrator.predict` class methods.
 
-In order to use the functionality of the base class :py:class:`surmise.calibration.calibrator`, we categorize the functions to be included into a new emulation method (for example ``directbayeswoodbury``) into two categories.
+In order to use the functionality of the base class :py:class:`surmise.calibration.calibrator`, we categorize the functions to be included in a new emulation method (for example, ``directbayeswoodbury``) into two categories.
 
 Mandatory functions
 ++++++++++++++++++++
@@ -23,7 +23,7 @@ method. :py:func:`fit` takes the fitted emulator class object
 :py:class:`surmise.emulation.emulator`, inputs :math:`\mathbf{X}`, and
 observed values :math:`\mathbf{y}`, where :math:`\mathbf{X}\in\mathbb{R}^{N\times p}`,
 :math:`\mathbf{y}\in\mathbb{R}^{N\times 1}`, and the dictionary ``fitinfo`` to
-place the fitting information once complete. This dictionary is used keep the
+place the fitting information once complete. This dictionary is used to keep the
 information that will be used by :py:func:`predict` below.
 
 
@@ -46,10 +46,10 @@ once the user obtains the fitted calibrator.
 Those expressions are defined within the base class to simplify the usage of the fitted
 models. In order to use those methods, the calibration method developers should either
 include functions :py:func:`thetamean`, :py:func:`thetavar`, :py:func:`thetarnd`,
-and/or, :py:func:`thetalpdf` into their methods, or define within the dictionary
+and/or, :py:func:`thetalpdf` in their methods, or define within the dictionary
 ``fitinfo`` using the keys ``thetamean``, ``thetavar``, ``thetarnd``, and/or, ``thetalpdf``.
 
-As an example, :py:func:`thetalpdf` function is provided from the ``directbayeswoodbury``:
+An example is the :py:func:`thetalpdf` function provided from the ``directbayeswoodbury``:
 
 .. autofunction:: thetalpdf
 
