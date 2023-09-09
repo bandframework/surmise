@@ -18,11 +18,6 @@ sys.path.append(os.path.abspath('../surmise'))
 sys.path.append(os.path.abspath('../surmise/emulationmethods'))
 sys.path.append(os.path.abspath('../surmise/calibrationmethods'))
 sys.path.append(os.path.abspath('../surmise/utilitiesmethods'))
-#sys.path.insert(0, os.path.abspath('..'))
-#sys.path.insert(0, os.path.abspath('../surmise'))
-#sys.path.insert(0, os.path.abspath('../surmise/emulationmethods'))
-#sys.path.insert(0, os.path.abspath('../surmise/calibrationmethods'))
-#sys.path.insert(0, os.path.abspath('../surmise/utilitiesmethods'))
 # -- Project information -----------------------------------------------------
 
 project = 'surmise'
@@ -42,15 +37,18 @@ needs_sphinx = '3.0'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-              'sphinx.ext.autodoc',
-              'sphinx.ext.intersphinx',
-              'sphinx.ext.autosummary',
-              'sphinx.ext.viewcode',
-              #'numpydoc'
-              'sphinx.ext.napoleon',
-              ]
+    'sphinx.ext.napoleon',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.viewcode',
+    'sphinxcontrib.bibtex'
+]
 autoclass_content = 'both'
 autosummary_generate = True
+
+# bibliography file
+bibtex_bibfiles = ['surmise.bib']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -60,7 +58,6 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 html_static_path = []
-
 
 # -- Options for HTML output -------------------------------------------------
 

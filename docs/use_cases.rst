@@ -13,3 +13,11 @@ to support) and plan to have examples of:
 - A user wants to perform principled uncertainty quantification that calibrates the models against data via a user developed new calibration method. Then, a user can drop the script of the method into the ``\calibrationmethods`` directory, and use it within the surmise's framework.
 
 - A user wants to test a new sampler within the surmise's framework. Then, a user can drop the script of the method into the ``\utilitiesmethods`` directory, and use it within the surmise's framework.
+
+Reference to examples
+================================
+Below is a non-exhaustive list of references utilitizing surmise (in alphabetical order):
+
+.. bibliography::
+    :style: plain
+    :all:
