@@ -1,4 +1,4 @@
-"""PCSK method - Principal componets with stochastic kriging. """
+"""PCSK method - Principal components with stochastic kriging."""
 
 import numpy as np
 import scipy.optimize as spo
@@ -41,7 +41,7 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001,
         used.  Note that epsilonPC here is *not* the unexplained variance in
         typical principal component analysis.
     epsilonImpute : scalar
-        A parameter to ensure covariance nonsingularity. Default is 10e-6.
+        A parameter to ensure covariance nonsingularity. The default is 10e-6.
     lognugmean : scalar
         A parameter to control the log of the nugget used in fitting the GPs.
         The suggested range for lognugmean is (-12, -4).  The nugget is estimated,
@@ -51,20 +51,20 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001,
         suggested range for lognugLB is (-24, -12).
     varconstant : scalar
         A multiplying constant to control the inflation (deflation) of additional
-        variances if missing values are present. Default is None, the parameter will
-        be optimized in such a case. A general working range is (np.exp(-4), np.exp(4)).
+        variances if missing values are present. The default is None, corresponding to
+        the parameter will be optimized. A general working range is (np.exp(-4), np.exp(4)).
     dampalpha : scalar
         A parameter to control the rate of increase of variance as the number of missing
-        values increases.  Default is 0.3, otherwise an appropriate range is (0, 0.5).
+        values increases. The default is 0.3, otherwise an appropriate range is (0, 0.5).
         Values larger than 0.5 are permitted but can lead to poor empirical performance.
     eta : scalar
-        A parameter as an upper bound for the additional variance term.  Default is 10.
+        A parameter as an upper bound for the additional variance term. The default is 10.
     numpcs : integer
-        An optional parameter to let a user pick the number of PCs.  Default is -1, which
+        An optional parameter to let a user pick the number of PCs. The default is -1, which
         automates the choice.
     standardpcinfo : dict
         A dictionary a user supplies that contains information for standardization of `f`,
-        in the following format, such that fs = (f - offset) / scale, U are the
+        in a format such that fs = (f - offset) / scale, U are the
         orthogonal basis vectors, and S are the singular values from the SVD of `fs`.
         The entry extravar contains the average squared residual for each column (x).
             {'offset': offset,
@@ -76,9 +76,8 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001,
              }
 
     verbose : scalar
-        A parameter to suppress in-method console output.  Use 0 to suppress output,
+        A parameter to suppress in-method console output. Use 0 to suppress output,
         use 1 to show output.
-
 
     kwargs : dict, optional
         A dictionary containing options. The default is None.
@@ -128,7 +127,7 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001,
 
 
 def predict(predinfo, fitinfo, x, theta, **kwargs):
-    r"""
+    """
     Finds prediction at theta and x given the dictionary fitinfo.
     This [emulationpredictdocstring] automatically filled by docinfo.py when
     running updatedocs.py
@@ -137,15 +136,15 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
     ----------
     predinfo : dict
         An arbitary dictionary where you should place all of your prediction
-        information once complete. This dictionary is pass by reference, so
+        information once complete. This dictionary is passed by reference, so
         there is no reason to return anything. Keep only stuff that will be
         used by predict. Key elements are
 
-            - `predinfo['mean']` : `predinfo['mean'][k]` is mean of the prediction
+            - `predinfo['mean']` : `predinfo['mean'][k]` is the mean of the prediction
               at all x at `theta[k]`.
-            - `predinfo['var']` : `predinfo['var'][k]` is variance of the
+            - `predinfo['var']` : `predinfo['var'][k]` is the variance of the
               prediction at all x at `theta[k]`.
-            - `predinfo['cov']` : `predinfo['cov'][k]` is covariance matrix of the
+            - `predinfo['cov']` : `predinfo['cov'][k]` is the covariance matrix of the
               prediction at all x at `theta[k]`.
             - `predinfo['covhalf']` : if `A = predinfo['covhalf'][k]` then
               `A.T @ A = predinfo['cov'][k]`.
@@ -155,13 +154,13 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
         information from the fit function above.
 
     x : array of objects
-        An matrix (vector) of inputs for prediction.
+        A matrix (vector) of inputs for prediction.
 
     theta :  array of objects
-        An matrix (vector) of parameters to prediction.
+        A matrix (vector) of parameters to prediction.
 
     kwargs : dict
-        A dictionary containing additional options
+        A dictionary containing additional options.
     """
     return_grad = False
     if (kwargs is not None) and ('return_grad' in kwargs.keys()) and \
@@ -580,7 +579,7 @@ def __negloglik(hyp, info):
 
 
 def __negloglikgrad(hyp, info):
-    """Return gradient of the penalized log likelihood of single demensional
+    """Return gradient of the penalized log likelihood of single-dimensional
     GP model."""
     R0, dR = __covmat(info['theta'], info['theta'], hyp[:-2], True)
     nug = np.exp(hyp[-1]) / (1 + np.exp(hyp[-1]))
