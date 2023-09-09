@@ -23,13 +23,13 @@ Testing contributions
 ~~~~~~~~~~~~~~~~~~~~~
 
 Code should pass flake8 tests, allowing for the exceptions given in the flake8_
-file in the project directory. Some rules of flake8 can be seen here at https://www.flake8rules.com.
+file in the project directory. Some rules of flake8 can be seen at https://www.flake8rules.com.
 To check if the code passes the flake8 tests, within the directory run::
 
   flake8
 
-As you develop your code, we ask developers to include tests specific to their code,
-and provide their own tests in ``tests\`` directory. To run the new tests, you can run the following::
+As you develop your code, we ask developers to include tests specific to their code, and
+provide their own tests in the ``tests\`` directory. To run the new tests, you can run the following::
 
   pytest tests/your-test.py
 
@@ -42,17 +42,17 @@ Clear and complete documentation is essential in order for users to be able to f
 understand the code.
 
 Documentation for individual functions and classes – which includes at least a basic
-description, type and meaning of all parameters and returns values, and usage examples –
+description, type, and meaning of all parameters, and returns values and usage examples –
 is put in docstrings. Those docstrings can be read within the interpreter, and are
-compiled into a reference guide in html and pdf format.   If you want to contribute
+compiled into a reference guide in html and pdf format.  If you want to contribute
 to the documentation of the architecture of surmise, you can write documentation
-in reStructuredText format, and edit in ``\docs`` directory. If you run ``make html``
+in reStructuredText format, and edit in the ``\docs`` directory. If you run ``make html``
 in the same directory, HTML pages can viewed.  As you develop your code, we recommend
 writing docstrings in your classes and methods.
 
 On any code that is not self-documenting, provide clear comments when some important
 thing must be communicated to the user. There is no general rule for the number of
-needed comments. Some examples of bad and good commenting habits are given below:
+needed comments. Some examples of bad and good commenting habits are given below.
 
 Lack of comments:
 
@@ -95,14 +95,14 @@ Good Example::
   for x in range(10):
     print(x)
 
-Some general guidence on commenting code can be found at:
+Some general guidance on commenting code can be found at:
   https://www.cs.utah.edu/~germain/PPS/Topics/commenting.html
 and:
   http://ideas-productivity.org/wordpress/wp-content/uploads/2021/02/webinar049-softwaredocumentation.pdf
 
 Developer's Certificate of Origin 1.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-``surmise`` is distributed under an MIT license (see LICENSE). The
+``surmise`` is distributed under an MIT license (see LICENSE_). The
 act of submitting a pull request (with or without an explicit
 Signed-off-by tag) will be understood as an affirmation of the
 following:
@@ -131,4 +131,5 @@ following:
       maintained indefinitely and may be redistributed consistent with
       this project or the open source license(s) involved.
 
-.. _flake8: https://github.com/surmising/surmise/blob/develop/.flake8
+.. _flake8: https://github.com/surmising/surmise/blob/main/.flake8
+.. _LICENSE: https://github.com/surmising/surmise/blob/main/LICENSE
