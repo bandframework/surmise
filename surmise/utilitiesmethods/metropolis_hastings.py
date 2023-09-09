@@ -11,7 +11,7 @@ def sampler(logpost_func,
             stepType='normal',
             stepParam=None,
             burnSamples=1000,
-            verbose=True,
+            verbose=False,
             **mh_options):
     '''
 
