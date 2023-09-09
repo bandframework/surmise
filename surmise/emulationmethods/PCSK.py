@@ -561,7 +561,7 @@ def __fitGP1d(theta, g, hypstarts=None, hypinds=None, sig2ofconst=None):
 
 
 def __negloglik(hyp, info):
-    """Return penalized log likelihood of single demensional GP model."""
+    """Return penalized log likelihood of single-dimensional GP model."""
     R0 = __covmat(info['theta'], info['theta'], hyp[:-2])
     nug = np.exp(hyp[-1]) / (1 + np.exp(hyp[-1]))
     R = (1 - nug) * R0 + nug * np.eye(info['theta'].shape[0])
