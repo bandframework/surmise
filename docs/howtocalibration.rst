@@ -13,7 +13,7 @@ input method, and fits the corresponding calibrator.
 functionality of updating and manipulating the fitted calibrator by
 :py:meth:`surmise.calibration.calibrator.predict` class methods.
 
-In order to use the functionality of the base class :py:class:`surmise.calibration.calibrator`, we categorize the functions to be included into a new emulation method (for example ``directbayeswoodbury ``) into two categories.
+In order to use the functionality of the base class :py:class:`surmise.calibration.calibrator`, we categorize the functions to be included into a new emulation method (for example ``directbayeswoodbury``) into two categories.
 
 Mandatory functions
 ++++++++++++++++++++
@@ -49,7 +49,7 @@ include functions :py:func:`thetamean`, :py:func:`thetavar`, :py:func:`thetarnd`
 and/or, :py:func:`thetalpdf` into their methods, or define within the dictionary
 ``fitinfo`` using the keys ``thetamean``, ``thetavar``, ``thetarnd``, and/or, ``thetalpdf``.
 
-As an example, :py:func:`thetalpdf` function is provided from the ``directbayeswoodbury ``:
+As an example, :py:func:`thetalpdf` function is provided from the ``directbayeswoodbury``:
 
 .. autofunction:: thetalpdf
 
