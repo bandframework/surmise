@@ -43,7 +43,7 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
         used.  Note that epsilonPC here is *not* the unexplained variance in
         typical principal component analysis.
     epsilonImpute : scalar
-        A parameter to ensure covariance nonsingularity. Default is 10e-6.
+        A parameter to ensure covariance nonsingularity. The default is 10e-6.
     lognugmean : scalar
         A parameter to control the log of the nugget used in fitting the GPs.
         The suggested range for lognugmean is (-12, -4).  The nugget is estimated,
@@ -53,11 +53,11 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
         suggested range for lognugLB is (-24, -12).
     varconstant : scalar
         A multiplying constant to control the inflation (deflation) of additional
-        variances if missing values are present. Default is None, the parameter will
-        be optimized in such case. A general working range is (np.exp(-4), np.exp(4)).
+        variances if missing values are present. The default is None, for which the
+        parameter will be optimized. A general working range is (np.exp(-4), np.exp(4)).
     dampalpha : scalar
         A parameter to control the rate of increase of variance as amount of missing
-        values increases.  Default is 0.3, otherwise an appropriate range is (0, 0.5).
+        values increases.  The default is 0.3, otherwise an appropriate range is (0, 0.5).
         Values larger than 0.5 are permitted but it leads to poor empirical performance.
     eta : scalar
         A parameter as an upper bound for the additional variance term.  Default is 10.
@@ -147,12 +147,12 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
         there is no reason to return anything. Keep only stuff that will be
         used by predict. Key elements are
 
-            - `predinfo['mean']` : `predinfo['mean'][k]` is mean of the prediction
+            - `predinfo['mean']` : `predinfo['mean'][k]` is the mean of the prediction
               at all x at `theta[k]`.
-            - `predinfo['var']` : `predinfo['var'][k]` is variance of the
+            - `predinfo['var']` : `predinfo['var'][k]` is the variance of the
               prediction at all x at `theta[k]`.
-            - `predinfo['cov']` : `predinfo['cov'][k]` is covariance matrix of the prediction
-              at all x at `theta[k]`.
+            - `predinfo['cov']` : `predinfo['cov'][k]` is the covariance matrix of the
+              prediction at all x at `theta[k]`.
             - `predinfo['covhalf']` : if `A = predinfo['covhalf'][k]` then
               `A.T @ A = predinfo['cov'][k]`.
 
@@ -161,13 +161,13 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
         information from the fit function above.
 
     x : array of objects
-        An matrix (vector) of inputs for prediction.
+        A matrix (vector) of inputs for prediction.
 
     theta :  array of objects
-        An matrix (vector) of parameters to prediction.
+        A matrix (vector) of parameters to prediction.
 
     kwargs : dict
-        A dictionary containing additional options
+        A dictionary containing additional options.
     """
     return_grad = False
     if (kwargs is not None) and ('return_grad' in kwargs.keys()) and \
