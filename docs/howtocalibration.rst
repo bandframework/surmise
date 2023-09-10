@@ -9,7 +9,7 @@ In surmise, all calibrator methods inherit from the base class
 :py:class:`surmise.calibration.calibrator`. A calibrator class calls the user
 input method, and fits the corresponding calibrator.
 :py:meth:`surmise.calibration.calibrator.fit` is the main
-:py:class:`surmise.calibration.calibrator` class methods. It salso provides the
+:py:class:`surmise.calibration.calibrator` class methods. It also provides the
 functionality of updating and manipulating the fitted calibrator by
 :py:meth:`surmise.calibration.calibrator.predict` class methods.
 
