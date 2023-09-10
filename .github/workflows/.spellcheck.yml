@@ -19,7 +19,7 @@ matrix:
   default_encoding: utf-8
 - name: reST
   sources:
-  - **/**/*.rst
+  - '**/**/*.rst'
   dictionary:
     wordlists:
       - .github/workflows/.wordlist.txt
