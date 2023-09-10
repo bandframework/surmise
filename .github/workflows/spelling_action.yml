@@ -11,8 +11,9 @@ jobs:
     - uses: rojopolis/spellcheck-github-actions@0.33.1
       name: Spellcheck
       with:
-        source_files: surmisebandsdk.md
-        task_name: Markdown
+        config_path: .github/workflows/.spellcheck.yml
+        # source_files: surmisebandsdk.md
+        # task_name: Markdown
         output_file: spellcheck-output.txt
     - uses: actions/upload-artifact@v3
       with:
