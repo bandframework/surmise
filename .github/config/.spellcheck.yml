@@ -6,7 +6,7 @@ matrix:
   dictionary:
     encoding: utf-8
     wordlists:
-    - .github/c/.wordlist.txt
+    - .github/config/.wordlist.txt
   pipeline:
   - pyspelling.filters.markdown:
   - pyspelling.filters.html:
@@ -22,7 +22,7 @@ matrix:
   - '**/**/*.rst'
   dictionary:
     wordlists:
-      - .github/workflows/.wordlist.txt
+      - .github/config/.wordlist.txt
   pipeline:
   - pyspelling.filters.text:
   - pyspelling.filters.context:
