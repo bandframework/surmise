@@ -36,7 +36,7 @@
 | 5. | Provide a runtime API to return the current version number of the software |Full| The version can be returned within Python via: `surmise.__version__`.|
 | 6. | Provide a BAND team-accessible repository |Full| https://github.com/surmising/surmise |
 | 7. | Must allow installing, building, and linking against an outside copy of all imported software that is externally developed and maintained |Full| surmise does not contain any other package's source code within. Note that Python packages are imported using the conventional `sys.path` system. Alternative instances of a package can be used, for example, by including them through an appropriate definition of the PYTHONPATH environment variable.|
-| 8. |  Have no hardwired print or IO statements that cannot be turned off |None.| There are statements that cannot be turned off (e.g., those are produced to document errors/exceptions, and warnings). We raised an issue on [issues page on GitHub](https://github.com/surmising/surmise/issues), are working on that to fulfill this policy. |
+| 8. |  Have no hardwired print or IO statements that cannot be turned off |Full| There are no mandatory print statements: any print statements for code feedback in a method can be suppressed via `verbose` argument. |
 
 M4 details <a id="m4-details"></a>: This was chosen based on the MIT license being the default license for BAND.
 
