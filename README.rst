@@ -66,10 +66,16 @@ The documentation is stored in ``docs/`` and is compiled with the Sphinx Python
 documentation generator. It is written in the reStructuredText format. The
 documentation is hosted at `Read the Docs <http://surmise.readthedocs.io>`_.
 
-To compile the documentation, first ensure that Sphinx is installed. Then, to
-generate documentation, run command ``make html`` from a terminal within this directory as follows::
+To compile the documentation, first ensure that Sphinx and its dependencies are installed.
+To install Sphinx and/or ensure compatibility of dependencies, run ``make`` from a terminal within the ``docs/``
+directory::
 
  cd docs
+ make
+
+To generate documentation, run command ``make html`` from a terminal within the ``docs/`` directory::
+
+ (cd docs)
  make html
 
 The HTML files are then stored in ``docs/_build/html``.
