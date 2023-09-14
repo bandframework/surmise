@@ -32,7 +32,7 @@ def fit(fitinfo, rose_emu, emu_variance_constant=0.0, **kwargs):
 
     '''
     assert emu_variance_constant >= 0, 'Emulator variance must be nonnegative.'
-    
+
     fitinfo['emulator'] = rose_emu
     fitinfo['emulator_variance_constant'] = emu_variance_constant
 
