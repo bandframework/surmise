@@ -22,6 +22,8 @@ Release 0.2.0
     * Modify ``metropolis_hastings`` to allow control of console output.
     * Include a new sampling method ``PTLMC``.
     * Include a new sampling method ``PTMC``, using Python package ``ptemcee``.
+* Test suite:
+    * Remove the use of `python setup.py test` for unit testing.
 
 Release 0.1.1
 -------------
