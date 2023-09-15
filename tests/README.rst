@@ -2,7 +2,7 @@ Running Tests
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``surmise`` uses GitHub Actions that allow to set up Continuous Integration workflows.
-After each push and pull request to develop and master branch, the code will be tested
+After each push and pull request to develop and main branch, the code will be tested
 with automated workflows, and the Python unit tests under ``tests/test_emu_cal``
 will automatically be running. Reviewer will check that all tests have passed and will then approve merge.
 

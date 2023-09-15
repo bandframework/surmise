@@ -6,7 +6,7 @@ Contributions may be made via a GitHub pull request to
     https://github.com/bandframework/surmise
 
 surmise uses the Gitflow model. Contributors should branch from, and
-make pull requests to, the develop branch. The master branch is used only
+make pull requests to, the develop branch. The main branch is used only
 for releases. Pull requests may be made from a fork, for those without
 repository write access.
 
@@ -17,7 +17,7 @@ Issues can be raised at
 When a branch closes a related issue, the pull request message should include
 the phrase "Closes #N," where N is the issue number. This will automatically
 close out the issues when they are pulled into the default branch (currently
-master).
+main).
 
 Testing contributions
 ~~~~~~~~~~~~~~~~~~~~~
