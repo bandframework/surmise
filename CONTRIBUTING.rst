@@ -3,7 +3,7 @@ Contributing to surmise
 
 Contributions may be made via a GitHub pull request to
 
-    https://github.com/surmising/surmise
+    https://github.com/bandframework/surmise
 
 surmise uses the Gitflow model. Contributors should branch from, and
 make pull requests to, the develop branch. The master branch is used only
@@ -12,7 +12,7 @@ repository write access.
 
 Issues can be raised at
 
-    https://github.com/surmising/surmise/issues
+    https://github.com/bandframework/surmise/issues
 
 When a branch closes a related issue, the pull request message should include
 the phrase "Closes #N," where N is the issue number. This will automatically
@@ -131,5 +131,5 @@ following:
       maintained indefinitely and may be redistributed consistent with
       this project or the open source license(s) involved.
 
-.. _flake8: https://github.com/surmising/surmise/blob/main/.flake8
-.. _LICENSE: https://github.com/surmising/surmise/blob/main/LICENSE
+.. _flake8: https://github.com/bandframework/surmise/blob/main/.flake8
+.. _LICENSE: https://github.com/bandframework/surmise/blob/main/LICENSE

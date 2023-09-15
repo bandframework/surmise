@@ -22,7 +22,7 @@ dependencies = [
 dynamic = ["version"]
 
 [project.urls]
-Repository = "https://github.com/surmising/surmise"
+Repository = "https://github.com/bandframework/surmise"
 
 [build-system]
 requires = [
