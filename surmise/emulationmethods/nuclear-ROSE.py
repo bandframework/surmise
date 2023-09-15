@@ -68,9 +68,9 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
     rose_emu = fitinfo['emulator']
     outputArray = []
 
-    for i, thetai in enumerate(theta):
-        amplitudeEm = rose_emu.emulate_dsdo(thetai)
-        outputArray.append(amplitudeEm[x])
+    for i in range(len(theta)):
+        amplitudeEm = rose_emu.emulate_dsdo(i)
+        outputArray.append(amplitudeEm)
 
     predmean = np.array(outputArray).T
 
