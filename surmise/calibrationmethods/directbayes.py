@@ -251,8 +251,8 @@ def loglik(fitinfo, emu, theta, y, x):
         resid = m0 - y
 
         CovMatEigInv = CovMatEigW @ np.diag(1 / CovMatEigS) @ CovMatEigW.T
-        loglikelihood[k] = float(-0.5 * resid.T @ CovMatEigInv @ resid -
-                                 0.5 * np.sum(np.log(CovMatEigS)))
+        loglikelihood[k] = (-0.5 * resid.T @ CovMatEigInv @ resid -
+                            0.5 * np.sum(np.log(CovMatEigS))).item()
 
     return loglikelihood
 

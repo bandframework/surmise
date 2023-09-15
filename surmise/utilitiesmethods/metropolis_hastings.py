@@ -52,8 +52,8 @@ def sampler(logpost_func,
     lposterior = np.zeros(burnSamples + numsamp)
     theta = np.zeros((burnSamples + numsamp, theta0.shape[1]))
     # print(theta0)
-    lposterior[0] = logpost_func(theta0, return_grad=False)
-    theta[0, :] = theta0
+    lposterior[0] = logpost_func(theta0, return_grad=False).item()
+    theta[0] = theta0
     n_acc = 0
 
     lposterior_list = []
@@ -74,7 +74,7 @@ def sampler(logpost_func,
         theta_cand = np.reshape(np.array(theta_cand), (1, p))
 
         # Compute loglikelihood
-        logpost = logpost_func(theta_cand, return_grad=False)
+        logpost = logpost_func(theta_cand, return_grad=False).item()
 
         if np.isfinite(logpost):
             p_accept = min(1, np.exp(logpost - lposterior[i-1]))
