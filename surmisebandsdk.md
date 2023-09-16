@@ -16,7 +16,7 @@
 
 **Website:** https://github.com/bandframework/surmise
 
-**Contact:** Matt Plumlee(mplumlee@northwestern.edu) or Ozge Surer(surero@miamioh.edu)
+**Contact:** The surmise team, whose contact details are listed in [SUPPORT](SUPPORT.rst).
 
 **Icon:** https://avatars.githubusercontent.com/u/77858356?s=200&v=4
 
