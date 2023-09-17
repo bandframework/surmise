@@ -40,7 +40,7 @@ def fit(fitinfo, rose_emu, emu_variance_constant=0.0, **kwargs):
     return
 
 
-def predict(predinfo, fitinfo, x, theta, **kwargs):
+def predict(predinfo, fitinfo, x, theta, atol=1e-2, **kwargs):
     '''
     Parameters
     ----------
@@ -75,12 +75,14 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
     for i in range(len(x)):
         i1 = bisect.bisect_left(sort_emu_angles, x[i])
         i2 = bisect.bisect_right(sort_emu_angles, x[i])
-        if i1 == i2:
+        if x[i] - sort_emu_angles[i1] <= sort_emu_angles[i2] - x[i]:
             xinds.append(i1)
         else:
-            xinds.append(sortind[i1:i2][0])
+            xinds.append(i2)
 
-    assert np.allclose(x, emu_angles[xinds]), 'requested angles should be a subset of emulated angles `SAE.angles`.'
+    assert np.allclose(x, emu_angles[xinds], atol=atol), \
+        ('requested angles should be close to one of the emulated angles `SAE.angles`,'
+         'with an absolute tolerance of {:.2E}.'.format(atol))
 
     outputArray = []
     for i in range(len(theta)):
