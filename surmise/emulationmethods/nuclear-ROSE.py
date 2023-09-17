@@ -44,7 +44,7 @@ def fit(fitinfo, rose_emu, emu_variance_constant=0.0, angle_atol=1e-2, **kwargs)
     return
 
 
-def predict(predinfo, fitinfo, x, theta, **kwargs):
+def predict(predinfo, fitinfo, x: np.ndarray, theta: np.ndarray, **kwargs):
     '''
     Parameters
     ----------
@@ -72,22 +72,8 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
 
     rose_emu = fitinfo['emulator']
     atol = fitinfo['angle_atol']
-    emu_angles = rose_emu.angles
 
-    sortind = np.argsort(emu_angles)
-    sort_emu_angles = emu_angles[sortind]
-    xinds = []
-    for i in range(len(x)):
-        i1 = bisect.bisect_left(sort_emu_angles, x[i])
-        i2 = bisect.bisect_right(sort_emu_angles, x[i])
-        if x[i] - sort_emu_angles[i1] <= sort_emu_angles[i2] - x[i]:
-            xinds.append(i1)
-        else:
-            xinds.append(i2)
-
-    assert np.allclose(x, emu_angles[xinds], atol=atol), \
-        ('requested angles should be close to one of the emulated angles `SAE.angles`,'
-         'with an absolute tolerance of {:.2E}.'.format(atol))
+    xinds = find_closest_angles(predict_angles=x, full_angles=rose_emu.angles, angle_atol=atol)
 
     outputArray = []
     for i in range(len(theta)):
@@ -99,3 +85,44 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
     predinfo['mean'] = predmean
     predinfo['var'] = np.ones_like(predmean) * fitinfo['emulator_variance_constant']
     return
+
+
+def find_closest_angles(predict_angles: np.ndarray, full_angles: np.ndarray, angle_atol: float):
+    """
+    Finds the closest emulated angles and returns their indices.
+
+    Parameters
+    ----------
+    predict_angles : np.ndarray
+        The array of angles to predict at.
+    full_angles : np.ndarray
+        The array of angles that have been emulated at.
+    angle_atol : scalar
+        The absolute tolerance between any entry of predict_angles and its closest angle in full_angles.
+        If the distance is larger than the absolute tolerance, raise an AssertionError.
+
+    Returns
+    -------
+    xinds : list
+        List of indices of emulated angles.
+
+    """
+    sortind = np.argsort(full_angles)
+    sort_emu_angles = full_angles[sortind]
+    xinds = []
+    for i in range(len(predict_angles)):
+        i1 = bisect.bisect_left(sort_emu_angles, predict_angles[i])
+        i2 = bisect.bisect_right(sort_emu_angles, predict_angles[i])
+        if predict_angles[i] - sort_emu_angles[i1] <= sort_emu_angles[i2] - predict_angles[i]:
+            xinds.append(i1)
+        else:
+            xinds.append(i2)
+
+    if (np.array(xinds) >= len(full_angles)).all() and ~np.allclose(predict_angles, full_angles[xinds]):
+        raise ValueError('The angles to predict at are all larger than the emulated angles beyond the absolute '
+                         'tolerance.')
+
+    assert np.allclose(predict_angles, full_angles[xinds], atol=angle_atol), \
+        ('requested angles should be close to one of the emulated angles `SAE.angles`,'
+         'with an absolute tolerance of {:.2E}.'.format(angle_atol))
+    return xinds
