@@ -1,5 +1,6 @@
 """nuclear-ROSE, an integration wrapper for using emulators produced by [fill-in] nuclear-rose package."""
 import numpy as np
+import bisect
 
 
 def fit(fitinfo, rose_emu, emu_variance_constant=0.0, **kwargs):
@@ -66,11 +67,25 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
     '''
 
     rose_emu = fitinfo['emulator']
-    outputArray = []
+    emu_angles = rose_emu.angles
 
+    sortind = np.argsort(emu_angles)
+    sort_emu_angles = emu_angles[sortind]
+    xinds = []
+    for i in range(len(x)):
+        i1 = bisect.bisect_left(sort_emu_angles, x[i])
+        i2 = bisect.bisect_right(sort_emu_angles, x[i])
+        if i1 == i2:
+            xinds.append(i1)
+        else:
+            xinds.append(sortind[i1:i2][0])
+
+    assert np.allclose(x, emu_angles[xinds]), 'requested angles should be a subset of emulated angles `SAE.angles`.'
+
+    outputArray = []
     for i in range(len(theta)):
         amplitudeEm = rose_emu.emulate_dsdo(theta[i])
-        outputArray.append(amplitudeEm)
+        outputArray.append(amplitudeEm[xinds])
 
     predmean = np.array(outputArray).T
 
