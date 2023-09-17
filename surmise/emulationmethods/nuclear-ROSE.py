@@ -3,7 +3,7 @@ import numpy as np
 import bisect
 
 
-def fit(fitinfo, rose_emu, emu_variance_constant=0.0, atol=1e-2, **kwargs):
+def fit(fitinfo, rose_emu, emu_variance_constant=0.0, angle_atol=1e-2, **kwargs):
     '''
     The purpose of fit is to take information and plug all of our fit
     information into fitinfo, which is a python dictionary.
@@ -23,7 +23,7 @@ def fit(fitinfo, rose_emu, emu_variance_constant=0.0, atol=1e-2, **kwargs):
     emu_variance_constant : scalar, optional
         User-defined emulator variance constant.  For example, one may estimate
         this quantity empirically.  The default is 0.
-    atol : scalar, optional
+    angle_atol : scalar, optional
         User-defined absolute tolerance between emulated angles and angles to predict at.
         Prediction at the closest emulated angle within the tolerance is currently returned.
     args : dict, optional
@@ -39,7 +39,7 @@ def fit(fitinfo, rose_emu, emu_variance_constant=0.0, atol=1e-2, **kwargs):
 
     fitinfo['emulator'] = rose_emu
     fitinfo['emulator_variance_constant'] = emu_variance_constant
-    fitinfo['angle_atol'] = atol
+    fitinfo['angle_atol'] = angle_atol
 
     return
 
@@ -71,7 +71,7 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
     '''
 
     rose_emu = fitinfo['emulator']
-    atol = fitinfo['atol']
+    atol = fitinfo['angle_atol']
     emu_angles = rose_emu.angles
 
     sortind = np.argsort(emu_angles)
