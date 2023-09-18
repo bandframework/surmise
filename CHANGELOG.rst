@@ -7,7 +7,7 @@ Below are the notes from all surmise releases.
 Release 0.2.0
 -------------
 
-:Date: September 30, 2023, TBD
+:Date: September 18, 2023
 
 * Emulation methods:
     * Rename ``PCGPwMatComp`` to ``PCGPwImpute``.
