@@ -1,9 +1,9 @@
 [project]
 name = "surmise"
 authors = [
-    {name = "Matthew Plumlee"},
+    {name = "Matthew Plumlee", email = "mplumlee@northwestern.edu"},
     {name = "Özge Sürer", email = "surero@miamioh.edu"},
-    {name = "Stefan M. Wild"},
+    {name = "Stefan M. Wild", email = "wild@lbl.gov"},
     {name = "Moses Y-H. Chan", email = "mosesyhc@u.northwestern.edu"}    
 ]
 description = "A modular interface for surrogate models and tools"
