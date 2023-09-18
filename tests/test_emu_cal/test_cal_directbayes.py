@@ -69,7 +69,7 @@ f_f = timedrop(x_std, theta_f, x_range, theta_range)
 
 # Fit an emulator via filtered data
 emulator_f_1 = emulator(x=x_std, theta=theta_f, f=f_f, method='PCGP')
-#emulator_f_2 = emulator(x=x_std, theta=theta_f, f=f_f, method='PCGP')
+# emulator_f_2 = emulator(x=x_std, theta=theta_f, f=f_f, method='PCGP')
 
 args2 = {'theta0': np.array([[0.4]]),
          'numsamp': 20,

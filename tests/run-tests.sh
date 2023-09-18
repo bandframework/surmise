@@ -30,7 +30,7 @@ usage() {
   exit 1
 }
 
-while getopts ":a:b:l:ecuth" opt; do
+while getopts ":a:b:l:ecuh" opt; do
   case $opt in
     a)
       echo "Parameter supplied for emulator test args: $OPTARG" >&2

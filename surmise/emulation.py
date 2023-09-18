@@ -6,6 +6,8 @@ import importlib
 import copy
 import warnings
 
+__externalmethodslist__ = ['nuclear-ROSE', ]
+
 
 class emulator(object):
 
@@ -75,85 +77,88 @@ class emulator(object):
 
         '''
 
-        if ('warnings' in args.keys()) and args['warnings']:
-            warnings.resetwarnings()
-        else:
+        # default to showing all warnings
+        if ('warnings' in args.keys()) and ~args['warnings']:
             warnings.simplefilter('ignore')
+        else:
+            warnings.resetwarnings()
 
         self.__ptf = passthroughfunc
-        if self.__ptf is not None:
-            return
+        self.__f = None
         self._args = copy.deepcopy(args)
 
-        if f is not None:
-            if f.ndim < 1 or f.ndim > 2:
-                raise ValueError('f must have either 1 or 2 dimensions.')
-            if (x is None) and (theta is None):
-                raise ValueError('You have not provided any theta or x, no'
-                                 ' emulator inference possible.')
-            if x is not None:
-                if x.ndim < 0.5 or x.ndim > 2.5:
-                    raise ValueError('x must have either 1 or 2 dimensions.')
-            if theta is not None:
-                if theta.ndim < 0.5 or theta.ndim > 2.5:
-                    raise ValueError('theta must have either 1 or 2'
-                                     ' dimensions.')
-        else:
-            raise ValueError('You have not provided f, cannot include theta'
-                             ' or x.')
-
-        if x is not None and (f.shape[0] != x.shape[0]):
-            if theta is not None:
-                if (f.ndim == 2 and f.shape[1] == x.shape[0] and
-                        f.shape[0] == theta.shape[0]):
-                    warnings.warn('Transposing f to try to get agreement')
-                    self.__f = copy.copy(f).T
-                    f = copy.copy(f).T
-                else:
-                    raise ValueError('The number of rows in f must match the'
-                                     ' number of rows in x.')
+        if self.__ptf is not None:
+            return
+        if method not in __externalmethodslist__:
+            if f is not None:
+                if f.ndim < 1 or f.ndim > 2:
+                    raise ValueError('f must have either 1 or 2 dimensions.')
+                if (x is None) and (theta is None):
+                    raise ValueError('You have not provided any theta or x, no'
+                                     ' emulator inference possible.')
+                if x is not None:
+                    if x.ndim < 0.5 or x.ndim > 2.5:
+                        raise ValueError('x must have either 1 or 2 dimensions.')
+                if theta is not None:
+                    if theta.ndim < 0.5 or theta.ndim > 2.5:
+                        raise ValueError('theta must have either 1 or 2'
+                                         ' dimensions.')
             else:
-                if f.ndim == 2 and f.shape[1] == x.shape[0]:
-                    warnings.warn('Transposing f to try to get agreement')
-                    self.__f = copy.copy(f).T
-                    f = copy.copy(f).T
-                else:
-                    raise ValueError('The number of rows in f must match the'
-                                     ' number of rows in x.')
+                raise ValueError('You have not provided f, cannot include theta'
+                                 ' or x.')
 
-        if theta is not None and (f.shape[1] != theta.shape[0]):
+            if x is not None and (f.shape[0] != x.shape[0]):
+                if theta is not None:
+                    if (f.ndim == 2 and f.shape[1] == x.shape[0] and
+                            f.shape[0] == theta.shape[0]):
+                        warnings.warn('Transposing f to try to get agreement')
+                        self.__f = copy.copy(f).T
+                        f = copy.copy(f).T
+                    else:
+                        raise ValueError('The number of rows in f must match the'
+                                         ' number of rows in x.')
+                else:
+                    if f.ndim == 2 and f.shape[1] == x.shape[0]:
+                        warnings.warn('Transposing f to try to get agreement')
+                        self.__f = copy.copy(f).T
+                        f = copy.copy(f).T
+                    else:
+                        raise ValueError('The number of rows in f must match the'
+                                         ' number of rows in x.')
+
+            if theta is not None and (f.shape[1] != theta.shape[0]):
+                if x is not None:
+                    if not (f.ndim == 2 and f.shape[0] == theta.shape[0] and
+                            f.shape[1] == x.shape[0]):
+                        raise ValueError('The number of columns in f must match'
+                                         ' the number of rows in theta.')
+                else:
+                    if f.ndim == 2 and f.shape[0] == theta.shape[0]:
+                        warnings.warn('Transposing f to try to get agreement')
+                        self.__f = copy.copy(f).T
+                        f = copy.copy(f).T
+                    elif f.ndim == 1 and f.shape[0] == theta.shape[0]:
+                        warnings.warn('Transposing f to try to get agreement')
+                        self.__f = np.reshape(copy.copy(f), (1, -1))
+                        f = np.reshape(copy.copy(f), (1, -1))
+                    else:
+                        raise ValueError('The number of columns in f must match'
+                                         ' the number of rows in theta.')
+
             if x is not None:
-                if not (f.ndim == 2 and f.shape[0] == theta.shape[0] and
-                        f.shape[1] == x.shape[0]):
-                    raise ValueError('The number of columns in f must match'
-                                     ' the number of rows in theta.')
+                self.__x = copy.copy(x)
             else:
-                if f.ndim == 2 and f.shape[0] == theta.shape[0]:
-                    warnings.warn('Transposing f to try to get agreement')
-                    self.__f = copy.copy(f).T
-                    f = copy.copy(f).T
-                elif f.ndim == 1 and f.shape[0] == theta.shape[0]:
-                    warnings.warn('Transposing f to try to get agreement')
-                    self.__f = np.reshape(copy.copy(f), (1, -1))
-                    f = np.reshape(copy.copy(f), (1, -1))
-                else:
-                    raise ValueError('The number of columns in f must match'
-                                     ' the number of rows in theta.')
+                self.__x = None
 
-        if x is not None:
-            self.__x = copy.copy(x)
-        else:
-            self.__x = None
+            if theta is not None:
+                self.__theta = copy.copy(theta)
+            else:
+                self.__theta = None
+                raise ValueError('This feature has not developed yet.')
 
-        if theta is not None:
-            self.__theta = copy.copy(theta)
-        else:
-            self.__theta = None
-            raise ValueError('This feature has not developed yet.')
-
-        self.__suppx = None
-        self.__supptheta = None
-        self.__f = copy.copy(f)
+            self.__suppx = None
+            self.__supptheta = None
+            self.__f = copy.copy(f)
 
         try:
             self.method = \
@@ -164,13 +169,16 @@ class emulator(object):
             raise ValueError('Function fit not found in module!')
         if "predict" not in dir(self.method):
             raise ValueError('Function predict not found in module!')
-        if "supplementtheta" not in dir(self.method):
-            warnings.warn('Function supplementtheta not found in module!')
+        # if "supplementtheta" not in dir(self.method):
+        #     warnings.warn('Function supplementtheta not found in module!')
 
         self.__options = {}
         self.__optionsset(options)
         self._info = {}
         self._info = {'method': method}
+
+        if method in __externalmethodslist__:
+            self.method.fit(self._info, **self._args)
 
         if (self.__f is not None) and (self.__options['autofit']):
             self.fit()
@@ -258,48 +266,50 @@ class emulator(object):
             argstemp = {**self._args, **copy.deepcopy(args)}
         else:
             argstemp = copy.copy(self._args)
-        if x is None:
-            x = copy.copy(self.__x)
-        else:
-            x = copy.copy(x)
-            if x.ndim == 1:
-                if self.__x.ndim == 2 and x.shape[0] == self.__x.shape[1]:
-                    x = np.reshape(x, (1, -1))
-                elif self.__x.ndim == 2:
-                    raise ValueError('Your x shape seems to not agree with the'
+
+        if self._info['method'] not in __externalmethodslist__:
+            if x is None:
+                x = copy.copy(self.__x)
+            else:
+                x = copy.copy(x)
+                if x.ndim == 1:
+                    if self.__x.ndim == 2 and x.shape[0] == self.__x.shape[1]:
+                        x = np.reshape(x, (1, -1))
+                    elif self.__x.ndim == 2:
+                        raise ValueError('Your x shape seems to not agree with the'
+                                         ' emulator build.')
+                elif x.ndim == 2:
+                    if self.__x.ndim == 1:
+                        raise ValueError('Your x shape seems to not agree with the'
+                                         ' emulator build.')
+                    elif x.shape[1] != self.__x.shape[1] and \
+                            x.shape[0] == self.__x.shape[1]:
+                        x = x.T
+                    elif x.shape[1] != self.__x.shape[1] and \
+                            x.shape[0] != self.__x.shape[1]:
+                        raise ValueError('Your x shape seems to not agree with the'
+                                         ' emulator build.')
+            if theta is None:
+                theta = copy.copy(self.__theta)
+            else:
+                theta = copy.copy(theta)
+                if theta.ndim == 2 and self.__theta.ndim == 1:
+                    raise ValueError('Your theta shape seems to not agree with the'
                                      ' emulator build.')
-            elif x.ndim == 2:
-                if self.__x.ndim == 1:
-                    raise ValueError('Your x shape seems to not agree with the'
+                # note: dont understand why we have this statement
+                elif theta.ndim == 1 and self.__theta.ndim == 2 and \
+                        theta.shape[0] == self.__theta.shape[1]:
+                    theta = np.reshape(theta, (1, -1))
+                elif theta.ndim == 1 and self.__theta.ndim == 2:
+                    raise ValueError('Your theta shape seems to not agree with the'
                                      ' emulator build.')
-                elif x.shape[1] != self.__x.shape[1] and \
-                        x.shape[0] == self.__x.shape[1]:
-                    x = x.T
-                elif x.shape[1] != self.__x.shape[1] and \
-                        x.shape[0] != self.__x.shape[1]:
-                    raise ValueError('Your x shape seems to not agree with the'
+                elif theta.shape[1] != self.__theta.shape[1] and \
+                        theta.shape[0] == self.__theta.shape[1]:
+                    theta = theta.T
+                elif theta.shape[1] != self.__theta.shape[1] and \
+                        theta.shape[0] != self.__theta.shape[1]:
+                    raise ValueError('Your theta shape seems to not agree with the'
                                      ' emulator build.')
-        if theta is None:
-            theta = copy.copy(self.__theta)
-        else:
-            theta = copy.copy(theta)
-            if theta.ndim == 2 and self.__theta.ndim == 1:
-                raise ValueError('Your theta shape seems to not agree with the'
-                                 ' emulator build.')
-            # note: dont understand why we have this statement
-            elif theta.ndim == 1 and self.__theta.ndim == 2 and \
-                    theta.shape[0] == self.__theta.shape[1]:
-                theta = np.reshape(theta, (1, -1))
-            elif theta.ndim == 1 and self.__theta.ndim == 2:
-                raise ValueError('Your theta shape seems to not agree with the'
-                                 ' emulator build.')
-            elif theta.shape[1] != self.__theta.shape[1] and \
-                    theta.shape[0] == self.__theta.shape[1]:
-                theta = theta.T
-            elif theta.shape[1] != self.__theta.shape[1] and \
-                    theta.shape[0] != self.__theta.shape[1]:
-                raise ValueError('Your theta shape seems to not agree with the'
-                                 ' emulator build.')
 
         info = {}
         self.method.predict(info, self._info, x, theta, **argstemp)

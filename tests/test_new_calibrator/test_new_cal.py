@@ -4,19 +4,21 @@ import pytest
 from contextlib import contextmanager
 from surmise.emulation import emulator
 from surmise.calibration import calibrator
+
 ##############################################
 #            Simple scenarios                #
 ##############################################
 
-#height
+# height
 x = np.array([[0.178, 0.356, 0.534, 0.712, 0.89, 1.068, 1.246, 1.424, 1.602,
                1.78, 1.958, 2.67, 2.848, 3.026, 3.204, 3.382, 3.56, 3.738,
                3.916, 4.094, 4.272]]).T
 
-#time
+# time
 y = np.array([[0.27, 0.22, 0.27, 0.43, 0.41, 0.49, 0.46, 0.6, 0.65, 0.62, 0.7,
                0.81, 0.69, 0.81, 0.89, 0.86, 0.89, 1.1, 1.05, 0.99, 1.05]]).T
-obsvar = np.maximum(0.2*y, 0.1)
+obsvar = np.maximum(0.2 * y, 0.1)
+
 
 # Computer implementation of the mathematical model
 def timedrop(x, theta, hr, gr):
@@ -27,14 +29,16 @@ def timedrop(x, theta, hr, gr):
     range_h = max(hr) - min_h
     f = np.zeros((theta.shape[0], x.shape[0]))
     for k in range(0, theta.shape[0]):
-        g = range_g*theta[k] + min_g
-        h = range_h*x + min_h
-        f[k, :] = np.sqrt(2*h/g).reshape(x.shape[0])
+        g = range_g * theta[k] + min_g
+        h = range_h * x + min_h
+        f[k, :] = np.sqrt(2 * h / g).reshape(x.shape[0])
     return f.T
+
 
 # Define prior
 class prior_balldrop:
     """ This defines the class instance of priors provided to the method. """
+
     def lpdf(theta):
         return (sps.uniform.logpdf(theta[:, 0], 0, 1)).reshape((len(theta), 1))
 
@@ -49,18 +53,21 @@ theta_range = np.array([1, 30])
 
 # Standardize
 x_range = np.array([min(x), max(x)])
-x_std = (x - min(x))/(max(x) - min(x))
+x_std = (x - min(x)) / (max(x) - min(x))
 
 # Obtain computer model output via filtered data
 f = timedrop(x_std, theta, x_range, theta_range)
+
 
 @contextmanager
 def does_not_raise():
     yield
 
+
 @pytest.fixture
 def cmdopt2(request):
     return request.config.getoption("--cmdopt2")
+
 
 # tests for prediction class methods:
 # test to check the prediction.mean()
@@ -75,8 +82,9 @@ def test_prediction_mean(cmdopt2):
     pred = cal.predict(x=x)
     try:
         pred.mean()
-    except:
+    except Exception:
         pytest.fail('mean() functionality does not exist in the method')
+
 
 # test to check the prediction.var()
 def test_prediction_var(cmdopt2):
@@ -90,8 +98,9 @@ def test_prediction_var(cmdopt2):
     pred = cal.predict(x=x)
     try:
         pred.var()
-    except:
+    except Exception:
         pytest.fail('var() functionality does not exist in the method')
+
 
 # test to check the prediction.rnd()
 def test_prediction_rnd(cmdopt2):
@@ -105,8 +114,9 @@ def test_prediction_rnd(cmdopt2):
     pred = cal.predict(x=x)
     try:
         pred.rnd()
-    except:
+    except Exception:
         pytest.fail('rnd() functionality does not exist in the method')
+
 
 # test to check the prediction.lpdf()
 def test_prediction_lpdf(cmdopt2):
@@ -120,8 +130,9 @@ def test_prediction_lpdf(cmdopt2):
     pred = cal.predict(x=x)
     try:
         pred.lpdf()
-    except:
+    except Exception:
         pytest.fail('lpdf() functionality does not exist in the method')
+
 
 # test to check the theta.mean()
 def test_prediction_thetamean(cmdopt2):
@@ -134,8 +145,9 @@ def test_prediction_thetamean(cmdopt2):
                      yvar=obsvar)
     try:
         cal.theta.mean()
-    except:
+    except Exception:
         pytest.fail('theta.mean() functionality does not exist in the method')
+
 
 # test to check the theta.var()
 def test_prediction_thetavar(cmdopt2):
@@ -148,8 +160,9 @@ def test_prediction_thetavar(cmdopt2):
                      yvar=obsvar)
     try:
         cal.theta.var()
-    except:
-        pytest.fail('theta.mean() functionality does not exist in the method')
+    except Exception:
+        pytest.fail('theta.var() functionality does not exist in the method')
+
 
 # test to check the theta.rnd()
 def test_prediction_thetarnd(cmdopt2):
@@ -162,8 +175,9 @@ def test_prediction_thetarnd(cmdopt2):
                      yvar=obsvar)
     try:
         cal.theta.rnd()
-    except:
+    except Exception:
         pytest.fail('theta.rnd() functionality does not exist in the method')
+
 
 # test to check the theta.lpdf()
 def test_prediction_thetalpdf(cmdopt2):
@@ -176,5 +190,5 @@ def test_prediction_thetalpdf(cmdopt2):
                      yvar=obsvar)
     try:
         cal.theta.lpdf()
-    except:
+    except Exception:
         pytest.fail('theta.lpdf() functionality does not exist in the method')

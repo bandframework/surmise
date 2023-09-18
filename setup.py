@@ -19,12 +19,15 @@ with open("README.rst", "r", encoding="utf-8") as fh:
 
 setup(
     name="surmise",
-    version="0.1.1",
+    # version="0.1.1",
     packages=setuptools.find_packages(),
     python_requires='>=3.8',
     setup_requires=[
-        'setuptools>=50.0',
-        'cython'
+        "setuptools>=50.0",
+        "setuptools_scm[toml]>=6.0",
+        "numpy>=1.18.3",
+        "cython",
+        "wheel"
     ],
     install_requires=[
                       'numpy>=1.18.3',
