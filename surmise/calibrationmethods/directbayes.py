@@ -80,7 +80,6 @@ def fit(fitinfo, emu, x, y, **bayes_args):
 
     # Define the posterior function
     def logpostfull(theta, return_grad=False):
-
         logpost = thetaprior.lpdf(theta)
         inds = np.where(np.isfinite(logpost))[0]
         if len(inds) > 0:
@@ -98,16 +97,28 @@ def fit(fitinfo, emu, x, y, **bayes_args):
             theta0 = np.vstack((theta0, copy.copy(emu._emulator__theta)))
         n0 = len(theta0)
         if n0 < n:
-            theta0 = np.vstack((thetaprior.rnd(n-n0), theta0))
+            theta0 = np.vstack((thetaprior.rnd(n - n0), theta0))
         else:
             theta0 = theta0[np.random.randint(theta0.shape[0], size=n), :]
 
         return theta0
 
     # Call the sampler
-    sampler_obj = sampler(logpost_func=logpostfull,
-                          draw_func=draw_func,
-                          **bayes_args)
+    if 'sampler' in bayes_args.keys():
+        name = bayes_args['sampler']
+    else:
+        name = 'unspecified'
+    if name == 'PTMC':
+        def log_lik(theta):
+            return loglik(fitinfo, emu, theta, y, x)
+
+        sampler_obj = sampler(logpostfull, thetaprior.rnd, log_likelihood=log_lik,
+                              log_prior=thetaprior.lpdf,
+                              **bayes_args)
+    else:
+        sampler_obj = sampler(logpost_func=logpostfull,
+                              draw_func=draw_func,
+                              **bayes_args)
 
     theta = sampler_obj.sampler_info['theta']
 
@@ -115,6 +126,7 @@ def fit(fitinfo, emu, x, y, **bayes_args):
     fitinfo['thetarnd'] = theta
     fitinfo['y'] = y
     fitinfo['x'] = x
+    fitinfo['emu'] = emu
     return
 
 
@@ -238,8 +250,27 @@ def loglik(fitinfo, emu, theta, y, x):
         # Calculate residuals
         resid = m0 - y
 
-        CovMatEigInv = CovMatEigW @ np.diag(1/CovMatEigS) @ CovMatEigW.T
-        loglikelihood[k] = float(-0.5 * resid.T @ CovMatEigInv @ resid -
-                                 0.5 * np.sum(np.log(CovMatEigS)))
+        CovMatEigInv = CovMatEigW @ np.diag(1 / CovMatEigS) @ CovMatEigW.T
+        loglikelihood[k] = (-0.5 * resid.T @ CovMatEigInv @ resid -
+                            0.5 * np.sum(np.log(CovMatEigS))).item()
 
     return loglikelihood
+
+
+def thetalpdf(info, theta, args=None):
+    '''
+    Returns log of the posterior of the given theta.
+
+    Not required.
+    '''
+    emu = info['emu']
+    y = info['y']
+    x = info['x']
+    thetaprior = info['thetaprior']
+    logpost = thetaprior.lpdf(theta)
+    if logpost.ndim > 0.5 and logpost.shape[0] > 1.5:
+        inds = np.where(np.isfinite(logpost))[0]
+        logpost[inds] += loglik(info, emu, theta[inds], y, x)
+    elif np.isfinite(logpost):
+        logpost += loglik(info, emu, theta, y, x)
+    return logpost

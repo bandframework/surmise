@@ -1,4 +1,4 @@
-.. surmise documentation master file, created by
+.. surmise documentation main file, created by
    sphinx-quickstart on Thu Jan 14 16:50:19 2021.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
@@ -6,7 +6,7 @@
 Welcome to surmise's documentation!
 ====================================
 
-The code can be found on our `Github project page <https://github.com/surmising/surmise>`_. It is open source and provided under the MIT license.
+The code can be found on our `Github project page <https://github.com/bandframework/surmise>`_. It is open source and provided under the MIT license.
 
 .. toctree::
    :caption: User Guide:

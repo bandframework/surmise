@@ -1,4 +1,4 @@
-"""colGP method constructs an independent GP for every location. """
+"""indGP method constructs an independent GP for every location. """
 import warnings
 import numpy as np
 import scipy.optimize as spo
@@ -231,16 +231,16 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
     ----------
     predinfo : dict
         An arbitary dictionary where you should place all of your prediction
-        information once complete. This dictionary is pass by reference, so
+        information once complete. This dictionary is passed by reference, so
         there is no reason to return anything. Keep only stuff that will be
         used by predict. Key elements are
 
-            - `predinfo['mean']` : `predinfo['mean'][k]` is mean of the prediction
+            - `predinfo['mean']` : `predinfo['mean'][k]` is the mean of the prediction
               at all x at `theta[k]`.
-            - `predinfo['var']` : `predinfo['var'][k]` is variance of the
+            - `predinfo['var']` : `predinfo['var'][k]` is the variance of the
               prediction at all x at `theta[k]`.
-            - `predinfo['cov']` : `predinfo['cov'][k]` is covariance matrix of the prediction
-              at all x at `theta[k]`.
+            - `predinfo['cov']` : `predinfo['cov'][k]` is the covariance matrix of the
+              prediction at all x at `theta[k]`.
             - `predinfo['covhalf']` : if `A = predinfo['covhalf'][k]` then
               `A.T @ A = predinfo['cov'][k]`.
 
@@ -255,7 +255,7 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
         An matrix (vector) of parameters to prediction.
 
     kwargs : dict
-        A dictionary containing additional options
+        A dictionary containing additional options.
     """
     return_grad = False
     if (kwargs is not None) and ('return_grad' in kwargs.keys()) and \

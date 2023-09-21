@@ -4,12 +4,14 @@ import pytest
 from contextlib import contextmanager
 from surmise.emulation import emulator
 import pyximport
-pyximport.install(setup_args={"include_dirs":np.get_include()},
+pyximport.install(setup_args={"include_dirs": np.get_include()},
                   reload_support=True)
 
 ##############################################
 #            Simple scenarios                #
 ##############################################
+
+
 def balldropmodel_linear(x, theta):
     f = np.zeros((theta.shape[0], x.shape[0]))
     for k in range(0, theta.shape[0]):

@@ -77,10 +77,11 @@ class emulator(object):
 
         '''
 
-        if ('warnings' in args.keys()) and args['warnings']:
-            warnings.resetwarnings()
-        else:
+        # default to showing all warnings
+        if ('warnings' in args.keys()) and ~args['warnings']:
             warnings.simplefilter('ignore')
+        else:
+            warnings.resetwarnings()
 
         self.__ptf = passthroughfunc
         self.__f = None
