@@ -1,12 +1,12 @@
 # This workflow tests releases to https://testpypi.org/project/surmise/
 
-name: Wheel builder
+name: Test PyPI Publisher
 
 on:
   push:
     branches:
       - install-debug
-  #  release:
+#  release:
 #    types: [ published ]
   
 jobs:
@@ -15,7 +15,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04] #, windows-2022, macos-11] only test linux
+        os: [ubuntu-22.04, windows-2022, macos-11]
 
     steps:
       - uses: actions/checkout@v4
@@ -36,22 +36,23 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           path: dist/*.tar.gz
-#
-#  pypi-publish:
-#    name: Upload release to PyPI
-#    needs: [build-wheels, build-sdist]
-#    runs-on: ubuntu-latest
-#    environment:
-#      name: pypi
-#      url: https://pypi.org/project/surmise/
-#    permissions:
-#      id-token: write
-#    steps:
-#      - uses: actions/download-artifact@v3
-#        with:
-#          name: artifact
-#          path: dist
-#      - name: Publish distribution 📦 to PyPI
-#        uses: pypa/gh-action-pypi-publish@release/v1
-#        with:
-#          password: ${{ secrets.PYPI_ACCESS_TOKEN }}
+
+  pypi-publish:
+    name: Upload release to Test PyPI
+    needs: [build-wheels, build-sdist]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://test.pypi.org/project/surmise/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: artifact
+          path: dist
+      - name: Publish distribution 📦 to Test PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          repository-url: https://test.pypi.org/legacy/
