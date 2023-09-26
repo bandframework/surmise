@@ -5,7 +5,7 @@ name: Test PyPI Publisher
 on:
   push:
     branches:
-      - install-debug
+      - upload-test  # create branch as needed.
 #  release:
 #    types: [ published ]
   
@@ -15,7 +15,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04] #, windows-2022, macos-11] # shorten test time
+        os: [ubuntu-22.04, windows-2022, macos-11]  # include only one to shorten test time
 
     steps:
       - uses: actions/checkout@v4
