@@ -42,3 +42,4 @@ write_to = "surmise/_version.py"
 # Disable building PyPy wheels on all platforms
 # Disable musllinux
 skip = ["*-win32", "*_i686", "*-musllinux*", "pp*"]
+test-command = ["git status"]
