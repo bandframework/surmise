@@ -16,6 +16,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.16.0
 
@@ -28,6 +30,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Build sdist
         run: pipx run build --sdist
       - uses: actions/upload-artifact@v3
@@ -52,3 +56,4 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_ACCESS_TOKEN }}
+
