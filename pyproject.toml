@@ -40,4 +40,5 @@ write_to = "surmise/_version.py"
 [tool.cibuildwheel]
 # Skip 32-bit builds
 # Disable building PyPy wheels on all platforms
-skip = ["*-win32", "*-manylinux_i686", "pp*"]
+# Disable musllinux
+skip = ["*-win32", "*_i686", "*-musllinux*", "pp*"]
