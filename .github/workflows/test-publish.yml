@@ -1,10 +1,13 @@
-# This workflow publishes releases to https://pypi.org/project/surmise/
+# This workflow tests releases to https://testpypi.org/project/surmise/
 
-name: PyPI publisher
+name: Test PyPI Publisher
 
 on:
-  release:
-    types: [ published ]
+  push:
+    branches:
+      - upload-test  # create branch as needed.
+#  release:
+#    types: [ published ]
   
 jobs:
   build-wheels:
@@ -12,7 +15,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, windows-2022, macos-11]
+        os: [ubuntu-22.04, windows-2022, macos-11]  # include only one to shorten test time
 
     steps:
       - uses: actions/checkout@v4
@@ -39,12 +42,12 @@ jobs:
           path: dist/*.tar.gz
 
   pypi-publish:
-    name: Upload release to PyPI
+    name: Upload release to Test PyPI
     needs: [build-wheels, build-sdist]
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/project/surmise/
+      url: https://test.pypi.org/project/surmise/
     permissions:
       id-token: write
     steps:
@@ -52,8 +55,8 @@ jobs:
         with:
           name: artifact
           path: dist
-      - name: Publish distribution 📦 to PyPI
+      - name: Publish distribution 📦 to Test PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.PYPI_ACCESS_TOKEN }}
-
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          repository-url: https://test.pypi.org/legacy/

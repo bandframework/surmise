@@ -82,3 +82,7 @@ www
 zNqg
 lbl
 mosesyhc
+PyPI
+microsoft
+visualstudio
+whl

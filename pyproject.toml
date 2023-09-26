@@ -36,3 +36,10 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
 write_to = "surmise/_version.py"
+
+[tool.cibuildwheel]
+# Skip 32-bit builds
+# Disable building PyPy wheels on all platforms
+# Disable musllinux
+skip = ["*-win32", "*_i686", "*-musllinux*", "pp*"]
+before-build = ["git status"]
