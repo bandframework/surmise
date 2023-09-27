@@ -50,6 +50,7 @@ PCGPwMatComp
 pdf
 Plumlee
 PTLMC
+png
 py
 pypi
 pytest
