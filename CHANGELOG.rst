@@ -9,7 +9,7 @@ Release 0.2.1
 
 :Date: September 26, 2023
 
-* Updates README to improve installation and testing procedures
+* Updates README to improve installation and testing procedures.
 * Updates Github action to build and upload .whl distribution files to PyPI.
 * Fixes testing procedure to ensure shell script searches under `sys.path` for `pytest`.
 
