@@ -37,22 +37,38 @@ From the command line, use the following command to install surmise::
 
  pip install surmise
 
-Alternatively, the source code can be downloaded to the local folder, and the
-package can be installed from the .tar file.
+The list of available .whl files can be found under `PyPI-wheel`_.  If a wheel file
+for your preferred platform is not listed, surmise has to be built from source,
+which requires extra dependencies::
+
+ git clone https://github.com/bandframework/surmise/
+ cd surmise
+ pip install -r requirements.txt
+
+.. note::
+
+    Direct installation of surmise requires Cython to build C executable.
+    On Windows platform Cython is supported by Microsoft build tools, for which installation
+    is outside pip.  See `Microsoft build tools`_ for details.
 
 Testing
 ~~~~~~~
 
-The test suite requires the pytest_ and pytest-cov_ packages to be installed
-and can be run from the ``tests/`` directory of the source distribution by running::
+The test suite requires the pytest_ and pytest-cov_ packages to be installed.  The packages
+can be installed via::
 
+ pip install pytest pytest-cov
+
+The test suite can then be run from within the ``tests/`` directory of the source distribution by running::
+
+ cd tests
  ./run-tests.sh
 
 Further options are available for testing. To see a complete list of options, run::
 
  ./run-tests.sh -h
 
-Coverage reports are produced under the relevant directory only if all tests are used.
+Coverage reports are produced under ``tests/cov_html`` directory only if all tests are used.
 
 Documentation
 ~~~~~~~~~~~~~
@@ -106,3 +122,5 @@ In addition, for a gentle introduction of emulation and calibration using Gaussi
 .. _Python: http://www.python.org
 .. _SciPy: http://www.scipy.org
 .. _`surmise Jupyter notebook`: https://colab.research.google.com/drive/1f4gKTCLEAGE8r-aMWOoGvY-O6zNqg1qj?usp=drive_link
+.. _PyPI-wheel: https://pypi.org/project/surmise/#files
+.. _`Microsoft build tools`: https://visualstudio.microsoft.com/downloads/?q=build+tools

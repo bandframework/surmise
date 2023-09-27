@@ -122,7 +122,7 @@ fi;
 # Run Tests -----------------------------------------------------------------------
 if [ "$RUN_EMU_TESTS" = true ] && [ "$RUN_CAL_TESTS" = true ]; then
   echo -e "\n************** Running: surmise Test-Suite **************\n"
-  pytest $COV_LINE_SERIAL -k 'not new'
+  python -m pytest $COV_LINE_SERIAL -k 'not new'
 else
   if [ "$RUN_EMU_TESTS" = true ]; then
     if [ -z "$TEST_INPUT" ]; then
@@ -132,7 +132,7 @@ else
         cd $DIR
         for TEST_SCRIPT in $TEST_LIST
         do
-          pytest $TEST_SCRIPT $COV_LINE_SERIAL
+          python -m pytest $TEST_SCRIPT $COV_LINE_SERIAL
         done
       done
     else
@@ -142,7 +142,7 @@ else
         cd $DIR
         for TEST_SCRIPT in $TEST_LIST
         do
-          pytest $TEST_SCRIPT $COV_LINE_SERIAL --cmdopt1=$TEST_INPUT
+          python -m pytest $TEST_SCRIPT $COV_LINE_SERIAL --cmdopt1=$TEST_INPUT
         done
       done
     fi;
@@ -155,7 +155,7 @@ else
         cd $DIR
         for TEST_SCRIPT in $TEST_LIST
         do
-          pytest $TEST_SCRIPT $COV_LINE_SERIAL
+          python -m pytest $TEST_SCRIPT $COV_LINE_SERIAL
         done
       done
     else
@@ -165,7 +165,7 @@ else
         cd $DIR
         for TEST_SCRIPT in $TEST_LIST
         do
-          pytest $TEST_SCRIPT $COV_LINE_SERIAL --cmdopt2=$TEST_INPUT
+          python -m pytest $TEST_SCRIPT $COV_LINE_SERIAL --cmdopt2=$TEST_INPUT
         done
       done
     fi;

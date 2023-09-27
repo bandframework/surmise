@@ -23,3 +23,6 @@ CaseStudy/
 .eggs/
 examples/develop-example/
 .coverage
+/surmise/_version.py
+/wheelhouse/
+/dist/
