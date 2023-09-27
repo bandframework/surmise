@@ -54,8 +54,8 @@ which requires extra dependencies::
 Testing
 ~~~~~~~
 
-The test suite requires the pytest_ and pytest-cov_ packages to be installed.  The packages
-can be installed via::
+Testing of surmise can be performed after cloning the repository. The test suite requires the pytest_ and 
+pytest-cov_ packages to be installed.  These packages can be installed via::
 
  pip install pytest pytest-cov
 
