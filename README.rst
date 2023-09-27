@@ -100,9 +100,9 @@ The HTML files are then stored in ``docs/_build/html``.
 
    @techreport{surmise2023,
      author      = {Matthew Plumlee and \"Ozge S\"urer and Stefan M. Wild and Moses Y-H. Chan},
-     title       = {{surmise 0.2.0} Users Manual},
+     title       = {{surmise 0.2.1} Users Manual},
      institution = {NAISE},
-     number      = {Version 0.2.0},
+     number      = {Version 0.2.1},
      year        = {2023},
      url         = {https://surmise.readthedocs.io}
    }
