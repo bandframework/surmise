@@ -18,7 +18,7 @@
 
 **Contact:** The surmise team, whose contact details are listed in [SUPPORT](SUPPORT.rst).
 
-**Icon:** https://avatars.githubusercontent.com/u/77858356?s=200&v=4
+**Icon:** https://github.com/bandframework/surmise/blob/main/docs/images/logo.png
 
 **Description:** surmise is a Python package that is designed to provide a surrogate model interface for calibration, uncertainty quantification, and other tools.
 
@@ -31,7 +31,7 @@
 |---|-----------------------|-------|-------------------------|
 | 1. | Support BAND community GNU Autoconf, CMake, or other build options |Full| surmise is a Python package and provides a setup.py file for installation. This is compatible with Python's built-in installation feature (``python setup.py install``) and with the pip installer. GNU Autoconf or CMake are unsuitable for a Python package. |
 | 2. | Have a README file in the top directory that states a specific set of testing procedures for a user to verify the software was installed and run correctly. | Full| README explains full test procedure.|
-| 3. | Provide a documented, reliable way to contact the development team |Full| The surmise team can be contacted through the public [issues page on GitHub](https://github.com/bandframework/surmise/issues) or via an e-mail to [Özge Sürer](surero@miamioh.edu).|
+| 3. | Provide a documented, reliable way to contact the development team |Full| The surmise team can be contacted through the public [issues page on GitHub](https://github.com/bandframework/surmise/issues) or via an e-mail to [the surmise team](SUPPORT.rst).|
 | 4. | Come with an open-source license |Full| surmise uses the MIT license. [M4 details](#m4-details)|
 | 5. | Provide a runtime API to return the current version number of the software |Full| The version can be returned within Python via: `surmise.__version__`.|
 | 6. | Provide a BAND team-accessible repository |Full| https://github.com/bandframework/surmise |
