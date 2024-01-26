@@ -37,7 +37,10 @@ docs = [
     'sphinxcontrib.bibtex',
     'sphinx_rtd_theme'
 ]
-scikit = ['scikit-learn>=1.2.0']
+scikit-learn = ['scikit-learn>=1.2.0']
+all = [
+    'surmise[scikit-learn]'
+]
 
 [project.urls]
 repository = "https://github.com/bandframework/surmise"
