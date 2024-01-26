@@ -1,10 +1,20 @@
+[build-system]
+requires = [
+    "setuptools>=50.0",
+    "setuptools_scm[toml]>=6.0",
+    "numpy>=1.18.3",
+    "cython",
+    "wheel"
+]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "surmise"
 authors = [
     {name = "Matthew Plumlee", email = "mplumlee@northwestern.edu"},
     {name = "Özge Sürer", email = "surero@miamioh.edu"},
     {name = "Stefan M. Wild", email = "wild@lbl.gov"},
-    {name = "Moses Y-H. Chan", email = "mosesyhc@u.northwestern.edu"}    
+    {name = "Moses Y.-H. Chan", email = "moses.chan@northwestern.edu"}
 ]
 description = "A modular interface for surrogate models and tools"
 license = {file = "LICENSE"}
@@ -17,22 +27,23 @@ classifiers = [
 requires-python = ">=3.8"
 dependencies = [
     'numpy>=1.18.3',
-    'scipy>=1.7',
-    'scikit-learn>=1.2.0']
-dynamic = ["version", "optional-dependencies"]
+    'scipy>=1.7'
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+docs = [
+    'sphinx',
+    'sphinxcontrib.bibtex',
+    'sphinx_rtd_theme'
+]
+scikit = ['scikit-learn>=1.2.0']
 
 [project.urls]
-Repository = "https://github.com/bandframework/surmise"
+repository = "https://github.com/bandframework/surmise"
 
-[build-system]
-requires = [
-    "setuptools>=50.0",
-    "setuptools_scm[toml]>=6.0",
-    "numpy>=1.18.3",
-    "cython",
-    "wheel"
-]
-build-backend = "setuptools.build_meta"
+[tool.setuptools.packages]
+find = {}
 
 [tool.setuptools_scm]
 write_to = "surmise/_version.py"
