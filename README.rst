@@ -28,7 +28,7 @@ surmise is build for Python 3.8 or above, with the following dependencies:
 
 * numpy>=1.18.3
 * scipy>=1.7
-* scikit-learn>=1.2.0
+* (optional) scikit-learn>=1.2.0 (required by emulation method `PCGPR`)
 
 Installation
 ~~~~~~~~~~~~
@@ -36,6 +36,11 @@ Installation
 From the command line, use the following command to install surmise::
 
  pip install surmise
+ pip install surmise[scikit-learn]      # to include scikit-learn in installation
+ pip install surmise[all]               # to include all optional dependencies
+
+The package scikit-learn is required by specific method stated above.
+These packages can be installed along with surmise via the commands listed.
 
 The list of available .whl files can be found under `PyPI-wheel`_.  If a wheel file
 for your preferred platform is not listed, surmise has to be built from source,
@@ -100,9 +105,9 @@ The HTML files are then stored in ``docs/_build/html``.
 
    @techreport{surmise2023,
      author      = {Matthew Plumlee and \"Ozge S\"urer and Stefan M. Wild and Moses Y-H. Chan},
-     title       = {{surmise 0.2.1} Users Manual},
+     title       = {{surmise 0.2.1+dev} Users Manual},
      institution = {NAISE},
-     number      = {Version 0.2.1},
+     number      = {Version 0.2.1+dev},
      year        = {2023},
      url         = {https://surmise.readthedocs.io}
    }
