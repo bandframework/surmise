@@ -51,6 +51,7 @@ class calibrator(object):
                 the prior distribution of the parameters should be included
                 into the calibrator. In this case, thetaprior class
                 should include two methods:
+
                     - ``lpdf(theta)``
                         Returns the log of the pdf of a given theta with size
                         ``(len(theta), 1)``
