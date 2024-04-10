@@ -33,7 +33,7 @@ jobs:
 
     ##-- Make documents available as artifacts
     - name: Archive surmise docs
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: surmise-sphinx-docs
         path: |
