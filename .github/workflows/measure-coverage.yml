@@ -1,0 +1,36 @@
+name: Measure code coverage by line
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+jobs:
+  coverage_ubuntu:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+    steps:
+    ##-- General Setup Steps
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    ##-- Run test with coverage
+    - name: Setup python with tox
+      run: ./.github/workflows/install_tox.sh
+
+    - name: Generate full coverage for coveralls
+      run: tox -r -e coverage,report
+
+    ##-- Publish full coverage report as artifact
+    - name: Archive code coverage results
+      uses: actions/upload-artifact@v4
+      with:
+        name: code-coverage-results
+        path: |
+            .coverage
+            htmlcov
