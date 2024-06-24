@@ -53,7 +53,7 @@ which requires extra dependencies::
  cd surmise
  pip install build Cython
  pip install scikit-learn (optional)
- python3 -m build --wheel
+ python -m build --wheel
  pip install dist/surmise-<version info>.whl
 
 .. note::
