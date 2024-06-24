@@ -11,8 +11,7 @@ on:
 
 jobs:
 
-  build39_310_311:
-
+  build_supported:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
