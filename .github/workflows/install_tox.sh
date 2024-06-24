@@ -1,9 +1,9 @@
 #!/bin/bash
 
 python -m pip install --upgrade pip
-pip install --upgrade setuptools
-pip install --upgrade wheel
-pip install --upgrade tox
+python -m pip install --upgrade setuptools
+python -m pip install --upgrade wheel
+python -m pip install --upgrade tox
 echo
 which python
 which pip

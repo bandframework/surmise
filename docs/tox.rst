@@ -22,8 +22,8 @@ Execute the following with changes made to adapt to the developer's needs
     $ /path/to/target/python -m venv $HOME/.toxbase
     $ ./.toxbase/bin/pip list
     $ ./.toxbase/bin/python -m pip install --upgrade pip
-    $ ./.toxbase/bin/pip install --upgrade setuptools
-    $ ./.toxbase/bin/pip install tox
+    $ ./.toxbase/bin/python -m pip install --upgrade setuptools
+    $ ./.toxbase/bin/python -m pip install tox
     $ ./.toxbase/bin/tox --version
     $ ./.toxbase/bin/pip list
 
