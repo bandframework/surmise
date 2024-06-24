@@ -11,6 +11,9 @@
 .. image:: https://github.com/bandframework/surmise/actions/workflows/python-package.yml/badge.svg
     :target: https://github.com/bandframework/surmise/actions/workflows/python-package.yml
 
+.. image:: https://coveralls.io/repos/github/bandframework/surmise/badge.svg
+    :target: https://coveralls.io/github/bandframework/surmise
+
 |
 
 .. after_badges_rst_tag
