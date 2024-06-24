@@ -94,7 +94,7 @@ def does_not_raise():
     "input1,input2,input3,expectation",
     [
      (x, theta, f, does_not_raise()),
-     (x, None, f, pytest.raises(ValueError)),  # has not developed yet
+     (x, None, f, pytest.raises(TypeError)),  # has not developed yet
      (None, theta, f, does_not_raise()),
      (x, theta, None, pytest.raises(ValueError)),
      (x, None, None, pytest.raises(ValueError)),
