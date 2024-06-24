@@ -27,11 +27,8 @@ interface for calibration, uncertainty quantification, and sensitivity analysis.
 
 Dependencies
 ~~~~~~~~~~~~
-surmise is build for Python 3.9 or above, with the following dependencies:
 
-* numpy>=1.18.3
-* scipy>=1.7
-* (optional) scikit-learn>=1.2.0 (required by emulation method `PCGPR`)
+Please refer to [project] and [project.optional-dependencies] sections of pyproject.toml for details.
 
 Installation
 ~~~~~~~~~~~~
