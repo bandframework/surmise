@@ -23,7 +23,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Setup python with tox
-      run: ./.github/workflows/install_tox.sh
+      run: $CLONE_PATH/.github/workflows/install_tox.sh
 
     - name: Check style
       run: |

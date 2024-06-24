@@ -1,6 +1,8 @@
 name: Measure code coverage by line
 env:
-  CLONE_PATH: ${{ github.workspace }}
+  CLONE_PATH:    ${{ github.workspace }}
+  COVERAGE_FILE: ${{ github.workspace }}/coverage
+  HTML_REPORT:   ${{ github.workspace }}/htmlcov
 on:
   push:
     branches: [main, develop]
@@ -22,10 +24,10 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    ##-- Run test with coverage
     - name: Setup python with tox
-      run: ./.github/workflows/install_tox.sh
+      run: $CLONE_PATH/.github/workflows/install_tox.sh
 
+    ##-- Run test with coverage
     - name: Generate full coverage for coveralls
       run: |
         pushd $CLONE_PATH
@@ -38,8 +40,8 @@ jobs:
       with:
         name: code-coverage-results
         path: |
-            .coverage
-            htmlcov
+            ${{ env.COVERAGE_FILE }}
+            ${{ env.HTML_REPORT }}
 
     ##-- Publish full coverage report to Coveralls
     - name: Push report to Coveralls
