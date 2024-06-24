@@ -27,7 +27,7 @@ interface for calibration, uncertainty quantification, and sensitivity analysis.
 
 Dependencies
 ~~~~~~~~~~~~
-surmise is build for Python 3.8 or above, with the following dependencies:
+surmise is build for Python 3.9 or above, with the following dependencies:
 
 * numpy>=1.18.3
 * scipy>=1.7
@@ -51,7 +51,10 @@ which requires extra dependencies::
 
  git clone https://github.com/bandframework/surmise/
  cd surmise
- pip install -r requirements.txt
+ pip install build Cython
+ pip install scikit-learn (optional)
+ python3 -m build --wheel
+ pip install dist/surmise-<version info>.whl
 
 .. note::
 
