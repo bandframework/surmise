@@ -26,7 +26,9 @@ jobs:
       run: ./.github/workflows/install_tox.sh
 
     - name: Install LaTeX
-      run: sudo apt-get install texlive-fonts-recommended texlive-latex-recommended texlive-latex-extra latexmk
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install texlive-fonts-recommended texlive-latex-recommended texlive-latex-extra latexmk
 
     - name: Build sphinx docs
       run: tox -r -e pdf,html
