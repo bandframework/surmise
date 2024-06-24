@@ -5,46 +5,11 @@ name: Python package
 
 on:
   push:
-    branches: [ main, develop, v0.2-staging ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop, v0.2-staging ]
+    branches: [ main, develop ]
 
 jobs:
-
-  build38:
-
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.8"]
-        numpy-version: ["1.18", "1.19"]
-        scipy-version: ["1.4"]
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 20
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: 'pip'
-    - name: Install dependencies
-      run: |
-        pip install --upgrade pip setuptools Cython
-        pip install numpy==${{ matrix.numpy-version }}
-        pip install scipy==${{ matrix.scipy-version }}
-        pip install -r requirements.txt
-        pip install -e .
-        pip install flake8 pytest pytest-cov
-    - name: Test with flake8
-      run: |
-        flake8
-    - name: Test with pytest
-      run: |
-        ./tests/run-tests.sh
-
 
   build39_310_311:
 
