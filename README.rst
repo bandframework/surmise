@@ -11,6 +11,9 @@
 .. image:: https://github.com/bandframework/surmise/actions/workflows/python-package.yml/badge.svg
     :target: https://github.com/bandframework/surmise/actions/workflows/python-package.yml
 
+.. image:: https://coveralls.io/repos/github/bandframework/surmise/badge.svg
+    :target: https://coveralls.io/github/bandframework/surmise
+
 |
 
 .. after_badges_rst_tag
@@ -24,11 +27,8 @@ interface for calibration, uncertainty quantification, and sensitivity analysis.
 
 Dependencies
 ~~~~~~~~~~~~
-surmise is build for Python 3.8 or above, with the following dependencies:
 
-* numpy>=1.18.3
-* scipy>=1.7
-* (optional) scikit-learn>=1.2.0 (required by emulation method `PCGPR`)
+Please refer to [project] and [project.optional-dependencies] sections of pyproject.toml for details.
 
 Installation
 ~~~~~~~~~~~~
@@ -48,7 +48,10 @@ which requires extra dependencies::
 
  git clone https://github.com/bandframework/surmise/
  cd surmise
- pip install -r requirements.txt
+ pip install build Cython
+ pip install scikit-learn (optional)
+ python -m build --wheel
+ pip install dist/surmise-<version info>.whl
 
 .. note::
 
@@ -78,23 +81,13 @@ Coverage reports are produced under ``tests/cov_html`` directory only if all tes
 Documentation
 ~~~~~~~~~~~~~
 
-The documentation is stored in ``docs/`` and is compiled with the Sphinx Python
-documentation generator. It is written in the reStructuredText format. The
-documentation is hosted at `Read the Docs <http://surmise.readthedocs.io>`_.
+The documentation is stored in ``docs/`` and is hosted at `Read the Docs <http://surmise.readthedocs.io>`_.
 
-To compile the documentation, first ensure that Sphinx and its dependencies are installed.
-To install Sphinx and/or ensure compatibility of dependencies, run ``make`` from a terminal within the ``docs/``
-directory::
-
- cd docs
- make
-
-To generate documentation, run command ``make html`` from a terminal within the ``docs/`` directory::
-
- (cd docs)
- make html
-
-The HTML files are then stored in ``docs/_build/html``.
+Users and developers that would like to generate the documentation locally are
+encouraged to use ``tox``, which automatically creates a dedicated,
+fully-functioning virtual environment for the task.  Refer to the online
+developer's guide (or ``docs/tox.rst``) for help setting up ``tox`` and using
+it to generate documentation.
 
 
 **Citation:**

@@ -24,7 +24,9 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-requires-python = ">=3.8"
+# Please adjust package testing CI action to match changes to Python version
+# here.
+requires-python = ">=3.9"
 dependencies = [
     'numpy>=1.18.3',
     'scipy>=1.7'
