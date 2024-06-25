@@ -20,12 +20,12 @@ Execute the following with changes made to adapt to the developer's needs
 
     $ /path/to/target/python --version
     $ /path/to/target/python -m venv $HOME/.toxbase
-    $ ./.toxbase/bin/pip list
-    $ ./.toxbase/bin/python -m pip install --upgrade pip
-    $ ./.toxbase/bin/python -m pip install --upgrade setuptools
-    $ ./.toxbase/bin/python -m pip install tox
-    $ ./.toxbase/bin/tox --version
-    $ ./.toxbase/bin/pip list
+    $ $HOME/.toxbase/bin/pip list
+    $ $HOME/.toxbase/bin/python -m pip install --upgrade pip
+    $ $HOME/.toxbase/bin/python -m pip install --upgrade setuptools
+    $ $HOME/.toxbase/bin/python -m pip install tox
+    $ $HOME/.toxbase/bin/tox --version
+    $ $HOME/.toxbase/bin/pip list
 
 Alter ``PATH`` so that ``tox`` is immediately available.  To follow Oliver's
 suggestion, execute some variation of
