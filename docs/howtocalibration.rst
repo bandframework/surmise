@@ -20,7 +20,7 @@ Mandatory functions
 
 :py:func:`fit` is the only obligatory function for a calibration
 method. :py:func:`fit` takes the fitted emulator class object
-:py:class:`surmise.emulation.emulator`, inputs :mah:`\mathbf{X}`, and
+:py:class:`surmise.emulation.emulator`, inputs :math:`\mathbf{X}`, and
 observed values :math:`\mathbf{y}`, where :math:`\mathbf{X}\in\mathbb{R}^{N\times p}`,
 :math:`\mathbf{y}\in\mathbb{R}^{N\times 1}`, and the dictionary ``fitinfo`` to
 place the fitting information once complete. This dictionary is used to keep the
