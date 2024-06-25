@@ -6,4 +6,4 @@
 .. include:: ../tests/README.rst
 
 
-.. include:: tx.rst
+.. include:: tox.rst
