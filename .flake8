@@ -4,6 +4,10 @@ max-line-length = 120
 exclude =
         # Don't need to check .git
         .git,
+        # Don't check IDE-created venvs
+        venv/
+        # Don't check local builds
+        build/
         # Don't check tox virtual envs or intermediate products
         .tox
         .eggs
