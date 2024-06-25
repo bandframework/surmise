@@ -18,7 +18,7 @@ jobs:
         # Please adjust pyproject.toml Python version requirement to match
         # supported version expressed here.
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
         numpy-version: ["1.24.3"]
         scipy-version: ["1.10.1"]
     steps:
