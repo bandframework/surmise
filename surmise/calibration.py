@@ -96,6 +96,14 @@ class calibrator(object):
         # default to showing all warnings
         if ('warnings' in args.keys()) and ~args['warnings']:
             warnings.simplefilter('ignore')
+            print()
+            print()
+            print()
+            print()
+            print()
+            print()
+            print()
+            print()
         else:
             warnings.resetwarnings()
 
