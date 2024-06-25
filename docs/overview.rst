@@ -29,7 +29,7 @@ surmise’s work is categorized into three routines:
 
 * :ref:`emulation<emulation>`: Carries out Bayesian emulation of computer model output and generates inputs to ``calibration``
 
-* :ref:`calibration<calibration>`: Generates estimates of the calibration parameters based onfield observations of the real process and an output from ``emulation``
+* :ref:`calibration<calibration>`: Generates estimates of the calibration parameters based on field observations of the real process and an output from ``emulation``
 
 * :ref:`utilities<utilities>`: Performs different utility tasks such as a sampler (e.g., Metropolis-Hastings) to generate posterior draws of calibration parameter
 

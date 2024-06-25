@@ -1,0 +1,32 @@
+name: Check style with Flake8
+env:
+  CLONE_PATH: ${{ github.workspace }}
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  check_style:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.12"]
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Setup python with tox
+      run: $CLONE_PATH/.github/workflows/install_tox.sh
+
+    - name: Check style
+      run: |
+        pushd $CLONE_PATH
+        tox -r -e check
+        popd

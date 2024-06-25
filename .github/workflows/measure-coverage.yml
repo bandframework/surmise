@@ -1,0 +1,52 @@
+name: Measure code coverage by line
+env:
+  CLONE_PATH:    ${{ github.workspace }}
+  COVERAGE_FILE: ${{ github.workspace }}/coverage
+  HTML_REPORT:   ${{ github.workspace }}/htmlcov
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  coverage_ubuntu:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    steps:
+    ##-- General Setup Steps
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Setup python with tox
+      run: $CLONE_PATH/.github/workflows/install_tox.sh
+
+    ##-- Run test with coverage
+    - name: Generate full coverage for coveralls
+      run: |
+        pushd $CLONE_PATH
+        tox -r -e coverage,report
+        popd
+
+    ##-- Publish full coverage report as artifact
+    - name: Archive code coverage results
+      uses: actions/upload-artifact@v4
+      with:
+        name: code-coverage-results
+        path: |
+            ${{ env.COVERAGE_FILE }}
+            ${{ env.HTML_REPORT }}
+
+    ##-- Publish full coverage report to Coveralls
+    - name: Push report to Coveralls
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        python -m pip install --upgrade coveralls
+        coveralls --service=github --basedir=$CLONE_PATH
