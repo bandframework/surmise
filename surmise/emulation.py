@@ -108,42 +108,12 @@ class emulator(object):
                                  ' or x.')
 
             if x is not None and (f.shape[0] != x.shape[0]):
-                if theta is not None:
-                    if (f.ndim == 2 and f.shape[1] == x.shape[0] and
-                            f.shape[0] == theta.shape[0]):
-                        warnings.warn('Transposing f to try to get agreement')
-                        self.__f = copy.copy(f).T
-                        f = copy.copy(f).T
-                    else:
-                        raise ValueError('The number of rows in f must match the'
-                                         ' number of rows in x.')
-                else:
-                    if f.ndim == 2 and f.shape[1] == x.shape[0]:
-                        warnings.warn('Transposing f to try to get agreement')
-                        self.__f = copy.copy(f).T
-                        f = copy.copy(f).T
-                    else:
-                        raise ValueError('The number of rows in f must match the'
-                                         ' number of rows in x.')
+                raise ValueError('The number of rows in f must match the'
+                                 ' number of rows in x.')
 
             if theta is not None and (f.shape[1] != theta.shape[0]):
-                if x is not None:
-                    if not (f.ndim == 2 and f.shape[0] == theta.shape[0] and
-                            f.shape[1] == x.shape[0]):
-                        raise ValueError('The number of columns in f must match'
-                                         ' the number of rows in theta.')
-                else:
-                    if f.ndim == 2 and f.shape[0] == theta.shape[0]:
-                        warnings.warn('Transposing f to try to get agreement')
-                        self.__f = copy.copy(f).T
-                        f = copy.copy(f).T
-                    elif f.ndim == 1 and f.shape[0] == theta.shape[0]:
-                        warnings.warn('Transposing f to try to get agreement')
-                        self.__f = np.reshape(copy.copy(f), (1, -1))
-                        f = np.reshape(copy.copy(f), (1, -1))
-                    else:
-                        raise ValueError('The number of columns in f must match'
-                                         ' the number of rows in theta.')
+                raise ValueError('The number of columns in f must match'
+                                 ' the number of rows in theta.')
 
             if x is not None:
                 self.__x = copy.copy(x)
