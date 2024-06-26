@@ -37,6 +37,5 @@ jobs:
         pip install -e .
         pip install pytest pytest-cov
     - name: Test with pytest
-      shell: pwsh
       run: |
         ./tests/run-tests.sh
