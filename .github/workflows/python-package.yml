@@ -17,7 +17,7 @@ jobs:
       matrix:
         # Please adjust pyproject.toml Python version requirement to match
         # supported version expressed here.
-        os: [windows-latest]  # retain only windows tests, ubuntu-latest, macos-latest,
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.9", "3.10", "3.11", "3.12"]
     steps:
     - uses: actions/checkout@v4

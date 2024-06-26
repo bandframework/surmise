@@ -96,7 +96,7 @@ def does_not_raise():
      (x, theta, f, does_not_raise()),
      (x, None, f, pytest.raises(ValueError)),  # has not developed yet
      (None, theta, f, does_not_raise()),
-     (x, theta, None, does_not_raise()), # BREAK: pytest.raises(ValueError)),
+     (x, theta, None, pytest.raises(ValueError)),
      (x, None, None, pytest.raises(ValueError)),
      (None, theta, None, pytest.raises(ValueError)),
      (None, None, f, pytest.raises(ValueError)),  # has not developed yet
