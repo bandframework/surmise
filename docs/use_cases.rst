@@ -16,8 +16,11 @@ to support) and plan to have examples of:
 
 Reference to examples
 ================================
-Below is a non-exhaustive list of references utilizing surmise (in alphabetical order):
+Below is a non-exhaustive list of references utilizing surmise (in alphabetical order).  If you
+wish to include your work in the list, please create an issue on `Github issues`_.
 
 .. bibliography::
     :style: plain
     :all:
+
+.. _`Github issues`: https://github.com/bandframework/surmise/issues
