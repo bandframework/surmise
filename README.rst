@@ -28,8 +28,6 @@ interface for calibration, uncertainty quantification, and sensitivity analysis.
 Dependencies
 ~~~~~~~~~~~~
 
-surmise is built with numpy and scipy, with an optional scikit-learn dependencies.
-
 Please refer to [project] and [project.optional-dependencies] sections of pyproject.toml for details.
 
 Installation
