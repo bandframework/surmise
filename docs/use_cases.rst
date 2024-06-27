@@ -16,8 +16,9 @@ to support) and plan to have examples of:
 
 Reference to examples
 ================================
-Below is a non-exhaustive list of references utilizing surmise (in alphabetical order).  If you
-wish to include your work in the list, please create an issue on `Github issues`_.
+Below is a non-exhaustive list of references utilizing surmise (in alphabetical order).
+If you wish to include your work in the list, please create an issue on `Github issues`_.
+If you are viewing the manual pdf, please refer to the Bibliography section.
 
 .. bibliography::
     :style: plain
