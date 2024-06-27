@@ -4,6 +4,9 @@ Examples
 The Python scripts and the corresponding notebooks of the examples are located in
 ``\examples`` directory.
 
+In addition, for a gentle introduction of emulation and calibration using Gaussian processes, visit
+`surmise Jupyter notebook`_.
+
 Example 1
 ##################################################
 
@@ -38,3 +41,5 @@ Recovered (SIR) type epidemic model via ``surmise``'s  ``emulator`` and ``calibr
 Although there are many model parameters, we estimated most of them based on the epidemiological studies of COVID-19, and infer only 10 influential parameters in this example.
 
 `Link to Example 4 <https://nbviewer.jupyter.org/github/bandframework/surmise/blob/main/examples/Example4/Example4_nb.ipynb>`_.
+
+.. _`surmise Jupyter notebook`: https://colab.research.google.com/drive/1f4gKTCLEAGE8r-aMWOoGvY-O6zNqg1qj?usp=drive_link
