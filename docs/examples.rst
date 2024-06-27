@@ -5,6 +5,9 @@ The Python scripts and the corresponding notebooks of the examples are located i
 ``\examples`` directory.  In addition, a full emulation and calibration example with
 Gaussian process models can be found at `surmise Jupyter notebook`_.
 
+In addition, for a gentle introduction of emulation and calibration using Gaussian processes, visit
+`surmise Jupyter notebook`_.
+
 Example 1
 ##################################################
 
