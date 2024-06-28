@@ -155,6 +155,7 @@ def test_predict_call(expectation):
 @pytest.mark.parametrize(
     "input1,expectation",
     [
+     ('PCGPwM', does_not_raise()),
      ('PCGP', does_not_raise()),
      ],
     )
@@ -256,13 +257,15 @@ def test_prediction_rnd(input1, expectation):
 
 # test to check the prediction.lpdf()
 @pytest.mark.parametrize(
-    "input1,expectation",
+    "input1, return_grad, expectation",
     [
-     ('PCGP', pytest.raises(ValueError)),
+     ('PCGP', False, pytest.raises(ValueError)),
+     ('PCGPwM', True, does_not_raise()),
+     ('PCGPwM', False, does_not_raise()),
      ],
     )
-def test_prediction_lpdf(input1, expectation):
+def test_prediction_lpdf(input1, return_grad, expectation):
     emu = emulator(x=x, theta=theta, f=f, method=input1)
-    pred = emu.predict(x=x, theta=theta)
+    pred = emu.predict(x=x, theta=theta, args={'return_grad': return_grad})
     with expectation:
-        assert pred.lpdf() is not None
+        assert pred.lpdf(f=f) is not None
