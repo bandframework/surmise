@@ -911,11 +911,8 @@ class prediction(object):
                    ' string.')
         return strrepr
 
-    def __call__(self, s=None, args=None):
-        if s is None:
-            return self.mean(args)
-        else:
-            return self.rnd(s, args)
+    def __call__(self, args=None):
+        return self.mean(args)
 
     def __methodnotfoundstr(self, pfstr, opstr):
         msg = (pfstr + opstr + ' functionality not in method... \n' +
@@ -1052,22 +1049,6 @@ class prediction(object):
         opstr = 'covxhalf_gradtheta'  # operation string
         if opstr in self._info.keys():
             return self._info[opstr]
-        else:
-            raise ValueError(self.__methodnotfoundstr(pfstr, opstr))
-
-    def rnd(self, s=100, args=None):
-        """
-        Returns a rnd draws of size s at theta and x
-        """
-        pfstr = 'predict'  # prefix string
-        opstr = 'rnd'  # operation string
-
-        if (self.emu._emulator__ptf is None) and \
-                ((pfstr + opstr) in dir(self.emu.method)):
-            if args is None:
-                args = self.emu._args
-            return copy.deepcopy(self.emu.method.ldf(self._info,
-                                                     **args))
         else:
             raise ValueError(self.__methodnotfoundstr(pfstr, opstr))
 

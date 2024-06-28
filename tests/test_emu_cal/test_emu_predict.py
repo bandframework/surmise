@@ -137,20 +137,6 @@ def test_predict_repr(expectation):
         assert repr(emu_pred) is not None
 
 
-# test to check the predict call()
-@pytest.mark.parametrize(
-    "expectation",
-    [
-     (pytest.raises(ValueError)),  # rnd is not in the method
-     ],
-    )
-def test_predict_call(expectation):
-    emu = emulator(x=x, theta=theta, f=f, method='PCGP')
-    emu_pred = emu.predict(x=x, theta=theta)
-    with expectation:
-        assert emu_pred(s=10) is not None
-
-
 # test to check the prediction.mean()
 @pytest.mark.parametrize(
     "input1,expectation",
@@ -239,21 +225,6 @@ def test_prediction_covxhalf(input1, expectation):
 #     pred = emu.predict(x=x, theta=theta, args={'return_grad': input2})
 #     with expectation:
 #         assert pred.covxhalf_gradtheta() is not None
-
-
-# test to check the prediction.rnd()
-@pytest.mark.parametrize(
-    "input1,expectation",
-    [
-     ('PCGP', pytest.raises(ValueError)),
-     ],
-    )
-def test_prediction_rnd(input1, expectation):
-    emu = emulator(x=x, theta=theta, f=f, method=input1)
-    pred = emu.predict(x=x, theta=theta)
-    with expectation:
-        assert pred.rnd() is not None
-
 
 # test to check the prediction.lpdf()
 @pytest.mark.parametrize(
