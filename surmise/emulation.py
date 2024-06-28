@@ -76,6 +76,9 @@ class emulator(object):
         None.
 
         '''
+        # cast to numpy.float64, currently only for theta and f.
+        if theta is not None and f is not None:
+            theta, f = self.cast_dtypes(theta, f)
 
         # default to showing all warnings
         if ('warnings' in args.keys()) and ~args['warnings']:
@@ -152,6 +155,10 @@ class emulator(object):
 
         if (self.__f is not None) and (self.__options['autofit']):
             self.fit()
+
+    @staticmethod
+    def cast_dtypes(theta, f):
+        return np.array(theta, dtype=np.float64), np.array(f, dtype=np.float64)
 
     def __repr__(self):
         object_method = [method_name for method_name in dir(self)
@@ -1107,3 +1114,4 @@ def _matrixmatching(mat1, mat2):
 
     nc = np.array(list(set(range(0, mat2.shape[0])) - set(c))).astype('int')
     return nc, c, r
+
