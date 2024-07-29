@@ -92,6 +92,11 @@ class calibrator(object):
         None.
 
         '''
+        # cast to numpy.float64, currently only for theta and f.
+        if y is not None:
+            y = self.cast_f64_dtype(y)
+        if yvar is not None:
+            yvar = self.cast_f64_dtype(yvar)
 
         # default to showing all warnings
         if ('warnings' in args.keys()) and ~args['warnings']:
@@ -264,6 +269,10 @@ class calibrator(object):
             info['var'] = np.var(emupred.mean(), 1)
             info['rnd'] = (emupred.mean()).T
         return prediction(info, self)
+
+    @staticmethod
+    def cast_f64_dtype(x):
+        return np.array(x, dtype=np.float64)
 
 
 class prediction(object):
