@@ -77,8 +77,10 @@ class emulator(object):
 
         '''
         # cast to numpy.float64, currently only for theta and f.
-        if theta is not None and f is not None:
-            theta, f = self.cast_dtypes(theta, f)
+        if theta is not None:
+            theta = self.cast_f64_dtype(theta)
+        if f is not None:
+            f = self.cast_f64_dtype(f)
 
         # default to showing all warnings
         if ('warnings' in args.keys()) and ~args['warnings']:
@@ -119,11 +121,17 @@ class emulator(object):
                                  ' the number of rows in theta.')
 
             if x is not None:
+                # number of rows in x matches number of rows in f
+                if x.ndim == 1:
+                    x = np.reshape(x, (f.shape[0], -1))
                 self.__x = copy.copy(x)
             else:
                 self.__x = None
 
             if theta is not None:
+                # number of rows in theta matches number of columns in f
+                if theta.ndim == 1:
+                    theta = np.reshape(theta, (f.shape[1], -1))
                 self.__theta = copy.copy(theta)
             else:
                 self.__theta = None
@@ -157,8 +165,8 @@ class emulator(object):
             self.fit()
 
     @staticmethod
-    def cast_dtypes(theta, f):
-        return np.array(theta, dtype=np.float64), np.array(f, dtype=np.float64)
+    def cast_f64_dtype(x):
+        return np.array(x, dtype=np.float64)
 
     def __repr__(self):
         object_method = [method_name for method_name in dir(self)
@@ -252,6 +260,8 @@ class emulator(object):
                 if x.ndim == 1:
                     if self.__x.ndim == 2 and x.shape[0] == self.__x.shape[1]:
                         x = np.reshape(x, (1, -1))
+                    elif self.__x.ndim == 2 and x.shape[0] == self.__x.shape[0]:
+                        x = np.reshape(x, (-1, 1))
                     elif self.__x.ndim == 2:
                         raise ValueError('Your x shape seems to not agree with the'
                                          ' emulator build.')
@@ -273,7 +283,7 @@ class emulator(object):
                 if theta.ndim == 2 and self.__theta.ndim == 1:
                     raise ValueError('Your theta shape seems to not agree with the'
                                      ' emulator build.')
-                # note: dont understand why we have this statement
+                # note: don't understand why we have this statement
                 elif theta.ndim == 1 and self.__theta.ndim == 2 and \
                         theta.shape[0] == self.__theta.shape[1]:
                     theta = np.reshape(theta, (1, -1))
