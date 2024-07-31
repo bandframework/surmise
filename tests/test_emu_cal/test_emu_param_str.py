@@ -86,6 +86,7 @@ def does_not_raise():
      ('PCGP', does_not_raise()),
      ('PCGPwM', does_not_raise()),
      ('indGP', does_not_raise()),
+     ('PCGPwImpute', does_not_raise()),
      ('XXXX', pytest.raises(ValueError)),
      ],
     )
