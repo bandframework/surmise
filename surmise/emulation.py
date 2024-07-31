@@ -172,12 +172,27 @@ class emulator(object):
         object_method = [method_name for method_name in dir(self)
                          if callable(getattr(self, method_name))]
         object_method = [x for x in object_method if not x.startswith('__')]
-        strrepr = ('An emulation object where the code in located in the file '
-                   + 'emulation. The main method are emu.' +
-                   ', emu.'. join(object_method) + '. Default of emu(x,theta)'
-                   ' is emu.predict(x,theta). '
-                   'Run help(emu) for the document string.')
-        return strrepr
+        strrepr = ('An emulation object where the code is located in the file '
+                   + 'emulation. \nThe main method are emu.' +
+                   ', emu.'.join(object_method) + '. \nDefault of emu(x,theta)'
+                                                  ' is emu.predict(x,theta). \n'
+                                                  'Run help(emu) for the document string.\n\n')
+
+        desc = ('emulator(\n'
+                '\tmethod:\t{:s}\n'
+                '\tnumber of outputs:\t{:d}\n'
+                '\tnumber of parameter inputs:\t{:d}\n'
+                '\tparameter dimension:\t{:d}\n'.format(self._info['method'],
+                                                       self.__f.shape[0],
+                                                       self.__f.shape[1],
+                                                       self.__theta.shape[1])
+                )
+
+        if 'param_desc' in self._info:
+            desc += self._info['param_desc']
+        desc += ')'
+
+        return strrepr + desc
 
     def __call__(self, x=None, theta=None, args=None):
         return self.predict(x, theta, args)
@@ -425,7 +440,7 @@ class emulator(object):
                 if self.__theta.shape[1] == theta.shape[1]:
                     if thetachoices is None:
                         if theta.shape[0] > 30 * size:
-                            thetachoices =\
+                            thetachoices = \
                                 theta[np.random.choice(theta.shape[0],
                                                        30 * size,
                                                        replace=False), :]
@@ -588,7 +603,7 @@ class emulator(object):
                                      'x.')
             elif (theta is not None):
                 if (f.shape[0] == self.__f.shape[0]) and \
-                    (f.shape[1] == theta.shape[0]) and \
+                        (f.shape[1] == theta.shape[0]) and \
                         (theta.shape[1] == self.__theta.shape[1]):
                     if self.__options['thetareps']:
                         # if replicated thetas are allowed
@@ -613,7 +628,7 @@ class emulator(object):
 
             elif (x is not None):
                 if (f.shape[1] == self.__f.shape[1]) and \
-                    (f.shape[0] == x.shape[0]) and \
+                        (f.shape[0] == x.shape[0]) and \
                         (x.shape[1] == self.__x.shape[1]):
                     if options['xreps']:
                         # if replicated xs are allowed
@@ -689,7 +704,7 @@ class emulator(object):
                                          0) < self.__options['thetarmnan'])[0]
             lpdf_ex = cal.theta.lpdf(self.__theta[totalseen, :])
             thetasort = np.argsort(lpdf_ex)
-            m_cutoff = max(lpdf_ex.shape[0]-10*self.__theta.shape[1], 0)
+            m_cutoff = max(lpdf_ex.shape[0] - 10 * self.__theta.shape[1], 0)
             numcutoff = np.minimum(-500, lpdf_ex[thetasort[m_cutoff]])
             if any(lpdf_ex < numcutoff):
                 rmtheta = totalseen[np.where(lpdf_ex < numcutoff)[0]]
@@ -892,7 +907,7 @@ class prediction(object):
                    ' located in the file '
                    + ' emulation.  The main method are predict.' +
                    ', predict.'.join(object_method) + '.  Default of predict()'
-                   ' is predict.mean() and ' +
+                                                      ' is predict.mean() and ' +
                    'predict(s) will run pred.rnd(s).'
                    ' Run help(predict) for the document' +
                    ' string.')
@@ -1124,4 +1139,3 @@ def _matrixmatching(mat1, mat2):
 
     nc = np.array(list(set(range(0, mat2.shape[0])) - set(c))).astype('int')
     return nc, c, r
-
