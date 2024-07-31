@@ -3,6 +3,7 @@ import warnings
 import numpy as np
 import scipy.optimize as spo
 from surmise.emulationsupport.matern_covmat import covmat as __covmat
+from pprint import pformat
 
 
 def fit(fitinfo, x, theta, f,
@@ -66,6 +67,7 @@ def fit(fitinfo, x, theta, f,
     emulist = __fitGPs(fitinfo, theta, nx, hyp1, hyp2)
     fitinfo['emulist'] = emulist
 
+    __generate_param_str(fitinfo)
     return
 
 
@@ -386,3 +388,27 @@ def predictlpdf(predinfo, f, return_grad=False, addvar=0, **kwargs):
         return (-likv / 2).reshape(-1, 1), (-dlikv / 2)
     else:
         return (-likv / 2).reshape(-1, 1)
+
+
+def __generate_param_str(fitinfo):
+    """
+    Generate a string to describe any information from the fitted emulator,
+    including magnitude of residuals, number of GP components, and a summary
+    of GP parameters.
+    """
+    numpc = len(fitinfo['emulist'])
+    gp_lengthscales = np.array([fitinfo['emulist'][k]['hypcov'] for k in range(numpc)])
+    gp_nuggets = [fitinfo['emulist'][k]['nug'] for k in range(numpc)]
+
+    param_desc = '\tnumber of GP components:\t{:d}\n' \
+                 '\tGP parameters, following Gramacy (ch.5, 2022) notations:\n' \
+                 '\t\tlengthscales (in log):\n\t\t\t{:s}\n' \
+                 '\t\tnuggets (in log):\t{:s}\n' \
+        .format(
+        numpc,
+        pformat(gp_lengthscales).replace('\n', '\n\t\t\t'),
+        pformat(['{:.3f}'.format(np.log(x)) for x in gp_nuggets])
+    )
+
+    fitinfo['param_desc'] = param_desc
+    return
