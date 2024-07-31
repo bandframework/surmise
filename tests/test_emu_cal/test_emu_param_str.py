@@ -75,6 +75,7 @@ f2 = f[:, 0:25]
 theta1 = theta[0:25, :]
 x1 = x[0:15, :]
 
+
 @contextmanager
 def does_not_raise():
     yield
@@ -87,13 +88,22 @@ def does_not_raise():
      ('PCGPwM', does_not_raise()),
      ('indGP', does_not_raise()),
      ('PCGPwImpute', does_not_raise()),
+     ('PCSK', does_not_raise()),
      ('XXXX', pytest.raises(ValueError)),
      ],
     )
 def test_repr(input, expectation):
     with expectation:
-        assert emulator(x=x,
-                        theta=theta,
-                        f=f,
-                        method=input) is not None
+        if input != 'PCSK':
+            assert emulator(x=x,
+                            theta=theta,
+                            f=f,
+                            method=input) is not None
+        else:
+            simsd = 1e-3 * np.ones_like(f)
+            assert emulator(x=x,
+                            theta=theta,
+                            f=f,
+                            method=input,
+                            args={'simsd': simsd}) is not None
 

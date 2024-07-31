@@ -3,6 +3,7 @@
 import numpy as np
 import scipy.optimize as spo
 from surmise.emulationsupport.matern_covmat import covmat as __covmat
+from pprint import pformat
 
 
 def fit(fitinfo, x, theta, f, epsilonPC=0.001,
@@ -123,6 +124,8 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001,
     fitinfo['varc_status'] = 'fixed' if varconstant is not None else 'optimized'
     fitinfo['pcstdvar'] = fitinfo['unscaled_pcstdvar']
     fitinfo['emulist'] = emulist
+
+    __generate_param_str(fitinfo)
     return
 
 
@@ -611,3 +614,33 @@ def __negloglikgrad(hyp, info):
     dnegloglik += (10 ** (-8) +
                    hyp - info['hypregmean']) / ((info['hypregstd']) ** 2)
     return dnegloglik
+
+
+def __generate_param_str(fitinfo):
+    """
+    Generate a string to describe any information from the fitted emulator,
+    including magnitude of residuals, number of GP components, and a summary
+    of GP parameters.
+    """
+    numpc = len(fitinfo['emulist'])
+    extravar = fitinfo['standardpcinfo']['extravar']
+    gp_scales = 1/(1+np.exp(np.array([fitinfo['emulist'][k]['hyp'][-2] for k in range(numpc)])))
+    gp_lengthscales = np.array([fitinfo['emulist'][k]['hyp'][:-3] for k in range(numpc)])
+    gp_nuggets = np.array([fitinfo['emulist'][k]['nug'] for k in range(numpc)])
+
+    param_desc = '\taverage emulation residual variance (from principal components):\t{:.3E}\n' \
+                 '\tnumber of GP components:\t{:d}\n' \
+                 '\tGP parameters, following Gramacy (ch.5, 2022) notations:\n' \
+                 '\t\tscales (in log): \t{:s}\n' \
+                 '\t\tlengthscales (in log):\n\t\t\t{:s}\n' \
+                 '\t\tnuggets (in log):\t{:s}\n' \
+        .format(
+        extravar.mean(),
+        numpc,
+        pformat(['{:.3f}'.format(np.log(x)) for x in gp_scales]),
+        pformat(gp_lengthscales).replace('\n', '\n\t\t\t'),
+        pformat(['{:.3f}'.format(np.log(x)) for x in gp_nuggets])
+    )
+
+    fitinfo['param_desc'] = param_desc
+    return
