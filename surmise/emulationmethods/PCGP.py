@@ -507,9 +507,9 @@ def __generate_param_str(fitinfo):
     numpc = len(fitinfo['emulist'])
     extravar = fitinfo['extravar']
     gp_lengthscales = np.array([fitinfo['emulist'][k]['hypcov'] for k in range(numpc)])
-    gp_nuggets = [fitinfo['emulist'][k]['hypnug'] for k in range(numpc)]
+    gp_nuggets = np.array([fitinfo['emulist'][k]['hypnug'] for k in range(numpc)])
 
-    param_desc = '\taverage emulation residual variance:\t{:.3E}\n' \
+    param_desc = '\taverage emulation residual variance (from principal components):\t{:.3E}\n' \
                  '\tnumber of GP components:\t{:d}\n' \
                  '\tGP parameters, following Gramacy (ch.5, 2022) notations:\n' \
                  '\t\tlengthscales (in log):\n\t\t\t{:s}\n' \
