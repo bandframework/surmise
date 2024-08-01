@@ -1,10 +1,13 @@
 """
 This module contains a class that implements the main emulation method.
 """
+import pickle
+
 import numpy as np
 import importlib
 import copy
 import warnings
+import dill
 
 __externalmethodslist__ = ['nuclear-ROSE', ]
 
@@ -163,10 +166,6 @@ class emulator(object):
 
         if (self.__f is not None) and (self.__options['autofit']):
             self.fit()
-
-    @staticmethod
-    def cast_f64_dtype(x):
-        return np.array(x, dtype=np.float64)
 
     def __repr__(self):
         object_method = [method_name for method_name in dir(self)
@@ -875,6 +874,28 @@ class emulator(object):
                 theta = theta[j, :]
         return x, theta, f
 
+    @staticmethod
+    def cast_f64_dtype(x):
+        return np.array(x, dtype=np.float64)
+
+    def save(self, filename):
+        """
+        Simple serialization and save function for emulator object.
+
+        :Example:
+        >>> import dill
+        >>> emu = emulator(...)
+        >>> # save emulator object
+        >>> emu.save('emu_example.pkl')
+        >>> # load emulator object
+        >>> with open('emu_example.pkl', 'rb') as f:
+        >>>     loaded_emu = dill.load(f)
+        """
+        with open(filename, 'wb') as f:
+            dill.dump(self, f)
+        f.close()
+        return
+
 
 class prediction(object):
     '''
@@ -1106,6 +1127,24 @@ class prediction(object):
         else:
             raise ValueError(self.__methodnotfoundstr(pfstr, opstr))
 
+    def save(self, filename):
+        """
+        Simple serialization and saving function for prediction object.
+
+        Example:
+        >>> import dill
+        >>> emu = emulator(...)
+        >>> emupred = emu.predict(...)
+        >>> # save prediction object
+        >>> emupred.save('emupred_example.pkl')
+        >>> # load prediction object
+        >>> with open('emupred_example.pkl', 'rb') as f:
+        >>>     loaded_emupred = dill.load(f)
+        """
+        with open(filename, 'wb') as f:
+            dill.dump(self, f)
+            f.close()
+        return
 
 def _matrixmatching(mat1, mat2):
     """
