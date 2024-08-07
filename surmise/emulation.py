@@ -258,7 +258,7 @@ class emulator(object):
             if theta is not None:
                 info['mean'] = self.__ptf(x, theta)
             else:
-                info['mean'] = self.__ptf(x, self.__theta)
+                raise ValueError('Please provide theta for prediction.')
             info['var'] = 0 * info['mean']
             info['covxhalf'] = 0 * np.stack((info['mean'], info['mean']), 2)
             return prediction(info, self)
