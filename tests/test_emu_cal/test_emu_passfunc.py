@@ -120,13 +120,15 @@ def test_passfunction(expectation):
 
 # test to check the emulator predict with a passed function
 @pytest.mark.parametrize(
-    "expectation",
+    "x0, theta0, expectation",
     [
-     (does_not_raise()),
+        (x, thetatot, does_not_raise()),
+        (x, None, pytest.raises(ValueError)),
+        (None, None, pytest.raises(ValueError))
      ],
     )
-def test_passfunction_predict(expectation):
+def test_passfunction_predict(x0, theta0, expectation):
     with expectation:
         emu = emulator(passthroughfunc=borehole_model,
                        method='PCGP')
-        assert emu.predict(x=x, theta=thetatot) is not None
+        assert emu.predict(x=x0, theta=theta0) is not None

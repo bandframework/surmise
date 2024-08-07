@@ -163,3 +163,21 @@ def test_call(expectation):
     pred_test = cal.predict(x=x_std)
     with expectation:
         assert pred_test() is not None
+
+@pytest.mark.parametrize(
+    "expectation",
+    [
+     (does_not_raise()),
+     ],
+    )
+def test_thetalpdf(expectation):
+    cal = calibrator(emu=emulator_f_1,
+                     y=y,
+                     x=x_std,
+                     thetaprior=prior_balldrop,
+                     method='directbayes',
+                     yvar=obsvar,
+                     args=args2)
+    logpost = cal.theta.lpdf(theta=theta)
+    with expectation:
+        assert logpost is not None
