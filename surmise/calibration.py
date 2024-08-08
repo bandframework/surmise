@@ -382,6 +382,21 @@ class prediction(object):
         """
         raise ValueError('lpdf functionality not in method')
 
+    def empirical_coverage(self, p=np.array((0.68, 0.9, 0.95, 0.99))):
+        """
+        Computes empirical coverage given predictions using samples collected from calibration.
+        -------
+
+        """
+        y = self.cal.info['y']
+        ypred = self.info['rnd']
+
+        ylowers = np.quantile(ypred, q=(1-p)/2, axis=0)
+        yuppers = np.quantile(ypred, q=(1+p)/2, axis=0)
+
+        coverage = np.mean(np.logical_and(y <= yuppers, y >= ylowers), axis=1)
+
+        return p, coverage
 
 class thetadist(object):
     """
