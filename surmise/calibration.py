@@ -2,6 +2,7 @@ import numpy as np
 import importlib
 import copy
 import warnings
+import dill
 
 
 class calibrator(object):
@@ -274,6 +275,24 @@ class calibrator(object):
     def cast_f64_dtype(x):
         return np.array(x, dtype=np.float64)
 
+    def save(self, filename):
+        """
+        Simple serialization and save function for calibrator object.
+
+        :Example:
+        >>> import dill
+        >>> cal = calibrator(...)
+        >>> # save calibrator object
+        >>> cal.save('cal_example.pkl')
+        >>> # load calibrator object
+        >>> with open('cal_example.pkl', 'rb') as f:
+        >>>     loaded_cal = dill.load(f)
+        """
+        with open(filename, 'wb') as f:
+            dill.dump(self, f)
+        f.close()
+        return
+
 
 class prediction(object):
     '''
@@ -324,8 +343,8 @@ class prediction(object):
                       'provided in ' + pfstr + '.info... \n' +
                       ' Key labeled rnd not ' +
                       'provided in ' + pfstr + '.info...')
-        return 'Could not reconsile a good way to compute this value'
-    ' in current method.'
+        return 'Could not reconcile a good way to compute this value'\
+               ' in current method.'
 
     def mean(self, args=None):
         """
@@ -391,6 +410,25 @@ class prediction(object):
         """
         raise ValueError('lpdf functionality not in method')
 
+    def save(self, filename):
+        """
+        Simple serialization and save function for calibrator prediction object.
+
+        :Example:
+        >>> import dill
+        >>> cal = calibrator(...)
+        >>> calpred = cal.predict(...)
+        >>> # save prediction object
+        >>> calpred.save('calpred_example.pkl')
+        >>> # load prediction object
+        >>> with open('calpred_example.pkl', 'rb') as f:
+        >>>     loaded_calpred = dill.load(f)
+        """
+        with open(filename, 'wb') as f:
+            dill.dump(self, f)
+        f.close()
+        return
+
 
 class thetadist(object):
     """
@@ -427,8 +465,8 @@ class thetadist(object):
                       'provided in cal.info... \n' +
                       ' Key labeled ' + pfstr + 'rnd not ' +
                       'provided in cal.info...')
-        return 'Could not reconsile a good way to compute this value in'
-    ' current method.'
+        return 'Could not reconcile a good way to compute this value in'\
+               ' current method.'
 
     def mean(self, args=None):
         """
