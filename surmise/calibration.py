@@ -265,11 +265,15 @@ class calibrator(object):
         if 'predict' in dir(self.method):
             self.method.predict(info, self.info, self.emu, x, args)
         else:
-            emupred = self.emu.predict(x, self.theta.rnd(1000))
+            nsamp = 1000
+            emupred = self.emu.predict(x, self.theta.rnd(nsamp))
             info['mean'] = np.mean(emupred.mean(), 1)
             info['var'] = np.var(emupred.mean(), 1)
             info['rnd'] = (emupred.mean()).T
-        return prediction(info, self)
+
+        predobj = prediction(info, self)
+        predobj.empirical_coverage()
+        return predobj
 
     @staticmethod
     def cast_f64_dtype(x):
@@ -443,7 +447,8 @@ class prediction(object):
 
         coverage = np.mean(np.logical_and(y <= yuppers, y >= ylowers), axis=1)
 
-        return p, coverage
+        self.info['coverage'] = (p, coverage)
+        return
 
 
 class thetadist(object):

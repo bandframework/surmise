@@ -179,6 +179,6 @@ def test_call(expectation):
                      yvar=obsvar,
                      args=args2)
     calpred = cal.predict(x=x_std)
-    coverage = calpred.empirical_coverage()
+    calpred.empirical_coverage()
     with expectation:
-        assert (~np.isnan(coverage)).all()
+        assert (~np.isnan(calpred.info['coverage'])).all()
