@@ -2,6 +2,7 @@ import numpy as np
 import importlib
 import copy
 import warnings
+import dill
 
 
 class calibrator(object):
@@ -264,15 +265,37 @@ class calibrator(object):
         if 'predict' in dir(self.method):
             self.method.predict(info, self.info, self.emu, x, args)
         else:
-            emupred = self.emu.predict(x, self.theta.rnd(1000))
+            nsamp = 1000
+            emupred = self.emu.predict(x, self.theta.rnd(nsamp))
             info['mean'] = np.mean(emupred.mean(), 1)
             info['var'] = np.var(emupred.mean(), 1)
             info['rnd'] = (emupred.mean()).T
-        return prediction(info, self)
+
+        predobj = prediction(info, self)
+        predobj.empirical_coverage()
+        return predobj
 
     @staticmethod
     def cast_f64_dtype(x):
         return np.array(x, dtype=np.float64)
+
+    def save(self, filename):
+        """
+        Simple serialization and save function for calibrator object.
+
+        :Example:
+        >>> import dill
+        >>> cal = calibrator(...)
+        >>> # save calibrator object
+        >>> cal.save('cal_example.pkl')
+        >>> # load calibrator object
+        >>> with open('cal_example.pkl', 'rb') as f:
+        >>>     loaded_cal = dill.load(f)
+        """
+        with open(filename, 'wb') as f:
+            dill.dump(self, f)
+        f.close()
+        return
 
 
 class prediction(object):
@@ -324,8 +347,8 @@ class prediction(object):
                       'provided in ' + pfstr + '.info... \n' +
                       ' Key labeled rnd not ' +
                       'provided in ' + pfstr + '.info...')
-        return 'Could not reconsile a good way to compute this value'
-    ' in current method.'
+        return 'Could not reconcile a good way to compute this value'\
+               ' in current method.'
 
     def mean(self, args=None):
         """
@@ -391,6 +414,42 @@ class prediction(object):
         """
         raise ValueError('lpdf functionality not in method')
 
+    def save(self, filename):
+        """
+        Simple serialization and save function for calibrator prediction object.
+
+        :Example:
+        >>> import dill
+        >>> cal = calibrator(...)
+        >>> calpred = cal.predict(...)
+        >>> # save prediction object
+        >>> calpred.save('calpred_example.pkl')
+        >>> # load prediction object
+        >>> with open('calpred_example.pkl', 'rb') as f:
+        >>>     loaded_calpred = dill.load(f)
+        """
+        with open(filename, 'wb') as f:
+            dill.dump(self, f)
+        f.close()
+        return
+
+    def empirical_coverage(self, p=np.array((0.68, 0.9, 0.95, 0.99))):
+        """
+        Computes empirical coverage given predictions using samples collected from calibration.
+        -------
+
+        """
+        y = self.cal.info['y']
+        ypred = self.info['rnd']
+
+        ylowers = np.quantile(ypred, q=(1-p)/2, axis=0)
+        yuppers = np.quantile(ypred, q=(1+p)/2, axis=0)
+
+        coverage = np.mean(np.logical_and(y <= yuppers, y >= ylowers), axis=1)
+
+        self.info['coverage'] = (p, coverage)
+        return
+
 
 class thetadist(object):
     """
@@ -427,8 +486,8 @@ class thetadist(object):
                       'provided in cal.info... \n' +
                       ' Key labeled ' + pfstr + 'rnd not ' +
                       'provided in cal.info...')
-        return 'Could not reconsile a good way to compute this value in'
-    ' current method.'
+        return 'Could not reconcile a good way to compute this value in'\
+               ' current method.'
 
     def mean(self, args=None):
         """
