@@ -238,7 +238,7 @@ def loglik(fitinfo, emu, theta, y, x):
 
         # Compute the covariance matrix
         if is_cov is True:
-            s0 = emucov[k, :, :].reshape((n, n))
+            s0 = emucov[:, k, :].reshape((n, n))
             CovMat = s0 + np.diag(np.squeeze(obsvar))
         else:
             s0 = emucov[:, k].reshape((n, 1))
