@@ -1015,23 +1015,26 @@ class prediction(object):
                 ((pfstr + opstr) in dir(self.emu.method)):
             if args is None:
                 args = self.emu._args
-            return copy.deepcopy(self.emu.method.predictcov(self._info,
+            covx = copy.deepcopy(self.emu.method.predictcov(self._info,
                                                             **args))
         elif opstr in self._info.keys():
-            return copy.deepcopy(self._info[opstr])
+            covx = copy.deepcopy(self._info[opstr])
         elif 'covxhalf' in self._info.keys():
             if self._info['covxhalf'].ndim == 2:
-                return self._info['covxhalf'] @ self._info['covxhalf'].T
+                covx = self._info['covxhalf'] @ self._info['covxhalf'].T
             else:
                 am = self._info['covxhalf'].shape
                 covx = np.ones((am[0], am[1], am[0]))
                 for k in range(0, self._info['covxhalf'].shape[1]):
                     A = self._info['covxhalf'][:, k, :]
                     covx[:, k, :] = A @ A.T
-            self._info['covx'] = covx
-            return copy.deepcopy(self._info[opstr])
         else:
             raise ValueError(self.__methodnotfoundstr(pfstr, opstr))
+
+        if covx.ndim > 2:
+            covx = np.transpose(covx, (1, 0, 2))
+        self._info['covx'] = covx
+        return copy.deepcopy(self._info[opstr])
 
     def covxhalf(self, args=None):
         """
