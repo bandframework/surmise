@@ -1,9 +1,5 @@
-import numpy as np
-import scipy.stats as sps
-import pytest
-from contextlib import contextmanager
-from surmise.emulation import emulator
 import dill
+import os
 
 ##############################################
 #            Simple scenarios                #
@@ -109,13 +105,15 @@ def test_cal_saveload(expectation):
                          method='directbayes',
                          yvar=obsvar,
                          args=args2)
-        cal.save('test_cal_saveload.pkl')
 
-        with open('test_cal_saveload.pkl', 'rb') as file:
+        fname = 'test_cal_saveload.pkl'
+        cal.save(fname)
+
+        with open(fname, 'rb') as file:
             calload = dill.load(file)
         file.close()
         assert calload.theta.mean() == cal.theta.mean()
-
+        os.remove(fname)
 
 @pytest.mark.parametrize(
     "expectation",
@@ -133,9 +131,12 @@ def test_calpred_saveload(expectation):
                          yvar=obsvar,
                          args=args2)
         calpred = cal.predict(x=x_std)
-        calpred.save('test_calpred_saveload.pkl')
 
-        with open('test_calpred_saveload.pkl', 'rb') as file:
+        fname = 'test_calpred_saveload.pkl'
+        calpred.save(fname)
+
+        with open(fname, 'rb') as file:
             calpredload = dill.load(file)
         file.close()
         assert (calpredload.mean() == calpred.mean()).all()
+        os.remove(fname)

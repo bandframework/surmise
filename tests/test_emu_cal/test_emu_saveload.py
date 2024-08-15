@@ -1,9 +1,9 @@
 import numpy as np
 import scipy.stats as sps
-import pytest
 from contextlib import contextmanager
 from surmise.emulation import emulator
 import dill
+import os
 
 ##############################################
 #            Simple scenarios                #
@@ -90,25 +90,29 @@ def does_not_raise():
 
 
 def test_emu_saveload():
+    fname = 'test_emu_saveload.pkl'
     with does_not_raise():
         emu = emulator(x=x, theta=theta, f=f)
-        emu.save('test_emu_saveload.pkl')
+        emu.save(fname)
 
-        with open('test_emu_saveload.pkl', 'rb') as file:
+        with open(fname, 'rb') as file:
             emuload = dill.load(file)
         file.close()
         assert emuload is not None
+        os.remove(fname)
 
 
 def test_emupred_saveload():
-
+    fname = 'test_emupred_saveload.pkl'
     with does_not_raise():
         emu = emulator(x=x, theta=theta, f=f)
 
         emupred = emu.predict()
-        emupred.save('test_emupred_saveload.pkl')
+        emupred.save(fname)
 
-        with open('test_emupred_saveload.pkl', 'rb') as file:
+        with open(fname, 'rb') as file:
             emupredload = dill.load(file)
         file.close()
         assert emupredload is not None
+
+        os.remove(fname)
