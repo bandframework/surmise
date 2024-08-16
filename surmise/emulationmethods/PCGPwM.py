@@ -16,10 +16,11 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
     information into fitinfo, which is a python dictionary.
 
     .. note::
-       This is a modification of the method proposed by Higdon et al., 2008.
+       This is method is summarized in (Chan et al., Technometrics 2024) and is a 
+       modification of the method proposed by (Higdon et al., JASA 2008).
        Refer to :py:func:`PCGP` for additional details.
 
-    Prior to performing the PCGP method (Higdon et al., 2008), the PCGPwM method
+    Prior to performing the PCGP method (Higdon et al., JASA 2008), the PCGPwM method
     checks for missingness in `f` and provides imputations for the missing values
     before conducting the PCGP method.  The method adds approximate variance at
     each points requiring imputation.
