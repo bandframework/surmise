@@ -28,9 +28,10 @@ interface for calibration, uncertainty quantification, and sensitivity analysis.
 Dependencies
 ~~~~~~~~~~~~
 
-surmise is built with numpy and scipy, with an optional scikit-learn dependencies.
+surmise is built with numpy and scipy, with an optional scikit-learn dependency.
 
-Please refer to [project] and [project.optional-dependencies] sections of pyproject.toml for details.
+Please refer to the [project] and [project.optional-dependencies] sections of pyproject.toml 
+for details.
 
 Installation
 ~~~~~~~~~~~~
@@ -41,7 +42,7 @@ From the command line, use the following command to install surmise::
  pip install surmise[scikit-learn]      # to include scikit-learn in installation
  pip install surmise[all]               # to include all optional dependencies
 
-The package scikit-learn is required by specific method stated above.
+The package scikit-learn is required by specific methods as stated above.
 These packages can be installed along with surmise via the commands listed.
 
 The list of available .whl files can be found under `PyPI-wheel`_.  If a wheel file
@@ -58,8 +59,8 @@ which requires extra dependencies::
 .. note::
 
     Direct installation of surmise requires Cython to build C executable.
-    On Windows platform Cython is supported by Microsoft build tools, for which installation
-    is outside pip.  See `Microsoft build tools`_ for details.
+    On a Windows platform Cython is supported by Microsoft build tools, for which installation
+    is outside pip; see `Microsoft build tools`_ for details.
 
 Testing
 ~~~~~~~
