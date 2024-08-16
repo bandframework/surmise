@@ -1,5 +1,5 @@
-"""PCGPwM method - PCGP with Missingness, an extension to PCGP
-(Higdon et al., 2008). """
+"""PCGPwM method - PCGP with Missingness (Chan et al., Technometrics 2024), an 
+extension to PCGP (Higdon et al., JASA 2008). """
 
 import numpy as np
 import scipy.optimize as spo
@@ -461,7 +461,7 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
             thetaold = np.vstack((thetaold, thetaposs))
             break
         for k in range(0, len(infos)):
-            # if infos[k]['hypind'] == k:  # this is to speed things up a bit...
+            # if infos[k]['hypind'] == k:  # this is to speed things up a bit
             #     Rh = R[infos[k]['hypind']] + np.diag(varpcause[:, k])
             #     p = rnewsave[infos[k]['hypind']]
             #     term1 = np.linalg.solve(Rh, rposssave[infos[k]['hypind']].T)
@@ -510,7 +510,7 @@ def supplementtheta(fitinfo, size, theta, thetachoices, choicecosts, cal,
     if includepending:
         critpend = np.zeros((fitinfo['theta'].shape[0], len(infos)))
         for k in range(0, len(infos)):
-            # if infos[k]['hypind'] == k:  # this is to speed things up a bit...
+            # if infos[k]['hypind'] == k:  # this is to speed things up a bit
             #     Rh = R[infos[k]['hypind']] + np.diag(varpca[:, k])
             #     term1 = np.linalg.solve(Rh, rsave[infos[k]['hypind']].T)
             #     delta = (pendvar[:, k] - varpca[:fitinfo['theta'].shape[0], k])
