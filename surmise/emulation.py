@@ -172,7 +172,7 @@ class emulator(object):
                          if callable(getattr(self, method_name))]
         object_method = [x for x in object_method if not x.startswith('__')]
         strrepr = ('An emulation object where the code is located in the file '
-                   + 'emulation. \nThe main method are emu.' +
+                   + 'emulation. \nThe main methods are emu.' +
                    ', emu.'.join(object_method) + '. \nDefault of emu(x,theta)'
                                                   ' is emu.predict(x,theta). \n'
                                                   'Run help(emu) for the document string.\n\n')
