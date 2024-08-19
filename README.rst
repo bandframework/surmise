@@ -49,7 +49,7 @@ which requires extra dependencies::
  git clone https://github.com/bandframework/surmise/
  cd surmise
  pip install build Cython
- pip install scikit-learn (optional)
+ pip install scikit-learn (optional, required by full test suite)
  python -m build --wheel
  pip install dist/surmise-<version info>.whl
 
@@ -62,10 +62,10 @@ which requires extra dependencies::
 Testing
 ~~~~~~~
 
-Testing of surmise can be performed after cloning the repository. The test suite requires the pytest_ and 
-pytest-cov_ packages to be installed.  These packages can be installed via::
+Testing of surmise can be performed after cloning the repository. The test suite requires the pytest_,
+pytest-cov_, and scikit-learn_ packages to be installed.  These packages can be installed via::
 
- pip install pytest pytest-cov
+ pip install pytest pytest-cov scikit-learn
 
 The test suite can then be run from within the ``tests/`` directory of the source distribution by running::
 
@@ -122,3 +122,4 @@ In addition, for a gentle introduction of emulation and calibration using Gaussi
 .. _`surmise Jupyter notebook`: https://colab.research.google.com/drive/1f4gKTCLEAGE8r-aMWOoGvY-O6zNqg1qj?usp=drive_link
 .. _PyPI-wheel: https://pypi.org/project/surmise/#files
 .. _`Microsoft build tools`: https://visualstudio.microsoft.com/downloads/?q=build+tools
+.. _scikit-learn: https://scikit-learn.org/stable/install.html
