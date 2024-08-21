@@ -2,7 +2,7 @@
 This module contains a class that implements the main calibration method.
 """
 import numpy as np
-from .helper import cast_f64_dtype
+from .helper import cast_f64_dtype, save_file, load_file
 import importlib
 import copy
 import warnings
@@ -279,23 +279,23 @@ class calibrator(object):
         predobj.empirical_coverage()
         return predobj
 
-    def save(self, filename):
+    def save_to(self, filename):
         """
         Simple serialization and save function for calibrator object.
 
         :Example:
-        >>> import dill
         >>> cal = calibrator(...)
         >>> # save calibrator object
-        >>> cal.save('cal_example.pkl')
+        >>> cal.save_to('cal_example.pkl')
         >>> # load calibrator object
-        >>> with open('cal_example.pkl', 'rb') as f:
-        >>>     loaded_cal = dill.load(f)
+        >>> loaded_cal = calibrator.load_from('cal_example.pkl')
         """
-        with open(filename, 'wb') as f:
-            dill.dump(self, f)
-        f.close()
+        save_file(self, filename)
         return
+
+    @staticmethod
+    def load_from(filename):
+        return load_file(filename)
 
 
 class prediction(object):
@@ -414,23 +414,19 @@ class prediction(object):
         """
         raise ValueError('lpdf functionality not in method')
 
-    def save(self, filename):
+    def save_to(self, filename):
         """
         Simple serialization and save function for calibrator prediction object.
 
         :Example:
-        >>> import dill
         >>> cal = calibrator(...)
         >>> calpred = cal.predict(...)
         >>> # save prediction object
-        >>> calpred.save('calpred_example.pkl')
+        >>> calpred.save_to('calpred_example.pkl')
         >>> # load prediction object
-        >>> with open('calpred_example.pkl', 'rb') as f:
-        >>>     loaded_calpred = dill.load(f)
+        >>> loaded_calpred = calibrator.load_from('calpred_example.pkl')
         """
-        with open(filename, 'wb') as f:
-            dill.dump(self, f)
-        f.close()
+        save_file(self, filename)
         return
 
     def empirical_coverage(self, p=np.array((0.68, 0.9, 0.95, 0.99))):

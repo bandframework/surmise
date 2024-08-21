@@ -107,11 +107,9 @@ def test_cal_saveload(expectation):
                          args=args2)
 
         fname = 'test_cal_saveload.pkl'
-        cal.save(fname)
+        cal.save_to(fname)
 
-        with open(fname, 'rb') as file:
-            calload = dill.load(file)
-        file.close()
+        calload = calibrator.load_from(fname)
         assert calload.theta.mean() == cal.theta.mean()
         os.remove(fname)
 
@@ -133,10 +131,8 @@ def test_calpred_saveload(expectation):
         calpred = cal.predict(x=x_std)
 
         fname = 'test_calpred_saveload.pkl'
-        calpred.save(fname)
+        calpred.save_to(fname)
 
-        with open(fname, 'rb') as file:
-            calpredload = dill.load(file)
-        file.close()
+        calpredload = calibrator.load_from(fname)
         assert (calpredload.mean() == calpred.mean()).all()
         os.remove(fname)

@@ -93,11 +93,9 @@ def test_emu_saveload():
     fname = 'test_emu_saveload.pkl'
     with does_not_raise():
         emu = emulator(x=x, theta=theta, f=f)
-        emu.save(fname)
+        emu.save_to(fname)
 
-        with open(fname, 'rb') as file:
-            emuload = dill.load(file)
-        file.close()
+        emuload = emulator.load_from(fname)
         assert emuload is not None
         os.remove(fname)
 
@@ -108,11 +106,9 @@ def test_emupred_saveload():
         emu = emulator(x=x, theta=theta, f=f)
 
         emupred = emu.predict()
-        emupred.save(fname)
+        emupred.save_to(fname)
 
-        with open(fname, 'rb') as file:
-            emupredload = dill.load(file)
-        file.close()
-        assert emupredload is not None
+        emupredload = emulator.load_from(fname)
+        assert (emupredload.mean() == emupred.mean()).all()
 
         os.remove(fname)

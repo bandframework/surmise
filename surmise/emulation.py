@@ -2,7 +2,7 @@
 This module contains a class that implements the main emulation method.
 """
 import numpy as np
-from .helper import cast_f64_dtype
+from .helper import cast_f64_dtype, save_file, load_file
 import importlib
 import copy
 import warnings
@@ -873,24 +873,23 @@ class emulator(object):
                 theta = theta[j, :]
         return x, theta, f
 
-    def save(self, filename):
+    def save_to(self, filename):
         """
         Simple serialization and save function for emulator object.
 
         :Example:
-        >>> import dill
         >>> emu = emulator(...)
         >>> # save emulator object
-        >>> emu.save('emu_example.pkl')
+        >>> emu.save_to('emu_example.pkl')
         >>> # load emulator object
-        >>> with open('emu_example.pkl', 'rb') as f:
-        >>>     loaded_emu = dill.load(f)
+        >>> loaded_emu = emulator.load_from('emu_example.pkl')
         """
-        with open(filename, 'wb') as f:
-            dill.dump(self, f)
-        f.close()
+        save_file(self, filename)
         return
 
+    @staticmethod
+    def load_from(filename):
+        return load_file(filename)
 
 class prediction(object):
     '''
@@ -1125,24 +1124,21 @@ class prediction(object):
         else:
             raise ValueError(self.__methodnotfoundstr(pfstr, opstr))
 
-    def save(self, filename):
+    def save_to(self, filename):
         """
         Simple serialization and saving function for prediction object.
 
         Example:
-        >>> import dill
         >>> emu = emulator(...)
         >>> emupred = emu.predict(...)
         >>> # save prediction object
-        >>> emupred.save('emupred_example.pkl')
+        >>> emupred.save_to('emupred_example.pkl')
         >>> # load prediction object
-        >>> with open('emupred_example.pkl', 'rb') as f:
-        >>>     loaded_emupred = dill.load(f)
+        >>> loaded_emupred = emulator.load_from('emupred_example.pkl')
         """
-        with open(filename, 'wb') as f:
-            dill.dump(self, f)
-            f.close()
+        save_file(self, filename)
         return
+
 
 def _matrixmatching(mat1, mat2):
     """
@@ -1176,3 +1172,4 @@ def _matrixmatching(mat1, mat2):
 
     nc = np.array(list(set(range(0, mat2.shape[0])) - set(c))).astype('int')
     return nc, c, r
+
