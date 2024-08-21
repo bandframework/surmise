@@ -6,7 +6,6 @@ from .helper import cast_f64_dtype, save_file, load_file
 import importlib
 import copy
 import warnings
-import dill
 
 
 class calibrator(object):
