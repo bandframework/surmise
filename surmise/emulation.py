@@ -877,9 +877,15 @@ class emulator(object):
         Simple serialization and save function for emulator object.
 
         :Example:
-        >>> emu = emulator(...)
-        >>> emu.save_to('emu_example.pkl')
-        >>> loaded_emu = emulator.load_from('emu_example.pkl')
+
+        .. code-block:: python
+
+            emu = emulator(...)
+
+            emu.save_to('emu_example.pkl')
+
+            loaded_emu = emulator.load_from('emu_example.pkl')
+
         """
         save_file(self, filename)
         return
@@ -1126,11 +1132,18 @@ class prediction(object):
         """
         Simple serialization and saving function for prediction object.
 
-        Example:
-        >>> emu = emulator(...)
-        >>> emupred = emu.predict(...)
-        >>> emupred.save_to('emupred_example.pkl')
-        >>> loaded_emupred = emulator.load_from('emupred_example.pkl')
+        :Example:
+
+        .. code-block:: python
+
+            emu = emulator(...)
+
+            emupred = emu.predict(...)
+
+            emupred.save_to('emupred_example.pkl')
+
+            loaded_emupred = emulator.load_from('emupred_example.pkl')
+
         """
         save_file(self, filename)
         return

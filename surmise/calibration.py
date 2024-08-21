@@ -28,6 +28,7 @@ class calibrator(object):
            ``calibrationmethods/`` directory with the required formatting.
 
         :Example:
+
             .. code-block:: python
 
                calibrator(emu=emu, y=y, x=x, thetaprior=thetaprior,
@@ -63,6 +64,7 @@ class calibrator(object):
                         Generates n random variable from a prior distribution.
 
             :Example:
+
                 .. code-block:: python
 
                     class prior_example:
@@ -241,6 +243,7 @@ class calibrator(object):
         Returns predictions at x.
 
         :Example:
+
             .. code-block:: python
 
               calibrator.predict(x=x, args=args)
@@ -283,9 +286,15 @@ class calibrator(object):
         Simple serialization and save function for calibrator object.
 
         :Example:
-        >>> cal = calibrator(...)
-        >>> cal.save_to('cal_example.pkl')
-        >>> loaded_cal = calibrator.load_from('cal_example.pkl')
+
+        .. code-block:: python
+
+            cal = calibrator(...)
+
+            cal.save_to('cal_example.pkl')
+
+            loaded_cal = calibrator.load_from('cal_example.pkl')
+
         """
         save_file(self, filename)
         return
@@ -416,10 +425,17 @@ class prediction(object):
         Simple serialization and save function for calibrator prediction object.
 
         :Example:
-        >>> cal = calibrator(...)
-        >>> calpred = cal.predict(...)
-        >>> calpred.save_to('calpred_example.pkl')
-        >>> loaded_calpred = calibrator.load_from('calpred_example.pkl')
+
+        .. code-block:: python
+
+            cal = calibrator(...)
+
+            calpred = cal.predict(...)
+
+            calpred.save_to('calpred_example.pkl')
+
+            loaded_calpred = calibrator.load_from('calpred_example.pkl')
+
         """
         save_file(self, filename)
         return
@@ -427,8 +443,6 @@ class prediction(object):
     def empirical_coverage(self, p=np.array((0.68, 0.9, 0.95, 0.99))):
         """
         Computes empirical coverage given predictions using samples collected from calibration.
-        -------
-
         """
         y = self.cal.info['y']
         ypred = self.info['rnd']
