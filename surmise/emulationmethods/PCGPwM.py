@@ -1,4 +1,4 @@
-"""PCGPwM method - PCGP with Missingness (Chan et al., Technometrics 2024), an 
+"""PCGPwM method - PCGP with Missingness (Chan et al., Technometrics 2024), an
 extension to PCGP (Higdon et al., JASA 2008). """
 
 import numpy as np
@@ -17,7 +17,7 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
     information into fitinfo, which is a python dictionary.
 
     .. note::
-       This method is summarized in (Chan et al., Technometrics 2024) and is a 
+       This method is summarized in (Chan et al., Technometrics 2024) and is a
        modification of the method proposed by (Higdon et al., JASA 2008).
        Refer to :py:func:`PCGP` for additional details.
 
