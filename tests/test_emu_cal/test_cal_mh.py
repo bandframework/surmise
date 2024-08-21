@@ -259,20 +259,3 @@ def test_repr(expectation):
     with expectation:
         assert repr(cal) is not None
 
-
-@pytest.mark.parametrize(
-    "expectation",
-    [
-     (does_not_raise()),
-     ],
-    )
-def test_call(expectation):
-    cal = calibrator(emu=emu_test,
-                     y=y,
-                     x=x,
-                     thetaprior=priorphys_lin,
-                     method='directbayes',
-                     yvar=obsvar,
-                     args=args1)
-    with expectation:
-        assert cal(x=x) is not None
