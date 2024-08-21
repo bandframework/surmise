@@ -2,6 +2,7 @@
 This module contains a class that implements the main emulation method.
 """
 import numpy as np
+from .helper import cast_f64_dtype, save_file, load_file
 import importlib
 import copy
 import warnings
@@ -76,6 +77,11 @@ class emulator(object):
         None.
 
         '''
+        # cast to numpy.float64, currently only for theta and f.
+        if theta is not None:
+            theta = cast_f64_dtype(theta)
+        if f is not None:
+            f = cast_f64_dtype(f)
 
         # default to showing all warnings
         if ('warnings' in args.keys()) and ~args['warnings']:
@@ -116,11 +122,17 @@ class emulator(object):
                                  ' the number of rows in theta.')
 
             if x is not None:
+                # number of rows in x matches number of rows in f
+                if x.ndim == 1:
+                    x = np.reshape(x, (f.shape[0], -1))
                 self.__x = copy.copy(x)
             else:
                 self.__x = None
 
             if theta is not None:
+                # number of rows in theta matches number of columns in f
+                if theta.ndim == 1:
+                    theta = np.reshape(theta, (f.shape[1], -1))
                 self.__theta = copy.copy(theta)
             else:
                 self.__theta = None
@@ -157,12 +169,27 @@ class emulator(object):
         object_method = [method_name for method_name in dir(self)
                          if callable(getattr(self, method_name))]
         object_method = [x for x in object_method if not x.startswith('__')]
-        strrepr = ('An emulation object where the code in located in the file '
-                   + 'emulation. The main method are emu.' +
-                   ', emu.'. join(object_method) + '. Default of emu(x,theta)'
-                   ' is emu.predict(x,theta). '
-                   'Run help(emu) for the document string.')
-        return strrepr
+        strrepr = ('An emulation object where the code is located in the file '
+                   + 'emulation. \nThe main methods are emu.' +
+                   ', emu.'.join(object_method) + '. \nDefault of emu(x,theta)'
+                                                  ' is emu.predict(x,theta). \n'
+                                                  'Run help(emu) for the document string.\n\n')
+
+        desc = ('emulator(\n'
+                '\tmethod:\t{:s}\n'
+                '\tnumber of outputs:\t{:d}\n'
+                '\tnumber of parameter inputs:\t{:d}\n'
+                '\tparameter dimension:\t{:d}\n'.format(self._info['method'],
+                                                        self.__f.shape[0],
+                                                        self.__f.shape[1],
+                                                        self.__theta.shape[1])
+                )
+
+        if 'param_desc' in self._info:
+            desc += self._info['param_desc']
+        desc += ')'
+
+        return strrepr + desc
 
     def __call__(self, x=None, theta=None, args=None):
         return self.predict(x, theta, args)
@@ -245,6 +272,8 @@ class emulator(object):
                 if x.ndim == 1:
                     if self.__x.ndim == 2 and x.shape[0] == self.__x.shape[1]:
                         x = np.reshape(x, (1, -1))
+                    elif self.__x.ndim == 2 and x.shape[0] == self.__x.shape[0]:
+                        x = np.reshape(x, (-1, 1))
                     elif self.__x.ndim == 2:
                         raise ValueError('Your x shape seems to not agree with the'
                                          ' emulator build.')
@@ -266,7 +295,7 @@ class emulator(object):
                 if theta.ndim == 2 and self.__theta.ndim == 1:
                     raise ValueError('Your theta shape seems to not agree with the'
                                      ' emulator build.')
-                # note: dont understand why we have this statement
+                # note: don't understand why we have this statement
                 elif theta.ndim == 1 and self.__theta.ndim == 2 and \
                         theta.shape[0] == self.__theta.shape[1]:
                     theta = np.reshape(theta, (1, -1))
@@ -408,7 +437,7 @@ class emulator(object):
                 if self.__theta.shape[1] == theta.shape[1]:
                     if thetachoices is None:
                         if theta.shape[0] > 30 * size:
-                            thetachoices =\
+                            thetachoices = \
                                 theta[np.random.choice(theta.shape[0],
                                                        30 * size,
                                                        replace=False), :]
@@ -571,7 +600,7 @@ class emulator(object):
                                      'x.')
             elif (theta is not None):
                 if (f.shape[0] == self.__f.shape[0]) and \
-                    (f.shape[1] == theta.shape[0]) and \
+                        (f.shape[1] == theta.shape[0]) and \
                         (theta.shape[1] == self.__theta.shape[1]):
                     if self.__options['thetareps']:
                         # if replicated thetas are allowed
@@ -596,7 +625,7 @@ class emulator(object):
 
             elif (x is not None):
                 if (f.shape[1] == self.__f.shape[1]) and \
-                    (f.shape[0] == x.shape[0]) and \
+                        (f.shape[0] == x.shape[0]) and \
                         (x.shape[1] == self.__x.shape[1]):
                     if options['xreps']:
                         # if replicated xs are allowed
@@ -672,7 +701,7 @@ class emulator(object):
                                          0) < self.__options['thetarmnan'])[0]
             lpdf_ex = cal.theta.lpdf(self.__theta[totalseen, :])
             thetasort = np.argsort(lpdf_ex)
-            m_cutoff = max(lpdf_ex.shape[0]-10*self.__theta.shape[1], 0)
+            m_cutoff = max(lpdf_ex.shape[0] - 10 * self.__theta.shape[1], 0)
             numcutoff = np.minimum(-500, lpdf_ex[thetasort[m_cutoff]])
             if any(lpdf_ex < numcutoff):
                 rmtheta = totalseen[np.where(lpdf_ex < numcutoff)[0]]
@@ -843,6 +872,28 @@ class emulator(object):
                 theta = theta[j, :]
         return x, theta, f
 
+    def save_to(self, filename):
+        """
+        Simple serialization and save function for emulator object.
+
+        :Example:
+
+        .. code-block:: python
+
+            emu = emulator(...)
+
+            emu.save_to('emu_example.pkl')
+
+            loaded_emu = emulator.load_from('emu_example.pkl')
+
+        """
+        save_file(self, filename)
+        return
+
+    @staticmethod
+    def load_from(filename):
+        return load_file(filename)
+
 
 class prediction(object):
     '''
@@ -875,7 +926,7 @@ class prediction(object):
                    ' located in the file '
                    + ' emulation.  The main method are predict.' +
                    ', predict.'.join(object_method) + '.  Default of predict()'
-                   ' is predict.mean() and ' +
+                                                      ' is predict.mean() and ' +
                    'predict(s) will run pred.rnd(s).'
                    ' Run help(predict) for the document' +
                    ' string.')
@@ -959,23 +1010,26 @@ class prediction(object):
                 ((pfstr + opstr) in dir(self.emu.method)):
             if args is None:
                 args = self.emu._args
-            return copy.deepcopy(self.emu.method.predictcov(self._info,
+            covx = copy.deepcopy(self.emu.method.predictcov(self._info,
                                                             **args))
         elif opstr in self._info.keys():
-            return copy.deepcopy(self._info[opstr])
+            covx = copy.deepcopy(self._info[opstr])
         elif 'covxhalf' in self._info.keys():
             if self._info['covxhalf'].ndim == 2:
-                return self._info['covxhalf'] @ self._info['covxhalf'].T
+                covx = self._info['covxhalf'] @ self._info['covxhalf'].T
             else:
                 am = self._info['covxhalf'].shape
                 covx = np.ones((am[0], am[1], am[0]))
                 for k in range(0, self._info['covxhalf'].shape[1]):
                     A = self._info['covxhalf'][:, k, :]
                     covx[:, k, :] = A @ A.T
-            self._info['covx'] = covx
-            return copy.deepcopy(self._info[opstr])
         else:
             raise ValueError(self.__methodnotfoundstr(pfstr, opstr))
+
+        if covx.ndim > 2:
+            covx = np.transpose(covx, (1, 0, 2))
+        self._info['covx'] = covx
+        return copy.deepcopy(self._info[opstr])
 
     def covxhalf(self, args=None):
         """
@@ -1054,6 +1108,26 @@ class prediction(object):
                                                                        **args))
         else:
             raise ValueError(self.__methodnotfoundstr(pfstr, opstr))
+
+    def save_to(self, filename):
+        """
+        Simple serialization and saving function for prediction object.
+
+        :Example:
+
+        .. code-block:: python
+
+            emu = emulator(...)
+
+            emupred = emu.predict(...)
+
+            emupred.save_to('emupred_example.pkl')
+
+            loaded_emupred = emulator.load_from('emupred_example.pkl')
+
+        """
+        save_file(self, filename)
+        return
 
 
 def _matrixmatching(mat1, mat2):

@@ -21,7 +21,7 @@ def map4(double[:] x1, double[:] x2, double[:,:] s, double[:,:] r, double g):
 
 
 def covmat(x1, x2, gammav, return_gradhyp=False, return_gradx1=False):
-    """Return the covariance between x1 and x2 given parameter gammav."""
+    """Return the Matern 3/2 covariance between x1 and x2 given parameter gammav."""
     x1 = x1.reshape(1, gammav.shape[0]-1)/np.exp(gammav[:-1]) \
         if x1.ndim < 1.5 else x1/np.exp(gammav[:-1])
     x2 = x2.reshape(1, gammav.shape[0]-1)/np.exp(gammav[:-1]) \
