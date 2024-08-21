@@ -1,4 +1,4 @@
-"""PCGPwM method - PCGP with Missingness (Chan et al., Technometrics 2024), an 
+"""PCGPwM method - PCGP with Missingness (Chan et al., Technometrics 2024), an
 extension to PCGP (Higdon et al., JASA 2008). """
 
 import numpy as np
@@ -6,6 +6,7 @@ import scipy.optimize as spo
 import scipy.linalg as spla
 import copy
 from surmise.emulationsupport.matern_covmat import covmat as __covmat
+from pprint import pformat
 
 
 def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
@@ -16,7 +17,7 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
     information into fitinfo, which is a python dictionary.
 
     .. note::
-       This method is summarized in (Chan et al., Technometrics 2024) and is a 
+       This method is summarized in (Chan et al., Technometrics 2024) and is a
        modification of the method proposed by (Higdon et al., JASA 2008).
        Refer to :py:func:`PCGP` for additional details.
 
@@ -130,6 +131,8 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, epsilonImpute=10e-6,
     fitinfo['logvarc'] = np.array([emulist[i]['hypvarconst'] for i in range(numpcs)])
     fitinfo['pcstdvar'] = np.exp(fitinfo['logvarc']) * fitinfo['unscaled_pcstdvar']
     fitinfo['emulist'] = emulist
+
+    __generate_param_str(fitinfo)
 
     return
 
@@ -929,4 +932,33 @@ def __verify_pcinfo(pcinfo, f):
         raise AttributeError('\'U\', the basis vectors must be provided.')
     if len(pcinfo.keys()) == 1:
         __fill_pcinfo(pcinfo, f)
+    return
+
+
+def __generate_param_str(fitinfo):
+    """
+    Generate a string to describe any information from the fitted emulator,
+    including magnitude of residuals, number of GP components, and a summary
+    of GP parameters.
+    """
+    numpc = len(fitinfo['emulist'])
+    extravar = fitinfo['standardpcinfo']['extravar']
+    gp_scales = 1/(1+np.exp(np.array([fitinfo['emulist'][k]['hyp'][-2] for k in range(numpc)])))
+    gp_lengthscales = np.array([fitinfo['emulist'][k]['hyp'][:-3] for k in range(numpc)])
+    gp_nuggets = np.array([fitinfo['emulist'][k]['nug'] for k in range(numpc)])
+
+    param_desc = '\taverage emulation residual variance (from principal components):\t{:.3E}\n' \
+                 '\tnumber of GP components:\t{:d}\n' \
+                 '\tGP parameters, following Gramacy (ch.5, 2022) notations:\n' \
+                 '\t\tscales (in log): \t{:s}\n' \
+                 '\t\tlengthscales (in log):\n\t\t\t{:s}\n' \
+                 '\t\tnuggets (in log):\t{:s}\n' \
+        .format(extravar.mean(),
+                numpc,
+                pformat(['{:.3f}'.format(np.log(x)) for x in gp_scales]),
+                pformat(gp_lengthscales).replace('\n', '\n\t\t\t'),
+                pformat(['{:.3f}'.format(np.log(x)) for x in gp_nuggets])
+                )
+
+    fitinfo['param_desc'] = param_desc
     return

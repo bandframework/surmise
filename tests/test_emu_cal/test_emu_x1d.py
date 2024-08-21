@@ -65,7 +65,7 @@ def does_not_raise():
     "input1,input2,expectation",
     [
      (x, theta, does_not_raise()),
-     (x.reshape((17, 1)), theta, pytest.raises(ValueError)),
+     (x.reshape((17, 1)), theta, does_not_raise()),
      ],
     )
 def test_predict_multi(input1, input2, expectation):

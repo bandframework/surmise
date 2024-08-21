@@ -9,7 +9,7 @@ on:
   push:
     branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, develop, v0.3-update ]
 
 jobs:
 

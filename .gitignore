@@ -2,6 +2,7 @@
 *__pycache__
 *.pyc
 *.pyd
+.ipynb_checkpoints/
 surmise_applications/
 build/
 venv*/

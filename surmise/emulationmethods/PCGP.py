@@ -1,6 +1,7 @@
 """PCGP (Higdon et al., 2008)"""
 import numpy as np
 import scipy.optimize as spo
+from pprint import pformat
 
 
 def fit(fitinfo, x, theta, f, epsilon=0.1, **kwargs):
@@ -62,6 +63,8 @@ def fit(fitinfo, x, theta, f, epsilon=0.1, **kwargs):
         emulist[pcanum] = emulation_fit(theta, fitinfo['pc'][:, pcanum])
 
     fitinfo['emulist'] = emulist
+
+    __generate_param_str(fitinfo)
     return
 
 
@@ -126,7 +129,7 @@ def predict(predinfo, fitinfo, x, theta, computecov=True, **kwargs):
         Rinv = infos[k]['Rinv']
         if computecov:
             predvars[:, k] = infos[k]['sigma2hat'] * \
-                (1 + np.exp(infos[k]['hypnug']) - np.sum(r.T*(Rinv @ r.T), 0))
+                             (1 + np.exp(infos[k]['hypnug']) - np.sum(r.T * (Rinv @ r.T), 0))
 
     pctscale = (fitinfo['pct'].T * fitinfo['scale']).T
 
@@ -139,7 +142,7 @@ def predict(predinfo, fitinfo, x, theta, computecov=True, **kwargs):
         predinfo['var'] = np.full((x.shape[0], theta.shape[0]), np.nan)
         predinfo['var'][xnewind, :] = (fitinfo['extravar'][xind] +
                                        (predvars @ pctscale[xind, :].T ** 2)).T
-        CH = (np.sqrt(predvars)[:, :, None]*(pctscale[xind, :].T)[None, :, :])
+        CH = (np.sqrt(predvars)[:, :, None] * (pctscale[xind, :].T)[None, :, :])
         predinfo['covxhalf'] = np.full((theta.shape[0],
                                         CH.shape[1],
                                         x.shape[0]), np.nan)
@@ -253,7 +256,7 @@ def emulation_negloglik(hyperparameters, fitinfo):
 
     # obtain the covariance matrix R
     R = emulation_covmat(theta, theta, covhyp)
-    R = R + np.exp(nughyp)*np.diag(np.ones(n))
+    R = R + np.exp(nughyp) * np.diag(np.ones(n))
 
     # eigendecomposition of R
     W, V = np.linalg.eigh(R)
@@ -261,14 +264,14 @@ def emulation_negloglik(hyperparameters, fitinfo):
     # MLEs for mu and sigma^2
     fspin = V.T @ f
     onespin = V.T @ np.ones(f.shape)
-    muhat = np.sum(V @ (1/W * fspin)) / np.sum(V @ (1/W * onespin))
+    muhat = np.sum(V @ (1 / W * fspin)) / np.sum(V @ (1 / W * onespin))
     fcenter = fspin - muhat * onespin
     sigma2hat = np.mean((fcenter) ** 2 / W)
 
     # Negative log-likelihood of a univariate GP model
-    negloglik = 1/2 * np.sum(np.log(W)) + n/2 * np.log(sigma2hat)
-    negloglik += 1/2 * np.sum((hyperparameters - fitinfo['hypregmean'])**2 /
-                              (fitinfo['hypregstd'] ** 2))
+    negloglik = 1 / 2 * np.sum(np.log(W)) + n / 2 * np.log(sigma2hat)
+    negloglik += 1 / 2 * np.sum((hyperparameters - fitinfo['hypregmean']) ** 2 /
+                                (fitinfo['hypregstd'] ** 2))
     return negloglik
 
 
@@ -299,17 +302,17 @@ def emulation_negloglikgrad(hyperparameters, fitinfo):
 
     # obtain the covariance matrix
     R, dR = emulation_covmat(theta, theta, covhyp, True)
-    R = R + np.exp(nughyp)*np.diag(np.ones(n))
-    dRappend = np.exp(nughyp)*np.diag(np.ones(n)).reshape(R.shape[0],
-                                                          R.shape[1], 1)
+    R = R + np.exp(nughyp) * np.diag(np.ones(n))
+    dRappend = np.exp(nughyp) * np.diag(np.ones(n)).reshape(R.shape[0],
+                                                            R.shape[1], 1)
     dR = np.append(dR, dRappend, axis=2)
 
     # MLEs for mu and sigma^2
     W, V = np.linalg.eigh(R)
     fspin = V.T @ f
     onespin = V.T @ np.ones(f.shape)
-    mudenom = np.sum(V @ (1/W * onespin))
-    munum = np.sum(V @ (1/W * fspin))
+    mudenom = np.sum(V @ (1 / W * onespin))
+    munum = np.sum(V @ (1 / W * fspin))
     muhat = munum / mudenom
     fcenter = fspin - muhat * onespin
     sigma2hat = np.mean((fcenter) ** 2 / W)
@@ -320,20 +323,21 @@ def emulation_negloglikgrad(hyperparameters, fitinfo):
     dfcentercalc = (fcenter / W) @ V.T
     dfspincalc = (fspin / W) @ V.T
     donespincalc = (onespin / W) @ V.T
-    Rinv = V @ np.diag(1/W) @ V.T
+    Rinv = V @ np.diag(1 / W) @ V.T
     dlogdet = np.zeros(p + 1)
 
     for k in range(0, dR.shape[2]):
         dRnorm = np.squeeze(dR[:, :, k])
-        dmuhat[k] = -np.sum(donespincalc @ dRnorm @ dfspincalc) \
-            / mudenom + \
-            muhat * (np.sum(donespincalc @ dRnorm @ donespincalc)/mudenom)
-        dsigma2hat[k] = -(1/n) * (dfcentercalc.T @ dRnorm @ dfcentercalc) + \
-            2*dmuhat[k] * np.mean((fcenter * onespin) / W)
+        dmuhat[k] = (-np.sum(donespincalc @ dRnorm @ dfspincalc)
+                     / mudenom +
+                     muhat * (np.sum(donespincalc @ dRnorm @ donespincalc) / mudenom)
+                     )
+        dsigma2hat[k] = (-(1 / n) * (dfcentercalc.T @ dRnorm @ dfcentercalc) +
+                         2 * dmuhat[k] * np.mean((fcenter * onespin) / W))
         dlogdet[k] = np.sum(Rinv * dRnorm)
 
     # Gradient of the log-likelihood of a single dimensional GP model.
-    dnegloglik = 1/2 * dlogdet + n/2 * 1/sigma2hat * dsigma2hat
+    dnegloglik = 1 / 2 * dlogdet + n / 2 * 1 / sigma2hat * dsigma2hat
     dnegloglik += ((hyperparameters - fitinfo['hypregmean']) /
                    (fitinfo['hypregstd'] ** 2))
     return dnegloglik
@@ -366,7 +370,7 @@ def emulation_fit(theta, pcaval):
     '''
     subinfo = {}
 
-    covhyp0 = np.log(np.std(theta, 0)*3) + 1
+    covhyp0 = np.log(np.std(theta, 0) * 3) + 1
     covhypLB = covhyp0 - 2
     covhypUB = covhyp0 + 3
 
@@ -375,7 +379,7 @@ def emulation_fit(theta, pcaval):
     nughypUB = 1
 
     # Get a random sample of thetas to find the optimized hyperparameters
-    n_train = np.min((20*theta.shape[1], theta.shape[0]))
+    n_train = np.min((20 * theta.shape[1], theta.shape[0]))
     idx = np.random.choice(theta.shape[0], n_train, replace=False)
 
     # Start constructing the returning dictionary
@@ -388,7 +392,7 @@ def emulation_fit(theta, pcaval):
     subinfo['p'] = covhyp0.shape[0]
 
     subinfo['hypregmean'] = np.append(covhyp0, nughyp0)
-    subinfo['hypregstd'] = np.append((covhypUB - covhypLB)/3, 4)
+    subinfo['hypregstd'] = np.append((covhypUB - covhypLB) / 3, 4)
 
     # Find the hyperparameters minimizing the negative loglikelihood
     bounds = spo.Bounds(np.append(covhypLB, nughypLB),
@@ -407,7 +411,7 @@ def emulation_fit(theta, pcaval):
 
     # Obtain the covariance matrix
     R = emulation_covmat(theta, theta, hypcov)
-    R = R + np.exp(hypnug)*np.diag(np.ones(R.shape[0]))
+    R = R + np.exp(hypnug) * np.diag(np.ones(R.shape[0]))
 
     # Obtain the eigenvalue decomposition of the covariance matrix
     W, V = np.linalg.eigh(R)
@@ -415,12 +419,12 @@ def emulation_fit(theta, pcaval):
     # MLEs for mu and sigma^2
     fspin = V.T @ pcaval
     onespin = V.T @ np.ones(pcaval.shape)
-    muhat = np.sum(V @ (1/W * fspin)) / np.sum(V @ (1/W * onespin))
+    muhat = np.sum(V @ (1 / W * fspin)) / np.sum(V @ (1 / W * onespin))
     fcenter = fspin - muhat * onespin
     sigma2hat = np.mean((fcenter) ** 2 / W)
 
     # Obtain the inverse of the covariance matrix
-    Rinv = V @ np.diag(1/W) @ V.T
+    Rinv = V @ np.diag(1 / W) @ V.T
 
     # Construct the dictionary with the fitted emulator
     subinfo['hypcov'] = hypcov
@@ -442,7 +446,7 @@ def __standardizef(fitinfo, offset=None, scale=None):
 
     if (offset is not None) and (scale is not None):
         if offset.shape[0] == f.shape[1] and scale.shape[0] == f.shape[1]:
-            if np.any(np.nanmean(np.abs(f-offset)/scale, 1) > 4):
+            if np.any(np.nanmean(np.abs(f - offset) / scale, 1) > 4):
                 offset = None
                 scale = None
         else:
@@ -484,12 +488,38 @@ def __PCs(fitinfo):
     pcstdvar = np.zeros((f.shape[0], pct.shape[1]))
 
     fitinfo['pcw'] = pcw
-    fitinfo['pcto'] = 1*pct
+    fitinfo['pcto'] = 1 * pct
     fitinfo['pct'] = pct * pcw / np.sqrt(pct.shape[0])
     fitinfo['pcti'] = pct * (np.sqrt(pct.shape[0]) / pcw)
     fitinfo['pc'] = fs @ fitinfo['pcti']
-    fitinfo['extravar'] = np.mean((fs - fitinfo['pc'] @
-                                   fitinfo['pct'].T) ** 2, 0) *\
-        (fitinfo['scale'] ** 2)
-    fitinfo['pcstdvar'] = 10*pcstdvar
+    fitinfo['extravar'] = (np.mean((fs - fitinfo['pc'] @
+                                   fitinfo['pct'].T) ** 2, 0) *
+                           (fitinfo['scale'] ** 2))
+    fitinfo['pcstdvar'] = 10 * pcstdvar
+    return
+
+
+def __generate_param_str(fitinfo):
+    """
+    Generate a string to describe any information from the fitted emulator,
+    including magnitude of residuals, number of GP components, and a summary
+    of GP parameters.
+    """
+    numpc = len(fitinfo['emulist'])
+    extravar = fitinfo['extravar']
+    gp_lengthscales = np.array([fitinfo['emulist'][k]['hypcov'] for k in range(numpc)])
+    gp_nuggets = np.array([fitinfo['emulist'][k]['hypnug'] for k in range(numpc)])
+
+    param_desc = '\taverage emulation residual variance (from principal components):\t{:.3E}\n' \
+                 '\tnumber of GP components:\t{:d}\n' \
+                 '\tGP parameters, following Gramacy (ch.5, 2022) notations:\n' \
+                 '\t\tlengthscales (in log):\n\t\t\t{:s}\n' \
+                 '\t\tnuggets (in log):\t{:s}\n' \
+        .format(extravar.mean(),
+                numpc,
+                pformat(gp_lengthscales).replace('\n', '\n\t\t\t'),
+                pformat(['{:.3f}'.format(x) for x in gp_nuggets])
+                )
+
+    fitinfo['param_desc'] = param_desc
     return
