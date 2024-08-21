@@ -879,9 +879,7 @@ class emulator(object):
 
         :Example:
         >>> emu = emulator(...)
-        >>> # save emulator object
         >>> emu.save_to('emu_example.pkl')
-        >>> # load emulator object
         >>> loaded_emu = emulator.load_from('emu_example.pkl')
         """
         save_file(self, filename)
@@ -1131,9 +1129,7 @@ class prediction(object):
         Example:
         >>> emu = emulator(...)
         >>> emupred = emu.predict(...)
-        >>> # save prediction object
         >>> emupred.save_to('emupred_example.pkl')
-        >>> # load prediction object
         >>> loaded_emupred = emulator.load_from('emupred_example.pkl')
         """
         save_file(self, filename)

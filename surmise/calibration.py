@@ -285,9 +285,7 @@ class calibrator(object):
 
         :Example:
         >>> cal = calibrator(...)
-        >>> # save calibrator object
         >>> cal.save_to('cal_example.pkl')
-        >>> # load calibrator object
         >>> loaded_cal = calibrator.load_from('cal_example.pkl')
         """
         save_file(self, filename)
@@ -421,9 +419,7 @@ class prediction(object):
         :Example:
         >>> cal = calibrator(...)
         >>> calpred = cal.predict(...)
-        >>> # save prediction object
         >>> calpred.save_to('calpred_example.pkl')
-        >>> # load prediction object
         >>> loaded_calpred = calibrator.load_from('calpred_example.pkl')
         """
         save_file(self, filename)
