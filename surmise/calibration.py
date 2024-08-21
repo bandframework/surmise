@@ -456,7 +456,6 @@ class prediction(object):
         return
 
 
-
 class thetadist(object):
     """
     A class to represent a theta predictive distribution.
