@@ -398,6 +398,7 @@ class prediction(object):
 
         return p, coverage
 
+
 class thetadist(object):
     """
     A class to represent a theta predictive distribution.
