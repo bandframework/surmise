@@ -420,6 +420,7 @@ class prediction(object):
         """
         raise ValueError('lpdf functionality not in method')
 
+
     def save_to(self, filename):
         """
         Simple serialization and save function for calibrator prediction object.

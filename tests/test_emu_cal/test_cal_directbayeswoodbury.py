@@ -84,7 +84,7 @@ def balldroptrue(x):
 
 obsvar = 4*np.ones(x.shape[0])
 y = balldroptrue(xv)
-emulator_1 = emulator(x=x, theta=theta_lin, f=f_lin, method='PCGP')
+emulator_1 = emulator(x=x, theta=theta_lin, f=f_lin, method='PCGPwM')
 # emulator_2 = emulator(x=x, theta=theta_lin, f=f_lin, method='PCGP')
 
 ##############################################

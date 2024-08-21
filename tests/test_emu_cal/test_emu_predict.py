@@ -58,14 +58,6 @@ xv = x.astype('float')
 
 class priorphys_lin:
     """ This defines the class instance of priors provided to the method. """
-    def lpdf(theta):
-        if theta.ndim > 1.5:
-            return np.squeeze(sps.norm.logpdf(theta[:, 0], 0, 5) +
-                              sps.gamma.logpdf(theta[:, 1], 2, 0, 10))
-        else:
-            return np.squeeze(sps.norm.logpdf(theta[0], 0, 5) +
-                              sps.gamma.logpdf(theta[1], 2, 0, 10))
-
     def rnd(n):
         return np.vstack((sps.norm.rvs(0, 5, size=n),
                           sps.gamma.rvs(2, 0, 10, size=n))).T
@@ -137,24 +129,11 @@ def test_predict_repr(expectation):
         assert repr(emu_pred) is not None
 
 
-# test to check the predict call()
-@pytest.mark.parametrize(
-    "expectation",
-    [
-     (pytest.raises(ValueError)),  # rnd is not in the method
-     ],
-    )
-def test_predict_call(expectation):
-    emu = emulator(x=x, theta=theta, f=f, method='PCGP')
-    emu_pred = emu.predict(x=x, theta=theta)
-    with expectation:
-        assert emu_pred(s=10) is not None
-
-
 # test to check the prediction.mean()
 @pytest.mark.parametrize(
     "input1,expectation",
     [
+     ('PCGPwM', does_not_raise()),
      ('PCGP', does_not_raise()),
      ],
     )
@@ -239,30 +218,17 @@ def test_prediction_covxhalf(input1, expectation):
 #     with expectation:
 #         assert pred.covxhalf_gradtheta() is not None
 
-
-# test to check the prediction.rnd()
-@pytest.mark.parametrize(
-    "input1,expectation",
-    [
-     ('PCGP', pytest.raises(ValueError)),
-     ],
-    )
-def test_prediction_rnd(input1, expectation):
-    emu = emulator(x=x, theta=theta, f=f, method=input1)
-    pred = emu.predict(x=x, theta=theta)
-    with expectation:
-        assert pred.rnd() is not None
-
-
 # test to check the prediction.lpdf()
 @pytest.mark.parametrize(
-    "input1,expectation",
+    "input1, return_grad, expectation",
     [
-     ('PCGP', pytest.raises(ValueError)),
+     ('PCGP', False, pytest.raises(ValueError)),
+     ('PCGPwM', True, does_not_raise()),
+     ('PCGPwM', False, does_not_raise()),
      ],
     )
-def test_prediction_lpdf(input1, expectation):
+def test_prediction_lpdf(input1, return_grad, expectation):
     emu = emulator(x=x, theta=theta, f=f, method=input1)
-    pred = emu.predict(x=x, theta=theta)
+    pred = emu.predict(x=x, theta=theta, args={'return_grad': return_grad})
     with expectation:
-        assert pred.lpdf() is not None
+        assert pred.lpdf(f=f) is not None

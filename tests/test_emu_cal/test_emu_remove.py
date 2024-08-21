@@ -3,6 +3,7 @@ import scipy.stats as sps
 import pytest
 from contextlib import contextmanager
 from surmise.emulation import emulator
+from surmise.calibration import calibrator
 
 
 ##############################################
@@ -108,19 +109,19 @@ def test_remove(input1, expectation):
 
 
 # test to check remove with a calibrator
-# @pytest.mark.parametrize(
-#     "input1,expectation",
-#     [
-#      (theta1, does_not_raise()),
-#      ],
-#     )
-# def test_remove_cal(input1, expectation):
-#     emu = emulator(x=x, theta=theta, f=f, method='PCGP')
-#     cal_bayes = calibrator(emu=emu,
-#                            y=y,
-#                            x=x,
-#                            thetaprior=priorphys_lin,
-#                            method='directbayeswoodbury',
-#                            yvar=obsvar)
-#     with expectation:
-#         assert emu.remove(theta=input1, cal=cal_bayes) is None
+@pytest.mark.parametrize(
+    "input1,expectation",
+    [
+     (theta1, does_not_raise()),
+     ],
+    )
+def test_remove_cal(input1, expectation):
+    emu = emulator(x=x, theta=theta, f=f, method='PCGP')
+    cal_bayes = calibrator(emu=emu,
+                           y=y,
+                           x=x,
+                           thetaprior=priorphys_lin,
+                           method='directbayeswoodbury',
+                           yvar=obsvar)
+    with expectation:
+        assert emu.remove(theta=input1, cal=cal_bayes) is None
