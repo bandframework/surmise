@@ -29,13 +29,11 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
-    - name: Install dependencies
+    - name: Setup python with tox
+      run: $CLONE_PATH/.github/workflows/install_tox.sh
+    - name: Setup test suite
       run: |
-        pip install --upgrade pip setuptools Cython
-        pip install numpy
-        pip install scipy
-        pip install -e .
-        pip install pytest pytest-cov
-    - name: Test with pytest
+        tox -vv --notest
+    - name: Run test suite
       run: |
-        ./tests/run-tests.sh
+        tox -e coverage
