@@ -32,10 +32,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
     - name: Setup python with tox
-      run: $CLONE_PATH/.github/workflows/install_tox.sh
-    - name: Setup test suite
-      run: |
-        tox -vv --notest
+      run: "$CLONE_PATH/.github/workflows/install_tox.sh"
     - name: Run test suite
       run: |
         tox -e coverage
