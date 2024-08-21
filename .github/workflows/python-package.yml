@@ -29,13 +29,12 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
-    - name: Install dependencies
+    - name: Install tox
       run: |
-        pip install --upgrade pip setuptools Cython
-        pip install numpy
-        pip install scipy
-        pip install -e .
-        pip install pytest pytest-cov
-    - name: Test with pytest
+        python -m pip install tox-gh>=1.2
+    - name: Setup test suite
       run: |
-        ./tests/run-tests.sh
+        tox -vv --notest
+    - name: Run test suite
+      run: |
+        tox -e coverage

@@ -1,3 +1,9 @@
+import dill
+import os
+
+##############################################
+#            Simple scenarios                #
+##############################################
 import numpy as np
 import scipy.stats as sps
 import pytest
@@ -71,61 +77,41 @@ f_f = timedrop(x_std, theta_f, x_range, theta_range)
 emulator_f_1 = emulator(x=x_std, theta=theta_f, f=f_f, method='PCGP')
 # emulator_f_2 = emulator(x=x_std, theta=theta_f, f=f_f, method='PCGP')
 
+
+##############################################
+# Unit tests to initialize an emulator class #
+##############################################
 args2 = {'theta0': np.array([[0.4]]),
          'numsamp': 20,
          'stepType': 'normal',
          'stepParam': [0.4]}
-args3 = {'theta0': np.array([[0.4]]),
-         'stepParam': [0.4]}
-args4 = {'theta0': np.array([[0.4]])}
-args5 = {'stepParam': [0.4]}
-
 
 @contextmanager
 def does_not_raise():
     yield
 
-
 @pytest.mark.parametrize(
-    "input1,input2,expectation",
+    "expectation",
     [
-     # (emulator_f_1, args1, does_not_raise()),
-     # (emulator_f_2, args1, does_not_raise()),
-     (emulator_f_1, args2, does_not_raise()),
-     (emulator_f_1, args3, does_not_raise()),
-     (emulator_f_1, args4, does_not_raise()),
-     (emulator_f_1, args5, does_not_raise()),
+     (does_not_raise()),
      ],
     )
-def test_cal_MLcal(input1, input2, expectation):
+def test_cal_saveload(expectation):
     with expectation:
-        assert calibrator(emu=input1,
-                          y=y,
-                          x=x_std,
-                          thetaprior=prior_balldrop,
-                          method='directbayes',
-                          yvar=obsvar,
-                          args=input2) is not None
+        cal = calibrator(emu=emulator_f_1,
+                         y=y,
+                         x=x_std,
+                         thetaprior=prior_balldrop,
+                         method='directbayes',
+                         yvar=obsvar,
+                         args=args2)
 
+        fname = 'test_cal_saveload.pkl'
+        cal.save_to(fname)
 
-@pytest.mark.parametrize(
-    "input1,expectation",
-    [
-     (x_std, does_not_raise()),
-     (None, does_not_raise()),
-     ],
-    )
-def test_cal_predict(input1, expectation):
-    cal_test = calibrator(emu=emulator_f_1,
-                          y=y,
-                          x=x_std,
-                          thetaprior=prior_balldrop,
-                          method='directbayes',
-                          yvar=obsvar,
-                          args=args2)
-    with expectation:
-        assert cal_test.predict(x=input1) is not None
-
+        calload = calibrator.load_from(fname)
+        assert calload.theta.mean() == cal.theta.mean()
+        os.remove(fname)
 
 @pytest.mark.parametrize(
     "expectation",
@@ -133,52 +119,20 @@ def test_cal_predict(input1, expectation):
      (does_not_raise()),
      ],
     )
-def test_repr(expectation):
-    cal = calibrator(emu=emulator_f_1,
-                     y=y,
-                     x=x_std,
-                     thetaprior=prior_balldrop,
-                     method='directbayes',
-                     yvar=obsvar,
-                     args=args2)
-    pred_test = cal.predict(x=x_std)
+def test_calpred_saveload(expectation):
     with expectation:
-        assert repr(pred_test) is not None
+        cal = calibrator(emu=emulator_f_1,
+                         y=y,
+                         x=x_std,
+                         thetaprior=prior_balldrop,
+                         method='directbayes',
+                         yvar=obsvar,
+                         args=args2)
+        calpred = cal.predict(x=x_std)
 
+        fname = 'test_calpred_saveload.pkl'
+        calpred.save_to(fname)
 
-@pytest.mark.parametrize(
-    "expectation",
-    [
-     (does_not_raise()),
-     ],
-    )
-def test_call(expectation):
-    cal = calibrator(emu=emulator_f_1,
-                     y=y,
-                     x=x_std,
-                     thetaprior=prior_balldrop,
-                     method='directbayes',
-                     yvar=obsvar,
-                     args=args2)
-    pred_test = cal.predict(x=x_std)
-    with expectation:
-        assert pred_test() is not None
-
-@pytest.mark.parametrize(
-    "expectation",
-    [
-     (does_not_raise()),
-     ],
-    )
-def test_call(expectation):
-    cal = calibrator(emu=emulator_f_1,
-                     y=y,
-                     x=x_std,
-                     thetaprior=prior_balldrop,
-                     method='directbayes',
-                     yvar=obsvar,
-                     args=args2)
-    calpred = cal.predict(x=x_std)
-    calpred.empirical_coverage()
-    with expectation:
-        assert (~np.isnan(calpred.info['coverage'])).all()
+        calpredload = calibrator.load_from(fname)
+        assert (calpredload.mean() == calpred.mean()).all()
+        os.remove(fname)

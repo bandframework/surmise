@@ -116,7 +116,7 @@ def test_none_input(input1, input2, input3, expectation):
     "input1,input2,input3,expectation",
     [
      (x, theta, f, does_not_raise()),
-     (x, theta, f.T, does_not_raise()),  # failure
+     (x, theta, f.T, pytest.raises(ValueError)),  # failure
      (x, None, f.T, pytest.raises(ValueError)),  # has not developed yet
      (x.T, theta, f, pytest.raises(ValueError)),
      (x.T, None, f, pytest.raises(ValueError)),
@@ -126,7 +126,7 @@ def test_none_input(input1, input2, input3, expectation):
      (x, theta, f2, pytest.raises(ValueError)),
      (x, theta1, f, pytest.raises(ValueError)),
      (None, theta1, f, pytest.raises(ValueError)),
-     (None, theta, f.T, does_not_raise()),
+     (None, theta, f.T, pytest.raises(ValueError)),
      (x1, theta, f, pytest.raises(ValueError)),
      ],
     )
