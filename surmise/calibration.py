@@ -1,4 +1,8 @@
+"""
+This module contains a class that implements the main calibration method.
+"""
 import numpy as np
+from .helper import cast_f64_dtype
 import importlib
 import copy
 import warnings
@@ -95,9 +99,9 @@ class calibrator(object):
         '''
         # cast to numpy.float64, currently only for theta and f.
         if y is not None:
-            y = self.cast_f64_dtype(y)
+            y = cast_f64_dtype(y)
         if yvar is not None:
-            yvar = self.cast_f64_dtype(yvar)
+            yvar = cast_f64_dtype(yvar)
 
         # default to showing all warnings
         if ('warnings' in args.keys()) and ~args['warnings']:
@@ -274,10 +278,6 @@ class calibrator(object):
         predobj = prediction(info, self)
         predobj.empirical_coverage()
         return predobj
-
-    @staticmethod
-    def cast_f64_dtype(x):
-        return np.array(x, dtype=np.float64)
 
     def save(self, filename):
         """

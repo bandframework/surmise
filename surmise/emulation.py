@@ -1,9 +1,8 @@
 """
 This module contains a class that implements the main emulation method.
 """
-import pickle
-
 import numpy as np
+from .helper import cast_f64_dtype
 import importlib
 import copy
 import warnings
@@ -81,9 +80,9 @@ class emulator(object):
         '''
         # cast to numpy.float64, currently only for theta and f.
         if theta is not None:
-            theta = self.cast_f64_dtype(theta)
+            theta = cast_f64_dtype(theta)
         if f is not None:
-            f = self.cast_f64_dtype(f)
+            f = cast_f64_dtype(f)
 
         # default to showing all warnings
         if ('warnings' in args.keys()) and ~args['warnings']:
@@ -873,10 +872,6 @@ class emulator(object):
             else:
                 theta = theta[j, :]
         return x, theta, f
-
-    @staticmethod
-    def cast_f64_dtype(x):
-        return np.array(x, dtype=np.float64)
 
     def save(self, filename):
         """
