@@ -77,9 +77,8 @@ def sampler(logpost_func,
         logpost = logpost_func(theta_cand, return_grad=False).item()
 
         if np.isfinite(logpost):
-            logp_accept = min(0, logpost - lposterior[i-1])
-            # p_accept = min(1, np.exp(logpost - lposterior[i-1]))
-            accept = np.random.uniform() < np.exp(logp_accept)
+            p_accept = min(1, np.exp(logpost - lposterior[i-1]))
+            accept = np.random.uniform() < p_accept
         else:
             accept = False
 

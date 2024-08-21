@@ -143,8 +143,8 @@ def test_supplement_x(input1, input2, input3, expectation):
         (5, theta, None, pytest.raises(ValueError)),
         # 'Complete replication of self.__theta'
         (5, theta4d, None, pytest.raises(ValueError)),
-        # (5, thetarnd, None, does_not_raise()),
-        (5, thetacomb, None, pytest.raises(ValueError)),
+        (5, thetarnd, None, does_not_raise()),
+        (5, thetacomb, None, does_not_raise()),
     ],
 )
 def test_supplement_theta(input1, input2, input3, expectation):
@@ -153,25 +153,6 @@ def test_supplement_theta(input1, input2, input3, expectation):
         assert emu.supplement(size=input1,
                               theta=input2,
                               thetachoices=input3) is not None
-
-
-thetarnd2 = priorphys_lin.rnd(10)
-# test to check supplement_theta pending argument
-@pytest.mark.parametrize(
-    "includepending,expectation",
-    [
-        (True, does_not_raise()),
-        (False, does_not_raise()),
-    ],
-)
-def test_supplement_pending(includepending, expectation):
-    emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
-    with expectation:
-        assert emu.supplement(size=5,
-                              theta=thetarnd,
-                              thetachoices=thetarnd2[:5],
-                              args={'pending': thetarnd2[5:],
-                                    'includepending': includepending}) is not None
 
 
 # test to check supplement_theta

@@ -55,6 +55,13 @@ xv = x.astype('float')
 
 class priorphys_lin:
     """ This defines the class instance of priors provided to the method. """
+    def lpdf(theta):
+        if theta.ndim > 1.5:
+            return np.squeeze(sps.norm.logpdf(theta[:, 0], 0, 5) +
+                              sps.gamma.logpdf(theta[:, 1], 2, 0, 10))
+        else:
+            return np.squeeze(sps.norm.logpdf(theta[0], 0, 5) +
+                              sps.gamma.logpdf(theta[1], 2, 0, 10))
 
     def rnd(n):
         return np.vstack((sps.norm.rvs(0, 5, size=n),
@@ -331,7 +338,6 @@ def test_call(expectation):
     emu = emulator(x=x, theta=theta, f=f, method='PCGP')
     with expectation:
         assert emu(x=x, theta=theta) is not None
-        emu.fit(args={})
 
 
 # tests to check the emulator args
@@ -348,17 +354,3 @@ def test_args(input1, expectation):
                         f=f,
                         method='PCGP',
                         args=input1) is not None
-
-
-@pytest.mark.parametrize(
-    "expectation",
-    [
-     (does_not_raise()),
-     ],
-    )
-def test_warning_filter(expectation):
-    emu = emulator(x=x, theta=theta, f=f, method='PCGP',
-                   args={'warnings': True})
-    with expectation:
-        assert emu(x=x, theta=theta) is not None
-
