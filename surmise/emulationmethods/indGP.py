@@ -404,11 +404,10 @@ def __generate_param_str(fitinfo):
                  '\tGP parameters, following Gramacy (ch.5, 2022) notations:\n' \
                  '\t\tlengthscales (in log):\n\t\t\t{:s}\n' \
                  '\t\tnuggets (in log):\t{:s}\n' \
-        .format(
-        numpc,
-        pformat(gp_lengthscales).replace('\n', '\n\t\t\t'),
-        pformat(['{:.3f}'.format(np.log(x)) for x in gp_nuggets])
-    )
+        .format(numpc,
+                pformat(gp_lengthscales).replace('\n', '\n\t\t\t'),
+                pformat(['{:.3f}'.format(np.log(x)) for x in gp_nuggets])
+                )
 
     fitinfo['param_desc'] = param_desc
     return

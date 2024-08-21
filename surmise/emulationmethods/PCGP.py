@@ -328,11 +328,12 @@ def emulation_negloglikgrad(hyperparameters, fitinfo):
 
     for k in range(0, dR.shape[2]):
         dRnorm = np.squeeze(dR[:, :, k])
-        dmuhat[k] = -np.sum(donespincalc @ dRnorm @ dfspincalc) \
-                    / mudenom + \
-                    muhat * (np.sum(donespincalc @ dRnorm @ donespincalc) / mudenom)
-        dsigma2hat[k] = -(1 / n) * (dfcentercalc.T @ dRnorm @ dfcentercalc) + \
-                        2 * dmuhat[k] * np.mean((fcenter * onespin) / W)
+        dmuhat[k] = (-np.sum(donespincalc @ dRnorm @ dfspincalc)
+                     / mudenom +
+                     muhat * (np.sum(donespincalc @ dRnorm @ donespincalc) / mudenom)
+                     )
+        dsigma2hat[k] = (-(1 / n) * (dfcentercalc.T @ dRnorm @ dfcentercalc) +
+                         2 * dmuhat[k] * np.mean((fcenter * onespin) / W))
         dlogdet[k] = np.sum(Rinv * dRnorm)
 
     # Gradient of the log-likelihood of a single dimensional GP model.
@@ -491,9 +492,9 @@ def __PCs(fitinfo):
     fitinfo['pct'] = pct * pcw / np.sqrt(pct.shape[0])
     fitinfo['pcti'] = pct * (np.sqrt(pct.shape[0]) / pcw)
     fitinfo['pc'] = fs @ fitinfo['pcti']
-    fitinfo['extravar'] = np.mean((fs - fitinfo['pc'] @
-                                   fitinfo['pct'].T) ** 2, 0) * \
-                          (fitinfo['scale'] ** 2)
+    fitinfo['extravar'] = (np.mean((fs - fitinfo['pc'] @
+                                   fitinfo['pct'].T) ** 2, 0) *
+                           (fitinfo['scale'] ** 2))
     fitinfo['pcstdvar'] = 10 * pcstdvar
     return
 
@@ -514,12 +515,11 @@ def __generate_param_str(fitinfo):
                  '\tGP parameters, following Gramacy (ch.5, 2022) notations:\n' \
                  '\t\tlengthscales (in log):\n\t\t\t{:s}\n' \
                  '\t\tnuggets (in log):\t{:s}\n' \
-        .format(
-        extravar.mean(),
-        numpc,
-        pformat(gp_lengthscales).replace('\n', '\n\t\t\t'),
-        pformat(['{:.3f}'.format(x) for x in gp_nuggets])
-    )
+        .format(extravar.mean(),
+                numpc,
+                pformat(gp_lengthscales).replace('\n', '\n\t\t\t'),
+                pformat(['{:.3f}'.format(x) for x in gp_nuggets])
+                )
 
     fitinfo['param_desc'] = param_desc
     return

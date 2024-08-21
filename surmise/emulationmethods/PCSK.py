@@ -634,13 +634,12 @@ def __generate_param_str(fitinfo):
                  '\t\tscales (in log): \t{:s}\n' \
                  '\t\tlengthscales (in log):\n\t\t\t{:s}\n' \
                  '\t\tnuggets (in log):\t{:s}\n' \
-        .format(
-        extravar.mean(),
-        numpc,
-        pformat(['{:.3f}'.format(np.log(x)) for x in gp_scales]),
-        pformat(gp_lengthscales).replace('\n', '\n\t\t\t'),
-        pformat(['{:.3f}'.format(np.log(x)) for x in gp_nuggets])
-    )
+        .format(extravar.mean(),
+                numpc,
+                pformat(['{:.3f}'.format(np.log(x)) for x in gp_scales]),
+                pformat(gp_lengthscales).replace('\n', '\n\t\t\t'),
+                pformat(['{:.3f}'.format(np.log(x)) for x in gp_nuggets])
+                )
 
     fitinfo['param_desc'] = param_desc
     return

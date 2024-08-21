@@ -180,9 +180,9 @@ class emulator(object):
                 '\tnumber of outputs:\t{:d}\n'
                 '\tnumber of parameter inputs:\t{:d}\n'
                 '\tparameter dimension:\t{:d}\n'.format(self._info['method'],
-                                                       self.__f.shape[0],
-                                                       self.__f.shape[1],
-                                                       self.__theta.shape[1])
+                                                        self.__f.shape[0],
+                                                        self.__f.shape[1],
+                                                        self.__theta.shape[1])
                 )
 
         if 'param_desc' in self._info:
@@ -888,6 +888,7 @@ class emulator(object):
     def load_from(filename):
         return load_file(filename)
 
+
 class prediction(object):
     '''
     A class to represent an emulation prediction. predict._info returns the
@@ -1167,4 +1168,3 @@ def _matrixmatching(mat1, mat2):
 
     nc = np.array(list(set(range(0, mat2.shape[0])) - set(c))).astype('int')
     return nc, c, r
-
