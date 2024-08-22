@@ -84,7 +84,7 @@ class emulator(object):
             f = cast_f64_dtype(f)
 
         # default to showing all warnings
-        if ('warnings' in args.keys()) and ~args['warnings']:
+        if ('warnings' in args.keys()) and not args['warnings']:
             warnings.simplefilter('ignore')
         else:
             warnings.resetwarnings()
