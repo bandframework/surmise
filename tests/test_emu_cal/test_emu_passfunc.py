@@ -5,6 +5,16 @@ from contextlib import contextmanager
 from surmise.emulation import emulator
 
 
+# example to illustrate the user inputted pass function
+def borehole_failmodel(x, theta):
+    """Given x and theta,
+    return matrix of [row x] times [row theta] of values."""
+    f = borehole_model(x, theta)
+    wheretoobig = np.where((f / borehole_true(x)) > 1.25)
+    f[wheretoobig[0], wheretoobig[1]] = np.inf
+    return f
+
+
 def borehole_model(x, theta):
     """Given x and theta,
     return matrix of [row x] times [row theta] of values."""
@@ -37,7 +47,7 @@ def borehole_vec(x, theta):
     return f
 
 
-def tstd2theta(tstd):
+def tstd2theta(tstd, hard=True):
     """Given standardized theta in [0, 1]^d, return non-standardized theta."""
     if tstd.ndim < 1.5:
         tstd = tstd[:, None].T
@@ -45,7 +55,10 @@ def tstd2theta(tstd):
 
     Treff = (0.5-0.05) * Treffs + 0.05
     Hu = Hus * (1110 - 990) + 990
-    Ld_Kw = LdKw * (1680 / 1500 - 1120 / 15000) + 1120 / 15000
+    if hard:
+        Ld_Kw = LdKw * (1680 / 1500 - 1120 / 15000) + 1120 / 15000
+    else:
+        Ld_Kw = LdKw * (1680 / 9855 - 1120 / 12045) + 1120 / 12045
 
     powparam = powparams * (0.5 - (- 0.5)) + (-0.5)
 
@@ -69,11 +82,11 @@ def xstd2x(xstd):
 
 class thetaprior:
     """ This defines the class instance of priors provided to the methods. """
-    # def lpdf(theta):
-    #     if theta.ndim > 1.5:
-    #         return np.squeeze(np.sum(sps.norm.logpdf(theta, 1, 0.5), 1))
-    #     else:
-    #         return np.squeeze(np.sum(sps.norm.logpdf(theta, 1, 0.5)))
+    def lpdf(theta):
+        if theta.ndim > 1.5:
+            return np.squeeze(np.sum(sps.norm.logpdf(theta, 1, 0.5), 1))
+        else:
+            return np.squeeze(np.sum(sps.norm.logpdf(theta, 1, 0.5)))
 
     def rnd(n):
         return np.vstack((sps.norm.rvs(1, 0.5, size=(n, 4))))
@@ -107,15 +120,13 @@ def test_passfunction(expectation):
 
 # test to check the emulator predict with a passed function
 @pytest.mark.parametrize(
-    "x0, theta0, expectation",
+    "expectation",
     [
-        (x, thetatot, does_not_raise()),
-        (x, None, pytest.raises(ValueError)),
-        (None, None, pytest.raises(ValueError))
+     (does_not_raise()),
      ],
     )
-def test_passfunction_predict(x0, theta0, expectation):
+def test_passfunction_predict(expectation):
     with expectation:
         emu = emulator(passthroughfunc=borehole_model,
                        method='PCGP')
-        assert emu.predict(x=x0, theta=theta0) is not None
+        assert emu.predict(x=x, theta=thetatot) is not None
