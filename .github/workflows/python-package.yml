@@ -45,6 +45,7 @@ jobs:
         python -m pip install --upgrade wheel
         python -m pip install -e $CLONE_PATH
         # Optional surmise dependencies needed here
+        python -m pip install Cython
         python -m pip install scikit-learn
         python -m pip install pytest
         echo
