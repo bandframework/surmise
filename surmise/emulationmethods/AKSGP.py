@@ -16,6 +16,92 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+# Function to define the kernels as a dictionary
+def get_kernels(input_dim):
+    """
+    Returns a dictionary of Gaussian Process kernels with names as keys and corresponding kernel objects as values.
+    These kernels are availaible for training. Add more kernels here as desired.
+
+    Parameters:
+        input_dim (int): The dimensionality of the input space used to define the kernel length scales.
+
+    Returns:
+        dict: A dictionary where keys are kernel names (str) and values are kernel objects (sklearn.gaussian_process.kernels.Kernel).
+    """
+    
+    kernel_dict = {
+        'Matern12': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05), nu=0.5),
+        'Matern32': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05), nu=1.5),
+        'Matern52': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05), nu=2.5),
+        'RBF': 1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05)),
+        # 'RationalQuadratic+Matern12': RationalQuadratic(length_scale=1.0, alpha=1.0) + 
+        #                         1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=0.5),
+        # 'RationalQuadratic+Matern32': RationalQuadratic(length_scale=1.0, alpha=1.0) + 
+        #                         1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=1.5),
+        # 'RationalQuadratic+Matern52': RationalQuadratic(length_scale=1.0, alpha=1.0) + 
+        #                         1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=2.5),
+        # 'RationalQuadratic+RBF': RationalQuadratic(length_scale=1.0, alpha=1.0) + 
+        #                         1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05)),
+        # 'DotProduct+Matern12': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) + 
+        #                         1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=0.5),
+        # 'DotProduct+Matern32': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) + 
+        #                         1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=1.5),
+        # 'DotProduct+Matern52': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) + 
+        #                         1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=2.5),
+        # 'DotProduct+RBF': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) + 
+        #                     1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05)),
+        # 'RationalQuadratic*Matern12': RationalQuadratic(length_scale=1.0, alpha=1.0) * 
+        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=0.5),
+        # 'RationalQuadratic*Matern32': RationalQuadratic(length_scale=1.0, alpha=1.0) * 
+        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=1.5),
+        # 'RationalQuadratic*Matern52': RationalQuadratic(length_scale=1.0, alpha=1.0) * 
+        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=2.5),
+        # 'RationalQuadratic*RBF': RationalQuadratic(length_scale=1.0, alpha=1.0) * 
+        #                         RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05)),
+        # 'DotProduct*Matern12': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) * 
+        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=0.5),
+        # 'DotProduct*Matern32': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) * 
+        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=1.5),
+        # 'DotProduct*Matern52': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) * 
+        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=2.5),
+        # 'DotProduct*RBF': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) * 
+        #                     RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05)),
+        }
+    
+    return kernel_dict
+
+# Function to define the distance metrics as a dictionary
+def get_metrics():
+    """
+    Returns a dictionary of metric functions used to evaluate Gaussian distributions.
+
+    Returns:
+        dict: A dictionary where keys are metric names (str) and values are functions that compute the 
+              metric for Gaussian distributions given the means and standard deviations.
+    """
+    
+    def kl_divergence_gaussian(mu1, sigma1, mu2, sigma2):
+        return np.log(sigma2 / sigma1) + (sigma1**2 + (mu1 - mu2)**2) / (2.0 * sigma2**2) - 0.5
+
+    def hellinger_distance_gaussian(mu1, sigma1, mu2, sigma2):
+        term1 = np.sqrt(2.0 * sigma1 * sigma2 / (sigma1**2 + sigma2**2))
+        term2 = np.exp(-0.25 * (mu1 - mu2)**2 / (sigma1**2 + sigma2**2))
+        return np.sqrt(1.0 - term1 * term2)
+
+    def wasserstein_distance_gaussian(mu1, sigma1, mu2, sigma2):
+        return np.sqrt((mu1 - mu2)**2 + (sigma1 - sigma2)**2)
+
+    metric_list = {
+        'KL Divergence': kl_divergence_gaussian,
+        'Hellinger Distance': hellinger_distance_gaussian,
+        'Wasserstein Distance': wasserstein_distance_gaussian
+        }
+
+    return metric_list
+
+
+########################################################################################################
+# Emulator class to fit and predict
 class Emulator:
     def __init__(self, X, Y_mean, Y_std):
         """
@@ -58,63 +144,14 @@ class Emulator:
         # Initialize the dictionaries of kernels and metrics for best kernel selction 
         input_dim = self.X.shape[1]  # dimensionality of input space
         
-        self.kernels = {'Matern12': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05), nu=0.5),
-                        'Matern32': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05), nu=1.5),
-                        'Matern52': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05), nu=2.5),
-                        'RBF': 1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05)),
-                        # 'RationalQuadratic*Matern12': RationalQuadratic(length_scale=1.0, alpha=1.0) * 
-                        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=0.5),
-                        # 'RationalQuadratic*Matern32': RationalQuadratic(length_scale=1.0, alpha=1.0) * 
-                        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=1.5),
-                        # 'RationalQuadratic*Matern52': RationalQuadratic(length_scale=1.0, alpha=1.0) * 
-                        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=2.5),
-                        # 'RationalQuadratic*RBF': RationalQuadratic(length_scale=1.0, alpha=1.0) * 
-                        #                         RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05)),
-                        'RationalQuadratic+Matern12': RationalQuadratic(length_scale=1.0, alpha=1.0) + 
-                                                1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=0.5),
-                        'RationalQuadratic+Matern32': RationalQuadratic(length_scale=1.0, alpha=1.0) + 
-                                                1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=1.5),
-                        'RationalQuadratic+Matern52': RationalQuadratic(length_scale=1.0, alpha=1.0) + 
-                                                1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=2.5),
-                        'RationalQuadratic+RBF': RationalQuadratic(length_scale=1.0, alpha=1.0) + 
-                                                1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05)),
-                        # 'DotProduct*Matern12': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) * 
-                        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=0.5),
-                        # 'DotProduct*Matern32': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) * 
-                        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=1.5),
-                        # 'DotProduct*Matern52': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) * 
-                        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=2.5),
-                        # 'DotProduct*RBF': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) * 
-                        #                     RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05)),
-                        'DotProduct+Matern12': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) + 
-                                                1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=0.5),
-                        'DotProduct+Matern32': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) + 
-                                                1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=1.5),
-                        'DotProduct+Matern52': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) + 
-                                                1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=2.5),
-                        'DotProduct+RBF': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) + 
-                                            1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05)),
-                        }
-        
-        self.metrics = {'KL Divergence': self.kl_divergence_gaussian,
-                        'Hellinger Distance': self.hellinger_distance_gaussian,
-                        'Wasserstein Distance': self.wasserstein_distance_gaussian
-                        }
-        
-    # ----------------------------------------------------------------------------------------
+        # Initialize the kernel and metric dictionaries
+        self.kernels = get_kernels(input_dim)
+        self.metrics = get_metrics()
+
+        # Check if the kernel and metric dictionaries exist
+        if not self.kernels or not self.metrics:
+            raise ValueError("Kernel list or metric list is empty or not defined properly.")
     
-    # Define more metrics here and above. These would be considered in the automatic kernel selection process.
-    def kl_divergence_gaussian(self, mu1, sigma1, mu2, sigma2):
-        return np.log(sigma2 / sigma1) + (sigma1**2 + (mu1 - mu2)**2) / (2.0 * sigma2**2) - 0.5
-
-    def hellinger_distance_gaussian(self, mu1, sigma1, mu2, sigma2):
-        term1 = np.sqrt(2.0 * sigma1 * sigma2 / (sigma1**2 + sigma2**2))
-        term2 = np.exp(-0.25 * (mu1 - mu2)**2 / (sigma1**2 + sigma2**2))
-        return np.sqrt(1.0 - term1 * term2)
-
-    def wasserstein_distance_gaussian(self, mu1, sigma1, mu2, sigma2):
-        return np.sqrt((mu1 - mu2)**2 + (sigma1 - sigma2)**2)
-
     # ---------------------------------------------------------------------------------------------
     
     def fit(self, kernel: str = 'AKS', nrestarts: int = 10, n_jobs: int = -1, seed: int = None) -> None:
@@ -124,17 +161,19 @@ class Emulator:
         
         Parameters:
             kernel (str): The type of kernel to use for the Gaussian Process. Default is 'AKS' -- Automatic kernel selection. 
-            List of kernels should be defined in "kernel_list()". Options include:
-                - 'AKS' : The function will train GPs with all kernels defined in 'kernel_list' and automatically select the best one.
+            List of kernels should be defined in "get_kernels()". Options include:
+                - 'AKS' : The function will train GPs with all kernels defined in 'get_kernels()' and automatically select the best one.
                           The best kernel is chosen by fitting GPs (with 90% of training data) using each kernel and evaluating their 
-                          performance using different distance metrics defined in "_define_metrics()" (like KL divergence, Hellinger dist,
-                          Wasserstein dist) on the rest 10% of the traning data. See the "_select_best_kernels" function for more details.
+                          performance using different distance metrics defined in 'get_metrics()' (KL divergence, Hellinger distance,
+                          Wasserstein distance) on the rest 10% of the training data. 
+                          See the "_select_best_kernels()" function for more details.
                           The GPs are then retrained with the selected kernels for each output dimension with all training data.
-                - 'RBF': Radial Basis Function kernel.
                 - 'Matern12': Matern kernel with nu=0.5.
                 - 'Matern32': Matern kernel with nu=1.5.
                 - 'Matern52': Matern kernel with nu=2.5.
-            
+                - 'RBF': Radial Basis Function kernel.
+                - ...
+                
             nrestarts (int, optional): Number of restarts for the optimizer to improve convergence. Default is 10.
             
             n_jobs (int, optional): Number of CPU cores to use for parallel processing. 
@@ -560,5 +599,5 @@ class Emulator:
             best_kernels.append(best_kernel)  # Append the best kernel to the list
     
         return best_kernels
-
+########################################################################################################
 
