@@ -135,7 +135,8 @@ def test_predict_repr(expectation):
     [
      ('PCGPwM', does_not_raise()),
      ('PCGP', does_not_raise()),
-     ('indGP', does_not_raise())
+     ('indGP', does_not_raise()),
+     ('PCGPwImpute', does_not_raise()),
      ],
     )
 def test_prediction_mean(input1, expectation):
@@ -166,7 +167,8 @@ def test_prediction_mean(input1, expectation):
     [
      ('PCGPwM', does_not_raise()),
      ('PCGP', does_not_raise()),
-     ('indGP', does_not_raise())
+     ('indGP', does_not_raise()),
+     ('PCGPwImpute', does_not_raise()),
      ],
     )
 def test_prediction_var(input1, expectation):
@@ -229,6 +231,8 @@ def test_prediction_covxhalf_gradtheta(input1, expectation):
      ('PCGP', False, pytest.raises(ValueError)),
      ('PCGPwM', True, does_not_raise()),
      ('PCGPwM', False, does_not_raise()),
+     ('PCGPwImpute', True, does_not_raise()),
+     ('PCGPwImpute', False, does_not_raise()),
      ],
     )
 def test_prediction_lpdf(input1, return_grad, expectation):
