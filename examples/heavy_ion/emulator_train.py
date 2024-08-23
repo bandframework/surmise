@@ -15,7 +15,8 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('emulator_train.log', mode='w'),  # Log to file
+        # logging.FileHandler('emulator_train_allKernels.log', mode='w'),  # Log to file
+        logging.FileHandler('emulator_train_baseKernels.log', mode='w'),  # Log to file
         logging.StreamHandler()  # Log to console
     ]
 )
@@ -51,7 +52,9 @@ emu.fit(kernel='AKS', nrestarts=20)
 
 
 # Save the trained emulator object to a file using dill and gzip
-with gzip.open('emulator_AKS.dill.gz', 'wb') as f:
+
+# with gzip.open('emulator_AKS_allKernels.dill.gz', 'wb') as f:
+with gzip.open('emulator_AKS_baseKernels.dill.gz', 'wb') as f:
     dill.dump(emu, f)
 
 
