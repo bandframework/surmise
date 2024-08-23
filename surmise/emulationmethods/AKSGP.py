@@ -2,12 +2,20 @@
 '''
 Created Aug 2024
 
-@authors: Sunil Jaiswal (jaiswal.61@osu.edu)
+@author: Sunil Jaiswal (jaiswal.61@osu.edu)
+
+Reference:
+    This implementation is based on the methodology proposed in the following paper:
+    Sunil Jaiswal et al., "Title of the Paper," arXiv:xxxx.xxxxx, Year.
+    Available at: https://arxiv.org/abs/xxxx.xxxxx
+
+Note:
+    This file can be used as a standalone module without additional dependencies from the SURMISE package.
 '''
 
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from sklearn.gaussian_process.kernels import Matern, RBF, DotProduct, RationalQuadratic, ConstantKernel
+from sklearn.gaussian_process.kernels import Matern, RBF, DotProduct, RationalQuadratic, ExpSineSquared
 from sklearn.gaussian_process import GaussianProcessRegressor
 from joblib import Parallel, delayed
 import logging
@@ -20,52 +28,100 @@ logger = logging.getLogger(__name__)
 def get_kernels(input_dim):
     """
     Returns a dictionary of Gaussian Process kernels with names as keys and corresponding kernel objects as values.
-    These kernels are availaible for training. Add more kernels here as desired.
+    These kernels are availaible for training and can be extended by adding more combinations
+
+    The kernels are designed to accommodate different modeling needs by combining anisotropic and isotropic 
+    kernels in various ways. Anisotropic kernels have different length scales for each dimension, while isotropic 
+    kernels have a uniform length scale across all dimensions.
+
+    Considered Kernels:
+    - **Anisotropic and Stationary Base Kernels:**
+        - `Matern12`: Equivalent to the exponential kernel with nu=0.5.
+        - `Matern32`: Matern kernel with nu=1.5.
+        - `Matern52`: Matern kernel with nu=2.5.
+        - `RBF`: Radial Basis Function (Gaussian) kernel.
+    
+    - **Isotropic Kernels:**
+        - `DotProduct`: Non-stationary kernel, useful for modeling linear trends.
+        - `ExpSineSquared`: Stationary kernel, ideal for periodic data.
+        - `RationalQuadratic`: Stationary kernel, a scale mixture of RBF kernels, useful for varying smoothness.
+
+    Included Kernels:
+    - **Base Kernels (Anisotropic and Stationary):**
+        - `Matern12`, `Matern32`, `Matern52`, `RBF`.
+    
+    - **Kernel Combinations:**
+        - Each isotropic kernel is combined with the base kernels through addition (`+`) and multiplication (`*`) to 
+          capture different interactions between the features:
+            - `DotProduct + Matern12`, `DotProduct * Matern12`, etc.
+            - `ExpSineSquared + Matern32`, `ExpSineSquared * Matern32`, etc.
+            - `RationalQuadratic + RBF`, `RationalQuadratic * RBF`, etc.
 
     Parameters:
         input_dim (int): The dimensionality of the input space used to define the kernel length scales.
 
     Returns:
-        dict: A dictionary where keys are kernel names (str) and values are kernel objects (sklearn.gaussian_process.kernels.Kernel).
+        kernel_dict (dict): A dictionary where keys are kernel names (str) and values are kernel objects (sklearn.gaussian_process.kernels).
     """
-    
+
+    lb = 1e-5
+    ub = 1e5
     kernel_dict = {
-        'Matern12': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05), nu=0.5),
-        'Matern32': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05), nu=1.5),
-        'Matern52': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05), nu=2.5),
-        'RBF': 1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05)),
-        # 'RationalQuadratic+Matern12': RationalQuadratic(length_scale=1.0, alpha=1.0) + 
-        #                         1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=0.5),
-        # 'RationalQuadratic+Matern32': RationalQuadratic(length_scale=1.0, alpha=1.0) + 
-        #                         1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=1.5),
-        # 'RationalQuadratic+Matern52': RationalQuadratic(length_scale=1.0, alpha=1.0) + 
-        #                         1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=2.5),
-        # 'RationalQuadratic+RBF': RationalQuadratic(length_scale=1.0, alpha=1.0) + 
-        #                         1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05)),
-        # 'DotProduct+Matern12': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) + 
-        #                         1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=0.5),
-        # 'DotProduct+Matern32': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) + 
-        #                         1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=1.5),
-        # 'DotProduct+Matern52': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) + 
-        #                         1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=2.5),
-        # 'DotProduct+RBF': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) + 
-        #                     1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05)),
-        # 'RationalQuadratic*Matern12': RationalQuadratic(length_scale=1.0, alpha=1.0) * 
-        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=0.5),
-        # 'RationalQuadratic*Matern32': RationalQuadratic(length_scale=1.0, alpha=1.0) * 
-        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=1.5),
-        # 'RationalQuadratic*Matern52': RationalQuadratic(length_scale=1.0, alpha=1.0) * 
-        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=2.5),
-        # 'RationalQuadratic*RBF': RationalQuadratic(length_scale=1.0, alpha=1.0) * 
-        #                         RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05)),
-        # 'DotProduct*Matern12': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) * 
-        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=0.5),
-        # 'DotProduct*Matern32': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) * 
-        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=1.5),
-        # 'DotProduct*Matern52': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) * 
-        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=2.5),
-        # 'DotProduct*RBF': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) * 
-        #                     RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05)),
+        'Matern12': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub), nu=0.5),
+        'Matern32': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub), nu=1.5),
+        'Matern52': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub), nu=2.5),
+        'RBF': 1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub)),
+        # 
+        'DotProduct+Matern12': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) + 
+                                1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
+        'DotProduct+Matern32': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) + 
+                                1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
+        'DotProduct+Matern52': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) + 
+                                1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
+        'DotProduct+RBF': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) + 
+                            1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub)),
+        'DotProduct*Matern12': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) * 
+                                1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
+        'DotProduct*Matern32': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) * 
+                                1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
+        'DotProduct*Matern52': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) * 
+                                1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
+        'DotProduct*RBF': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) * 
+                            1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub)),
+        # 
+        'ExpSineSquared+Matern12': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) + 
+                                    1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
+        'ExpSineSquared+Matern32': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) + 
+                                    1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
+        'ExpSineSquared+Matern52': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) + 
+                                    1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
+        'ExpSineSquared+RBF': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) + 
+                                1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub)),
+        'ExpSineSquared*Matern12': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) * 
+                                    1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
+        'ExpSineSquared*Matern32': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) * 
+                                    1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
+        'ExpSineSquared*Matern52': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) * 
+                                    1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
+        'ExpSineSquared*RBF': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) * 
+                                1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub)),
+        # 
+        'RationalQuadratic+Matern12': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) + 
+                                        1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
+        'RationalQuadratic+Matern32': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) + 
+                                        1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
+        'RationalQuadratic+Matern52': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) + 
+                                        1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
+        'RationalQuadratic+RBF': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) + 
+                                    1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub)),
+        'RationalQuadratic*Matern12': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) * 
+                                        1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
+        'RationalQuadratic*Matern32': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) * 
+                                        1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
+        'RationalQuadratic*Matern52': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) * 
+                                        1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
+        'RationalQuadratic*RBF': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) * 
+                                    1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub)),
         }
     
     return kernel_dict
@@ -73,11 +129,11 @@ def get_kernels(input_dim):
 # Function to define the distance metrics as a dictionary
 def get_metrics():
     """
-    Returns a dictionary of metric functions used to evaluate Gaussian distributions.
+    Returns a dictionary of metric functions used to select the best performimg kernel for Gaussian Process regression.
 
     Returns:
-        dict: A dictionary where keys are metric names (str) and values are functions that compute the 
-              metric for Gaussian distributions given the means and standard deviations.
+        metric_list (dict): A dictionary where keys are metric names (str) and values are functions that compute the 
+                            metric for Gaussian distributions given the means and standard deviations.
     """
     
     def kl_divergence_gaussian(mu1, sigma1, mu2, sigma2):
@@ -101,11 +157,27 @@ def get_metrics():
 
 
 ########################################################################################################
-# Emulator class to fit and predict
+# Emulator class to fit a Gaussian Process and predict from it
 class Emulator:
     def __init__(self, X, Y_mean, Y_std):
         """
-        Initializes the Emulator class.
+        A class for performing Gaussian Process regression.
+
+        The Emulator class is designed to handle multi-dimensional input and output data by training individual Gaussian 
+        Process models for each output dimension. It supports automatic kernel selection (AKS) based on performance metrics.
+    
+        What it needs:
+            - Valid numeric input features (`X`), target mean values (`Y_mean`), and target standard deviations (`Y_std`).
+            - Kernels and metrics defined through the `get_kernels` and `get_metrics` functions.
+
+        Key Methods:
+            - `fit(kernel, nrestarts, n_jobs, seed)`: Trains GP models for each output dimension, 
+                                                      with optional (default) automatic kernel selection method.
+            - `predict(X_new, return_full_covmat)`: Predicts mean and uncertainty for new input data using the fitted GPs.
+            
+        Example usage: emu = Emulator(X=X_train, Y_mean=Ymean_train, Y_std=Ystd_train)
+                             emu.fit(kernel='AKS', nrestarts=20, n_jobs=-1, seed=42)
+                             GP_means, GP_std = emu.predict(X_test, return_full_covmat=False)
 
         Parameters:
             X (array-like): Input features of shape (n_samples, n_features).
@@ -150,7 +222,7 @@ class Emulator:
 
         # Check if the kernel and metric dictionaries exist
         if not self.kernels or not self.metrics:
-            raise ValueError("Kernel list or metric list is empty or not defined properly.")
+            raise ValueError("Kernel dict or metric dict is empty or not defined properly.")
     
     # ---------------------------------------------------------------------------------------------
     
@@ -307,13 +379,13 @@ class Emulator:
                 )
 
     
-    def predict(self, X_new, return_covariance=False):
+    def predict(self, X_new, return_full_covmat=False):
         """
         Predicts from fitted GP at new input points.
 
         Parameters:
             X_new (array-like): predict input points.
-            return_covariance (bool): Whether to return the full covariance matrix. Defaults to False.
+            return_full_covmat (bool): Whether to return the full covariance matrix. Defaults to False.
 
         Returns:
             means (array-like): Predicted means in the original scale.
@@ -343,7 +415,7 @@ class Emulator:
 
             # Transform the standard deviations or covariances matrix back to the original scale
             scale = self._scaler_Y.scale_
-            if return_covariance:
+            if return_full_covmat:
                 covariances = [covariance * scale[i]**2 for i, covariance in enumerate(covariances_scaled)]
                 return means, covariances
             else:
@@ -518,7 +590,7 @@ class Emulator:
         # Iterate over each kernel and compute predictions and metrics
         for kernel_name in self.kernels.keys():
             self.gps = GP_dict[kernel_name]
-            GP_means, GP_stds = self.predict(test_X, return_covariance=False)
+            GP_means, GP_stds = self.predict(test_X, return_full_covmat=False)
     
             # Ensure that shapes of the arrays match
             assert GP_means.shape == GP_stds.shape == test_Ymean.shape == test_Ystd.shape, (
