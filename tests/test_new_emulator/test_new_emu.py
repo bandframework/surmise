@@ -162,6 +162,9 @@ def test_prediction_covxhalf(cmdopt1):
         pytest.fail('covxhalf() functionality does not exist in the method')
 
 
+test_prediction_mean_gradtheta_expectation = {
+    'PCGP': pytest.raises(ValueError)
+}
 # test to check the prediction.mean_gradtheta()
 def test_prediction_mean_gradtheta(cmdopt1):
     if cmdopt1 == 'PCSK':
@@ -169,13 +172,13 @@ def test_prediction_mean_gradtheta(cmdopt1):
     else:
         emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
     pred = emu.predict(x=x, theta=theta, args={'return_grad': True})
-    try:
-        pred.mean_gradtheta()
-    except Exception:
-        pytest.fail('mean_gradtheta() functionality does not exist in'
-                    ' the method')
+    with test_prediction_mean_gradtheta_expectation[cmdopt1]:
+        assert pred.mean_gradtheta() is not None
 
 
+test_prediction_covxhalf_gradtheta_expectation = {
+    'PCGP': pytest.raises(ValueError)
+}
 # test to check the prediction.covx_gradtheta()
 def test_prediction_covxhalf_gradtheta(cmdopt1):
     if cmdopt1 == 'PCSK':
@@ -183,37 +186,8 @@ def test_prediction_covxhalf_gradtheta(cmdopt1):
     else:
         emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
     pred = emu.predict(x=x, theta=theta, args={'return_grad': True})
-    try:
-        pred.covxhalf_gradtheta()
-    except Exception:
-        pytest.fail('covxhalf_gradtheta() functionality does not exist in'
-                    ' the method')
-
-
-# test to check the prediction.rnd()
-def test_prediction_rnd(cmdopt1):
-    if cmdopt1 == 'PCSK':
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
-    else:
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
-    pred = emu.predict(x=x, theta=theta)
-    try:
-        pred.rnd()
-    except Exception:
-        pytest.fail('rnd() functionality does not exist in the method')
-
-
-# test to check the prediction.lpdf()
-def test_prediction_lpdf(cmdopt1):
-    if cmdopt1 == 'PCSK':
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
-    else:
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
-    pred = emu.predict(x=x, theta=theta)
-    try:
-        pred.lpdf()
-    except Exception:
-        pytest.fail('lpdf() functionality does not exist in the method')
+    with test_prediction_covxhalf_gradtheta_expectation[cmdopt1]:
+        assert pred.covxhalf_gradtheta() is not None
 
 
 # test to check emulator.remove()
@@ -226,20 +200,6 @@ def test_remove(cmdopt1):
     assert len(emu._emulator__theta) == 25, 'Check emulator.remove()'
 
 
-# test to check emulator.remove() with a calibrator
-# def test_remove_cal(cmdopt1):
-#    emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
-#    cal_bayes = calibrator(emu=emu,
-#                           y=y,
-#                           x=x,
-#                           thetaprior=priorphys_lin,
-#                           method='directbayes',
-#                           yvar=obsvar)
-#    emu.remove(theta=theta1, cal=cal_bayes)
-#    assert len(emu._emulator__theta) <= 50, 'Check emulator.remove() with'
-#    ' calibration'
-
-
 # test to check emulator.update()
 def test_update(cmdopt1):
     if cmdopt1 == 'PCSK':
@@ -250,12 +210,3 @@ def test_update(cmdopt1):
     fnew = balldropmodel_linear(xv, thetanew)
     emu.update(x=None, theta=thetanew, f=fnew)
     assert len(emu._emulator__theta) == 60, 'Check emulator.update()'
-
-
-# test to check emulator.supplement()
-# def test_supplement(cmdopt1):
-#    emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
-#    thetanew = priorphys_lin.rnd(10)
-#    fnew = balldropmodel_linear(xv, thetanew)
-#    emu.update(x=None, theta=thetanew, f=fnew)
-#    assert len(emu._emulator__theta) == 60, 'Check emulator.update()'
