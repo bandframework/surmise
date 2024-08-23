@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
+'''
+Created Aug 2024
+
+@authors: Sunil Jaiswal (jaiswal.61@osu.edu)
+'''
+
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from sklearn.gaussian_process.kernels import Matern, RBF
+from sklearn.gaussian_process.kernels import Matern, RBF, DotProduct, RationalQuadratic, ConstantKernel
 from sklearn.gaussian_process import GaussianProcessRegressor
 from joblib import Parallel, delayed
 import logging
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
 
 class Emulator:
     def __init__(self, X, Y_mean, Y_std):
@@ -48,63 +55,69 @@ class Emulator:
 
         self.gps = []
 
-
-    def _kernel_list(self):
-        """
-        List of all available kernels to train the GPs. Add more kernels here to increase options. 
-        If "fit (kernel=AKS)", best kernels among the list will be selected for each output dimension.
+        # Initialize the dictionaries of kernels and metrics for best kernel selction 
+        input_dim = self.X.shape[1]  # dimensionality of input space
         
-        Parameters:
-            input_dim (int): Dimensions of the input space in which the GPs are trained.
-            
-        Returns:
-            dict: A dictionary containing all kernels.
-        """
-        # accessing the dimensionality of input space
-        input_dim = self.X.shape[1]
+        self.kernels = {'Matern12': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05), nu=0.5),
+                        'Matern32': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05), nu=1.5),
+                        'Matern52': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05), nu=2.5),
+                        'RBF': 1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05)),
+                        # 'RationalQuadratic*Matern12': RationalQuadratic(length_scale=1.0, alpha=1.0) * 
+                        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=0.5),
+                        # 'RationalQuadratic*Matern32': RationalQuadratic(length_scale=1.0, alpha=1.0) * 
+                        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=1.5),
+                        # 'RationalQuadratic*Matern52': RationalQuadratic(length_scale=1.0, alpha=1.0) * 
+                        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=2.5),
+                        # 'RationalQuadratic*RBF': RationalQuadratic(length_scale=1.0, alpha=1.0) * 
+                        #                         RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05)),
+                        'RationalQuadratic+Matern12': RationalQuadratic(length_scale=1.0, alpha=1.0) + 
+                                                1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=0.5),
+                        'RationalQuadratic+Matern32': RationalQuadratic(length_scale=1.0, alpha=1.0) + 
+                                                1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=1.5),
+                        'RationalQuadratic+Matern52': RationalQuadratic(length_scale=1.0, alpha=1.0) + 
+                                                1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=2.5),
+                        'RationalQuadratic+RBF': RationalQuadratic(length_scale=1.0, alpha=1.0) + 
+                                                1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05)),
+                        # 'DotProduct*Matern12': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) * 
+                        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=0.5),
+                        # 'DotProduct*Matern32': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) * 
+                        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=1.5),
+                        # 'DotProduct*Matern52': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) * 
+                        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=2.5),
+                        # 'DotProduct*RBF': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) * 
+                        #                     RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05)),
+                        'DotProduct+Matern12': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) + 
+                                                1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=0.5),
+                        'DotProduct+Matern32': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) + 
+                                                1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=1.5),
+                        'DotProduct+Matern52': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) + 
+                                                1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(1e-05, 1e05), nu=2.5),
+                        'DotProduct+RBF': DotProduct(sigma_0=1.0, sigma_0_bounds=(1e-05, 1e5)) + 
+                                            1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e05)),
+                        }
         
-        # kernels that can be used. Add more kernels here to increase options
-        kernels = {
-        'Matern12': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e20), nu=0.5),
-        'Matern32': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e20), nu=1.5),
-        'Matern52': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e20), nu=2.5),
-        'RBF': 1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(1e-05, 1e20))
-        }
-        return kernels
+        self.metrics = {'KL Divergence': self.kl_divergence_gaussian,
+                        'Hellinger Distance': self.hellinger_distance_gaussian,
+                        'Wasserstein Distance': self.wasserstein_distance_gaussian
+                        }
+        
+    # ----------------------------------------------------------------------------------------
+    
+    # Define more metrics here and above. These would be considered in the automatic kernel selection process.
+    def kl_divergence_gaussian(self, mu1, sigma1, mu2, sigma2):
+        return np.log(sigma2 / sigma1) + (sigma1**2 + (mu1 - mu2)**2) / (2.0 * sigma2**2) - 0.5
 
-    
-    def _define_metrics(self):
-        """
-        Defines a dictionary of metrics to compare two Gaussian distributions.
-    
-        Returns:
-            dict: A dictionary containing functions for the defined metrics.
-        """
+    def hellinger_distance_gaussian(self, mu1, sigma1, mu2, sigma2):
+        term1 = np.sqrt(2.0 * sigma1 * sigma2 / (sigma1**2 + sigma2**2))
+        term2 = np.exp(-0.25 * (mu1 - mu2)**2 / (sigma1**2 + sigma2**2))
+        return np.sqrt(1.0 - term1 * term2)
 
-        # Different metrics to compare distributions and select the best kernels.
-        # Define more metrics here that would be considered in the automatic kernel selection process.
-        def kl_divergence_gaussian(mu1, sigma1, mu2, sigma2):
-            return np.log(sigma2 / sigma1) + (sigma1**2 + (mu1 - mu2)**2) / (2.0 * sigma2**2) - 0.5
-    
-        def hellinger_distance_gaussian(mu1, sigma1, mu2, sigma2):
-            term1 = np.sqrt(2.0 * sigma1 * sigma2 / (sigma1**2 + sigma2**2))
-            term2 = np.exp(-0.25 * (mu1 - mu2)**2 / (sigma1**2 + sigma2**2))
-            return np.sqrt(1.0 - term1 * term2)
-    
-        def wasserstein_distance_gaussian(mu1, sigma1, mu2, sigma2):
-            return np.sqrt((mu1 - mu2)**2 + (sigma1 - sigma2)**2)
-    
-        # Define metrics in a dictionary
-        metrics = {
-            'KL Divergence': kl_divergence_gaussian,
-            'Hellinger Distance': hellinger_distance_gaussian,
-            'Wasserstein Distance': wasserstein_distance_gaussian
-        }
-    
-        return metrics
+    def wasserstein_distance_gaussian(self, mu1, sigma1, mu2, sigma2):
+        return np.sqrt((mu1 - mu2)**2 + (sigma1 - sigma2)**2)
 
+    # ---------------------------------------------------------------------------------------------
     
-    def fit(self, kernel: str = 'AKS', nrestarts: int = 10, n_jobs: int = -1, seed: int = 42) -> None:
+    def fit(self, kernel: str = 'AKS', nrestarts: int = 10, n_jobs: int = -1, seed: int = None) -> None:
 
         """
         Train individual Gaussian Processes (GPs) for each output dimension.
@@ -115,7 +128,7 @@ class Emulator:
                 - 'AKS' : The function will train GPs with all kernels defined in 'kernel_list' and automatically select the best one.
                           The best kernel is chosen by fitting GPs (with 90% of training data) using each kernel and evaluating their 
                           performance using different distance metrics defined in "_define_metrics()" (like KL divergence, Hellinger dist,
-                          Wasserstein dist) on the rest 10% of the traning data. See the "_AutoKernelSelection" function for more details.
+                          Wasserstein dist) on the rest 10% of the traning data. See the "_select_best_kernels" function for more details.
                           The GPs are then retrained with the selected kernels for each output dimension with all training data.
                 - 'RBF': Radial Basis Function kernel.
                 - 'Matern12': Matern kernel with nu=0.5.
@@ -132,35 +145,30 @@ class Emulator:
         Raises:
             Exception: If an error occurs during the GP fitting process.
         """
-
-        # load the list of all available kernels
-        kernels = self._kernel_list()
-        
-        # If kernel='AKS':
-        #   - Split training data in 90% - 10% batch. 
-        #   - Use 90% (training) batch to fit GPs for all output dimensions with all kernels in "kernel_list".
-        #   - Use 10% (pseudo_test) batch to select best kernels for each output dimension.
-        #   - Retrain the GPs with the selected kernels for each output dimension with all training data (before split).
         
         if kernel=='AKS':
+            #   - Split training data in 90% - 10% batch. 
+            #   - Use 90% (training) batch to fit GPs for all output dimensions with all kernels in "kernel_list".
+            #   - Use 10% (pseudo_test) batch to select best kernels for each output dimension.
+            #   - Retrain the GPs with the selected kernels for each output dimension with all training data (before split).
+            
             logger.info(
                 f"Automatic kernel selection opted. Best kernel for each output dimension will be selected from the list of kernels:\n"
-                f"   {list(kernels.keys())}\n"
+                f"   {list(self.kernels.keys())}\n"
             )
-
-            # Split training data in: 90% (training) - 10% (pseudo_test) batch
-            X_train, Ymean_train, Ystd_train, pseudo_test_X, pseudo_test_Ymean, pseudo_test_Ystd = self.split_train_test(
-                                                                                                        X=self.X, 
-                                                                                                        Ymean=self.Y_mean, 
-                                                                                                        Ystd=self.Y_std, 
-                                                                                                        train_ratio=0.9, 
-                                                                                                        seed=seed)
-        
-            logger.info(f"Shape of training arrays: {X_train.shape}, {Ymean_train.shape}, {Ystd_train.shape}")
-            logger.info(f"Shape of pseudo_test arrays: {pseudo_test_X.shape}, {pseudo_test_Ymean.shape}, {pseudo_test_Ystd.shape}")
-
-
+            
             try:
+                # Split training data in: 90% (training) - 10% (pseudo_test) batch
+                X_train, Ymean_train, Ystd_train, pseudo_test_X, pseudo_test_Ymean, pseudo_test_Ystd = self.split_train_test(
+                                                                                                            X=self.X, 
+                                                                                                            Ymean=self.Y_mean, 
+                                                                                                            Ystd=self.Y_std, 
+                                                                                                            train_ratio=0.9, 
+                                                                                                            seed=seed)
+            
+                logger.info(f"Shape of training arrays: {X_train.shape}, {Ymean_train.shape}, {Ystd_train.shape}")
+                logger.info(f"Shape of pseudo_test arrays: {pseudo_test_X.shape}, {pseudo_test_Ymean.shape}, {pseudo_test_Ystd.shape}")
+
                 # Initializing GP dictionary to store the fitted GPs for all available kernels
                 gplist = {}
 
@@ -170,37 +178,41 @@ class Emulator:
                 # Standardize data before GP training
                 X_stnd, Ymean_stnd, Ystd_stnd = self._preprocess_data(X=X_train, Y_mean=Ymean_train, Y_std=Ystd_train)
 
-                for kernel_name, ker in kernels.items():
+                for kernel_name, ker in self.kernels.items():
                     gplist[kernel_name] = Parallel(n_jobs=n_jobs)(
                         delayed(self.fit_singleGP)(Xfit=X_stnd, 
                                                      Yfit_mean=sample_column, 
                                                      Yfit_std=Ystd_stnd[:, i], 
-                                                     kernel=ker, 
+                                                     kernel=ker,
                                                      nrestarts=nrestarts
                                                     )
                         for i, sample_column in enumerate(Ymean_stnd.T)
                     )
                     logger.info(f"  Trained GPs with {kernel_name} kernels.")
 
-                # Find best kernel for each output dimension
+                
                 logger.info("Finding best kernels for each output dimension...")
-                best_kernels = self._AutoKernelSelection(
-                                    GP_dict=gplist, 
-                                    kernels=kernels, 
-                                    test_X=pseudo_test_X, 
-                                    test_Ymean=pseudo_test_Ymean, 
-                                    test_Ystd=pseudo_test_Ystd)
-                
-                
+
+                # First compute the metrics by comparing the fitted GPs with pseudo_test_data for all kernels
+                metrics_result = self._compute_metrics(GP_dict=gplist,
+                                                       test_X=pseudo_test_X, 
+                                                       test_Ymean=pseudo_test_Ymean, 
+                                                       test_Ystd=pseudo_test_Ystd)
+
+                # Now select the best kernel 
+                best_kernels = self._select_best_kernels(metrics_result)
+
                 assert len(Ymean_stnd[1]) == len(best_kernels), (
-                "Error during GP fit: Number of best kernels not equal to number of output dimension."
-                "Check the _AutoKernelSelection function."
+                    "Error during GP fit: Number of best kernels not equal to number of output dimension."
+                    "Check the _AutoKernelSelection function."
                 )
+                
+                logger.info(f"  Selected best kernels for each output dimension:\n   {best_kernels}\n")
                 
                 del gplist  # Free memory of the gplist objects
 
-                # Retrain the GPs with the selected kernels for each output dimension with all training data in parallel
-                # Append the trained GPs to self.gps
+                #  - Retrain the GPs with the selected kernels for each output dimension with all training data
+                #  - Append the trained GPs to self.gps
                 logger.info("Retraining the GPs with selected best kernels using all training data...")
 
                 # Standardize data before GP retraining
@@ -210,7 +222,7 @@ class Emulator:
                     delayed(self.fit_singleGP)(Xfit=X_stnd, 
                                                  Yfit_mean=sample_column, 
                                                  Yfit_std=Ystd_stnd[:, i], 
-                                                 kernel=kernels[best_kernels[i]], 
+                                                 kernel=self.kernels[best_kernels[i]], 
                                                  nrestarts=nrestarts
                                                 )
                     for i, sample_column in enumerate(Ymean_stnd.T)
@@ -224,9 +236,10 @@ class Emulator:
 
         else:
             # Check if the specified kernel is valid and select the specified kernel
-            if kernel not in kernels:
+            if kernel not in self.kernels:
                 raise ValueError(f"Unsupported kernel type: {kernel}. Available kernels: {list(kernels.keys())}")
-            ker = kernels[kernel]
+                
+            ker = self.kernels[kernel]
     
             logger.info(f"Training GPs with {kernel} kernel...\n")
             try:
@@ -397,7 +410,7 @@ class Emulator:
         return gp
         
 
-    def split_train_test(self, X, Ymean, Ystd, train_ratio=0.9, seed=42):
+    def split_train_test(self, X, Ymean, Ystd, train_ratio=0.9, seed=None):
         """
         Splits the dataset into training and test sets based on the specified train_ratio.
     
@@ -436,136 +449,116 @@ class Emulator:
         Ystd_test = np.delete(Ystd, selected_indices, axis=0)
     
         return X_train, Ymean_train, Ystd_train, X_test, Ymean_test, Ystd_test
-    
-
-    def compare_dist_metrics(self, P_mean, P_std, Q_mean, Q_std):
-        """
-        Computes different metrics to compare two Gaussian distributions P and Q.
-    
-        Parameters:
-            P_mean (array-like): Mean values of the distribution to compare with the reference distribution Q.
-            P_std (array-like): Standard deviation of the distribution to compare with the reference distribution Q.
-            Q_mean (array-like): Mean values of the reference distribution Q.
-            Q_std (array-like): Standard deviation of the reference distribution Q.
-    
-        Returns:
-            dict: A dictionary containing arrays with the metrics defined in "_define_metrics()" for each element:
-                  - 'KL Divergence': Kullback-Leibler divergence.
-                  - 'Hellinger Distance': Hellinger distance.
-                  - 'Wasserstein Distance': Wasserstein distance.
-                  - ...
-        """
-    
-        # If passed as lists, convert to numpy arrays for element-wise operations
-        P_mean = np.array(P_mean)
-        P_std = np.array(P_std)
-        Q_mean = np.array(Q_mean)
-        Q_std = np.array(Q_std)
-    
-        # Ensure that shapes of the arrays match
-        assert P_mean.shape == P_std.shape == Q_mean.shape == Q_std.shape, (
-            "Error in compare_dist_metrics: All input arrays must have the same shape."
-        )
-    
-        # Retrieve the metrics dictionary
-        metrics = self._define_metrics()
-    
-        # Compute and store metric results in a dictionary
-        results = {metric_name: metric_func(P_mean, P_std, Q_mean, Q_std) 
-                   for metric_name, metric_func in metrics.items()}
-    
-        return results
 
     
-    def _AutoKernelSelection(self, GP_dict, kernels, test_X, test_Ymean, test_Ystd):        
+    def _compute_metrics(self, GP_dict, test_X, test_Ymean, test_Ystd):
         """
-        Automatically select the best kernel by comparing the performance of different kernels using various 
-        distance metrics between the predicted and actual distributions of the test data.
-        
+        Computes and aggregates metric results for each kernel by comparing predicted GP means and stds with the test data.
+    
         Parameters:
             GP_dict (dict): Dictionary of fitted GPs for each kernel.
-            kernels (dict): Dictionary of kernel options.
+                - Key (str): The name of the kernel.
+                - Value (list): List of GaussianProcessRegressor models fitted with the corresponding kernel.
+                
             test_X (array-like): Input features of the test data.
             test_Ymean (array-like): Mean values of the test data.
             test_Ystd (array-like): Standard deviations of the test data.
-            
+
+        
         Returns:
-            list: The best kernels for each output dimension.
+            dict: A nested dictionary containing the computed metrics for each kernel.
+                - Outer Key (str): The name of the metric (e.g., 'KL Divergence', 'Hellinger Distance', 'Wasserstein Distance').
+                - Outer Value (dict): 
+                    - Inner Key (str): The name of the kernel (e.g., 'RBF', 'Matern52').
+                    - Inner Value (array-like): The computed metric values for the test data, with same shape as test_Ymean.
         """
+
+        # Initialize the dictionary to store the results
+        metric_results = {metric: {} for metric in self.metrics.keys()}
     
-        def compute_metric_results():
-            """Helper function to compute metric results for each kernel."""
-            metric_results = {metric: {} for metric in self.compare_dist_metrics([], [], [], []).keys()}
-            for kernel_name in kernels.keys():
-                self.gps = GP_dict[kernel_name]
-                GP_means, GP_stds = self.predict(test_X, return_covariance=False)
-                results = self.compare_dist_metrics(P_mean=GP_means, P_std=GP_stds, Q_mean=test_Ymean, Q_std=test_Ystd)
-                for metric_name, value in results.items():
-                    metric_results[metric_name][kernel_name] = value
-            return metric_results
+        # Iterate over each kernel and compute predictions and metrics
+        for kernel_name in self.kernels.keys():
+            self.gps = GP_dict[kernel_name]
+            GP_means, GP_stds = self.predict(test_X, return_covariance=False)
     
-        def compute_compare_dict(metric_results):
-            """Helper function to compute percentage comparisons between kernels."""
-            compare = {}
-            for metric_name, metric_result in metric_results.items():
-                compare[metric_name] = {}
-                for i, kernel_i in enumerate(kernels.keys()):
-                    for j, kernel_j in enumerate(kernels.keys()):
-                        if i < j:
-                            if kernel_i not in compare[metric_name]:
-                                compare[metric_name][kernel_i] = {}
-                            diff = metric_result[kernel_i] - metric_result[kernel_j]
-                            positive_percentage = np.mean(diff > 0, axis=0) * 100               
-                            compare[metric_name][kernel_i][kernel_j] = positive_percentage
-            return compare
+            # Ensure that shapes of the arrays match
+            assert GP_means.shape == GP_stds.shape == test_Ymean.shape == test_Ystd.shape, (
+                "Error in _compute_metrics: Arrays of mean and std for metric computation must have the same shape."
+            )
     
-        def compute_averaged_comparison(compare):
-            """Helper function to average the comparisons across metrics."""
-            averaged_comparison = {}
-            for kernel_i in kernels.keys():
-                averaged_comparison[kernel_i] = {}
-                for kernel_j in kernels.keys():
-                    if kernel_i < kernel_j:
-                        percentages = [compare[metric_name][kernel_i][kernel_j] 
-                                       for metric_name in metric_results.keys() 
-                                       if kernel_j in compare[metric_name][kernel_i]]
-                        if percentages:
-                            averaged_comparison[kernel_i][kernel_j] = np.mean(percentages, axis=0)
-            return averaged_comparison
+            # Compute the metrics for this kernel
+            results = {}
+            for metric_name, metric_func in self.metrics.items():
+                results[metric_name] = metric_func(GP_means, GP_stds, test_Ymean, test_Ystd)
     
-        def select_best_kernels(averaged_comparison):
-            """Helper function to select the best kernel for each column."""
-            num_columns = test_Ymean.shape[1]
-            best_kernels = []
-            for col in range(num_columns):
-                kernel_scores = {kernel: 0 for kernel in kernels.keys()}
-                for kernel_i, comparisons in averaged_comparison.items():
-                    for kernel_j, percentage in comparisons.items():
-                        if percentage[col] < 50:
-                            kernel_scores[kernel_i] += 1
-                        else:
-                            kernel_scores[kernel_j] += 1
-                best_kernel = max(kernel_scores, key=kernel_scores.get)
-                best_kernels.append(best_kernel)
-            return best_kernels
+            # Store the results for the current kernel
+            for metric_name, value in results.items():
+                metric_results[metric_name][kernel_name] = value
+
+        metric_results[metric_name][kernel_name]
+        assert  metric_results[metric_name][kernel_name].shape == test_Ymean.shape, (
+            "Error in _compute_metrics calculation: Shape of metric_result[.][.] should match shape of test_Ymean."
+        )
+        
+        return metric_results
+
+    def _select_best_kernels(self, metric_result):
+        """
+        Selects the best-performing kernel for each column across multiple metrics by comparing their
+        column-wise mean values.
+        The process includes:
+            1. **Compute Column-wise Mean**: For each metric and kernel, calculate the mean values column-wise.
+            2. **Compare and Update Scores**:
+                - For each column, compare the mean values of each kernel pair across all metrics.
+                - The kernel with a lower (better) mean value than another kernel gains a point, and the other kernel loses a point.
+                - This scoring is done for every column independently, so each kernel's performance is evaluated on a per-column basis.
+                - The result is a cumulative score for each kernel in each column, reflecting its overall performance relative to other kernels.
+            3. **Select Best Kernels**: Identify the kernel with the highest score for each column.
+
+        Parameters:
+            metric_result (dict): A nested dictionary containing the computed metrics for each kernel.
+                    - Outer Key (str): The name of the metric (e.g., 'KL Divergence', 'Hellinger Distance', 'Wasserstein Distance').
+                    - Outer Value (dict): 
+                        - Inner Key (str): The name of the kernel (e.g., 'RBF', 'Matern52').
+                        - Inner Value (array-like): The computed metric values for the test data, with same shape as test_Ymean.
+    
+        Returns:
+            best_kernels (list): List of best-performing kernels for each column.
+        """
+        # Step 1: Compute the column-wise mean for each metric and kernel
+        mean_columnwise = {}
+        
+        for metric_name in metric_result:
+            mean_columnwise[metric_name] = {}
+            for kernel_name in metric_result[metric_name]:
+                mean_columnwise[metric_name][kernel_name] = np.mean(metric_result[metric_name][kernel_name], axis=0)
+        
+        num_columns = len(mean_columnwise[metric_name][kernel_name])  # extracting the number of output dimensions
+        assert num_columns == self.Y_mean.shape[1], "Error in _select_best_kernels: number of output dimensions must match." 
 
         
-        # Step 1: Compute metric results
-        metric_results = compute_metric_results()
+        # Initialize kernel scores to zero
+        kernel_scores = {i: {kernel_name: 0 for kernel_name in mean_columnwise[metric_name]} for i in range(num_columns)}
     
-        # Step 2: Compute compare dictionary
-        compare = compute_compare_dict(metric_results)
+        # Step 2: Compare metrics and update scores
+        for metric_name in mean_columnwise:
+            for i in range(num_columns):  # loop through columns
+                for kernel_i in mean_columnwise[metric_name]:
+                    for kernel_j in mean_columnwise[metric_name]:
+                        if mean_columnwise[metric_name][kernel_i][i] < mean_columnwise[metric_name][kernel_j][i]:
+                            kernel_scores[i][kernel_i] += 1
+                            kernel_scores[i][kernel_j] -= 1
+                        elif mean_columnwise[metric_name][kernel_i][i] > mean_columnwise[metric_name][kernel_j][i]:
+                            kernel_scores[i][kernel_i] -= 1
+                            kernel_scores[i][kernel_j] += 1
     
-        # Step 3: Average the comparisons across metrics
-        averaged_comparison = compute_averaged_comparison(compare)
-    
-        # Step 4: Select the best kernels
-        best_kernels = select_best_kernels(averaged_comparison)
-
-        logger.info(f"Selected best kernels for each output dimension:\n   {best_kernels}\n")
+        # Step 3: Determine the best kernel for each column
+        best_kernels = []
         
+        for scores in kernel_scores.values():
+            best_kernel = max(scores, key=scores.get)  # Find the kernel with the maximum score
+            best_kernels.append(best_kernel)  # Append the best kernel to the list
+    
         return best_kernels
-                
 
 
-###############################################################
