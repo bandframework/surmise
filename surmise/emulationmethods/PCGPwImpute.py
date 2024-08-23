@@ -138,8 +138,8 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
     return semPCGPwM.predict(predinfo, fitinfo, x, theta, **kwargs)
 
 
-def predictlpdf(predinfo, f, return_grad=False, addvar=0):
-    return semPCGPwM.predictlpdf(predinfo, f, return_grad, addvar)
+def predictlpdf(predinfo, f, addvar=0, **kwargs):
+    return semPCGPwM.predictlpdf(predinfo, f, addvar, **kwargs)
 
 
 def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant):
