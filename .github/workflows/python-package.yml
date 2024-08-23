@@ -32,27 +32,9 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
-    - name: Install surmise in editable mode
+    - name: Setup python with tox
       shell: bash
-      run: |
-        echo
-        which python
-        which pip
-        echo
-        # Basic surmise install
-        python -m pip install --upgrade pip
-        python -m pip install --upgrade setuptools
-        python -m pip install --upgrade wheel
-        python -m pip install -e $CLONE_PATH
-        # Optional surmise dependencies needed here
-        python -m pip install Cython
-        python -m pip install scikit-learn
-        python -m pip install pytest
-        echo
-        python --version
-        pip --version
-        echo
-        pip list
+      run: $CLONE_PATH/.github/workflows/install_tox.sh
     - name: Run test suite
-      shell: bash
-      run: $ACTIONS_PATH/run_full_test_suite.sh $CLONE_PATH/tests
+      run: |
+        tox -e nocoverage
