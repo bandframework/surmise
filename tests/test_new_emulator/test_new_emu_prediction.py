@@ -156,3 +156,46 @@ def test_accuracy(cmdopt1, expectation):
                                 (ftest[:, k] - pred_test.mean()[:, k]))
         print('average normalized value (should be close to 1)):')
         print(np.mean(residstand ** 2))
+
+
+@pytest.mark.parametrize(
+    "cmdopt1,expectation",
+    [
+     ('PCGP', pytest.raises(ValueError)),
+     ('PCGPwM', does_not_raise()),
+     # ('PCSK', pytest.raises(np.linalg.LinAlgError))  # unknown method issue
+    ],
+    )
+# tests for prediction class methods:
+def test_predlpdf(cmdopt1, expectation):
+    if cmdopt1 == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+    else:
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+    theta_test = priorphys_lin.rnd(50)
+    ftest = balldropmodel_linear(xv, theta_test)
+    pred_test = emu.predict(x=x, theta=theta_test)
+
+    with expectation:
+        assert pred_test.lpdf(f=ftest) is not None
+
+
+@pytest.mark.parametrize(
+    "cmdopt1,expectation",
+    [
+     ('PCGPwM', does_not_raise()),
+     # ('PCSK', pytest.raises(np.linalg.LinAlgError))  # unknown method issue
+    ],
+    )
+# tests for prediction class methods:
+def test_predlpdf_wgrad(cmdopt1, expectation):
+    if cmdopt1 == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd, 'return_grad':True})
+    else:
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'return_grad': True})
+    theta_test = priorphys_lin.rnd(50)
+    ftest = balldropmodel_linear(xv, theta_test)
+    pred_test = emu.predict(x=x, theta=theta_test)
+
+    with expectation:
+        assert pred_test.lpdf(f=ftest) is not None
