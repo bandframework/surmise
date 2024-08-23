@@ -8,9 +8,8 @@ if [[ $# -ne 1 ]]; then
 fi
 test_path=$1
 
-pushd $test_path                                                   || exit 1
-python -m pytest -k "not new"                                      || exit 1
-python -m pytest -k "test_new_emu"                                 || exit 1
-python -m pytest -k "test_new_cal" --cmdopt2=directbayes           || exit 1
-python -m pytest -k "test_new_cal" --cmdopt2=directbayeswoodbury   || exit 1
+pushd $test_path                             || exit 1
+python -m pytest -k "not new"                || exit 1
+python -m pytest -k "test_new_emu"           || exit 1
+python -m pytest -k "test_new_cal"           || exit 1
 popd
