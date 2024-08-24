@@ -15,7 +15,7 @@ Note:
 
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from sklearn.gaussian_process.kernels import Matern, RBF, DotProduct, RationalQuadratic, ExpSineSquared
+from sklearn.gaussian_process.kernels import Matern, RBF, DotProduct, RationalQuadratic, ExpSineSquared, Kernel, Product
 from sklearn.gaussian_process import GaussianProcessRegressor
 from joblib import Parallel, delayed
 import logging
@@ -64,64 +64,64 @@ def get_kernels(input_dim):
         kernel_dict (dict): A dictionary where keys are kernel names (str) and values are kernel objects.
     """
 
-    lb = 1e-5  # lower bound
-    ub = 1e5   # upper bound
+    lb, ub = 1e-5, 1e5  # lower bound, upper bound
+
     kernel_dict = {
         'Matern12': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub), nu=0.5),
         'Matern32': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub), nu=1.5),
         'Matern52': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub), nu=2.5),
         'RBF': 1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub)),
-        # 
-        'DotProduct+Matern12': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) + 
-                                1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
-        'DotProduct+Matern32': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) + 
-                                1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
-        'DotProduct+Matern52': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) + 
-                                1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
-        'DotProduct+RBF': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) + 
-                            1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub)),
-        'DotProduct*Matern12': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) * 
-                                Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
-        'DotProduct*Matern32': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) * 
-                                Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
-        'DotProduct*Matern52': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) * 
-                                 Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
-        'DotProduct*RBF': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) * 
-                            RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub)),
-        # 
-        'ExpSineSquared+Matern12': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) + 
-                                    1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
-        'ExpSineSquared+Matern32': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) + 
-                                    1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
-        'ExpSineSquared+Matern52': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) + 
-                                    1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
-        'ExpSineSquared+RBF': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) + 
-                                1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub)),
-        'ExpSineSquared*Matern12': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) * 
-                                     Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
-        'ExpSineSquared*Matern32': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) * 
-                                     Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
-        'ExpSineSquared*Matern52': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) * 
-                                     Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
-        'ExpSineSquared*RBF': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) * 
-                                 RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub)),
-        # 
-        'RationalQuadratic+Matern12': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) + 
-                                        1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
-        'RationalQuadratic+Matern32': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) + 
-                                        1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
-        'RationalQuadratic+Matern52': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) + 
-                                        1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
-        'RationalQuadratic+RBF': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) + 
-                                    1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub)),
-        'RationalQuadratic*Matern12': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) * 
-                                        Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
-        'RationalQuadratic*Matern32': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) * 
-                                        Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
-        'RationalQuadratic*Matern52': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) * 
-                                        Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
-        'RationalQuadratic*RBF': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) * 
-                                    RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub)),
+        # # 
+        # 'DotProduct+Matern12': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) + 
+        #                         1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
+        # 'DotProduct+Matern32': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) + 
+        #                         1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
+        # 'DotProduct+Matern52': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) + 
+        #                         1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
+        # 'DotProduct+RBF': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) + 
+        #                     1.0 * RBF(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub)),
+        # 'DotProduct*Matern12': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) * 
+        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
+        # 'DotProduct*Matern32': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) * 
+        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
+        # 'DotProduct*Matern52': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) * 
+        #                          Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
+        # 'DotProduct*RBF': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) * 
+        #                     RBF(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub)),
+        # # 
+        # 'ExpSineSquared+Matern12': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) + 
+        #                             1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
+        # 'ExpSineSquared+Matern32': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) + 
+        #                             1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
+        # 'ExpSineSquared+Matern52': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) + 
+        #                             1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
+        # 'ExpSineSquared+RBF': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) + 
+        #                         1.0 * RBF(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub)),
+        # 'ExpSineSquared*Matern12': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) * 
+        #                              Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
+        # 'ExpSineSquared*Matern32': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) * 
+        #                              Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
+        # 'ExpSineSquared*Matern52': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) * 
+        #                              Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
+        # 'ExpSineSquared*RBF': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) * 
+        #                          RBF(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub)),
+        # # 
+        # 'RationalQuadratic+Matern12': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) + 
+        #                                 1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
+        # 'RationalQuadratic+Matern32': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) + 
+        #                                 1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
+        # 'RationalQuadratic+Matern52': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) + 
+        #                                 1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
+        # 'RationalQuadratic+RBF': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) + 
+        #                             1.0 * RBF(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub)),
+        # 'RationalQuadratic*Matern12': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) * 
+        #                                 Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
+        # 'RationalQuadratic*Matern32': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) * 
+        #                                 Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
+        # 'RationalQuadratic*Matern52': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) * 
+        #                                 Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
+        # 'RationalQuadratic*RBF': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) * 
+        #                             RBF(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub)),
         }
     
     return kernel_dict
@@ -174,15 +174,22 @@ class Emulator:
             - `fit(kernel, nrestarts, n_jobs, seed)`: Trains GP models for each output dimension, 
                                                       with optional (default) automatic kernel selection method.
             - `predict(X_new, return_full_covmat)`: Predicts mean and uncertainty for new input data using the fitted GPs.
-            
-        Example usage: emu = Emulator(X=X_train, Y_mean=Ymean_train, Y_std=Ystd_train)
-                             emu.fit(kernel='AKS', nrestarts=20, n_jobs=-1, seed=42)
-                             GP_means, GP_std = emu.predict(X_test, return_full_covmat=False)
 
+        Example usage: 
+            from sklearn.datasets import make_friedman2
+            X, y = make_friedman2(n_samples=100, noise=0.5, random_state=0)
+            emu = Emulator(X=X, Y_mean=y, Y_std=None)
+            emu.fit(kernel='AKS', nrestarts=10, n_jobs=-1, seed=42)
+            # Predict and compare with test data --->
+            Xtest, ytest = make_friedman2(n_samples=10, noise=0.5, random_state=0)
+            GP_means, GP_std = emu.predict(Xtest, return_full_covmat=False)
+            print("% error:\n", (1.0 - GP_means/ytest.reshape(-1, 1))*100)
+            
         Parameters:
             X (array-like): Input features of shape (n_samples, n_features).
             Y_mean (array-like): Mean values of the training data of shape (n_samples, n_outputs).
             Y_std (array-like): Standard deviation of the training data of shape (n_samples, n_outputs).
+                                If 'Y_std = None' the method will treat Y_std as nugget during training.
             
         Raises:
             ValueError: 
@@ -194,8 +201,22 @@ class Emulator:
         # Validate the arrays
         self._validate_array(X, 'X')
         self._validate_array(Y_mean, 'Y_mean')
-        self._validate_array(Y_std, 'Y_std')
+        
+        if Y_std is None:
+            # Adding nugget as Y_std:
+            column_wise_mean = np.mean(Y_mean, axis=0)
+            Y_std = np.random.uniform(1e-4, 1e-8, Y_mean.shape) * column_wise_mean # Adding nugget
+        else:
+            self._validate_array(Y_std, 'Y_std')
 
+        # If X, Y_mean or Y_std are 1D, reshape them to be 2D
+        if X.ndim == 1:
+            X = X.reshape(-1, 1)
+        if Y_mean.ndim == 1:
+            Y_mean = Y_mean.reshape(-1, 1)
+        if Y_std.ndim == 1:
+            Y_std = Y_std.reshape(-1, 1)
+        
         # Ensure that the number of training points in X and Y_mean match
         if X.shape[0] != Y_mean.shape[0]:
             raise ValueError("Number of training points in 'X' and 'Y_mean' must match.")
@@ -260,7 +281,7 @@ class Emulator:
         if kernel=='AKS':
             #   - Split training data in 90% - 10% batch. 
             #   - Use 90% (training) batch to fit GPs for all output dimensions with all kernels in "kernel_list".
-            #   - Use 10% (pseudo_test) batch to select best kernels for each output dimension.
+            #   - Use 10% (validation) batch to select best kernels for each output dimension.
             #   - Retrain the GPs with the selected kernels for each output dimension with all training data (before split).
             
             logger.info(
@@ -269,16 +290,16 @@ class Emulator:
             )
             
             try:
-                # Split training data in: 90% (training) - 10% (pseudo_test) batch
-                X_train, Ymean_train, Ystd_train, pseudo_test_X, pseudo_test_Ymean, pseudo_test_Ystd = self.split_train_test(
+                # Split training data in: 90% (training) - 10% (validation) batch
+                X_train, Ymean_train, Ystd_train, validation_X, validation_Ymean, validation_Ystd = self.split_train_validation(
                                                                                                             X=self.X, 
                                                                                                             Ymean=self.Y_mean, 
                                                                                                             Ystd=self.Y_std, 
-                                                                                                            train_ratio=0.9, 
+                                                                                                            train_validation_ratio=0.9, 
                                                                                                             seed=seed)
             
                 logger.info(f"Shape of training arrays: {X_train.shape}, {Ymean_train.shape}, {Ystd_train.shape}")
-                logger.info(f"Shape of pseudo_test arrays: {pseudo_test_X.shape}, {pseudo_test_Ymean.shape}, {pseudo_test_Ystd.shape}")
+                logger.info(f"Shape of validation arrays: {validation_X.shape}, {validation_Ymean.shape}, {validation_Ystd.shape}")
 
                 # Initializing GP dictionary to store the fitted GPs for all available kernels
                 gplist = {}
@@ -291,12 +312,12 @@ class Emulator:
 
                 for kernel_name, ker in self.kernels.items():
                     gplist[kernel_name] = Parallel(n_jobs=n_jobs)(
-                        delayed(self.fit_singleGP)(Xfit=X_stnd, 
-                                                     Yfit_mean=sample_column, 
-                                                     Yfit_std=Ystd_stnd[:, i], 
-                                                     kernel=ker,
-                                                     nrestarts=nrestarts
-                                                    )
+                        delayed(self.fit_singleGP)(Xfit = X_stnd, 
+                                                   Yfit_mean = sample_column, 
+                                                   Yfit_std = Ystd_stnd[:, i], 
+                                                   kernel = ker,
+                                                   nrestarts = nrestarts
+                                                  )
                         for i, sample_column in enumerate(Ymean_stnd.T)
                     )
                     logger.info(f"  Trained GPs with {kernel_name} kernels.")
@@ -304,18 +325,19 @@ class Emulator:
                 
                 logger.info("Finding best kernels for each output dimension...")
 
-                # First compute the metrics by comparing the fitted GPs with pseudo_test_data for all kernels
-                metrics_result = self._compute_metrics(GP_dict=gplist,
-                                                       test_X=pseudo_test_X, 
-                                                       test_Ymean=pseudo_test_Ymean, 
-                                                       test_Ystd=pseudo_test_Ystd)
+                # First compute the metrics by comparing the fitted GPs with validation batch for all kernels
+                metrics_result = self._compute_metrics(GP_dict = gplist,
+                                                       X_val = validation_X, 
+                                                       Ymean_val = validation_Ymean, 
+                                                       Ystd_val = validation_Ystd
+                                                      )
 
                 # Now select the best kernel 
                 best_kernels = self._select_best_kernels(metrics_result)
 
                 assert len(Ymean_stnd[1]) == len(best_kernels), (
                     "Error during GP fit: Number of best kernels not equal to number of output dimension."
-                    "Check the _AutoKernelSelection function."
+                    "Check the _select_best_kernels function."
                 )
                 
                 logger.info(f"  Selected best kernels for each output dimension:\n   {best_kernels}\n")
@@ -407,7 +429,7 @@ class Emulator:
         try:
             X_new_scaled = self._scaler_X.transform(X_new)
             predictions = [gp.predict(X_new_scaled, return_cov=True) for gp in self.gps]
-            means_scaled, covariances_scaled = zip(*predictions)
+            means_scaled, covariances_scaled = zip(*predictions) 
             
             # Transform the means back to the original scale
             means_scaled = np.column_stack(means_scaled)
@@ -521,30 +543,30 @@ class Emulator:
         return gp
         
 
-    def split_train_test(self, X, Ymean, Ystd, train_ratio=0.9, seed=None):
+    def split_train_validation(self, X, Ymean, Ystd, train_validation_ratio=0.9, seed=None):
         """
-        Splits the dataset into training and test sets based on the specified train_ratio.
+        Splits the dataset into training and validation sets based on the specified train_validation_ratio.
     
         Parameters:
             X (array-like): Input features of shape (n_samples, n_features).
             Ymean (array-like): Mean values of the training data of shape (n_samples, n_outputs).
             Ystd (array-like): Standard deviation of the training data of shape (n_samples, n_outputs).
-            train_ratio (float, optional): The ratio of the dataset to be used for training. Default is 0.9 (90%).
+            train_validation_ratio (float, optional): The ratio of the dataset to be used for training. Default is 0.9 (90%).
             seed (int, optional): Seed for the random number generator to ensure reproducibility. Default is 42.
     
         Returns:
             X_train (array-like): Training set of input features.
             Ymean_train (array-like): Training set of mean values.
             Ystd_train (array-like): Training set of standard deviations.
-            X_test (array-like): Test set of input features.
-            Ymean_test (array-like): Test set of mean values.
-            Ystd_test (array-like): Test set of standard deviations.
+            X_val (array-like): Validation set of input features.
+            Ymean_val (array-like): Validation set of mean values.
+            Ystd_val (array-like): Validation set of standard deviations.
         """
         # Set the seed for reproducibility
         np.random.seed(seed)
     
         # Calculate the size of the training set as a percentage of the total data
-        train_size = int(train_ratio * X.shape[0])
+        train_size = int(train_validation_ratio * X.shape[0])
         
         # Generate 'train_size' random unique indices
         selected_indices = np.random.choice(X.shape[0], size=train_size, replace=False)
@@ -554,26 +576,26 @@ class Emulator:
         Ymean_train = Ymean[selected_indices]
         Ystd_train = Ystd[selected_indices]
         
-        # Select the remaining rows for the test set
-        X_test = np.delete(X, selected_indices, axis=0)
-        Ymean_test = np.delete(Ymean, selected_indices, axis=0)
-        Ystd_test = np.delete(Ystd, selected_indices, axis=0)
+        # Select the remaining rows for the validation set
+        X_val = np.delete(X, selected_indices, axis=0)
+        Ymean_val = np.delete(Ymean, selected_indices, axis=0)
+        Ystd_val = np.delete(Ystd, selected_indices, axis=0)
     
-        return X_train, Ymean_train, Ystd_train, X_test, Ymean_test, Ystd_test
+        return X_train, Ymean_train, Ystd_train, X_val, Ymean_val, Ystd_val
 
     
-    def _compute_metrics(self, GP_dict, test_X, test_Ymean, test_Ystd):
+    def _compute_metrics(self, GP_dict, X_val, Ymean_val, Ystd_val):
         """
-        Computes and aggregates metric results for each kernel by comparing predicted GP means and stds with the test data.
+        Computes and aggregates metric results for each kernel by comparing predicted GP means and stds with the validation data.
     
         Parameters:
             GP_dict (dict): Dictionary of fitted GPs for each kernel.
                 - Key (str): The name of the kernel.
                 - Value (list): List of GaussianProcessRegressor models fitted with the corresponding kernel.
                 
-            test_X (array-like): Input features of the test data.
-            test_Ymean (array-like): Mean values of the test data.
-            test_Ystd (array-like): Standard deviations of the test data.
+            X_val (array-like): Input features of the validation data.
+            Ymean_val (array-like): Mean values of the validation data.
+            Ystd_val (array-like): Standard deviations of the validation data.
 
         
         Returns:
@@ -581,7 +603,7 @@ class Emulator:
                 - Outer Key (str): The name of the metric (e.g., 'KL Divergence', 'Hellinger Distance', 'Wasserstein Distance').
                 - Outer Value (dict): 
                     - Inner Key (str): The name of the kernel (e.g., 'RBF', 'Matern52').
-                    - Inner Value (array-like): The computed metric values for the test data, with same shape as test_Ymean.
+                    - Inner Value (array-like): The computed metric values for the validation data, with same shape as Ymean_val.
         """
 
         # Initialize the dictionary to store the results
@@ -590,25 +612,25 @@ class Emulator:
         # Iterate over each kernel and compute predictions and metrics
         for kernel_name in self.kernels.keys():
             self.gps = GP_dict[kernel_name]
-            GP_means, GP_stds = self.predict(test_X, return_full_covmat=False)
+            GP_means, GP_stds = self.predict(X_val, return_full_covmat=False)
     
             # Ensure that shapes of the arrays match
-            assert GP_means.shape == GP_stds.shape == test_Ymean.shape == test_Ystd.shape, (
+            assert GP_means.shape == GP_stds.shape == Ymean_val.shape == Ystd_val.shape, (
                 "Error in _compute_metrics: Arrays of mean and std for metric computation must have the same shape."
             )
     
             # Compute the metrics for this kernel
             results = {}
             for metric_name, metric_func in self.metrics.items():
-                results[metric_name] = metric_func(GP_means, GP_stds, test_Ymean, test_Ystd)
+                results[metric_name] = metric_func(GP_means, GP_stds, Ymean_val, Ystd_val)
     
             # Store the results for the current kernel
             for metric_name, value in results.items():
                 metric_results[metric_name][kernel_name] = value
 
         metric_results[metric_name][kernel_name]
-        assert  metric_results[metric_name][kernel_name].shape == test_Ymean.shape, (
-            "Error in _compute_metrics calculation: Shape of metric_result[.][.] should match shape of test_Ymean."
+        assert  metric_results[metric_name][kernel_name].shape == Ymean_val.shape, (
+            "Error in _compute_metrics calculation: Shape of metric_result[.][.] should match shape of Ymean_val."
         )
         
         return metric_results
@@ -631,7 +653,7 @@ class Emulator:
                     - Outer Key (str): The name of the metric (e.g., 'KL Divergence', 'Hellinger Distance', 'Wasserstein Distance').
                     - Outer Value (dict): 
                         - Inner Key (str): The name of the kernel (e.g., 'RBF', 'Matern52').
-                        - Inner Value (array-like): The computed metric values for the test data, with same shape as test_Ymean.
+                        - Inner Value (array-like): The computed metric values for the validation data.
     
         Returns:
             best_kernels (list): List of best-performing kernels for each column.

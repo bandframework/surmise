@@ -47,7 +47,7 @@ logger.info(f"Shapes of loaded arrays: {Xval.shape}, {Ymeanval.shape}, {Ystdval.
 # Emulator training -------->
 
 # Train GPs
-emu = Emulator(X=X_train, Y_mean=Ymean_train, Y_std=Ystd_train)
+emu = Emulator(X=X, Y_mean=Ymean, Y_std=Ystd)
 emu.fit(kernel='AKS', nrestarts=20)
 
 
