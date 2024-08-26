@@ -196,6 +196,9 @@ def wasserstein_distance_gaussian(mu1, Cov1, mu2, Cov2):
     # Compute the trace term
     trace_term = np.trace(Cov1 + Cov2 - 2 * sqrt_product)
     
+    # Set small negative values due to numerical error to zero
+    trace_term = np.where(trace_term < 1e-8, 0, trace_term)
+
     # Wasserstein distance
     W2 = np.sqrt(mean_diff_sq + trace_term)
     
