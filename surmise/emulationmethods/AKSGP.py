@@ -21,6 +21,7 @@ from joblib import Parallel, delayed
 import logging
 
 # Configure logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -64,14 +65,14 @@ def get_kernels(input_dim):
         kernel_dict (dict): A dictionary where keys are kernel names (str) and values are kernel objects.
     """
 
-    lb, ub = 1e-5, 1e5  # lower bound, upper bound
+    lb, ub = 1e-3, 1e3  # lower bound, upper bound of input space. Note that the input space is standardized.
 
     kernel_dict = {
         'Matern12': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub), nu=0.5),
         'Matern32': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub), nu=1.5),
         'Matern52': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub), nu=2.5),
         'RBF': 1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub)),
-        # # 
+        # 
         # 'DotProduct+Matern12': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) + 
         #                         1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
         # 'DotProduct+Matern32': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) + 
@@ -435,14 +436,26 @@ class Emulator:
             means_scaled = np.column_stack(means_scaled)
             means = self._scaler_Y.inverse_transform(means_scaled)
 
-            # Transform the standard deviations or covariances matrix back to the original scale
+            # Apply the scaling to all covariance matrices at once
             scale = self._scaler_Y.scale_
+            covariances = [cov * scale[i] ** 2 for i, cov in enumerate(covariances_scaled)]
+
             if return_full_covmat:
-                covariances = [covariance * scale[i]**2 for i, covariance in enumerate(covariances_scaled)]
                 return means, covariances
             else:
-                std_devs = [np.sqrt(np.diag(covariance)) * scale[i] for i, covariance in enumerate(covariances_scaled)]
-                std_devs = np.column_stack(std_devs)
+                # Extract the diagonal (variance) from all covariance matrices at once
+                variances = np.array([np.diag(cov) for cov in covariances])
+
+                # Check if any variances are negative and set them to 0
+                variances_negative = variances < 0
+                if np.any(variances_negative):
+                    logger.warning(
+                        "Predicted variances contain negative values. Setting those variances to 0."
+                    )
+                    variances[variances_negative] = 0.0
+
+                std_devs = np.sqrt(variances).T  # Transpose to match the expected output format
+
                 return means, std_devs
         
         except Exception as e:
@@ -496,7 +509,7 @@ class Emulator:
             logger.info("  Standardizing data...")
             Z_mean = self._scaler_Y.fit_transform(Y_mean)
             Z_std = Y_std / self._scaler_Y.scale_
-
+            
         except Exception as e:
             logger.error(f"Error during data preprocessing: {e}")
             raise
@@ -694,4 +707,5 @@ class Emulator:
     
         return best_kernels
 ########################################################################################################
+
 
