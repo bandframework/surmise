@@ -135,6 +135,8 @@ def test_predict_repr(expectation):
     [
      ('PCGPwM', does_not_raise()),
      ('PCGP', does_not_raise()),
+     ('indGP', does_not_raise()),
+     ('PCGPwImpute', does_not_raise()),
      ],
     )
 def test_prediction_mean(input1, expectation):
@@ -165,6 +167,8 @@ def test_prediction_mean(input1, expectation):
     [
      ('PCGPwM', does_not_raise()),
      ('PCGP', does_not_raise()),
+     ('indGP', does_not_raise()),
+     ('PCGPwImpute', does_not_raise()),
      ],
     )
 def test_prediction_var(input1, expectation):
@@ -180,6 +184,7 @@ def test_prediction_var(input1, expectation):
     [
      ('PCGPwM', does_not_raise()),
      ('PCGP', does_not_raise()),
+     ('indGP', does_not_raise())
      ],
     )
 def test_prediction_covx(input1, expectation):
@@ -205,18 +210,19 @@ def test_prediction_covxhalf(input1, expectation):
 
 
 # test to check the prediction.covxhalf_gradtheta()
-# @pytest.mark.parametrize(
-#     "input1,input2,expectation",
-#     [
-#      ('PCGP', False, pytest.raises(ValueError)),
-#      ('PCGP', True, does_not_raise()),
-#      ],
-#     )
-# def test_prediction_covxhalf_gradtheta(input1, input2, expectation):
-#     emu = emulator(x=x, theta=theta, f=f, method=input1)
-#     pred = emu.predict(x=x, theta=theta, args={'return_grad': input2})
-#     with expectation:
-#         assert pred.covxhalf_gradtheta() is not None
+@pytest.mark.parametrize(
+    "input1, expectation",
+    [
+     ('PCGPwM', does_not_raise()),
+     ('PCGP', pytest.raises(ValueError)),
+     ],
+    )
+def test_prediction_covxhalf_gradtheta(input1, expectation):
+    emu = emulator(x=x, theta=theta, f=f, method=input1)
+    pred = emu.predict(x=x, theta=theta, args={'return_grad': True})
+    with expectation:
+        assert pred.covxhalf_gradtheta() is not None
+
 
 # test to check the prediction.lpdf()
 @pytest.mark.parametrize(
@@ -225,6 +231,8 @@ def test_prediction_covxhalf(input1, expectation):
      ('PCGP', False, pytest.raises(ValueError)),
      ('PCGPwM', True, does_not_raise()),
      ('PCGPwM', False, does_not_raise()),
+     ('PCGPwImpute', True, does_not_raise()),
+     ('PCGPwImpute', False, does_not_raise()),
      ],
     )
 def test_prediction_lpdf(input1, return_grad, expectation):

@@ -1,8 +1,13 @@
+# IMPORTANT
+# * Please adjust GitHub actions to match changes to Python version here.
+# * Please make sure that all dependence/version changes made here are reflected
+#   in the oldest tox task in tox.ini
+
 [build-system]
 requires = [
     "setuptools>=68.2.2",
     "setuptools_scm[toml]>=6.0",
-    "numpy>=1.18.3",
+    "numpy>=1.22.0",
     "cython>=3.0.10",
     "wheel"
 ]
@@ -24,12 +29,10 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-# Please adjust package testing CI action to match changes to Python version
-# here.
 requires-python = ">=3.9"
 dependencies = [
-    'numpy>=1.18.3',
-    'scipy>=1.7',
+    'numpy>=1.22.0',
+    'scipy>=1.9.0',
     'dill>=0.3.8'
 ]
 dynamic = ["version"]
