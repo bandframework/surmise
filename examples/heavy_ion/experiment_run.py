@@ -11,7 +11,7 @@ def train_emu(emumethod, x, theta, f):
     if emumethod not in ['AKSGP', 'LCGP']:
         emu = emulator(x=x, theta=theta, f=f, method=emumethod)
     elif emumethod == 'AKSGP':
-        emu = Emulator(...)
+        emu = Emulator(...)  # or load dill
     elif emumethod == 'LCGP':
         emu = None
     t1 = time()
@@ -27,7 +27,7 @@ def predict_emu(emumethod, emu, x, theta):
         predmean = emupred.mean()
         predvar = emupred.var()
     elif emumethod == 'AKSGP':
-        predmean, predvar = emu.predict( ... )  # or load dill
+        predmean, predvar = emu.predict( ... )
     elif emumethod == 'LCGP':
         pass
     t1 = time()
