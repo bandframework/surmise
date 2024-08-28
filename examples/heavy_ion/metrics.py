@@ -50,13 +50,13 @@ def dss(y, ypredmean, ypredcov, use_diag):
     return score
 
 
-def intervalstats(y, ypredmean, ypredvar):
+def intervalstats(y, ypredmean, ypredvar, p=0.95):
     """
     Returns empirical coverage and length of interval given true/observed $y$,
     predictive means and variances.
     """
-    ylower = ypredmean + np.sqrt(ypredvar) * sps.norm.ppf(0.025)
-    yupper = ypredmean + np.sqrt(ypredvar) * sps.norm.ppf(0.975)
+    ylower = ypredmean + np.sqrt(ypredvar) * sps.norm.ppf((1 - p)/2)
+    yupper = ypredmean + np.sqrt(ypredvar) * sps.norm.ppf((1 + p)/2)
 
     coverage = np.mean(np.logical_and(y <= yupper, y >= ylower))
     length = np.mean(yupper - ylower)
