@@ -45,13 +45,13 @@ clone.
 
 * ``tox -e coverage``
 
-    * Run the full surmise test suite using the current state of the code in
-      the local clone with code coverage by line enabled
+    * Run the full surmise test suite with coverage-by-line enabled and
+      using the current state of the code in the local clone
     * Print the coverage-by-line results to standard output
 
 * ``tox -e nocoverage``
 
-    * Run the full surmise test suite using a Python package installation
+    * Run the full surmise test suite with surmise installed as a Python package
 
 * ``tox -e report``
 
