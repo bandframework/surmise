@@ -358,7 +358,8 @@ class Emulator:
                     delayed(self.fit_singleGP)(Xfit=X_stnd, 
                                                Yfit_mean=sample_column, 
                                                Yfit_std=Ystd_stnd[:, i], 
-                                               kernel=self.kernels_list[best_kernels[i]], 
+                                               kernel=self.kernels_list[best_kernels[i]],
+                                               nrestarts = nrestarts
                                               )
                     for i, sample_column in enumerate(Ymean_stnd.T)
                 )
