@@ -15,7 +15,7 @@ Note:
 
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from sklearn.gaussian_process.kernels import Matern, RBF, DotProduct, RationalQuadratic, ExpSineSquared, Kernel, Product
+from sklearn.gaussian_process.kernels import Matern, RBF, WhiteKernel, DotProduct, RationalQuadratic, ExpSineSquared, Kernel, Product
 from sklearn.gaussian_process import GaussianProcessRegressor
 from joblib import Parallel, delayed
 import logging
@@ -177,14 +177,14 @@ class Emulator:
             - `predict(X_new, return_full_covmat)`: Predicts mean and uncertainty for new input data using the fitted GPs.
 
         Example usage: 
-            from sklearn.datasets import make_friedman2
-            X, y = make_friedman2(n_samples=100, noise=0.5, random_state=0)
-            emu = Emulator(X=X, Y_mean=y, Y_std=None)
-            emu.fit(kernel='AKS', nrestarts=10, n_jobs=-1, seed=42)
-            # Predict and compare with test data --->
-            Xtest, ytest = make_friedman2(n_samples=10, noise=0.5, random_state=0)
-            GP_means, GP_std = emu.predict(Xtest, return_full_covmat=False)
-            print("% error:\n", (1.0 - GP_means/ytest.reshape(-1, 1))*100)
+            >>> from sklearn.datasets import make_friedman2
+            >>> X, y = make_friedman2(n_samples=100, noise=0.5, random_state=0)
+            >>> emu = Emulator(X=X, Y_mean=y, Y_std=None)
+            >>> emu.fit(kernel='AKS', nrestarts=10, n_jobs=-1, seed=42)
+            >>> # Predict and compare with test data --->
+            >>> Xtest, ytest = make_friedman2(n_samples=10, noise=0.5, random_state=0)
+            >>> GP_means, GP_std = emu.predict(Xtest, return_full_covmat=False)
+            >>> print("% error in mean:\n", (1.0 - GP_means/ytest.reshape(-1, 1))*100)
             
         Parameters:
             X (array-like): Input features of shape (n_samples, n_features).
@@ -235,15 +235,16 @@ class Emulator:
 
         self.gps = []
 
+        self.selected_kernels = []
         # Initialize the dictionaries of kernels and metrics for best kernel selction 
         input_dim = self.X.shape[1]  # dimensionality of input space
         
         # Initialize the kernel and metric dictionaries
-        self.kernels = get_kernels(input_dim)
+        self.kernels_list = get_kernels(input_dim)
         self.metrics = get_metrics()
 
         # Check if the kernel and metric dictionaries exist
-        if not self.kernels or not self.metrics:
+        if not self.kernels_list or not self.metrics:
             raise ValueError("Kernel dict or metric dict is empty or not defined properly.")
     
     # ---------------------------------------------------------------------------------------------
@@ -287,7 +288,7 @@ class Emulator:
             
             logger.info(
                 f"Automatic kernel selection opted. Best kernel for each output dimension will be selected from the list of kernels:\n"
-                f"   {list(self.kernels.keys())}\n"
+                f"   {list(self.kernels_list.keys())}\n"
             )
             
             try:
@@ -311,7 +312,7 @@ class Emulator:
                 # Standardize data before GP training
                 X_stnd, Ymean_stnd, Ystd_stnd = self._preprocess_data(X=X_train, Y_mean=Ymean_train, Y_std=Ystd_train)
 
-                for kernel_name, ker in self.kernels.items():
+                for kernel_name, ker in self.kernels_list.items():
                     gplist[kernel_name] = Parallel(n_jobs=n_jobs)(
                         delayed(self.fit_singleGP)(Xfit = X_stnd, 
                                                    Yfit_mean = sample_column, 
@@ -335,6 +336,7 @@ class Emulator:
 
                 # Now select the best kernel 
                 best_kernels = self._select_best_kernels(metrics_result)
+                self.selected_kernels = best_kernels # append to selected_kernels
 
                 assert len(Ymean_stnd[1]) == len(best_kernels), (
                     "Error during GP fit: Number of best kernels not equal to number of output dimension."
@@ -354,13 +356,14 @@ class Emulator:
 
                 self.gps = Parallel(n_jobs=n_jobs)(
                     delayed(self.fit_singleGP)(Xfit=X_stnd, 
-                                                 Yfit_mean=sample_column, 
-                                                 Yfit_std=Ystd_stnd[:, i], 
-                                                 kernel=self.kernels[best_kernels[i]], 
-                                                 nrestarts=nrestarts
-                                                )
+                                               Yfit_mean=sample_column, 
+                                               Yfit_std=Ystd_stnd[:, i], 
+                                               kernel=self.kernels_list[best_kernels[i]], 
+                                              )
                     for i, sample_column in enumerate(Ymean_stnd.T)
                 )
+                del best_kernels, metrics_result # Free memory
+                
                 logger.info("Retraining GPs complete.\n")
             
             except Exception as e:
@@ -370,10 +373,14 @@ class Emulator:
 
         else:
             # Check if the specified kernel is valid and select the specified kernel
-            if kernel not in self.kernels:
-                raise ValueError(f"Unsupported kernel type: {kernel}. Available kernels: {list(kernels.keys())}")
+            if kernel not in self.kernels_list:
+                raise ValueError(
+                    f"Unsupported kernel type: {kernel}. Available kernels: {list(self.kernels_list.keys())}.\n" 
+                    f"Or choose 'AKS' for Automatic Kernel Selection."
+                )
                 
-            ker = self.kernels[kernel]
+            ker = self.kernels_list[kernel]
+            self.selected_kernels = ker  # append to selected_kernels
     
             logger.info(f"Training GPs with {kernel} kernel...\n")
             try:
@@ -623,7 +630,7 @@ class Emulator:
         metric_results = {metric: {} for metric in self.metrics.keys()}
     
         # Iterate over each kernel and compute predictions and metrics
-        for kernel_name in self.kernels.keys():
+        for kernel_name in self.kernels_list.keys():
             self.gps = GP_dict[kernel_name]
             GP_means, GP_stds = self.predict(X_val, return_full_covmat=False)
     

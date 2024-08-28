@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.stats as sps
 from scipy.linalg import sqrtm
+from scipy.integrate import trapezoid
 
 def rmse(y, ypredmean):
     """
@@ -150,6 +151,8 @@ def hellinger_distance_gaussian(mu1, Cov1, mu2, Cov2):
     
     # Hellinger distance squared
     H2 = 1 - det_term * exp_term
+    # Set small negative values due to numerical error to zero
+    H2 = np.where(H2 < 1e-8, 0, H2)
     
     # Hellinger distance
     H = np.sqrt(H2)
@@ -237,5 +240,68 @@ def wasserstein_distance_gaussian(mu1, Cov1, mu2, Cov2):
 
 
 
+def norm_overlap_area_n_sigma(mu1, sigma1, mu2, sigma2, n):
+    """
+    This function computes the overlap area between two Gaussian distributions 
+    for each combination of means (`mu1`, `mu2`) and standard deviations 
+    (`sigma1`, `sigma2`), normalized by the area within the n-sigma interval 
+    of a Gaussian distribution.
+
+    Parameters:
+    ----------
+        mu1, sigma1 : array-like or float
+            Mean and standard deviation of the first Gaussian distribution.
+        mu2, sigma2 : array-like or float
+            Mean and standard deviation of the second Gaussian distribution.
+        n : array-like or float
+            Number of standard deviations to define the n-sigma interval.
+
+    Returns:
+    -------
+        norm_overlap_areas : ndarray
+            A 2D array where each row corresponds to a different n value and each 
+            column corresponds to a different combination of the input parameters. 
+            The entries represent the normalized overlap areas.
+    """
+    # Ensure that mu1, sigma1, mu2, sigma2, n are arrays
+    mu1 = np.atleast_1d(mu1)
+    sigma1 = np.atleast_1d(sigma1)
+    mu2 = np.atleast_1d(mu2)
+    sigma2 = np.atleast_1d(sigma2)
+    n = np.atleast_1d(n)
+    
+    # Prepare to store results
+    norm_overlap_areas = np.empty((len(n), len(mu1)), dtype=np.float64)
+    
+    # Loop over each n value
+    for j, n_value in enumerate(n):
+        # Loop over each set of parameters
+        for i, (m1, s1, m2, s2) in enumerate(zip(mu1, sigma1, mu2, sigma2)):
+            # Define the n-sigma intervals for both distributions
+            interval_1 = [m1 - n_value * s1, m1 + n_value * s1]
+            interval_2 = [m2 - n_value * s2, m2 + n_value * s2]
+            
+            # Determine the overlap interval
+            a = max(interval_1[0], interval_2[0])
+            b = min(interval_1[1], interval_2[1])
+            
+            if a >= b:
+                norm_overlap_areas[j, i] = 0  # No overlap
+            else:
+                # Precompute the points where we evaluate the Gaussian PDFs
+                x = np.linspace(a, b, 100)  # Increase number of points for accuracy
+                
+                # Evaluate the Gaussian PDFs
+                pdf1 = sps.norm.pdf(x, m1, s1)
+                pdf2 = sps.norm.pdf(x, m2, s2)
+                
+                # Calculate the overlap area using the trapezoidal rule
+                overlap_area = trapezoid(np.minimum(pdf1, pdf2), x)
+                
+                # Normalize by the area within the n-sigma interval of the Gaussian
+                area_within_n_sigma_of_gaussian = 2 * sps.norm.cdf(n_value) - 1
+                norm_overlap_areas[j, i] = 1 - (overlap_area / area_within_n_sigma_of_gaussian)
+    
+    return norm_overlap_areas
 
 
