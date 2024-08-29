@@ -892,7 +892,21 @@ class emulator(object):
 
     @staticmethod
     def load_from(filename):
-        return load_file(filename)
+        emu = load_file(filename)
+        assert hasattr(emu, '__module__')
+        assert hasattr(emu, '__class__')
+        assert '.'.join((emu.__module__,
+                         emu.__class__.__name__)) == 'surmise.emulation.emulator'
+        return emu
+
+    @staticmethod
+    def load_prediction(filename):
+        pred = load_file(filename)
+        assert hasattr(pred, '__module__')
+        assert hasattr(pred, '__class__')
+        assert '.'.join((pred.__module__,
+                         pred.__class__.__name__)) == 'surmise.emulation.prediction'
+        return pred
 
 
 class prediction(object):
@@ -1123,7 +1137,7 @@ class prediction(object):
 
             emupred.save_to('emupred_example.pkl')
 
-            loaded_emupred = emulator.load_from('emupred_example.pkl')
+            loaded_emupred = emulator.load_prediction('emupred_example.pkl')
 
         """
         save_file(self, filename)

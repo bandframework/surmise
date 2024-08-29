@@ -108,7 +108,7 @@ def test_emupred_saveload():
         emupred = emu.predict()
         emupred.save_to(fname)
 
-        emupredload = emulator.load_from(fname)
+        emupredload = emulator.load_prediction(fname)
         assert (emupredload.mean() == emupred.mean()).all()
 
         os.remove(fname)

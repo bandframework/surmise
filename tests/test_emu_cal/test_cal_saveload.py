@@ -133,6 +133,6 @@ def test_calpred_saveload(expectation):
         fname = 'test_calpred_saveload.pkl'
         calpred.save_to(fname)
 
-        calpredload = calibrator.load_from(fname)
+        calpredload = calibrator.load_prediction(fname)
         assert (calpredload.mean() == calpred.mean()).all()
         os.remove(fname)
