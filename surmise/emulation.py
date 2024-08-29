@@ -895,8 +895,10 @@ class emulator(object):
         emu = load_file(filename)
         assert hasattr(emu, '__module__')
         assert hasattr(emu, '__class__')
-        assert '.'.join((emu.__module__,
-                         emu.__class__.__name__)) == 'surmise.emulation.emulator'
+        if '.'.join((emu.__module__,
+                     emu.__class__.__name__)) != 'surmise.emulation.emulator':
+            raise TypeError('The file loaded should be of class '
+                            '\'surmise.emulation.emulator\'.')
         return emu
 
     @staticmethod
@@ -904,8 +906,10 @@ class emulator(object):
         pred = load_file(filename)
         assert hasattr(pred, '__module__')
         assert hasattr(pred, '__class__')
-        assert '.'.join((pred.__module__,
-                         pred.__class__.__name__)) == 'surmise.emulation.prediction'
+        if '.'.join((pred.__module__,
+                     pred.__class__.__name__)) != 'surmise.emulation.prediction':
+            raise TypeError('The file loaded should be of class '
+                            '\'surmise.emulation.prediction\'.')
         return pred
 
 
