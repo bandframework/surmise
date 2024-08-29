@@ -10,7 +10,7 @@ on:
   push:
     branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop, v0.3-update ]
+    branches: [ main, develop ]
 
 jobs:
 
@@ -32,9 +32,12 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
-    - name: Setup python with tox
+    - name: Setup Python with tox
       shell: bash
       run: $CLONE_PATH/.github/workflows/install_tox.sh
     - name: Run test suite
       run: |
-        tox -e coverage
+        # This should be running nocoverage, but must run using a local install
+        # due to the current testing setup.
+        # TODO: Finalize after Issue #74 integrates the tests into the package.
+        tox -r -e coverage
