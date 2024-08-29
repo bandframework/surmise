@@ -42,6 +42,12 @@ To begin using surmise, we encourage checking out the following pages:
 
    contributing
 
+.. toctree::
+   :caption: Collaborators & Contributors:
+   :maxdepth: 2
+
+   collaborators_contributors
+
 Indices and tables
 ====================================
 

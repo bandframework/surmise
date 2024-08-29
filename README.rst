@@ -117,8 +117,6 @@ of surmise.
 In addition, for a gentle introduction of emulation and calibration using Gaussian processes, visit
 `surmise Jupyter notebook`_.
 
-.. include:: CONTRIBUTORS.rst
-
 .. _NumPy: http://www.numpy.org
 .. _pytest-cov: https://pypi.org/project/pytest-cov/
 .. _pytest: https://pypi.org/project/pytest/
