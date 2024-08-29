@@ -1,4 +1,3 @@
-import dill
 import os
 
 ##############################################
@@ -91,12 +90,13 @@ def does_not_raise():
     yield
 
 @pytest.mark.parametrize(
-    "expectation",
+    "load_cal_flag, expectation",
     [
-     (does_not_raise()),
+     (True, does_not_raise()),
+     (False, pytest.raises(TypeError))
      ],
     )
-def test_cal_saveload(expectation):
+def test_cal_saveload(load_cal_flag, expectation):
     with expectation:
         cal = calibrator(emu=emulator_f_1,
                          y=y,
@@ -109,7 +109,15 @@ def test_cal_saveload(expectation):
         fname = 'test_cal_saveload.pkl'
         cal.save_to(fname)
 
-        calload = calibrator.load_from(fname)
+        if load_cal_flag:
+            calload = calibrator.load_from(fname)
+        else:
+            try:
+                calload = calibrator.load_prediction(fname)
+            except TypeError:
+                # in case test fails, generated files should be cleaned up
+                os.remove(fname)
+                raise TypeError
         assert calload.theta.mean() == cal.theta.mean()
         os.remove(fname)
 
@@ -133,6 +141,6 @@ def test_calpred_saveload(expectation):
         fname = 'test_calpred_saveload.pkl'
         calpred.save_to(fname)
 
-        calpredload = calibrator.load_from(fname)
+        calpredload = calibrator.load_prediction(fname)
         assert (calpredload.mean() == calpred.mean()).all()
         os.remove(fname)
