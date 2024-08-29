@@ -301,7 +301,25 @@ class calibrator(object):
 
     @staticmethod
     def load_from(filename):
-        return load_file(filename)
+        cal = load_file(filename)
+        assert hasattr(cal, '__module__')
+        assert hasattr(cal, '__class__')
+        if '.'.join((cal.__module__,
+                     cal.__class__.__name__)) != 'surmise.calibration.calibrator':
+            raise TypeError('The file loaded should be of class '
+                            '\'surmise.calibration.calibrator\'.')
+        return cal
+
+    @staticmethod
+    def load_prediction(filename):
+        pred = load_file(filename)
+        assert hasattr(pred, '__module__')
+        assert hasattr(pred, '__class__')
+        if '.'.join((pred.__module__,
+                     pred.__class__.__name__)) != 'surmise.calibration.prediction':
+            raise TypeError('The file loaded should be of class '
+                            '\'surmise.calibration.prediction\'.')
+        return pred
 
 
 class prediction(object):
@@ -434,7 +452,7 @@ class prediction(object):
 
             calpred.save_to('calpred_example.pkl')
 
-            loaded_calpred = calibrator.load_from('calpred_example.pkl')
+            loaded_calpred = calibrator.load_prediction('calpred_example.pkl')
 
         """
         save_file(self, filename)
@@ -450,8 +468,11 @@ class prediction(object):
         ylowers = np.quantile(ypred, q=(1-p)/2, axis=0)
         yuppers = np.quantile(ypred, q=(1+p)/2, axis=0)
 
-        coverage = np.mean(np.logical_and(y <= yuppers, y >= ylowers), axis=1)
-
+        coverage = None
+        try:
+            coverage = np.mean(np.logical_and(y <= yuppers, y >= ylowers), axis=1)
+        except ValueError:
+            warnings.warn('Use the same \'x\' for prediction to compute empirical coverages.')
         self.info['coverage'] = (p, coverage)
         return
 

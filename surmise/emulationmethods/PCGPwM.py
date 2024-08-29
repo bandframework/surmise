@@ -194,24 +194,24 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
     if predvecs.ndim < 1.5:
         predvecs = predvecs.reshape((1, -1))
         predvars = predvars.reshape((1, -1))
-    # try:
-    if x is None or np.all(np.equal(x, fitinfo['x'])) or \
-            np.allclose(x, fitinfo['x']):
-        xind = np.arange(0, x.shape[0])
-        xnewind = np.arange(0, x.shape[0])
-    else:
-        raise ValueError('Currently x should be the same as x used in fitting.')
-    # except Exception:
-    #     matchingmatrix = np.ones((x.shape[0], fitinfo['x'].shape[0]))
-    #     for k in range(0, x[0].shape[0]):
-    #         try:
-    #             matchingmatrix *= np.isclose(x[:, k][:, None],
-    #                                          fitinfo['x'][:, k])
-    #         except Exception:
-    #             matchingmatrix *= np.equal(x[:, k][:, None],
-    #                                        fitinfo['x'][:, k])
-    #     xind = np.argwhere(matchingmatrix > 0.5)[:, 1]
-    #     xnewind = np.argwhere(matchingmatrix > 0.5)[:, 0]
+    try:
+        if x is None or np.all(np.equal(x, fitinfo['x'])) or \
+                np.allclose(x, fitinfo['x']):
+            xind = np.arange(0, x.shape[0])
+            xnewind = np.arange(0, x.shape[0])
+        else:
+            raise ValueError('Currently x should be the same as x used in fitting.')
+    except Exception:
+        matchingmatrix = np.ones((x.shape[0], fitinfo['x'].shape[0]))
+        for k in range(0, x[0].shape[0]):
+            try:
+                matchingmatrix *= np.isclose(x[:, k][:, None],
+                                             fitinfo['x'][:, k])
+            except Exception:
+                matchingmatrix *= np.equal(x[:, k][:, None],
+                                           fitinfo['x'][:, k])
+        xind = np.argwhere(matchingmatrix > 0.5)[:, 1]
+        xnewind = np.argwhere(matchingmatrix > 0.5)[:, 0]
 
     rsave = np.array(np.ones(len(infos)), dtype=object)
 
