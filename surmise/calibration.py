@@ -450,8 +450,11 @@ class prediction(object):
         ylowers = np.quantile(ypred, q=(1-p)/2, axis=0)
         yuppers = np.quantile(ypred, q=(1+p)/2, axis=0)
 
-        coverage = np.mean(np.logical_and(y <= yuppers, y >= ylowers), axis=1)
-
+        coverage = None
+        try:
+            coverage = np.mean(np.logical_and(y <= yuppers, y >= ylowers), axis=1)
+        except ValueError:
+            warnings.warn('Use the same \'x\' for prediction to compute empirical coverages.')
         self.info['coverage'] = (p, coverage)
         return
 
