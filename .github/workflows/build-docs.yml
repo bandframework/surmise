@@ -14,8 +14,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        # We would like to use 3.12, but this presently fails with the error:
+        # Could not import extension sphinxcontrib.bibtex (exception: No module named 'pkg_resources')
         os: [ubuntu-latest]
-        python-version: ["3.12"]
+        python-version: ["3.11"]
     steps:
     ##-- General Setup Steps
     - uses: actions/checkout@v4
