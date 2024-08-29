@@ -99,12 +99,12 @@ it to generate documentation.
 
 .. code-block:: bibtex
 
-   @techreport{surmise2023,
+   @techreport{surmise2024,
      author      = {Matthew Plumlee and \"Ozge S\"urer and Stefan M. Wild and Moses Y-H. Chan},
-     title       = {{surmise 0.2.1+dev} Users Manual},
+     title       = {{surmise 0.3.0} Users Manual},
      institution = {NAISE},
-     number      = {Version 0.2.1+dev},
-     year        = {2023},
+     number      = {Version 0.3.0},
+     year        = {2024},
      url         = {https://surmise.readthedocs.io}
    }
 
@@ -117,6 +117,8 @@ of surmise.
 In addition, for a gentle introduction of emulation and calibration using Gaussian processes, visit
 `surmise Jupyter notebook`_.
 
+.. include:: CONTRIBUTORS.rst
+
 .. _NumPy: http://www.numpy.org
 .. _pytest-cov: https://pypi.org/project/pytest-cov/
 .. _pytest: https://pypi.org/project/pytest/
@@ -126,3 +128,4 @@ In addition, for a gentle introduction of emulation and calibration using Gaussi
 .. _PyPI-wheel: https://pypi.org/project/surmise/#files
 .. _`Microsoft build tools`: https://visualstudio.microsoft.com/downloads/?q=build+tools
 .. _scikit-learn: https://scikit-learn.org/stable/install.html
+
