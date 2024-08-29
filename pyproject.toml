@@ -38,11 +38,6 @@ dependencies = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
-docs = [
-    'sphinx',
-    'sphinxcontrib.bibtex',
-    'sphinx_rtd_theme'
-]
 scikit-learn = ['scikit-learn>=1.2.0']
 all = [
     'surmise[scikit-learn]'
