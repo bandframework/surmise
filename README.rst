@@ -36,7 +36,7 @@ for details.
 Installation
 ~~~~~~~~~~~~
 
-From the command line, use the following command to install surmise::
+From the command line, use one of the following commands to install surmise::
 
  pip install surmise
  pip install surmise[scikit-learn]      # to include scikit-learn in installation
