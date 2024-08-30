@@ -19,9 +19,15 @@ from sklearn.gaussian_process.kernels import Matern, RBF, WhiteKernel, DotProduc
 from sklearn.gaussian_process import GaussianProcessRegressor
 from joblib import Parallel, delayed
 import logging
+import time
+import psutil
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 logger = logging.getLogger(__name__)
 
 
@@ -235,6 +241,9 @@ class Emulator:
 
         self.gps = []
 
+        self.wallclocktime = []
+        self.totalcputime = []
+
         self.selected_kernels = []
         # Initialize the dictionaries of kernels and metrics for best kernel selction 
         input_dim = self.X.shape[1]  # dimensionality of input space
@@ -279,7 +288,11 @@ class Emulator:
         Raises:
             Exception: If an error occurs during the GP fitting process.
         """
-        
+        # Start wall-clock time
+        start_wall_time = time.time()
+        # Record the start CPU times
+        start_cpu_times = psutil.cpu_times()
+
         if kernel=='AKS':
             #   - Split training data in 90% - 10% batch. 
             #   - Use 90% (training) batch to fit GPs for all output dimensions with all kernels in "kernel_list".
@@ -408,6 +421,21 @@ class Emulator:
                     f"Kernel after GP training for output dimension {i}:\n{self.gps[i].kernel_}\n"
                     f"  Log-marginal-likelihood: {self.gps[i].log_marginal_likelihood_value_}\n"
                 )
+            
+        # Record the end CPU times
+        end_cpu_times = psutil.cpu_times()
+        # End wall-clock time
+        end_wall_time = time.time()
+        
+        # Calculate the total CPU time
+        user_time = end_cpu_times.user - start_cpu_times.user
+        system_time = end_cpu_times.system - start_cpu_times.system
+        self.totalcputime = user_time + system_time
+        
+        # Calculate the wall-clock time
+        self.wallclocktime = end_wall_time - start_wall_time
+
+        del start_wall_time, start_cpu_times, end_cpu_times, user_time, system_time  # Free memory
 
     
     def predict(self, X_new, return_full_covmat=False):
