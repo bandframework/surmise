@@ -7,11 +7,11 @@ import dill
 import gzip
 import logging
 
-sys.path.append(os.path.abspath('../../..'))  # surmise directory
 from sklearn.model_selection import train_test_split
+
+sys.path.append(os.path.abspath('../../..'))  # surmise directory
 from surmise.emulation import emulator
 from surmise.emulationmethods.AKSGP import Emulator as emulator_AKSGP
-
 
 # Configure logging
 logging.basicConfig(
@@ -56,10 +56,11 @@ def kfold_train_save_emulators(simulation_name,
     Ymean = np.loadtxt(os.path.join(SimData_dir, 'Ymean.txt'))
     Ystd = np.loadtxt(os.path.join(SimData_dir, 'Ystd.txt'))
 
-    # Slice the data (optional)
+    # TESTING code: remove later------------------>
     X = X[:100, :]
     Ymean = Ymean[:100, :2]
     Ystd = Ystd[:100, :2]
+    # TESTING code------------------>
 
     # Generate k-fold datasets
     basedir_name = f'{simulation_name}_datasets'
@@ -89,6 +90,7 @@ def kfold_train_save_emulators(simulation_name,
 
     logger.info("All k-fold datasets processed and all emulators trained.\n")
 
+    
 #----------------------------------------------------------------
 
 def train_save_emu(X, Ymean, Ystd, methods, emulator_save_dir, retrain=False):
@@ -222,14 +224,7 @@ def generate_kfold_sets(
             )
             # Return existing k-fold directories
             return [os.path.join(base_dir, f'{sub_dir}{i}') for i in range(1, len(k_seeds) + 1)]
-            
-            # # List to store paths of k-fold directories
-            # kfold_dirs = []
-            # for i, seed in enumerate(k_seeds, start=1):
-            #     kfold_set_dir = os.path.join(base_dir, f'{sub_dir}{i}')
-            #     kfold_dirs.append(str(kfold_set_dir))
 
-            # return kfold_dirs
     else:
         # If the directory does not exist, create it
         os.makedirs(base_dir)
