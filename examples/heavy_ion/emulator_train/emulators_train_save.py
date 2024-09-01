@@ -137,7 +137,7 @@ def train_save_emu(X, Ymean, Ystd, methods, emulator_save_dir, retrain=False):
             args = {'simsd': Ystd.T}
             emus[method] = emulator(x=xloc, theta=X, f=Ymean.T, method=method, args=args)
         elif method == 'AKSGP':
-            emus[method] = emulator_AKSGP(X, Y_mean=Ymean, Y_std=Ystd)
+            emus[method] = emulator_AKSGP(X=X, Y_mean=Ymean, Y_std=Ystd)
             emus[method].fit(kernel='AKS', nrestarts=10, seed=None)
         else:
             logger.error(f"Unknown method '{method}'.\n")

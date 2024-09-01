@@ -15,7 +15,7 @@ def normalized_rmse(y, ypredmean):
     Returns normalized root mean squared error, error normalized by range for each
     output dimension.
     """
-    rng = (np.max(y, axis=1) - np.min(y, axis=1)).reshape(y.shape[0], 1)
+    rng = np.max(y, axis=0) - np.min(y, axis=0) #(np.max(y, axis=1) - np.min(y, axis=1)).reshape(y.shape[0], 1)
     return np.sqrt(np.mean(((y - ypredmean) / rng)**2))
 
 
