@@ -33,7 +33,7 @@ path_kfold_dir = kfold_train(simulation_name=sim,
                              methods=emus, 
                              kfold_seeds_filename=kfold_seeds_file,
                              subdir_name=subdirs, 
-                             regenerate=True, 
+                             regenerate=False, 
                              retrain=False)
 
 kfold_test(path_kfold_data=path_kfold_dir,
