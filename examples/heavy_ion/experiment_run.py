@@ -41,7 +41,6 @@ kfold_test(path_kfold_data=path_kfold_dir,
            methods=emus)
 
 
-
 # import numpy as np
 # from AKSGP import Emulator
 # from time import time
