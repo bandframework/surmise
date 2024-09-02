@@ -66,11 +66,11 @@ def kfold_train_save_emulators(simulation_name,
     Ystd = np.loadtxt(SimData_dir / 'Ystd.txt')
     
 
-    # TESTING code: remove later------------------>
-    X = X[:100, :]
-    Ymean = Ymean[:100, :2]
-    Ystd = Ystd[:100, :2]
-    # TESTING code------------------>
+    # # TESTING code: remove later------------------>
+    # X = X[:100, :]
+    # Ymean = Ymean[:100, :2]
+    # Ystd = Ystd[:100, :2]
+    # # TESTING code------------------>
 
     # Generate k-fold datasets
     basedir_name = f'{simulation_name}_datasets'
