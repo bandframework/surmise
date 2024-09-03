@@ -301,24 +301,12 @@ class calibrator(object):
 
     @staticmethod
     def load_from(filename):
-        cal = load_file(filename)
-        assert hasattr(cal, '__module__')
-        assert hasattr(cal, '__class__')
-        if '.'.join((cal.__module__,
-                     cal.__class__.__name__)) != 'surmise.calibration.calibrator':
-            raise TypeError('The file loaded should be of class '
-                            '\'surmise.calibration.calibrator\'.')
+        cal = load_file(filename, 'surmise.calibration.calibrator')
         return cal
 
     @staticmethod
     def load_prediction(filename):
-        pred = load_file(filename)
-        assert hasattr(pred, '__module__')
-        assert hasattr(pred, '__class__')
-        if '.'.join((pred.__module__,
-                     pred.__class__.__name__)) != 'surmise.calibration.prediction':
-            raise TypeError('The file loaded should be of class '
-                            '\'surmise.calibration.prediction\'.')
+        pred = load_file(filename, 'surmise.calibration.prediction')
         return pred
 
 
