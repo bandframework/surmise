@@ -51,6 +51,7 @@ which requires extra dependencies::
 
  git clone https://github.com/bandframework/surmise/
  cd surmise
+ python -m pip install --upgrade pip
  pip install build Cython
  pip install scikit-learn (optional, required by full test suite)
  python -m build --wheel
