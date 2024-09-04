@@ -9,6 +9,7 @@ from Cython.Build import cythonize
 # presently include this call to ensure that the Cython build does proceed as
 # necessary.
 setup(
-    ext_modules=cythonize("surmise/emulationsupport/matern_covmat.pyx"),
+    ext_modules=cythonize("surmise/emulationsupport/matern_covmat.pyx",
+                          language_level = "3"),
     include_dirs=[numpy.get_include()]
 )
