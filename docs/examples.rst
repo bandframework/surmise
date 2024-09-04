@@ -1,5 +1,5 @@
 Usage Examples
-========
+==============
 
 The Python scripts and the corresponding notebooks of the examples are located in
 ``\examples`` directory.  In addition, a full emulation and calibration example with
