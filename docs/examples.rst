@@ -1,4 +1,4 @@
-Examples
+Usage Examples
 ========
 
 The Python scripts and the corresponding notebooks of the examples are located in

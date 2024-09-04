@@ -31,7 +31,7 @@ To begin using surmise, we encourage checking out the following pages:
 
 .. toctree::
    :maxdepth: 2
-   :caption: Examples & Tutorials:
+   :caption: Usage Examples & Programming Tutorials:
 
    examples
    tutorials
