@@ -47,7 +47,7 @@ def kfold_test_emulators(path_kfold_data, kfold_seeds_filename, methods):
 
         for method, emu in emulators.items():
             predmean, predvar = compute_predictions(emu, method, X_test, xloc, scaler_Y)
-            EC, RMSE, NRMSE, KLdiv, HD, WD = compute_metrics(Ymean_test, predmean, predvar, Yvar_test)
+            EC, RMSE, NRMSE, KLdiv, HD, WD = compute_metrics(predmean, predvar, Ymean_test, Yvar_test)
 
             # Store the results in the list
             results.append({
@@ -137,23 +137,32 @@ def compute_predictions(emu, method, X_test, xloc, scaler_Y):
 
 #----------------------------------------------------------------
 
-def compute_metrics(Ymean_test, predmean, predvar, Yvar_test):
+
+def compute_metrics(predmean, predvar, Ymean_test, Yvar_test):
     """Compute various metrics for predictions."""
     EC = intervalstats(Ymean_test, predmean, predvar)
     RMSE = rmse(Ymean_test, predmean)
     NRMSE = normalized_rmse(Ymean_test, predmean)
-    
-    # Construct diagonal covariance matrices
-    Cov1 = np.array([np.diag(var_row) for var_row in predvar])
-    Cov2 = np.array([np.diag(var_row) for var_row in Yvar_test])
 
     # Calculate the KL divergence, Hellinger distance, and Wasserstein distance using the diagonal covariance matrices
-    kl_div = np.array([kl_divergence_gaussian(mu1=m1, Cov1=c1, mu2=m2, Cov2=c2)
-                       for m1, c1, m2, c2 in zip(predmean, Cov1, Ymean_test, Cov2)])
-    hellinger_dist = np.array([hellinger_distance_gaussian(mu1=m1, Cov1=c1, mu2=m2, Cov2=c2)
-                               for m1, c1, m2, c2 in zip(predmean, Cov1, Ymean_test, Cov2)])
-    wasserstein_dist = np.array([wasserstein_distance_gaussian(mu1=m1, Cov1=c1, mu2=m2, Cov2=c2)
-                                 for m1, c1, m2, c2 in zip(predmean, Cov1, Ymean_test, Cov2)])
+    
+    # Initialize array's to store the distances
+    kl_div = np.zeros(predmean.shape)
+    wasserstein_dist = np.zeros(predmean.shape)
+    hellinger_dist = np.zeros(predmean.shape)
+    
+    # Loop over each pair of means and variances
+    for i in range(predmean.shape[0]):
+        for j in range(predmean.shape[1]):
+            mu1 = predmean[i, j]
+            mu2 = Ymean_test[i, j]
+            var1_ij = predvar[i, j]
+            var2_ij = Yvar_test[i, j]
+            
+            # Calculate the distances for the current pair
+            kl_div[i, j] = kl_divergence_gaussian(mu1=mu1, Cov1=var1_ij, mu2=mu2, Cov2=var2_ij)
+            hellinger_dist[i, j] = hellinger_distance_gaussian(mu1=mu1, Cov1=var1_ij, mu2=mu2, Cov2=var2_ij)
+            wasserstein_dist[i, j] = wasserstein_distance_gaussian(mu1=mu1, Cov1=var1_ij, mu2=mu2, Cov2=var2_ij)
 
     return EC, RMSE, NRMSE, kl_div, hellinger_dist, wasserstein_dist
 
