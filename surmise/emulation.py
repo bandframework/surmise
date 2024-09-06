@@ -11,6 +11,8 @@ import dill
 import time
 import psutil
 
+print("In emulation.py")
+
 __externalmethodslist__ = ['nuclear-ROSE', ]
 
 
@@ -24,6 +26,7 @@ class emulator(object):
                  passthroughfunc=None,
                  args={},
                  options={}):
+        print("emulator class __init__ method called")
         '''
         A class used to represent an emulator or surrogate model. Fits an
         emulator or surrogate model provided in
@@ -97,6 +100,12 @@ class emulator(object):
         self.__f = None
         self._args = copy.deepcopy(args)
 
+        self.trainwallclocktime = []
+        self.traintotalcputime = []
+        self.predictwallclocktime = []
+        self.predicttotalcputime = []
+        print(f"here :::: {self.trainwallclocktime}")
+
         if self.__ptf is not None:
             return
         if method not in __externalmethodslist__:
@@ -163,11 +172,6 @@ class emulator(object):
         self._info = {}
         self._info = {'method': method}
 
-        self.trainwallclocktime = []
-        self.traintotalcputime = []
-        self.predictwallclocktime = []
-        self.predicttotalcputime = []
-
         if method in __externalmethodslist__:
             self.method.fit(self._info, **self._args)
 
@@ -233,6 +237,7 @@ class emulator(object):
         end_cpu_times = psutil.cpu_times()
         # End wall-clock time
         end_wall_time = time.time()
+        
         # Calculate the total CPU time
         user_time = end_cpu_times.user - start_cpu_times.user
         system_time = end_cpu_times.system - start_cpu_times.system
@@ -343,6 +348,7 @@ class emulator(object):
         info = {}
         self.method.predict(info, self._info, x, theta, **argstemp)
 
+        print("here::")
         # Record the end CPU times
         end_cpu_times = psutil.cpu_times()
         # End wall-clock time
