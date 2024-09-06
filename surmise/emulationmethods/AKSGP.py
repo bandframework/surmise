@@ -241,8 +241,10 @@ class Emulator:
 
         self.gps = []
 
-        self.wallclocktime = []
-        self.totalcputime = []
+        self.trainwallclocktime = []
+        self.traintotalcputime = []
+        self.predictwallclocktime = []
+        self.predicttotalcputime = []
 
         self.selected_kernels = []
         # Initialize the dictionaries of kernels and metrics for best kernel selction 
@@ -430,10 +432,10 @@ class Emulator:
         # Calculate the total CPU time
         user_time = end_cpu_times.user - start_cpu_times.user
         system_time = end_cpu_times.system - start_cpu_times.system
-        self.totalcputime = user_time + system_time
+        self.traintotalcputime = user_time + system_time
         
         # Calculate the wall-clock time
-        self.wallclocktime = end_wall_time - start_wall_time
+        self.trainwallclocktime = end_wall_time - start_wall_time
 
         del start_wall_time, start_cpu_times, end_cpu_times, user_time, system_time  # Free memory
 
@@ -457,6 +459,11 @@ class Emulator:
             ValueError: If dimensions of training input space does not match the dimension of new input points.
             Exception: If an error occurs during the GP fitting process.
         """
+
+        # Start wall-clock time
+        start_wall_time = time.time()
+        # Record the start CPU times
+        start_cpu_times = psutil.cpu_times()
         
         if  X_new.shape[1] != self.X.shape[1]:
             raise ValueError(
@@ -477,7 +484,21 @@ class Emulator:
             covariances = [cov * scale[i] ** 2 for i, cov in enumerate(covariances_scaled)]
 
             if return_full_covmat:
+                # Record the end CPU times
+                end_cpu_times = psutil.cpu_times()
+                # End wall-clock time
+                end_wall_time = time.time()
+                # Calculate the total CPU time
+                user_time = end_cpu_times.user - start_cpu_times.user
+                system_time = end_cpu_times.system - start_cpu_times.system
+                self.predicttotalcputime = user_time + system_time
+                # Calculate the wall-clock time
+                self.predictwallclocktime = end_wall_time - start_wall_time
+
+                del start_wall_time, start_cpu_times, end_cpu_times, user_time, system_time  # Free memory
+        
                 return means, covariances
+                
             else:
                 # Extract the diagonal (variance) from all covariance matrices at once
                 variances = np.array([np.diag(cov) for cov in covariances])
@@ -491,6 +512,19 @@ class Emulator:
                     variances[variances_negative] = 0.0
 
                 std_devs = np.sqrt(variances).T  # Transpose to match the expected output format
+
+                # Record the end CPU times
+                end_cpu_times = psutil.cpu_times()
+                # End wall-clock time
+                end_wall_time = time.time()
+                # Calculate the total CPU time
+                user_time = end_cpu_times.user - start_cpu_times.user
+                system_time = end_cpu_times.system - start_cpu_times.system
+                self.predicttotalcputime = user_time + system_time
+                # Calculate the wall-clock time
+                self.predictwallclocktime = end_wall_time - start_wall_time
+
+                del start_wall_time, start_cpu_times, end_cpu_times, user_time, system_time  # Free memory
 
                 return means, std_devs
         

@@ -7,6 +7,8 @@ from sklearn.gaussian_process import kernels
 from sklearn.gaussian_process import GaussianProcessRegressor as GPR
 from joblib import Parallel, delayed
 import logging
+import time
+import psutil
 
 # Configure logging for the Emulator class
 logging.basicConfig(
@@ -47,6 +49,11 @@ class Emulator:
 
         self.gps = []
         self._trans_matrix = None
+
+        self.trainwallclocktime = []
+        self.traintotalcputime = []
+        self.predictwallclocktime = []
+        self.predicttotalcputime = []
 
     @staticmethod
     def _ensure_2d(array):
@@ -94,6 +101,11 @@ class Emulator:
             n_jobs (int, optional): Number of CPU cores to use for parallel processing. 
                                     If set to -1, all available cores will be used. Default is -1.
         """
+        # Start wall-clock time
+        start_wall_time = time.time()
+        # Record the start CPU times
+        start_cpu_times = psutil.cpu_times()
+        
         Z = self._preprocess_data(self.Y)
         self._trans_matrix = self._compute_transformation_matrix()
 
@@ -128,6 +140,20 @@ class Emulator:
         # Log the GP score for each principal component
         for n, (z, gp) in enumerate(zip(Z.T, self.gps)):
             logger.info(f"GP {str(n)} score : {str(gp.score(self.X, z))}")
+
+        
+        # Record the end CPU times
+        end_cpu_times = psutil.cpu_times()
+        # End wall-clock time
+        end_wall_time = time.time()
+        # Calculate the total CPU time
+        user_time = end_cpu_times.user - start_cpu_times.user
+        system_time = end_cpu_times.system - start_cpu_times.system
+        self.traintotalcputime = user_time + system_time
+        # Calculate the wall-clock time
+        self.trainwallclocktime = end_wall_time - start_wall_time
+
+        del start_wall_time, start_cpu_times, end_cpu_times, user_time, system_time  # Free memory
 
 
     def _inverse_transform_mean(self, Z):
@@ -166,6 +192,11 @@ class Emulator:
                 - mean (np.ndarray): Predicted mean values transformed back to original space.
                 - gp_std (np.ndarray): Standard deviation of the predictions, transformed back to original space.
         """
+        # Start wall-clock time
+        start_wall_time = time.time()
+        # Record the start CPU times
+        start_cpu_times = psutil.cpu_times()
+        
         X_test = self._ensure_2d(X_test)
         predictions = [gp.predict(X_test, return_cov=True) for gp in self.gps]
         gp_mean, gp_cov = zip(*predictions)
@@ -176,5 +207,18 @@ class Emulator:
         # Compute and inverse transform the standard deviation
         gp_var = np.column_stack([c.diagonal() for c in gp_cov])
         gp_std = self._inverse_transform_std(np.sqrt(gp_var))
+
+        # Record the end CPU times
+        end_cpu_times = psutil.cpu_times()
+        # End wall-clock time
+        end_wall_time = time.time()
+        # Calculate the total CPU time
+        user_time = end_cpu_times.user - start_cpu_times.user
+        system_time = end_cpu_times.system - start_cpu_times.system
+        self.predicttotalcputime = user_time + system_time
+        # Calculate the wall-clock time
+        self.predictwallclocktime = end_wall_time - start_wall_time
+
+        del start_wall_time, start_cpu_times, end_cpu_times, user_time, system_time  # Free memory
 
         return mean, gp_std

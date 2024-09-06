@@ -15,8 +15,9 @@ Note:
 
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from sklearn.gaussian_process.kernels import Matern, RBF, WhiteKernel, DotProduct, RationalQuadratic, ExpSineSquared, Kernel, Product
-from sklearn.gaussian_process import GaussianProcessRegressor
+import gpflow
+from gpflow.kernels import White, Matern12, Matern32, Matern52, SquaredExponential as RBF, Linear as DotProduct, RationalQuadratic, Periodic
+from gpflow.models import GPR
 from joblib import Parallel, delayed
 import logging
 import time
@@ -37,99 +38,19 @@ def get_kernels(input_dim):
     Returns a dictionary of Gaussian Process kernels (instances of `sklearn.gaussian_process.kernels.Kernel`) 
     with names as keys and corresponding kernel objects as values. 
     These kernels are availaible for training and can be extended by adding more combinations.
-
-    The kernels are designed to accommodate different modeling needs by combining anisotropic kernels with 
-    isotropic (stationary and non-stationary) kernels in various ways.
-
-    Considered Kernels:
-    - **Anisotropic and Stationary Base Kernels:**
-        - `Matern12`: Matern kernel with nu=0.5. Equivalent to the exponential kernel.
-        - `Matern32`: Matern kernel with nu=1.5.
-        - `Matern52`: Matern kernel with nu=2.5.
-        - `RBF`: Radial Basis Function (Gaussian) kernel.
-    
-    - **Isotropic Kernels (Used in Combination Only):**
-        - `DotProduct`: Non-stationary kernel, useful for modeling linear trends.
-        - `ExpSineSquared`: Stationary kernel, ideal for periodic data.
-        - `RationalQuadratic`: Stationary kernel, a scale mixture of RBF kernels, useful for varying smoothness.
-
-    Included Kernels:
-    - **Base Kernels (Anisotropic and Stationary):**
-        - `Matern12`, `Matern32`, `Matern52`, `RBF`.
-    
-    - **Kernel Combinations:**
-        - Each isotropic kernel is combined with the base kernels through addition (`+`) and multiplication (`*`) to 
-          capture different interactions between the features:
-            - `DotProduct + Matern12`, `DotProduct * Matern12`, etc.
-            - `ExpSineSquared + Matern32`, `ExpSineSquared * Matern32`, etc.
-            - `RationalQuadratic + RBF`, `RationalQuadratic * RBF`, etc.
-
-    Parameters:
-        input_dim (int): The dimensionality of the input space used to define the kernel length scales.
-
-    Returns:
-        kernel_dict (dict): A dictionary where keys are kernel names (str) and values are kernel objects.
     """
 
     lb, ub = 1e-3, 1e3  # lower bound, upper bound of input space. Note that the input space is standardized.
 
     kernel_dict = {
-        'Matern12': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub), nu=0.5),
-        'Matern32': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub), nu=1.5),
-        'Matern52': 1.0 * Matern(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub), nu=2.5),
-        'RBF': 1.0 * RBF(length_scale=np.ones(input_dim)/2.0, length_scale_bounds=(lb, ub)),
-        # 
-        # 'DotProduct+Matern12': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) + 
-        #                         1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
-        # 'DotProduct+Matern32': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) + 
-        #                         1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
-        # 'DotProduct+Matern52': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) + 
-        #                         1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
-        # 'DotProduct+RBF': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) + 
-        #                     1.0 * RBF(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub)),
-        # 'DotProduct*Matern12': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) * 
-        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
-        # 'DotProduct*Matern32': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) * 
-        #                         Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
-        # 'DotProduct*Matern52': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) * 
-        #                          Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
-        # 'DotProduct*RBF': 1.0 * DotProduct(sigma_0=1.0, sigma_0_bounds=(lb, ub)) * 
-        #                     RBF(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub)),
-        # # 
-        # 'ExpSineSquared+Matern12': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) + 
-        #                             1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
-        # 'ExpSineSquared+Matern32': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) + 
-        #                             1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
-        # 'ExpSineSquared+Matern52': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) + 
-        #                             1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
-        # 'ExpSineSquared+RBF': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) + 
-        #                         1.0 * RBF(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub)),
-        # 'ExpSineSquared*Matern12': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) * 
-        #                              Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
-        # 'ExpSineSquared*Matern32': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) * 
-        #                              Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
-        # 'ExpSineSquared*Matern52': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) * 
-        #                              Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
-        # 'ExpSineSquared*RBF': 1.0 * ExpSineSquared(length_scale=1.0, periodicity=1.0) * 
-        #                          RBF(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub)),
-        # # 
-        # 'RationalQuadratic+Matern12': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) + 
-        #                                 1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
-        # 'RationalQuadratic+Matern32': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) + 
-        #                                 1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
-        # 'RationalQuadratic+Matern52': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) + 
-        #                                 1.0 * Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
-        # 'RationalQuadratic+RBF': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) + 
-        #                             1.0 * RBF(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub)),
-        # 'RationalQuadratic*Matern12': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) * 
-        #                                 Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=0.5),
-        # 'RationalQuadratic*Matern32': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) * 
-        #                                 Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=1.5),
-        # 'RationalQuadratic*Matern52': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) * 
-        #                                 Matern(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub), nu=2.5),
-        # 'RationalQuadratic*RBF': 1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0) * 
-        #                             RBF(length_scale=np.ones(input_dim) / 2.0, length_scale_bounds=(lb, ub)),
-        }
+        'Matern12': Matern12(),
+        'Matern32': Matern32(),
+        'Matern52': Matern52(),
+        'RBF': RBF(),
+        'DotProduct': DotProduct(),
+        'RationalQuadratic': RationalQuadratic(),
+        'Periodic': Periodic(),
+    }
     
     return kernel_dict
 
@@ -569,7 +490,7 @@ class Emulator:
 
     def fit_singleGP(self, Xfit, Yfit_mean, Yfit_std, kernel, nrestarts):
         """
-        Fits a single Gaussian Process (GP) model using scikit-learn.
+        Fits a single Gaussian Process (GP) model using GPflow.
         
         Parameters:
             Xfit (array-like): Input features of shape (n_samples, n_features).
@@ -581,15 +502,44 @@ class Emulator:
         Returns:
             The fitted GP model.
         """
-        gp = GaussianProcessRegressor(
-            kernel=kernel, 
-            alpha=Yfit_std ** 2, 
-            optimizer='fmin_l_bfgs_b', 
-            n_restarts_optimizer=nrestarts
-        )
-        gp.fit(Xfit, Yfit_mean)
         
-        return gp
+        # Convert Yfit_std to noise variance
+        noise_variances = Yfit_std**2  # Variance at each data point
+    
+        # Define the log likelihood function directly in the model
+        def log_likelihood(F, Y):
+            """
+            Log likelihood for heteroscedastic Gaussian noise.
+            """
+            Y_obs, NoiseVar = Y[:, 0:1], Y[:, 1:2]  # Extract observed values and noise variance
+            return gpflow.logdensities.gaussian(Y_obs, F, NoiseVar)
+    
+        # Combine observed values and noise variance into one array
+        Yfit_combined = np.hstack([Yfit_mean, noise_variances.reshape(-1, 1)])
+    
+        # Create the GP model using the kernel
+        model = GPR(data=(Xfit, Yfit_combined), kernel=kernel, mean_function=None)
+
+    
+        k_white = White(variance=Yfit_std[i]**2)
+        gpflow.set_trainable(k_white.variance, False)  # Set the noise kernel variance to not be trainable
+
+        kernelplusnoise = kernel + k_white
+        
+        model = GPR(data=(Xfit, Yfit_mean), kernel=kernelplusnoise, mean_function=None)
+
+        optimizer = gpflow.optimizers.Scipy()
+        optimization_options = {'method': 'BFGS',#'Nelder-Mead','BFGS', Powell, L-BFGS-B, CG, TNC
+                                'options': {
+                                            'maxiter': 1000, 
+                                            # 'maxls': 50,  # Increase the maximum number of line searches
+                                            'gtol': 1e-05,  # Gradient tolerance
+                                            # 'ftol': 1e-07,  # Function tolerance
+                                            'disp': True
+                                            }
+
+        optimizer.minimize(model.training_loss, variables=model.trainable_variables, **optimization_options)
+        return model
         
 
     def split_train_validation(self, X, Ymean, Ystd, train_validation_ratio=0.9, seed=None):
