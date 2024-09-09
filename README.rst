@@ -71,15 +71,16 @@ pytest-cov_, and scikit-learn_ packages to be installed.  These packages can be 
 
  pip install pytest pytest-cov scikit-learn
 
-The full test suite can then be run from the root directory of the source distribution by the command::
+The full test suite can then be run from the `tests/` directory of the source distribution by the command::
 
+ cd /path/to/surmise/tests/
  python -m pytest        # (no coverage report)
  python -m pytest --cov  # (with console coverage report)
 
 Access to the test suite with specific testing options are available in the ``tests`` directory.
 To see a complete list of options, run::
 
- ./tests/run-tests.sh -h
+ ./path/to/surmise/tests/run-tests.sh -h
 
 Documentation
 ~~~~~~~~~~~~~
