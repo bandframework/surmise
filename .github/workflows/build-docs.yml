@@ -1,0 +1,51 @@
+name: Build surmise documentation
+env:
+  CLONE_PATH: ${{ github.workspace }}
+  HTML_DOCS:  ${{ github.workspace }}/docs/build_html
+  PDF_DOCS:   ${{ github.workspace }}/docs/build_pdf
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build_pypkg_sphinx:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # We would like to use 3.12, but this presently fails with the error:
+        # Could not import extension sphinxcontrib.bibtex (exception: No module named 'pkg_resources')
+        os: [ubuntu-latest]
+        python-version: ["3.11"]
+    steps:
+    ##-- General Setup Steps
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install LaTeX
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install texlive-fonts-recommended texlive-latex-recommended texlive-latex-extra latexmk
+
+    - name: Setup python with tox
+      run: $CLONE_PATH/.github/workflows/install_tox.sh
+
+    - name: Build sphinx docs
+      run: |
+        pushd $CLONE_PATH
+        tox -r -e pdf,html
+        popd
+
+    ##-- Make documents available as artifacts
+    - name: Archive surmise docs
+      uses: actions/upload-artifact@v4
+      with:
+        name: surmise-sphinx-docs
+        path: |
+          ${{ env.HTML_DOCS }}
+          ${{ env.PDF_DOCS }}

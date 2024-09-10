@@ -27,6 +27,7 @@ from matplotlib import pyplot as plt
 import scipy.stats as sps
 from surmise.emulation import emulator
 from surmise.calibration import calibrator
+from pathlib import Path
 
 # %% [markdown]
 # ## Data: Falling ball
@@ -36,7 +37,8 @@ from surmise.calibration import calibrator
 
 # %%
 # Read the data
-ball = np.loadtxt('ball.csv', delimiter=',')
+ball_filepath = Path(__file__).parent / "ball.csv"
+ball = np.loadtxt(ball_filepath, delimiter=',')
 m = len(ball)
 # height
 xrep = np.reshape(ball[:, 0], (m, 1))
@@ -48,7 +50,7 @@ y = np.reshape(ball[:, 1], ((m, 1)))
 plt.scatter(xrep, y, color='red')
 plt.xlabel("height (meters)")
 plt.ylabel("time (seconds)")
-plt.show()
+plt.show(block=False)
 
 
 # %% [markdown]
@@ -193,9 +195,9 @@ def plot_pred(x_std, xrep, y, cal, theta_range):
 
     axs[3].plot(xrep[0:21].reshape(21), median, color='black')
     axs[3].fill_between(xrep[0:21].reshape(21), lower, upper, color='grey')
-    axs[3].plot(xrep, y, 'ro', markersize=5, color='red')
+    axs[3].plot(xrep, y, 'o', markersize=5, color='red')
 
-    plt.show()
+    plt.show(block=False)
 
 
 # %%

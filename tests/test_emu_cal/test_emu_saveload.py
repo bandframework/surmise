@@ -1,14 +1,15 @@
 import numpy as np
 import scipy.stats as sps
-import pytest
 from contextlib import contextmanager
 from surmise.emulation import emulator
-from surmise.calibration import calibrator
-
+import pytest
+import os
 
 ##############################################
 #            Simple scenarios                #
 ##############################################
+
+
 def balldropmodel_linear(x, theta):
     f = np.zeros((theta.shape[0], x.shape[0]))
     for k in range(0, theta.shape[0]):
@@ -54,9 +55,14 @@ xv = x.astype('float')
 
 
 class priorphys_lin:
+    """ This defines the class instance of priors provided to the method. """
     def lpdf(theta):
-        return (sps.norm.logpdf(theta[:, 0], 0, 5) +
-                sps.gamma.logpdf(theta[:, 1], 2, 0, 10)).reshape((len(theta), 1))
+        if theta.ndim > 1.5:
+            return np.squeeze(sps.norm.logpdf(theta[:, 0], 0, 5) +
+                              sps.gamma.logpdf(theta[:, 1], 2, 0, 10))
+        else:
+            return np.squeeze(sps.norm.logpdf(theta[0], 0, 5) +
+                              sps.gamma.logpdf(theta[1], 2, 0, 10))
 
     def rnd(n):
         return np.vstack((sps.norm.rvs(0, 5, size=n),
@@ -65,29 +71,17 @@ class priorphys_lin:
 
 theta = priorphys_lin.rnd(50)
 f = balldropmodel_linear(xv, theta)
+f1 = f[0:15, :]
+f2 = f[:, 0:25]
 theta1 = theta[0:25, :]
+x1 = x[0:15, :]
+f0d = np.array(1)
+theta0d = np.array(1)
+x0d = np.array(1)
 
-
-def balldroptrue(x):
-    def logcosh(x):
-        # preventing crashing
-        s = np.sign(x) * x
-        p = np.exp(-2 * s)
-        return s + np.log1p(p) - np.log(2)
-    t = x[:, 0]
-    h0 = x[:, 1]
-    vter = 20
-    g = 9.81
-    y = h0 - (vter ** 2) / g * logcosh(g * t / vter)
-    return y
-
-
-obsvar = 4*np.ones(x.shape[0])
-y = balldroptrue(xv)
-
-#######################################################
-# Unit tests for remove method of emulator class #
-#######################################################
+##############################################
+# Unit tests to initialize an emulator class #
+##############################################
 
 
 @contextmanager
@@ -95,33 +89,41 @@ def does_not_raise():
     yield
 
 
-# test to check remove
 @pytest.mark.parametrize(
-    "input1,expectation",
+    "load_emu_flag, expectation",
     [
-     (theta1, does_not_raise()),
+     (True, does_not_raise()),
+     (False, pytest.raises(TypeError))
      ],
     )
-def test_remove(input1, expectation):
-    emu = emulator(x=x, theta=theta, f=f, method='PCGP')
+def test_emu_saveload(load_emu_flag, expectation):
+    fname = 'test_emu_saveload.pkl'
     with expectation:
-        assert emu.remove(theta=input1) is None
+        emu = emulator(x=x, theta=theta, f=f)
+        emu.save_to(fname)
+
+        if load_emu_flag:
+            emuload = emulator.load_from(fname)
+        else:
+            try:
+                emuload = emulator.load_prediction(fname)
+            except TypeError:
+                # in case test fails, generated files should be cleaned up
+                os.remove(fname)
+                raise TypeError
+        assert emuload is not None
+        os.remove(fname)
 
 
-# test to check remove with a calibrator
-@pytest.mark.parametrize(
-    "input1,expectation",
-    [
-     (theta1, does_not_raise()),
-     ],
-    )
-def test_remove_cal(input1, expectation):
-    emu = emulator(x=x, theta=theta, f=f, method='PCGP')
-    cal_bayes = calibrator(emu=emu,
-                           y=y,
-                           x=x,
-                           thetaprior=priorphys_lin,
-                           method='directbayeswoodbury',
-                           yvar=obsvar)
-    with expectation:
-        assert emu.remove(theta=input1, cal=cal_bayes) is None
+def test_emupred_saveload():
+    fname = 'test_emupred_saveload.pkl'
+    with does_not_raise():
+        emu = emulator(x=x, theta=theta, f=f)
+
+        emupred = emu.predict()
+        emupred.save_to(fname)
+
+        emupredload = emulator.load_prediction(fname)
+        assert (emupredload.mean() == emupred.mean()).all()
+
+        os.remove(fname)

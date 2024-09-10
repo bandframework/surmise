@@ -1,5 +1,5 @@
-Tutorials
-============================
+Tutorials for Programming in surmise
+====================================
 
 .. toctree::
 

@@ -2,6 +2,7 @@
 *__pycache__
 *.pyc
 *.pyd
+.ipynb_checkpoints/
 surmise_applications/
 build/
 venv*/
@@ -11,6 +12,8 @@ cov_*
 .cache
 surmise.egg-info
 docs/_build
+docs/build_html
+docs/build_pdf
 x.log
 *.egg
 .idea
@@ -19,7 +22,9 @@ scratch/
 line_profiler/
 OpenBLAS/
 surmise/emulationsupport/matern_covmat.c
+surmise/emulationsupport/matern_covmat.cpython*.so
 CaseStudy/
+.tox/
 .eggs/
 examples/develop-example/
 .coverage

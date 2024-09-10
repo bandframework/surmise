@@ -1,4 +1,5 @@
 Collaborators
 ===========================
 
-Moses Chan (Northwestern University)
+Jared O'Neal, `@jared321 <https://github.com/jared321>`_ (ANL)
+

@@ -3,12 +3,12 @@ import scipy.stats as sps
 import pytest
 from contextlib import contextmanager
 from surmise.emulation import emulator
-from surmise.calibration import calibrator
-
 
 ##############################################
 #            Simple scenarios                #
 ##############################################
+
+
 def balldropmodel_linear(x, theta):
     f = np.zeros((theta.shape[0], x.shape[0]))
     for k in range(0, theta.shape[0]):
@@ -54,9 +54,14 @@ xv = x.astype('float')
 
 
 class priorphys_lin:
+    """ This defines the class instance of priors provided to the method. """
     def lpdf(theta):
-        return (sps.norm.logpdf(theta[:, 0], 0, 5) +
-                sps.gamma.logpdf(theta[:, 1], 2, 0, 10)).reshape((len(theta), 1))
+        if theta.ndim > 1.5:
+            return np.squeeze(sps.norm.logpdf(theta[:, 0], 0, 5) +
+                              sps.gamma.logpdf(theta[:, 1], 2, 0, 10))
+        else:
+            return np.squeeze(sps.norm.logpdf(theta[0], 0, 5) +
+                              sps.gamma.logpdf(theta[1], 2, 0, 10))
 
     def rnd(n):
         return np.vstack((sps.norm.rvs(0, 5, size=n),
@@ -65,29 +70,10 @@ class priorphys_lin:
 
 theta = priorphys_lin.rnd(50)
 f = balldropmodel_linear(xv, theta)
+f1 = f[0:15, :]
+f2 = f[:, 0:25]
 theta1 = theta[0:25, :]
-
-
-def balldroptrue(x):
-    def logcosh(x):
-        # preventing crashing
-        s = np.sign(x) * x
-        p = np.exp(-2 * s)
-        return s + np.log1p(p) - np.log(2)
-    t = x[:, 0]
-    h0 = x[:, 1]
-    vter = 20
-    g = 9.81
-    y = h0 - (vter ** 2) / g * logcosh(g * t / vter)
-    return y
-
-
-obsvar = 4*np.ones(x.shape[0])
-y = balldroptrue(xv)
-
-#######################################################
-# Unit tests for remove method of emulator class #
-#######################################################
+x1 = x[0:15, :]
 
 
 @contextmanager
@@ -95,33 +81,29 @@ def does_not_raise():
     yield
 
 
-# test to check remove
 @pytest.mark.parametrize(
-    "input1,expectation",
+    "input,expectation",
     [
-     (theta1, does_not_raise()),
+     ('PCGP', does_not_raise()),
+     ('PCGPwM', does_not_raise()),
+     ('indGP', does_not_raise()),
+     ('PCGPwImpute', does_not_raise()),
+     ('PCSK', does_not_raise()),
+     ('XXXX', pytest.raises(ValueError)),
      ],
     )
-def test_remove(input1, expectation):
-    emu = emulator(x=x, theta=theta, f=f, method='PCGP')
+def test_repr(input, expectation):
     with expectation:
-        assert emu.remove(theta=input1) is None
+        if input != 'PCSK':
+            assert emulator(x=x,
+                            theta=theta,
+                            f=f,
+                            method=input) is not None
+        else:
+            simsd = 1e-3 * np.ones_like(f)
+            assert emulator(x=x,
+                            theta=theta,
+                            f=f,
+                            method=input,
+                            args={'simsd': simsd}) is not None
 
-
-# test to check remove with a calibrator
-@pytest.mark.parametrize(
-    "input1,expectation",
-    [
-     (theta1, does_not_raise()),
-     ],
-    )
-def test_remove_cal(input1, expectation):
-    emu = emulator(x=x, theta=theta, f=f, method='PCGP')
-    cal_bayes = calibrator(emu=emu,
-                           y=y,
-                           x=x,
-                           thetaprior=priorphys_lin,
-                           method='directbayeswoodbury',
-                           yvar=obsvar)
-    with expectation:
-        assert emu.remove(theta=input1, cal=cal_bayes) is None

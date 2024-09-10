@@ -4,3 +4,6 @@
 
 
 .. include:: ../tests/README.rst
+
+
+.. include:: tox.rst

@@ -163,3 +163,101 @@ def test_call(expectation):
     pred_test = cal.predict(x=x_std)
     with expectation:
         assert pred_test() is not None
+
+        
+@pytest.mark.parametrize(
+    "expectation",
+    [
+     (does_not_raise()),
+     ],
+    )
+def test_meanvar(expectation):
+    cal = calibrator(emu=emulator_f_1,
+                     y=y,
+                     x=x_std,
+                     thetaprior=prior_balldrop,
+                     method='directbayes',
+                     yvar=obsvar,
+                     args=args2)
+    pred_test = cal.predict(x=x_std)
+    with expectation:
+        assert pred_test.mean() is not None
+        assert pred_test.var() is not None
+
+        
+@pytest.mark.parametrize(
+    "expectation",
+    [
+     (does_not_raise()),
+     ],
+    )
+def test_thetalpdf(expectation):
+    cal = calibrator(emu=emulator_f_1,
+                     y=y,
+                     x=x_std,
+                     thetaprior=prior_balldrop,
+                     method='directbayes',
+                     yvar=obsvar,
+                     args=args2)
+    logpost = cal.theta.lpdf(theta=theta)
+    with expectation:
+        assert logpost is not None
+
+        
+@pytest.mark.parametrize(
+    "expectation",
+    [
+     (does_not_raise()),
+     ],
+    )
+def test_pred(expectation):
+    cal = calibrator(emu=emulator_f_1,
+                     y=y,
+                     x=x_std,
+                     thetaprior=prior_balldrop,
+                     method='directbayes',
+                     yvar=obsvar,
+                     args=args2)
+    pred_test = cal.predict(x=x_std)
+    with expectation:
+        assert pred_test.rnd(10) is not None
+        assert pred_test(10) is not None
+
+@pytest.mark.parametrize(
+    "expectation",
+    [
+     (does_not_raise()),
+     ],
+    )
+def test_theta_meanvar(expectation):
+    cal = calibrator(emu=emulator_f_1,
+                     y=y,
+                     x=x_std,
+                     thetaprior=prior_balldrop,
+                     method='directbayes',
+                     yvar=obsvar,
+                     args=args2)
+    with expectation:
+        assert cal.theta.mean(args=None) is not None
+        assert cal.theta.var(args=None) is not None
+        assert cal.theta.rnd(10) is not None
+
+
+
+@pytest.mark.parametrize(
+    "expectation",
+    [
+     (does_not_raise()),
+     ],
+    )
+def test_cal_repr(expectation):
+    cal = calibrator(emu=emulator_f_1,
+                     y=y,
+                     x=x_std,
+                     thetaprior=prior_balldrop,
+                     method='directbayes',
+                     yvar=obsvar,
+                     args=args2)
+    with expectation:
+        assert cal(x_std) is not None
+        assert repr(cal.theta()) is not None

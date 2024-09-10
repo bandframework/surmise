@@ -3,12 +3,14 @@ import scipy.stats as sps
 import pytest
 from contextlib import contextmanager
 from surmise.emulation import emulator
-from surmise.calibration import calibrator
-
-
+import pyximport
+pyximport.install(setup_args={"include_dirs": np.get_include()},
+                  reload_support=True)
 ##############################################
 #            Simple scenarios                #
 ##############################################
+
+
 def balldropmodel_linear(x, theta):
     f = np.zeros((theta.shape[0], x.shape[0]))
     for k in range(0, theta.shape[0]):
@@ -54,10 +56,7 @@ xv = x.astype('float')
 
 
 class priorphys_lin:
-    def lpdf(theta):
-        return (sps.norm.logpdf(theta[:, 0], 0, 5) +
-                sps.gamma.logpdf(theta[:, 1], 2, 0, 10)).reshape((len(theta), 1))
-
+    """ This defines the class instance of priors provided to the method. """
     def rnd(n):
         return np.vstack((sps.norm.rvs(0, 5, size=n),
                           sps.gamma.rvs(2, 0, 10, size=n))).T
@@ -65,7 +64,14 @@ class priorphys_lin:
 
 theta = priorphys_lin.rnd(50)
 f = balldropmodel_linear(xv, theta)
+f1 = f[0:15, :]
+f2 = f[:, 0:25]
 theta1 = theta[0:25, :]
+x1 = x[0:15, :]
+f0d = np.array(1)
+theta0d = np.array(1)
+x0d = np.array(1)
+simsd = 1e-3 * np.ones_like(f)
 
 
 def balldroptrue(x):
@@ -84,10 +90,9 @@ def balldroptrue(x):
 
 obsvar = 4*np.ones(x.shape[0])
 y = balldroptrue(xv)
-
-#######################################################
-# Unit tests for remove method of emulator class #
-#######################################################
+##############################################
+# Unit tests to initialize an emulator class #
+##############################################
 
 
 @contextmanager
@@ -95,33 +100,31 @@ def does_not_raise():
     yield
 
 
-# test to check remove
+# tests missing data
+f_miss = f.copy()
+f_miss[np.random.rand(*f.shape) < 0.2] = np.nan
 @pytest.mark.parametrize(
-    "input1,expectation",
+    "imputemethod, expectation",
     [
-     (theta1, does_not_raise()),
+     ('BayesianRidge', does_not_raise()),
+     ('KNN', does_not_raise()),
+     ('RandomForest', does_not_raise()),
      ],
     )
-def test_remove(input1, expectation):
-    emu = emulator(x=x, theta=theta, f=f, method='PCGP')
+def test_imputemethod(imputemethod, expectation):
     with expectation:
-        assert emu.remove(theta=input1) is None
+        assert emulator(x=x, theta=theta, f=f_miss,
+                        method='PCGPwImpute',
+                        args={'completionmethod': imputemethod}) is not None
 
-
-# test to check remove with a calibrator
 @pytest.mark.parametrize(
-    "input1,expectation",
+    "input1, expectation",
     [
-     (theta1, does_not_raise()),
+     (f, does_not_raise()),
+     (f_miss, does_not_raise()),
      ],
     )
-def test_remove_cal(input1, expectation):
-    emu = emulator(x=x, theta=theta, f=f, method='PCGP')
-    cal_bayes = calibrator(emu=emu,
-                           y=y,
-                           x=x,
-                           thetaprior=priorphys_lin,
-                           method='directbayeswoodbury',
-                           yvar=obsvar)
+def test_fmissing(input1, expectation):
     with expectation:
-        assert emu.remove(theta=input1, cal=cal_bayes) is None
+        assert emulator(x=x, theta=theta, f=input1,
+                        method='PCGPwImpute') is not None

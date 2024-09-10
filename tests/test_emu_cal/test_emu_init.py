@@ -55,13 +55,6 @@ xv = x.astype('float')
 
 class priorphys_lin:
     """ This defines the class instance of priors provided to the method. """
-    def lpdf(theta):
-        if theta.ndim > 1.5:
-            return np.squeeze(sps.norm.logpdf(theta[:, 0], 0, 5) +
-                              sps.gamma.logpdf(theta[:, 1], 2, 0, 10))
-        else:
-            return np.squeeze(sps.norm.logpdf(theta[0], 0, 5) +
-                              sps.gamma.logpdf(theta[1], 2, 0, 10))
 
     def rnd(n):
         return np.vstack((sps.norm.rvs(0, 5, size=n),
@@ -116,7 +109,7 @@ def test_none_input(input1, input2, input3, expectation):
     "input1,input2,input3,expectation",
     [
      (x, theta, f, does_not_raise()),
-     (x, theta, f.T, does_not_raise()),  # failure
+     (x, theta, f.T, pytest.raises(ValueError)),  # failure
      (x, None, f.T, pytest.raises(ValueError)),  # has not developed yet
      (x.T, theta, f, pytest.raises(ValueError)),
      (x.T, None, f, pytest.raises(ValueError)),
@@ -126,7 +119,7 @@ def test_none_input(input1, input2, input3, expectation):
      (x, theta, f2, pytest.raises(ValueError)),
      (x, theta1, f, pytest.raises(ValueError)),
      (None, theta1, f, pytest.raises(ValueError)),
-     (None, theta, f.T, does_not_raise()),
+     (None, theta, f.T, pytest.raises(ValueError)),
      (x1, theta, f, pytest.raises(ValueError)),
      ],
     )
@@ -338,6 +331,7 @@ def test_call(expectation):
     emu = emulator(x=x, theta=theta, f=f, method='PCGP')
     with expectation:
         assert emu(x=x, theta=theta) is not None
+        emu.fit(args={})
 
 
 # tests to check the emulator args
@@ -354,3 +348,17 @@ def test_args(input1, expectation):
                         f=f,
                         method='PCGP',
                         args=input1) is not None
+
+
+@pytest.mark.parametrize(
+    "expectation",
+    [
+     (does_not_raise()),
+     ],
+    )
+def test_warning_filter(expectation):
+    emu = emulator(x=x, theta=theta, f=f, method='PCGP',
+                   args={'warnings': True})
+    with expectation:
+        assert emu(x=x, theta=theta) is not None
+

@@ -26,15 +26,18 @@ from random import sample
 import scipy.stats as sps
 from surmise.calibration import calibrator
 from surmise.emulation import emulator
+from pathlib import Path
 
 # %%
 # Read data
-real_data = np.loadtxt('real_observations.csv', delimiter=',')
-description = np.loadtxt('observation_description.csv', delimiter=',', dtype='object')
-param_values = 1 / np.loadtxt('param_values.csv', delimiter=',')
-func_eval = np.loadtxt('func_eval.csv', delimiter=',')
-param_values_test = 1 / np.loadtxt('param_values_test.csv', delimiter=',')
-func_eval_test = np.loadtxt('func_eval_test.csv', delimiter=',')
+
+parent_path = Path(__file__).parent
+real_data = np.loadtxt(parent_path / 'real_observations.csv', delimiter=',')
+description = np.loadtxt(parent_path / 'observation_description.csv', delimiter=',', dtype='object')
+param_values = 1 / np.loadtxt(parent_path / 'param_values.csv', delimiter=',')
+func_eval = np.loadtxt(parent_path / 'func_eval.csv', delimiter=',')
+param_values_test = 1 / np.loadtxt(parent_path / 'param_values_test.csv', delimiter=',')
+func_eval_test = np.loadtxt(parent_path / 'func_eval_test.csv', delimiter=',')
 
 # %%
 # Remove the initial 30-days time period from the data
@@ -81,7 +84,7 @@ def plot_model_data(description, func_eval, real_data, param_values):
     for j in range(type_no):
         for i in range(N):
             p2 = axs[j].plot(range(T), func_eval[i, (j * T):(j * T + T)], color='grey')
-        p1 = axs[j].plot(range(T), real_data[(j * T):(j * T + T)], 'ro', markersize=5,
+        p1 = axs[j].plot(range(T), real_data[(j * T):(j * T + T)], 'o', markersize=5,
                          color='red')
         if j == 0:
             axs[j].set_ylabel('COVID-19 Total Hospitalizations')
@@ -91,7 +94,7 @@ def plot_model_data(description, func_eval, real_data, param_values):
             axs[j].set_ylabel('COVID-19 ICU Patients')
         axs[j].set_xlabel('Time (days)')
         axs[j].legend([p1[0], p2[0]], ['observations', 'computer model'])
-    plt.show()
+    plt.show(block=False)
 
 
 plot_model_data(description, func_eval_rnd, real_data, param_values_rnd)
@@ -140,7 +143,7 @@ def plot_pred_interval(cal):
         median = np.percentile(rndm_m[:, j * diff: (j + 1) * diff], 50, axis=0)
         p1 = axs[j].plot(median, color='black')
         axs[j].fill_between(range(0, diff), lower, upper, color='grey')
-        p3 = axs[j].plot(range(0, diff), real_data[j * diff: (j + 1) * diff], 'ro',
+        p3 = axs[j].plot(range(0, diff), real_data[j * diff: (j + 1) * diff], 'o',
                          markersize=5, color='red')
         if j == 0:
             axs[j].set_ylabel('COVID-19 Total Hospitalizations')
@@ -153,7 +156,7 @@ def plot_pred_interval(cal):
         axs[j].legend([p1[0], p3[0]], ['prediction', 'observations'])
     fig.tight_layout()
     fig.subplots_adjust(top=0.9)
-    plt.show()
+    plt.show(block=False)
 
 
 def boxplot_param(theta):
@@ -167,7 +170,7 @@ def boxplot_param(theta):
 
     fig.tight_layout()
     fig.subplots_adjust(bottom=0.05, top=0.95)
-    plt.show()
+    plt.show(block=False)
 
 
 # %%
@@ -228,7 +231,8 @@ cal_2 = calibrator(emu=emulator_1,
                    thetaprior=prior_covid,
                    method='directbayes',
                    yvar=obsvar,
-                   args={'sampler': 'LMC'})
+                   args={'sampler': 'LMC',
+                         'numsamp': 100,})
 
 plot_pred_interval(cal_2)
 
@@ -240,6 +244,7 @@ cal_3 = calibrator(emu=emulator_1,
                    thetaprior=prior_covid,
                    method='directbayeswoodbury',
                    yvar=obsvar,
-                   args={'sampler': 'PTLMC'})
+                   args={'sampler': 'PTLMC',
+                         'numsamp': 100,})
 
 plot_pred_interval(cal_3)
