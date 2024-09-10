@@ -52,7 +52,8 @@ def kfold_test_emulators(path_kfold_data, kfold_seeds_filename, methods):
             # Store the results in the list
             results.append({
                 'Method': method,
-                'Empirical Coverage': ', '.join(['{:.6f}'.format(val) for val in EC]),
+                '95% Coverage': '{:.6f}'.format(EC[0]),
+                'PI Width': '{:.6f}'.format(EC[1]),
                 'RMSE': '{:.6f}'.format(RMSE),
                 'NRMSE': '{:.6f}'.format(NRMSE),
                 'KL Divergence': '{:.6f}'.format(np.mean(KLdiv)),
@@ -171,16 +172,26 @@ def compute_metrics(predmean, predvar, Ymean_test, Yvar_test):
 def print_metrics_table(results_df, kfold_set_index):
     """Print the metrics in a formatted table."""
     logger.info(f"Metrics for k-fold set {kfold_set_index} >>>>>>\n")
+
+    # Get all the methods from the dataframe
+    methods = results_df['Method'].values
     
     # Log the header directly
-    header = f"{'Method':<12} {'Empirical Coverage':<27} {'RMSE':<14} {'NRMSE':<12} {'KL Divergence':<15} {'Hellinger Distance':<20} {'Wasserstein Distance':<20}"
+    header = f"{'Metric':<30}" + " ".join([f"{method:<15}" for method in methods])
     logger.info(header)
     logger.info('-' * len(header))
     
-    # Log each row in the DataFrame
-    for index, row in results_df.iterrows():
-        logger.info(f"{row['Method']:<12} {row['Empirical Coverage']:<25} {row['RMSE']:<15} {row['NRMSE']:<15} {row['KL Divergence']:<17} {row['Hellinger Distance']:<20} {row['Wasserstein Distance']:<20}")
-
-    logger.info("\n")
-
+    # Define the metrics to transpose (including the new ones)
+    metrics = ['95% Coverage', 'PI Width', 'RMSE', 'NRMSE', 'KL Divergence', 'Hellinger Distance', 'Wasserstein Distance'] 
+               # ,'Training time (s)', 'Prediction time (s)']
+    
+    # Print each metric row with values for each method
+    for metric in metrics:
+        row = f"{metric:<30}" + " ".join([f"{results_df.loc[index, metric]:<15}" for index in range(len(methods))])
+        logger.info(row)
+    
+        if metric == 'Wasserstein Distance':
+            logger.info('-' * len(header))
+            
+    logger.info('-' * len(header))
 

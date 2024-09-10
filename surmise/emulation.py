@@ -1,17 +1,17 @@
+#!/usr/bin/env python3
 """
 This module contains a class that implements the main emulation method.
 """
-import pickle
 
 import numpy as np
 import importlib
 import copy
 import warnings
+import pickle
 import dill
 import time
 import psutil
 
-print("In emulation.py")
 
 __externalmethodslist__ = ['nuclear-ROSE', ]
 
@@ -26,7 +26,7 @@ class emulator(object):
                  passthroughfunc=None,
                  args={},
                  options={}):
-        print("emulator class __init__ method called")
+
         '''
         A class used to represent an emulator or surrogate model. Fits an
         emulator or surrogate model provided in
@@ -104,7 +104,6 @@ class emulator(object):
         self.traintotalcputime = []
         self.predictwallclocktime = []
         self.predicttotalcputime = []
-        print(f"here :::: {self.trainwallclocktime}")
 
         if self.__ptf is not None:
             return
@@ -348,7 +347,6 @@ class emulator(object):
         info = {}
         self.method.predict(info, self._info, x, theta, **argstemp)
 
-        print("here::")
         # Record the end CPU times
         end_cpu_times = psutil.cpu_times()
         # End wall-clock time
