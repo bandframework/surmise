@@ -3,5 +3,5 @@ Support
 
 Email questions to:
 
-* The Surmise Development Team (mplumlee@northwestern.edu, surero@miamioh.edu, wild@lbl.gov, mosesyhc@u.northwestern.edu)
+* The Surmise Development Team (surero@miamioh.edu, wild@lbl.gov, moses.chan@northwestern.edu)
 
