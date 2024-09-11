@@ -16,7 +16,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "surmise"
 authors = [
-    {name = "Matthew Plumlee", email = "mplumlee@northwestern.edu"},
+    {name = "Matthew Plumlee"},
     {name = "Özge Sürer", email = "surero@miamioh.edu"},
     {name = "Stefan M. Wild", email = "wild@lbl.gov"},
     {name = "Moses Y.-H. Chan", email = "moses.chan@northwestern.edu"}
