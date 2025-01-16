@@ -1,60 +1,21 @@
-# IMPORTANT
-# * Please adjust GitHub actions to match changes to Python version here.
-# * Please make sure that all dependence/version changes made here are reflected
-#   in the oldest tox task in tox.ini
+# Since surmise contains Cython code, we are required to specify outside of
+# setup.py (i.e., here) the requirements necessary for pip to construct a build
+# system virtual environment and to build source distributions and wheels in it.
+#
+# Since setting the version is also part of building distributions, we also
+# include here the version determination mechanism.
+#
+# All other information needed to compose the package itself is in setup.py in
+# accord with the Cython docs.
 
 [build-system]
 requires = [
     "setuptools>=68.2.2",
     "setuptools_scm[toml]>=6.0",
     "numpy>=1.22.0",
-    "cython>=3.0.10",
-    "wheel"
+    "cython>=3.0.10"
 ]
 build-backend = "setuptools.build_meta"
 
-[project]
-name = "surmise"
-authors = [
-    {name = "Matthew Plumlee"},
-    {name = "Özge Sürer", email = "surero@miamioh.edu"},
-    {name = "Stefan M. Wild", email = "wild@lbl.gov"},
-    {name = "Moses Y.-H. Chan", email = "moses.chan@northwestern.edu"}
-]
-description = "A modular interface for surrogate models and tools"
-license = {file = "LICENSE"}
-readme = "README.rst"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
-requires-python = ">=3.9"
-dependencies = [
-    'numpy>=1.22.0',
-    'scipy>=1.9.0',
-    'dill>=0.3.8'
-]
-dynamic = ["version"]
-
-[project.optional-dependencies]
-scikit-learn = ['scikit-learn>=1.2.0']
-all = [
-    'surmise[scikit-learn]'
-]
-
-[project.urls]
-repository = "https://github.com/bandframework/surmise"
-
-[tool.setuptools.packages]
-find = {}
-
 [tool.setuptools_scm]
 write_to = "surmise/_version.py"
-
-[tool.cibuildwheel]
-# Skip 32-bit builds
-# Disable building PyPy wheels on all platforms
-# Disable musllinux
-skip = ["*-win32", "*_i686", "*-musllinux*", "pp*"]
-before-build = ["git status"]
