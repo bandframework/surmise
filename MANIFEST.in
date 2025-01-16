@@ -1,0 +1,7 @@
+include LICENSE
+exclude .flake8 .gitignore .pre-commit-config.yaml .readthedocs.yml
+exclude surmisebandsdk.md tox.ini
+prune tests
+prune examples
+prune docs
+prune .github
