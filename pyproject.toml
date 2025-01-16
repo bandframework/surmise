@@ -1,6 +1,7 @@
-# Since surmise contains Cython code, we are required to specify outside of
-# setup.py (i.e., here) the requirements necessary for pip to construct a build
-# system virtual environment and to build source distributions and wheels in it.
+# Since surmise contains Cython code as a C Extension to the package contents,
+# we are required to specify outside of setup.py (i.e., here) the requirements
+# necessary for pip to construct a build system virtual environment and to build
+# source distributions and wheels in it.
 #
 # Since setting the version is also part of building distributions, we also
 # include here the version determination mechanism.
@@ -12,8 +13,7 @@
 requires = [
     "setuptools>=68.2.2",
     "setuptools_scm[toml]>=6.0",
-    "numpy>=1.22.0",
-    "cython>=3.0.10"
+    "numpy>=1.22.0"
 ]
 build-backend = "setuptools.build_meta"
 

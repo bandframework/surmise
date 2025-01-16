@@ -21,7 +21,6 @@ venv/
 scratch/
 line_profiler/
 OpenBLAS/
-surmise/emulationsupport/matern_covmat.c
 surmise/emulationsupport/matern_covmat.cpython*.so
 CaseStudy/
 .tox/

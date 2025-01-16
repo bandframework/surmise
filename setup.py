@@ -10,7 +10,6 @@ from pathlib import Path
 from setuptools import (
     setup, find_packages, Extension
 )
-from Cython.Build import cythonize
 
 _PKG_ROOT = Path(__file__).resolve().parent
 
@@ -45,7 +44,7 @@ install_requires = code_requires + test_requires
 
 extensions = [
     Extension("surmise.emulationsupport.matern_covmat",
-              ["surmise/emulationsupport/matern_covmat.pyx"],
+              ["surmise/emulationsupport/matern_covmat.c"],
               include_dirs=[numpy.get_include()])
 ]
 
@@ -76,7 +75,7 @@ setup(
     python_requires=python_requires,
     install_requires=install_requires,
     extras_require=extras_require,
-    ext_modules=cythonize(extensions, language_level=3),
+    ext_modules=extensions,
     keywords="surmise",
     classifiers=[
         "Programming Language :: Python :: 3",
