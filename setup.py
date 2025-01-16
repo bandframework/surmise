@@ -8,7 +8,7 @@ import codecs
 
 from pathlib import Path
 from setuptools import (
-    setup, Extension
+    setup, find_packages, Extension
 )
 from Cython.Build import cythonize
 
@@ -44,7 +44,8 @@ extras_require = {
 install_requires = code_requires + test_requires
 
 extensions = [
-    Extension("matern_covmat", ["surmise/emulationsupport/matern_covmat.pyx"],
+    Extension("surmise.emulationsupport.matern_covmat",
+              ["surmise/emulationsupport/matern_covmat.pyx"],
               include_dirs=[numpy.get_include()])
 ]
 
@@ -70,6 +71,7 @@ setup(
     url="https://github.com/bandframework/surmise",
     project_urls=project_urls,
     license="MIT",
+    packages=find_packages(),
     package_data=package_data,
     python_requires=python_requires,
     install_requires=install_requires,
