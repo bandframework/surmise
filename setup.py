@@ -7,7 +7,9 @@ import numpy
 import codecs
 
 from pathlib import Path
-from setuptools import setup
+from setuptools import (
+    setup, Extension
+)
 from Cython.Build import cythonize
 
 _PKG_ROOT = Path(__file__).resolve().parent
@@ -41,6 +43,11 @@ extras_require = {
 }
 install_requires = code_requires + test_requires
 
+extensions = [
+    Extension("matern_covmat", ["surmise/emulationsupport/matern_covmat.pyx"],
+              include_dirs=[numpy.get_include()])
+]
+
 package_data = {
     "surmise": []
 }
@@ -67,9 +74,7 @@ setup(
     python_requires=python_requires,
     install_requires=install_requires,
     extras_require=extras_require,
-    include_dirs=[numpy.get_include()],
-    ext_modules=cythonize("surmise/emulationsupport/matern_covmat.pyx",
-                          language_level=3),
+    ext_modules=cythonize(extensions, language_level=3),
     keywords="surmise",
     classifiers=[
         "Programming Language :: Python :: 3",
