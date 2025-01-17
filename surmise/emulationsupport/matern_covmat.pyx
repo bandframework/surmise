@@ -6,6 +6,9 @@ from libc.stdio cimport printf
 from libc.math cimport fabs
 cimport cython
 
+# Cython recommends calling this if cimport-ing numpy
+np.import_array()
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def map4(double[:] x1, double[:] x2, double[:,:] s, double[:,:] r, double g):
