@@ -31,8 +31,8 @@ def readme_rst():
 
 python_requires = ">=3.9"
 code_requires = [
-    'numpy==1.26.4',
-    'scipy>=1.9.0',
+    'numpy>=1.22.0',
+    'scipy>=1.9.0,<1.15.0',
     'dill>=0.3.8'
 ]
 test_requires = []
