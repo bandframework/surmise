@@ -27,7 +27,13 @@ jobs:
         exclude:
           # Failing with root cause not yet understood (Issue #???)
           - os: macos-13
-            python-version: ["3.10", "3.11", "3.12", "3.13"]
+            python-version: "3.10"
+          - os: macos-13
+            python-version: "3.11"
+          - os: macos-13
+            python-version: "3.12"
+          - os: macos-13
+            python-version: "3.13"
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
