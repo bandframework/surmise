@@ -33,7 +33,7 @@ python_requires = ">=3.9"
 # numpy upper limits required by macos-13 GH action tests.  Without these,
 # there are segmentation faults.
 code_requires = [
-    'numpy>=1.22.0,<=2.2.0',
+    'numpy>=1.22.0,<2.2.0',
     'scipy>=1.9.0,<=1.13.1',
     'dill>=0.3.8'
 ]
