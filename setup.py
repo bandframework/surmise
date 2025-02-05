@@ -31,14 +31,14 @@ def readme_rst():
 
 python_requires = ">=3.9"
 code_requires = [
-    'numpy>=2.0.0',
+    'numpy>=1.22.0',
     'scipy>=1.9.0',
     'dill>=0.3.8'
 ]
 test_requires = []
 extras_require = {
     "scikit-learn": ['scikit-learn>=1.2.0'],
-    "all": ['scikit-learn>=1.2.0']
+    "all":          ['scikit-learn>=1.2.0']
 }
 install_requires = code_requires + test_requires
 
