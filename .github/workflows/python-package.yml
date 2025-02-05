@@ -25,7 +25,7 @@ jobs:
         #     windows-2019, windows-2022]
         #python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
         os: [macos-13]
-        python-version: ["3.10"]
+        python-version: ["3.9"]
         exclude:
           # Failing with root cause not yet understood (Issue #???)
           #- os: macos-13
