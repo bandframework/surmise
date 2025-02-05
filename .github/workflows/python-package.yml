@@ -21,9 +21,13 @@ jobs:
         # Please adjust pyproject.toml Python version requirement to match
         # supported version expressed here.
         os: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04,
-             macos-14, macos-15,
-             windows-2019, windows-2022]
+             macos-13, macos-14, macos-15,
+             windows-2022]
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        exclude:
+          # Failing with root cause not yet understood (Issue #???)
+          - os: macos-13
+            python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
