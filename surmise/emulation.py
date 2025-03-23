@@ -1,17 +1,13 @@
-#!/usr/bin/env python3
 """
 This module contains a class that implements the main emulation method.
 """
+import pickle
 
 import numpy as np
 import importlib
 import copy
 import warnings
-import pickle
 import dill
-import time
-import psutil
-
 
 __externalmethodslist__ = ['nuclear-ROSE', ]
 
@@ -26,7 +22,6 @@ class emulator(object):
                  passthroughfunc=None,
                  args={},
                  options={}):
-
         '''
         A class used to represent an emulator or surrogate model. Fits an
         emulator or surrogate model provided in
@@ -99,11 +94,6 @@ class emulator(object):
         self.__ptf = passthroughfunc
         self.__f = None
         self._args = copy.deepcopy(args)
-
-        self.trainwallclocktime = []
-        self.traintotalcputime = []
-        self.predictwallclocktime = []
-        self.predicttotalcputime = []
 
         if self.__ptf is not None:
             return
@@ -220,30 +210,12 @@ class emulator(object):
             fit function. It will add/modify those in self._args.
         """
 
-        # Start wall-clock time
-        start_wall_time = time.time()
-        # Record the start CPU times
-        start_cpu_times = psutil.cpu_times()
-        
         if args is not None:
             argstemp = {**self._args, **copy.deepcopy(args)}
         else:
             argstemp = copy.copy(self._args)
         x, theta, f = self.__preprocess()
         self.method.fit(self._info, x, theta, f, **argstemp)
-
-        # Record the end CPU times
-        end_cpu_times = psutil.cpu_times()
-        # End wall-clock time
-        end_wall_time = time.time()
-        
-        # Calculate the total CPU time
-        user_time = end_cpu_times.user - start_cpu_times.user
-        system_time = end_cpu_times.system - start_cpu_times.system
-        self.traintotalcputime = user_time + system_time
-        # Calculate the wall-clock time
-        self.trainwallclocktime = end_wall_time - start_wall_time
-        
 
     def predict(self, x=None, theta=None, args={}):
         '''
@@ -279,11 +251,7 @@ class emulator(object):
             An instance of emulation class prediction
 
         '''
-        # Start wall-clock time
-        start_wall_time = time.time()
-        # Record the start CPU times
-        start_cpu_times = psutil.cpu_times()
-        
+
         if self.__ptf is not None:
             info = {}
             if theta is not None:
@@ -346,18 +314,6 @@ class emulator(object):
 
         info = {}
         self.method.predict(info, self._info, x, theta, **argstemp)
-
-        # Record the end CPU times
-        end_cpu_times = psutil.cpu_times()
-        # End wall-clock time
-        end_wall_time = time.time()
-        # Calculate the total CPU time
-        user_time = end_cpu_times.user - start_cpu_times.user
-        system_time = end_cpu_times.system - start_cpu_times.system
-        self.predicttotalcputime = user_time + system_time
-        # Calculate the wall-clock time
-        self.predictwallclocktime = end_wall_time - start_wall_time
-        
         return prediction(info, self)
 
     def supplement(self,
