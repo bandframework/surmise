@@ -10,17 +10,17 @@ Reference:
     Available at: https://arxiv.org/abs/xxxx.xxxxx
 
 Note:
-    This file can be used as a standalone module for GPR without additional dependencies from the SURMISE package.
+    This file can be used as a standalone module for GPR without additional dependencies on SURMISE.
 '''
 
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from sklearn.gaussian_process.kernels import Matern, RBF, WhiteKernel, DotProduct, RationalQuadratic, ExpSineSquared, Kernel, Product
+from sklearn.gaussian_process.kernels import Matern, RBF, DotProduct, ExpSineSquared, RationalQuadratic, WhiteKernel, Product
 from sklearn.gaussian_process import GaussianProcessRegressor
 from joblib import Parallel, delayed
-import logging
 import time
 import psutil
+import logging
 
 # Configure logging
 logging.basicConfig(
@@ -30,6 +30,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# ============================================================================================
 
 # Function to define the kernels as a dictionary
 def get_kernels(input_dim):
@@ -133,89 +134,102 @@ def get_kernels(input_dim):
     
     return kernel_dict
 
-# Function to define the distance metrics as a dictionary
+# --------------------------------------------------------------------------------------------
+
+# Functions for different distance metrics 
+
+def kl_divergence_gaussian(mu1, sigma1, mu2, sigma2):
+    return np.log(sigma2 / sigma1) + (sigma1**2 + (mu1 - mu2)**2) / (2.0 * sigma2**2) - 0.5
+
+def hellinger_distance_gaussian(mu1, sigma1, mu2, sigma2):
+    term1 = np.sqrt(2.0 * sigma1 * sigma2 / (sigma1**2 + sigma2**2))
+    term2 = np.exp(-0.25 * (mu1 - mu2)**2 / (sigma1**2 + sigma2**2))
+    return np.sqrt(1.0 - term1 * term2)
+
+def wasserstein_distance_gaussian(mu1, sigma1, mu2, sigma2):
+    return np.sqrt((mu1 - mu2)**2 + (sigma1 - sigma2)**2)
+
+
 def get_metrics():
     """
-    Returns a dictionary of metric functions used to select the best performimg kernel for Gaussian Process regression.
+    Provides a collection of statistical distance metrics for Gaussian distributions.
+    These metrics are used to compare the similarity between two univariate Gaussian
+    distributions, which will be used in evaluating and selecting best performing 
+    kernels for Gaussian Process regression.
 
     Returns:
-        metric_list (dict): A dictionary where keys are metric names (str) and values are functions that compute the 
-                            metric for Gaussian distributions given the means and standard deviations.
+        dict: A dictionary where keys are metric names (str) and values are 
+              corresponding metric functions. Each function takes the parameters of 
+              two Gaussian distributions (mu1, sigma1, mu2, sigma2) as inputs and 
+              computes the respective distance metric.
+    Example:
+        metrics = get_metrics()
+        kl_div = metrics['KL Divergence'](mu1=0.0, sigma1=1.0, mu2=1.0, sigma2=2.0)
     """
-    
-    def kl_divergence_gaussian(mu1, sigma1, mu2, sigma2):
-        return np.log(sigma2 / sigma1) + (sigma1**2 + (mu1 - mu2)**2) / (2.0 * sigma2**2) - 0.5
-
-    def hellinger_distance_gaussian(mu1, sigma1, mu2, sigma2):
-        term1 = np.sqrt(2.0 * sigma1 * sigma2 / (sigma1**2 + sigma2**2))
-        term2 = np.exp(-0.25 * (mu1 - mu2)**2 / (sigma1**2 + sigma2**2))
-        return np.sqrt(1.0 - term1 * term2)
-
-    def wasserstein_distance_gaussian(mu1, sigma1, mu2, sigma2):
-        return np.sqrt((mu1 - mu2)**2 + (sigma1 - sigma2)**2)
 
     metric_list = {
         'KL Divergence': kl_divergence_gaussian,
         'Hellinger Distance': hellinger_distance_gaussian,
         'Wasserstein Distance': wasserstein_distance_gaussian
         }
-
     return metric_list
 
+##############################################################################################
 
-########################################################################################################
 # Emulator class to fit a Gaussian Process and predict from it
 class Emulator:
-    def __init__(self, X, Y_mean, Y_std):
-        """
-        A class for performing Gaussian Process regression.
+    """
+    A class for performing Gaussian Process regression.
 
-        The Emulator class is designed to handle multi-dimensional input and output data by training individual Gaussian 
-        Process models for each output dimension. It supports automatic kernel selection (AKS) based on performance metrics.
-    
-        What it needs:
-            - Valid numeric input features (`X`), target mean values (`Y_mean`), and target standard deviations (`Y_std`).
-            - GP Kernels and metrics defined through the `get_kernels` and `get_metrics` functions.
+    The Emulator class is designed to handle multi-dimensional input and output data by
+    training individual Gaussian Process models for each output dimension. It supports
+    automatic kernel selection (AKS) based on performance metrics.
 
-        Key Methods:
-            - `fit(kernel, nrestarts, n_jobs, seed)`: Trains GP models for each output dimension, 
-                                                      with optional (default) automatic kernel selection method.
-            - `predict(X_new, return_full_covmat)`: Predicts mean and uncertainty for new input data using the fitted GPs.
+    What it needs:
+        - Input features `X`, target mean `Y_mean`, target standard deviations `Y_std`.
+        - GP Kernels and metrics defined in `get_kernels` and `get_metrics`.
 
-        Example usage: 
-            >>> from sklearn.datasets import make_friedman2
-            >>> X, y = make_friedman2(n_samples=100, noise=0.5, random_state=0)
-            >>> emu = Emulator(X=X, Y_mean=y, Y_std=None)
-            >>> emu.fit(kernel='AKS', nrestarts=10, n_jobs=-1, seed=42)
-            >>> # Predict and compare with test data --->
-            >>> Xtest, ytest = make_friedman2(n_samples=10, noise=0.5, random_state=0)
-            >>> GP_means, GP_std = emu.predict(Xtest, return_full_covmat=False)
-            >>> print("% error in mean:\n", (1.0 - GP_means/ytest.reshape(-1, 1))*100)
+    Key Methods:
+        - `fit(kernel, nrestarts, n_jobs, seed)`: Trains GP models for each output 
+           dimension, with optional (default) automatic kernel selection method.
+        - `predict(X_new, return_full_covmat)`: Predicts mean and uncertainty for new 
+                                                input data using the fitted GPs.
+
+    Example usage: 
+        >>> from sklearn.datasets import make_friedman2
+        >>> X, y = make_friedman2(n_samples=100, noise=0.5, random_state=0)
+        >>> emu = Emulator(X=X, Y_mean=y, Y_std=None)
+        >>> emu.fit(kernel='AKS', nrestarts=10, n_jobs=-1, seed=42)
+        >>> # Predict and compare with test data --->
+        >>> Xtest, ytest = make_friedman2(n_samples=10, noise=0.5, random_state=0)
+        >>> GP_means, GP_std = emu.predict(Xtest, return_full_covmat=False)
+        >>> print("% error in mean:", (1.0 - GP_means/ytest.reshape(-1, 1))*100)
+        
+    Parameters: (2d-arrays)
+        X: Input features of shape (n_samples, n_features).
+        Y_mean: Mean values of the training data of shape (n_samples, n_outputs).
+        Y_std: Standard deviation of the training data of shape (n_samples, n_outputs).
+               If 'Y_std = None' the method will treat Y_std as nugget during training.
+        
+    Raises:
+        ValueError: 
+            - If any input array contains NaN, inf, or any non-numeric values.
+            - If the number of features (training points) in `X` and `Y_mean` do not match.
+            - If the shapes of `Y_mean` and `Y_std` do not match.
+    """
+    def __init__(self, X, Y_mean, Y_std=None):
             
-        Parameters:
-            X (array-like): Input features of shape (n_samples, n_features).
-            Y_mean (array-like): Mean values of the training data of shape (n_samples, n_outputs).
-            Y_std (array-like): Standard deviation of the training data of shape (n_samples, n_outputs).
-                                If 'Y_std = None' the method will treat Y_std as nugget during training.
-            
-        Raises:
-            ValueError: 
-                - If the arrays `X`, `Y_mean`, and `Y_std` contains NaN, inf, or any non-numeric values.
-                - If the number of training points in `X` and `Y_mean` do not match.
-                - If the shapes of `Y_mean` and `Y_std` do not match.
-        """
-
         # Validate the arrays
         self._validate_array(X, 'X')
         self._validate_array(Y_mean, 'Y_mean')
         
+        # If Y_std is None, add Y_std as nugget. Ensure it is smaller than the means.
         if Y_std is None:
-            # Adding nugget as Y_std:
-            column_wise_mean = np.mean(Y_mean, axis=0)
-            Y_std = np.random.uniform(1e-4, 1e-8, Y_mean.shape) * column_wise_mean # Adding nugget
+            Y_std = np.random.uniform(1e-8, 1e-6, Y_mean.shape) * np.abs(Y_mean)
+            self._validate_array(Y_std, 'Y_std')
         else:
             self._validate_array(Y_std, 'Y_std')
-
+    
         # If X, Y_mean or Y_std are 1D, reshape them to be 2D
         if X.ndim == 1:
             X = X.reshape(-1, 1)
@@ -236,29 +250,28 @@ class Emulator:
         self.Y_mean = Y_mean
         self.Y_std = Y_std
 
-        self._scaler_X = StandardScaler()
-        self._scaler_Y = StandardScaler()
+        self._scaler_X = StandardScaler(copy=True)
+        self._scaler_Y = StandardScaler(copy=True)
 
         self.gps = []
 
         self.trainwallclocktime = []
         self.traintotalcputime = []
-        self.predictwallclocktime = []
-        self.predicttotalcputime = []
 
         self.selected_kernels = []
-        # Initialize the dictionaries of kernels and metrics for best kernel selction 
-        input_dim = self.X.shape[1]  # dimensionality of input space
         
-        # Initialize the kernel and metric dictionaries
+        # Initialize the dictionaries of all availaible kernels
+        input_dim = self.X.shape[1]  # dimensionality of input space
         self.kernels_list = get_kernels(input_dim)
+        
+        # Initialize the dictionaries for metrics for best kernel selction
         self.metrics = get_metrics()
 
         # Check if the kernel and metric dictionaries exist
         if not self.kernels_list or not self.metrics:
             raise ValueError("Kernel dict or metric dict is empty or not defined properly.")
     
-    # ---------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------------------------
     
     def fit(self, kernel: str = 'AKS', nrestarts: int = 10, n_jobs: int = -1, seed: int = None) -> None:
 
@@ -266,34 +279,36 @@ class Emulator:
         Train individual Gaussian Processes (GPs) for each output dimension.
         
         Parameters:
-            kernel (str): The type of kernel to use for the Gaussian Process. Default is 'AKS' -- Automatic kernel selection. 
+            kernel (str): The type of kernel to use for the Gaussian Process. 
+                          Default is 'AKS' -- Automatic kernel selection. 
             List of kernels should be defined in "get_kernels()". Options include:
-                - 'AKS' : The function will train GPs with all kernels defined in 'get_kernels()' and automatically select the best one.
-                          The best kernel is chosen by fitting GPs (with 90% of training data) using each kernel and evaluating their 
-                          performance using different distance metrics defined in 'get_metrics()' (KL divergence, Hellinger distance,
-                          Wasserstein distance) on the rest 10% of the training data. 
-                          See the "_select_best_kernels()" function for more details.
-                          The GPs are then retrained with the selected kernels for each output dimension with all training data.
+                - 'AKS' : The function will train GPs with all kernels in 'get_kernels()' and
+                          select the best one. The best kernel is chosen by fitting GPs (with 90% 
+                          of training data) using each kernel and evaluating their performance 
+                          using different distance metrics defined in 'get_metrics()' on the rest
+                          10% of the training data. See the "_select_best_kernels()" function for 
+                          more details. The GPs are then retrained with the selected kernels for 
+                          each output dimension with all training data.
                 - 'Matern12': Matern kernel with nu=0.5.
                 - 'Matern32': Matern kernel with nu=1.5.
                 - 'Matern52': Matern kernel with nu=2.5.
                 - 'RBF': Radial Basis Function kernel.
                 - ...
                 
-            nrestarts (int, optional): Number of restarts for the optimizer to improve convergence. Default is 10.
+            nrestarts (int, optional): Number of restarts for the optimizer to improve convergence. 
+                                       Default is 10.
             
             n_jobs (int, optional): Number of CPU cores to use for parallel processing. 
                                     If set to -1, all available cores will be used. Default is -1.
 
-            seed (int, optional): Seed for the random number generator to ensure reproducibility. Default is 42.
+            seed (int, optional): Seed for random number generator for reproducibility. Default: None.
                           
         Raises:
             Exception: If an error occurs during the GP fitting process.
         """
-        # Start wall-clock time
-        start_wall_time = time.time()
-        # Record the start CPU times
-        start_cpu_times = psutil.cpu_times()
+        
+        start_wall_time = time.time()  # Start wall-clock time
+        start_cpu_times = psutil.cpu_times()  # Record the start CPU times
 
         if kernel=='AKS':
             #   - Split training data in 90% - 10% batch. 
@@ -302,8 +317,9 @@ class Emulator:
             #   - Retrain the GPs with the selected kernels for each output dimension with all training data (before split).
             
             logger.info(
-                f"Automatic kernel selection opted. Best kernel for each output dimension will be selected from the list of kernels:\n"
-                f"   {list(self.kernels_list.keys())}\n"
+                f"Automatic kernel selection opted. Best kernel for each output dimension will be selected from the list of kernels: "
+                f"{list(self.kernels_list.keys())}\n"
+                f"The metrics: {list(self.metrics.keys())} will be used for kernel selection.\n"
             )
             
             try:
@@ -318,15 +334,15 @@ class Emulator:
                 logger.info(f"Shape of training arrays: {X_train.shape}, {Ymean_train.shape}, {Ystd_train.shape}")
                 logger.info(f"Shape of validation arrays: {validation_X.shape}, {validation_Ymean.shape}, {validation_Ystd.shape}")
 
+                logger.info("Training GPs with all available kernels...")
+                
+                # Standardize data before GP training
+                X_stnd, Ymean_stnd, Ystd_stnd = self._preprocess_data(X=X_train, Y_mean=Ymean_train, Y_std=Ystd_train)
+                
                 # Initializing GP dictionary to store the fitted GPs for all available kernels
                 gplist = {}
 
                 # Training GPs with different kernels for all output dimensions in parallel
-                logger.info("Training GPs with all available kernels...")
-
-                # Standardize data before GP training
-                X_stnd, Ymean_stnd, Ystd_stnd = self._preprocess_data(X=X_train, Y_mean=Ymean_train, Y_std=Ystd_train)
-
                 for kernel_name, ker in self.kernels_list.items():
                     gplist[kernel_name] = Parallel(n_jobs=n_jobs)(
                         delayed(self.fit_singleGP)(Xfit = X_stnd, 
@@ -349,9 +365,14 @@ class Emulator:
                                                        Ystd_val = validation_Ystd
                                                       )
 
-                # Now select the best kernel 
+                # Now select the best-performing kernels using the computed metrics
                 best_kernels = self._select_best_kernels(metrics_result)
-                self.selected_kernels = best_kernels # append to selected_kernels
+                
+                # Store the selected kernels for later use or retrival from class object
+                self.selected_kernels = best_kernels
+                
+                # Remove temporary variables to free up memory
+                del gplist, metrics_result
 
                 assert len(Ymean_stnd[1]) == len(best_kernels), (
                     "Error during GP fit: Number of best kernels not equal to number of output dimension."
@@ -360,15 +381,13 @@ class Emulator:
                 
                 logger.info(f"  Selected best kernels for each output dimension:\n   {best_kernels}\n")
                 
-                del gplist  # Free memory of the gplist objects
-
-                #  - Retrain the GPs with the selected kernels for each output dimension with all training data
-                #  - Append the trained GPs to self.gps
                 logger.info("Retraining the GPs with selected best kernels using all training data...")
 
-                # Standardize data before GP retraining
+                # Standardize data (all training data) before GP retraining
                 X_stnd, Ymean_stnd, Ystd_stnd = self._preprocess_data(X=self.X, Y_mean=self.Y_mean, Y_std=self.Y_std)
 
+                # Retrain the GPs with the selected kernels for different output dimension in parallel 
+                # and store the trained GPs to self.gps for predictions
                 self.gps = Parallel(n_jobs=n_jobs)(
                     delayed(self.fit_singleGP)(Xfit=X_stnd, 
                                                Yfit_mean=sample_column, 
@@ -378,12 +397,11 @@ class Emulator:
                                               )
                     for i, sample_column in enumerate(Ymean_stnd.T)
                 )
-                del best_kernels, metrics_result # Free memory
                 
                 logger.info("Retraining GPs complete.\n")
             
             except Exception as e:
-                logger.error(f"Error during GP fit with automatic kernel selection: {e}")
+                logger.error(f"Error during GP fit with AKS: {e}")
                 raise
 
 
@@ -403,7 +421,7 @@ class Emulator:
                 # Standardize data before GP retraining
                 X_stnd, Ymean_stnd, Ystd_stnd = self._preprocess_data(X=self.X, Y_mean=self.Y_mean, Y_std=self.Y_std)
                 
-                # Training GPs for different output dimension in parallel
+                # Train GPs for different output dimension in parallel and store the trained GPs to self.gps for prediction
                 self.gps = Parallel(n_jobs=n_jobs)(
                     delayed(self.fit_singleGP)(Xfit=X_stnd, 
                                                  Yfit_mean=sample_column, 
@@ -417,6 +435,8 @@ class Emulator:
                 logger.error(f"Error during GP fit: {e}")
                 raise
 
+        # ******************
+        
         # Log the kernel information of the fitted GPs
         for i, sample_column in enumerate(Ymean_stnd.T):
             logger.info(
@@ -424,29 +444,24 @@ class Emulator:
                     f"  Log-marginal-likelihood: {self.gps[i].log_marginal_likelihood_value_}\n"
                 )
             
-        # Record the end CPU times
-        end_cpu_times = psutil.cpu_times()
-        # End wall-clock time
-        end_wall_time = time.time()
+        end_cpu_times = psutil.cpu_times()  # Record the end CPU times
+        end_wall_time = time.time()  # End wall-clock time
         
-        # Calculate the total CPU time
+        # Calculate the total CPU and wall-clock time
         user_time = end_cpu_times.user - start_cpu_times.user
         system_time = end_cpu_times.system - start_cpu_times.system
         self.traintotalcputime = user_time + system_time
-        
-        # Calculate the wall-clock time
         self.trainwallclocktime = end_wall_time - start_wall_time
 
-        del start_wall_time, start_cpu_times, end_cpu_times, user_time, system_time  # Free memory
-
+    # ---------------------------------------------------------------------------------------------
     
     def predict(self, X_new, return_full_covmat=False):
         """
         Predicts from fitted GP at new input points.
 
         Parameters:
-            X_new (array-like): predict input points.
-            return_full_covmat (bool): Whether to return the full covariance matrix. Defaults to False.
+            X_new (2d-array): predict input points.
+            return_full_covmat (bool): Whether to return the full covariance matrix. Defaults: False.
 
         Returns:
             means (array-like): Predicted means in the original scale.
@@ -456,15 +471,10 @@ class Emulator:
                 - std_devs[:, i] or covariances[i] access for the i-th GP.
                 
         Raises:
-            ValueError: If dimensions of training input space does not match the dimension of new input points.
+            ValueError: If dimensions of training inputs does not match the dimension of new inputs.
             Exception: If an error occurs during the GP fitting process.
         """
 
-        # Start wall-clock time
-        start_wall_time = time.time()
-        # Record the start CPU times
-        start_cpu_times = psutil.cpu_times()
-        
         if  X_new.shape[1] != self.X.shape[1]:
             raise ValueError(
                     f"Error during GP predict: "
@@ -473,7 +483,7 @@ class Emulator:
         try:
             X_new_scaled = self._scaler_X.transform(X_new)
             predictions = [gp.predict(X_new_scaled, return_cov=True) for gp in self.gps]
-            means_scaled, covariances_scaled = zip(*predictions) 
+            means_scaled, covariances_scaled = zip(*predictions)
             
             # Transform the means back to the original scale
             means_scaled = np.column_stack(means_scaled)
@@ -484,19 +494,6 @@ class Emulator:
             covariances = [cov * scale[i] ** 2 for i, cov in enumerate(covariances_scaled)]
 
             if return_full_covmat:
-                # Record the end CPU times
-                end_cpu_times = psutil.cpu_times()
-                # End wall-clock time
-                end_wall_time = time.time()
-                # Calculate the total CPU time
-                user_time = end_cpu_times.user - start_cpu_times.user
-                system_time = end_cpu_times.system - start_cpu_times.system
-                self.predicttotalcputime = user_time + system_time
-                # Calculate the wall-clock time
-                self.predictwallclocktime = end_wall_time - start_wall_time
-
-                del start_wall_time, start_cpu_times, end_cpu_times, user_time, system_time  # Free memory
-        
                 return means, covariances
                 
             else:
@@ -512,28 +509,13 @@ class Emulator:
                     variances[variances_negative] = 0.0
 
                 std_devs = np.sqrt(variances).T  # Transpose to match the expected output format
-
-                # Record the end CPU times
-                end_cpu_times = psutil.cpu_times()
-                # End wall-clock time
-                end_wall_time = time.time()
-                # Calculate the total CPU time
-                user_time = end_cpu_times.user - start_cpu_times.user
-                system_time = end_cpu_times.system - start_cpu_times.system
-                self.predicttotalcputime = user_time + system_time
-                # Calculate the wall-clock time
-                self.predictwallclocktime = end_wall_time - start_wall_time
-
-                del start_wall_time, start_cpu_times, end_cpu_times, user_time, system_time  # Free memory
-
                 return means, std_devs
         
         except Exception as e:
             logger.error(f"Error during GP predict: {e}")
             raise
 
-
-# ====================================================================================================
+# =================================================================================================
 
     @staticmethod
     def _validate_array(arr, name):
@@ -552,7 +534,7 @@ class Emulator:
         if not np.isfinite(arr).all():
             raise ValueError(f"'{name}' contains NaN or inf values.")
 
-
+    # ---------------------------------------------------------------------------------------------
     
     def _preprocess_data(self, X, Y_mean, Y_std):
         """
@@ -599,7 +581,8 @@ class Emulator:
         #<<<<<<<<<<<< Check standardization :: end <<<<<<<<<<<<
 
         return scaled_X, Z_mean, Z_std
-
+        
+    # ---------------------------------------------------------------------------------------------
 
     def fit_singleGP(self, Xfit, Yfit_mean, Yfit_std, kernel, nrestarts):
         """
@@ -607,8 +590,8 @@ class Emulator:
         
         Parameters:
             Xfit (array-like): Input features of shape (n_samples, n_features).
-            Yfit_mean (array-like): Mean values of the training data of shape (n_samples, n_outputs).
-            Yfit_std (array-like): Standard deviation of the training data of shape (n_samples, n_outputs).
+            Yfit_mean (array-like): Mean values of the training data. Shape (n_samples, n_outputs).
+            Yfit_std (array-like): Standard deviation of training data. Shape (n_samples, n_outputs).
             kernel (sklearn.gaussian_process.kernels.Kernel): Kernel object to be used by the GP.
             nrestarts (int): Number of restarts for the optimizer to enhance convergence.
             
@@ -624,18 +607,20 @@ class Emulator:
         gp.fit(Xfit, Yfit_mean)
         
         return gp
-        
+
+    # ---------------------------------------------------------------------------------------------
 
     def split_train_validation(self, X, Ymean, Ystd, train_validation_ratio=0.9, seed=None):
         """
-        Splits the dataset into training and validation sets based on the specified train_validation_ratio.
+        Splits the dataset into training and validation sets based on train_validation_ratio.
     
         Parameters:
             X (array-like): Input features of shape (n_samples, n_features).
             Ymean (array-like): Mean values of the training data of shape (n_samples, n_outputs).
             Ystd (array-like): Standard deviation of the training data of shape (n_samples, n_outputs).
-            train_validation_ratio (float, optional): The ratio of the dataset to be used for training. Default is 0.9 (90%).
-            seed (int, optional): Seed for the random number generator to ensure reproducibility. Default is 42.
+            train_validation_ratio (float, optional): The ratio of the dataset to be used for training. 
+                                                      Default is 0.9 (90%).
+            seed (int, optional): Seed for random number generator to ensure reproducibility.
     
         Returns:
             X_train (array-like): Training set of input features.
@@ -666,15 +651,17 @@ class Emulator:
     
         return X_train, Ymean_train, Ystd_train, X_val, Ymean_val, Ystd_val
 
+    # ---------------------------------------------------------------------------------------------
     
     def _compute_metrics(self, GP_dict, X_val, Ymean_val, Ystd_val):
         """
-        Computes and aggregates metric results for each kernel by comparing predicted GP means and stds with the validation data.
+        Computes and aggregates metric results for each kernel by comparing predicted GP means and 
+        stds with the validation data.
     
         Parameters:
             GP_dict (dict): Dictionary of fitted GPs for each kernel.
                 - Key (str): The name of the kernel.
-                - Value (list): List of GaussianProcessRegressor models fitted with the corresponding kernel.
+                - Value (list): List of GPR models fitted with the corresponding kernel.
                 
             X_val (array-like): Input features of the validation data.
             Ymean_val (array-like): Mean values of the validation data.
@@ -683,10 +670,11 @@ class Emulator:
         
         Returns:
             dict: A nested dictionary containing the computed metrics for each kernel.
-                - Outer Key (str): The name of the metric (e.g., 'KL Divergence', 'Hellinger Distance', 'Wasserstein Distance').
+                - Outer Key (str): The name of the metric (e.g., 'KL Divergence',..).
                 - Outer Value (dict): 
                     - Inner Key (str): The name of the kernel (e.g., 'RBF', 'Matern52').
-                    - Inner Value (array-like): The computed metric values for the validation data, with same shape as Ymean_val.
+                    - Inner Value (array-like): The computed metric values for the validation data, 
+                      with same shape as Ymean_val.
         """
 
         # Initialize the dictionary to store the results
@@ -705,24 +693,25 @@ class Emulator:
             # Compute the metrics for this kernel
             results = {}
             for metric_name, metric_func in self.metrics.items():
-                results[metric_name] = metric_func(GP_means, GP_stds, Ymean_val, Ystd_val)
+                results[metric_name] = self.metrics[metric_name](GP_means, GP_stds, Ymean_val, Ystd_val)
     
             # Store the results for the current kernel
             for metric_name, value in results.items():
                 metric_results[metric_name][kernel_name] = value
 
-        metric_results[metric_name][kernel_name]
+
         assert  metric_results[metric_name][kernel_name].shape == Ymean_val.shape, (
             "Error in _compute_metrics calculation: Shape of metric_result[.][.] should match shape of Ymean_val."
         )
         
         return metric_results
-
+        
+    # ---------------------------------------------------------------------------------------------
+    
     def _select_best_kernels(self, metric_result):
         """
-        Selects the best-performing kernel for each column across multiple metrics by comparing their
-        column-wise mean values.
-        The process includes:
+        Selects the best-performing kernel for each column across multiple metrics by comparing 
+        their column-wise mean values. The process includes:
             1. **Compute Column-wise Mean**: For each metric and kernel, calculate the mean values column-wise.
             2. **Compare and Update Scores**:
                 - For each column, compare the mean values of each kernel pair across all metrics.
@@ -776,6 +765,7 @@ class Emulator:
             best_kernels.append(best_kernel)  # Append the best kernel to the list
     
         return best_kernels
+    
 ########################################################################################################
 
 
