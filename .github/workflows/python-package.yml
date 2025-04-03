@@ -30,6 +30,10 @@ jobs:
             python-version: "3.13"
           # Warning: Numpy built with MINGW-W64 on Windows 64 bits is
           # experimental, and only available for testing.
+          - os: windows-2019
+            python-version: "3.13"
+          # Warning: Numpy built with MINGW-W64 on Windows 64 bits is
+          # experimental, and only available for testing.
           - os: windows-2022
             python-version: "3.13"
     steps:
@@ -44,10 +48,8 @@ jobs:
             # Default MinGW install has gcc v8.1.0, which is too old to build
             # numpy v2.0 (v8.4.0 or greater required)
             choco upgrade mingw -y --no-progress --allow-downgrade
-            # The following path is from the updage log messages.
+            # The following path is from the update log messages.
             echo "C:\ProgramData\mingw64\mingw64\bin" >> $GITHUB_PATH
-            which gcc
-            gcc --version
         fi
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
