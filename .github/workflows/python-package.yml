@@ -30,9 +30,6 @@ jobs:
             python-version: "3.13"
           # Warning: Numpy built with MINGW-W64 on Windows 64 bits is
           # experimental, and only available for testing.
-          #
-          # It fails.  Does this mean that it's running in Windows rather than
-          # the Ubuntu environment?
           - os: windows-2022
             python-version: "3.13"
     steps:
@@ -40,6 +37,18 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: 20
+    - name: Update compiler version
+      shell: bash
+      run: |
+        if   [ "${{ matrix.os }}" = "windows-2019" ]; then
+            # Default MinGW install has gcc v8.1.0, which is too old to build
+            # numpy v2.0 (v8.4.0 or greater required)
+            choco upgrade mingw -y --no-progress --allow-downgrade
+            # The following path is from the updage log messages.
+            echo "C:\ProgramData\mingw64\mingw64\bin" >> $GITHUB_PATH
+            which gcc
+            gcc --version
+        fi
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
