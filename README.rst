@@ -50,8 +50,9 @@ file for your preferred platform is not listed, then surmise has to be built
 from source.  There is C code in the package that will be compiled for your
 setup by `setuptools`_ during this process.  Therefore, a valid C compiler must
 be installed beforehand.  In such cases, the installation should be built
-automatically from the source distribution in PyPI when installed via pip.  For
-those who prefer to work from a clone, please execute an appropriate version of::
+automatically from the source distribution in PyPI when installed via pip
+(**TBC**).  For those who prefer to work from a clone, please execute an
+appropriate version of::
 
  git clone https://github.com/bandframework/surmise/
  cd surmise
