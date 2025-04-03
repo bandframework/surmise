@@ -47,7 +47,7 @@ jobs:
         if   [ "${{ matrix.os }}" = "windows-2019" ]; then
             # Default MinGW install has gcc v8.1.0, which is too old to build
             # numpy v2.0 (v8.4.0 or greater required)
-            choco upgrade mingw -y --no-progress --allow-downgrade
+            choco upgrade mingw -y --no-progress
             # The following path is from the update log messages.
             echo "C:\ProgramData\mingw64\mingw64\bin" >> $GITHUB_PATH
         fi
