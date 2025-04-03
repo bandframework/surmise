@@ -45,23 +45,23 @@ From the command line, use one of the following commands to install surmise::
 The package scikit-learn is required by specific methods as stated above.
 These packages can be installed along with surmise via the commands listed.
 
-The list of available .whl files can be found under `PyPI-wheel`_.  If a wheel file
-for your preferred platform is not listed, surmise has to be built from source,
-which requires extra dependencies::
+The list of available .whl files can be found under `PyPI-wheel`_.  If a wheel
+file for your preferred platform is not listed, then surmise has to be built
+from source.  There is C code in the package that will be compiled for your
+setup by `setuptools`_ during this process.  Therefore, a valid C compiler must
+be installed beforehand.  In such cases, the installation should be built
+automatically from the source distribution in PyPI when installed via pip.  For
+those who prefer to work from a clone, please execute an appropriate version of::
 
  git clone https://github.com/bandframework/surmise/
  cd surmise
  python -m pip install --upgrade pip
- pip install build Cython
- pip install scikit-learn (optional, required by full test suite)
+ python -m pip install --upgrade setuptools
+ python -m pip install build
  python -m build --wheel
- pip install dist/surmise-<version info>.whl
+ python -m pip install scikit-learn (optional, required by full test suite)
+ python -m pip install dist/surmise-<version info>.whl
 
-.. note::
-
-    Direct installation of surmise requires Cython to build C executable.
-    On a Windows platform Cython is supported by Microsoft build tools, for which installation
-    is outside pip; see `Microsoft build tools`_ for details.
 
 Testing
 ~~~~~~~
@@ -123,8 +123,8 @@ In addition, for a gentle introduction of emulation and calibration using Gaussi
 .. _pytest: https://pypi.org/project/pytest/
 .. _Python: http://www.python.org
 .. _SciPy: http://www.scipy.org
+.. _Setuptools: https://setuptools.pypa.io
 .. _`surmise Jupyter notebook`: https://colab.research.google.com/drive/1f4gKTCLEAGE8r-aMWOoGvY-O6zNqg1qj?usp=drive_link
 .. _PyPI-wheel: https://pypi.org/project/surmise/#files
-.. _`Microsoft build tools`: https://visualstudio.microsoft.com/downloads/?q=build+tools
 .. _scikit-learn: https://scikit-learn.org/stable/install.html
 
