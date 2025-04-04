@@ -2,6 +2,9 @@
 # * Please adjust GitHub actions to match changes to Python version here.
 # * Please make sure that all dependence/version changes made here are reflected
 #   in the oldest tox task in tox.ini
+#
+# The version is being set in _version.py by setuptools_scm (see
+# pyproject.toml).  No need to handle version manually here.
 
 import numpy
 import codecs
@@ -18,16 +21,6 @@ def readme_rst():
     fname = _PKG_ROOT.joinpath("README.rst")
     with codecs.open(fname, encoding="utf8") as fptr:
         return fptr.read()
-
-
-# TODO: By this stage, it looks like the version should already be set in
-# _version.py by setuptools_scm as part of constructing the build system venv.
-# We aren't explicitly setting the version in setup.  Is it being set
-# automatically?  Do we need to set it?
-#def version():
-#    fname = _PKG_ROOT.joinpath("VERSION")
-#    with open(fname, "r") as fptr:
-#        return fptr.read().strip()
 
 python_requires = ">=3.9"
 # numpy & scipy upper limits required by macos-13 GH action tests.  Without
