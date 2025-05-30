@@ -62,6 +62,9 @@ appropriate version of::
  python -m pip install scikit-learn (optional, required by full test suite)
  python -m pip install dist/surmise-<version info>.whl
 
+.. note::
+    Currently surmise on Windows system is built and tested with MinGW, in order to support the GCC compiler.
+    The expectation is that other Windows build environments are compatible as well.
 
 Testing
 ~~~~~~~
