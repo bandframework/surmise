@@ -1,9 +1,14 @@
+# IMPORTANT
+# * Please adjust GitHub actions to match changes to Python version here.
+# * Please make sure that all dependence/version changes made here are reflected
+#   in the oldest tox task in tox.ini
+
 [build-system]
 requires = [
-    "setuptools>=50.0",
+    "setuptools>=68.2.2",
     "setuptools_scm[toml]>=6.0",
-    "numpy>=1.18.3",
-    "cython",
+    "numpy>=1.22.0",
+    "cython>=3.0.10",
     "wheel"
 ]
 build-backend = "setuptools.build_meta"
@@ -11,7 +16,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "surmise"
 authors = [
-    {name = "Matthew Plumlee", email = "mplumlee@northwestern.edu"},
+    {name = "Matthew Plumlee"},
     {name = "Özge Sürer", email = "surero@miamioh.edu"},
     {name = "Stefan M. Wild", email = "wild@lbl.gov"},
     {name = "Moses Y.-H. Chan", email = "moses.chan@northwestern.edu"}
@@ -24,21 +29,15 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-# Please adjust package testing CI action to match changes to Python version
-# here.
 requires-python = ">=3.9"
 dependencies = [
-    'numpy>=1.18.3',
-    'scipy>=1.7'
+    'numpy>=1.22.0',
+    'scipy>=1.9.0',
+    'dill>=0.3.8'
 ]
 dynamic = ["version"]
 
 [project.optional-dependencies]
-docs = [
-    'sphinx',
-    'sphinxcontrib.bibtex',
-    'sphinx_rtd_theme'
-]
 scikit-learn = ['scikit-learn>=1.2.0']
 all = [
     'surmise[scikit-learn]'

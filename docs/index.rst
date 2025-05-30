@@ -26,21 +26,27 @@ To begin using surmise, we encourage checking out the following pages:
    :maxdepth: 4
 	
    Quickstart<introduction>
-   understanding	
-   programming_surmise
+   understanding
 
 .. toctree::
    :maxdepth: 2
-   :caption: Examples & Tutorials:
+   :caption: Usage Examples & Tutorials:
 
    examples
    tutorials
+   programming_surmise
 
 .. toctree::
    :caption: Developer Guide:
    :maxdepth: 4
 
    contributing
+
+.. toctree::
+   :caption: Collaborators & Contributors:
+   :maxdepth: 2
+
+   collaborators_contributors
 
 Indices and tables
 ====================================

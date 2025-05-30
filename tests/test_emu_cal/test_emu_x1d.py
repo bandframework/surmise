@@ -42,14 +42,6 @@ xv = x.astype('float')
 
 class priorphys_lin:
     """ This defines the class instance of priors provided to the method. """
-    def lpdf(theta):
-        if theta.ndim > 1.5:
-            return np.squeeze(sps.norm.logpdf(theta[:, 0], 0, 5) +
-                              sps.gamma.logpdf(theta[:, 1], 2, 0, 10))
-        else:
-            return np.squeeze(sps.norm.logpdf(theta[0], 0, 5) +
-                              sps.gamma.logpdf(theta[1], 2, 0, 10))
-
     def rnd(n):
         return np.vstack((sps.norm.rvs(0, 5, size=n),
                           sps.gamma.rvs(2, 0, 10, size=n))).T
@@ -73,7 +65,7 @@ def does_not_raise():
     "input1,input2,expectation",
     [
      (x, theta, does_not_raise()),
-     (x.reshape((17, 1)), theta, pytest.raises(ValueError)),
+     (x.reshape((17, 1)), theta, does_not_raise()),
      ],
     )
 def test_predict_multi(input1, input2, expectation):

@@ -187,7 +187,7 @@ def plot_theta(cal, whichtheta):
     axs[0].plot(cal_theta[:, whichtheta])
     axs[1].boxplot(cal_theta[:, whichtheta])
     axs[2].hist(cal_theta[:, whichtheta])
-    plt.show()
+    plt.show(block=False)
 
 
 def plot_preds(cal, axs):
@@ -199,7 +199,7 @@ def plot_preds(cal, axs):
         upper = np.percentile(rndm_m[:, inds], 97.5, axis=0)
         lower = np.percentile(rndm_m[:, inds], 2.5, axis=0)
         axs.fill_between(xv[inds, 0], lower, upper, color='grey', alpha=0.25)
-        axs.plot(xv[inds, 0], y[inds], 'ro', markersize=5, color='red')
+        axs.plot(xv[inds, 0], y[inds], 'o', markersize=5, color='red')
     return (axs)
 
 
@@ -255,7 +255,7 @@ axs[0] = plot_preds(cal_grav_1, axs[0])
 axs[1] = plot_preds(cal_grav_2, axs[1])
 axs[2] = plot_preds(cal_grav_3, axs[2])
 axs[3] = plot_preds(cal_grav_4, axs[3])
-plt.show()
+plt.show(block=False)
 
 # %% [markdown]
 # ### Calibrators for Model 2
@@ -315,4 +315,4 @@ axs[0] = plot_preds(cal_lin_1, axs[0])
 axs[1] = plot_preds(cal_lin_2, axs[1])
 axs[2] = plot_preds(cal_lin_3, axs[2])
 axs[3] = plot_preds(cal_lin_4, axs[3])
-plt.show()
+plt.show(block=False)

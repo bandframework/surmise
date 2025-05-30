@@ -28,20 +28,21 @@ interface for calibration, uncertainty quantification, and sensitivity analysis.
 Dependencies
 ~~~~~~~~~~~~
 
-surmise is built with numpy and scipy, with an optional scikit-learn dependencies.
+surmise is built with numpy and scipy, with an optional scikit-learn dependency.
 
-Please refer to [project] and [project.optional-dependencies] sections of pyproject.toml for details.
+Please refer to the [project] and [project.optional-dependencies] sections of pyproject.toml 
+for details.
 
 Installation
 ~~~~~~~~~~~~
 
-From the command line, use the following command to install surmise::
+From the command line, use one of the following commands to install surmise::
 
  pip install surmise
  pip install surmise[scikit-learn]      # to include scikit-learn in installation
  pip install surmise[all]               # to include all optional dependencies
 
-The package scikit-learn is required by specific method stated above.
+The package scikit-learn is required by specific methods as stated above.
 These packages can be installed along with surmise via the commands listed.
 
 The list of available .whl files can be found under `PyPI-wheel`_.  If a wheel file
@@ -50,35 +51,36 @@ which requires extra dependencies::
 
  git clone https://github.com/bandframework/surmise/
  cd surmise
+ python -m pip install --upgrade pip
  pip install build Cython
- pip install scikit-learn (optional)
+ pip install scikit-learn (optional, required by full test suite)
  python -m build --wheel
  pip install dist/surmise-<version info>.whl
 
 .. note::
 
     Direct installation of surmise requires Cython to build C executable.
-    On Windows platform Cython is supported by Microsoft build tools, for which installation
-    is outside pip.  See `Microsoft build tools`_ for details.
+    On a Windows platform Cython is supported by Microsoft build tools, for which installation
+    is outside pip; see `Microsoft build tools`_ for details.
 
 Testing
 ~~~~~~~
 
-Testing of surmise can be performed after cloning the repository. The test suite requires the pytest_ and 
-pytest-cov_ packages to be installed.  These packages can be installed via::
+Testing of surmise can be performed after cloning the repository. The test suite requires the pytest_,
+pytest-cov_, and scikit-learn_ packages to be installed.  These packages can be installed via::
 
- pip install pytest pytest-cov
+ pip install pytest pytest-cov scikit-learn
 
-The test suite can then be run from within the ``tests/`` directory of the source distribution by running::
+The full test suite can then be run from the `tests/` directory of the source distribution by the command::
 
- cd tests
- ./run-tests.sh
+ cd /path/to/surmise/tests/
+ python -m pytest        # (no coverage report)
+ python -m pytest --cov  # (with console coverage report)
 
-Further options are available for testing. To see a complete list of options, run::
+Access to the test suite with specific testing options are available in the ``tests`` directory.
+To see a complete list of options, run::
 
- ./run-tests.sh -h
-
-Coverage reports are produced under ``tests/cov_html`` directory only if all tests are used.
+ ./path/to/surmise/tests/run-tests.sh -h
 
 Documentation
 ~~~~~~~~~~~~~
@@ -98,12 +100,12 @@ it to generate documentation.
 
 .. code-block:: bibtex
 
-   @techreport{surmise2023,
+   @techreport{surmise2024,
      author      = {Matthew Plumlee and \"Ozge S\"urer and Stefan M. Wild and Moses Y-H. Chan},
-     title       = {{surmise 0.2.1+dev} Users Manual},
+     title       = {{surmise 0.3.0} Users Manual},
      institution = {NAISE},
-     number      = {Version 0.2.1+dev},
-     year        = {2023},
+     number      = {Version 0.3.0},
+     year        = {2024},
      url         = {https://surmise.readthedocs.io}
    }
 
@@ -124,3 +126,5 @@ In addition, for a gentle introduction of emulation and calibration using Gaussi
 .. _`surmise Jupyter notebook`: https://colab.research.google.com/drive/1f4gKTCLEAGE8r-aMWOoGvY-O6zNqg1qj?usp=drive_link
 .. _PyPI-wheel: https://pypi.org/project/surmise/#files
 .. _`Microsoft build tools`: https://visualstudio.microsoft.com/downloads/?q=build+tools
+.. _scikit-learn: https://scikit-learn.org/stable/install.html
+

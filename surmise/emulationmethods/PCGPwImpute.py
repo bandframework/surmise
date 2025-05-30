@@ -70,10 +70,13 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, lognugmean=-10,
     if not np.all(np.isfinite(f)):
         fitinfo['mof'] = np.logical_not(np.isfinite(f))
         __completef(fitinfo, compmethod=completionmethod)
-        print('Completing f with method IterativeImputer:{:s}.'.format(completionmethod))
+        if verbose > 0:
+            print('Completing f with method IterativeImputer:{:s}.'.format(completionmethod))
     else:
         fitinfo['mof'] = None
-        print('No missing values identified... Proceeding with PCGP method.')
+        fitinfo['completionmethod'] = ''
+        if verbose > 0:
+            print('No missing values identified... Proceeding with PCGP method.')
 
     fitinfo['mof'] = None
     fitinfo['mofrows'] = None
@@ -102,6 +105,8 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, lognugmean=-10,
     emulist = __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, hypvarconst)
 
     fitinfo['emulist'] = emulist
+
+    __generate_param_str(fitinfo)
     return
 
 
@@ -133,8 +138,8 @@ def predict(predinfo, fitinfo, x, theta, **kwargs):
     return semPCGPwM.predict(predinfo, fitinfo, x, theta, **kwargs)
 
 
-def predictlpdf(predinfo, f, return_grad=False, addvar=0):
-    return semPCGPwM.predictlpdf(predinfo, f, return_grad, addvar)
+def predictlpdf(predinfo, f, addvar=0, **kwargs):
+    return semPCGPwM.predictlpdf(predinfo, f, addvar, **kwargs)
 
 
 def __fitGPs(fitinfo, theta, numpcs, hyp1, hyp2, varconstant):
@@ -161,3 +166,10 @@ def __standardizef(fitinfo, offset=None, scale=None):
 def __PCs(fitinfo):
     """Apply PCA to reduce the dimension of f."""
     return semPCGPwM.__PCs(fitinfo)
+
+
+def __generate_param_str(fitinfo):
+    semPCGPwM.__generate_param_str(fitinfo)
+    fitinfo['param_desc'] = '\tcompletion method: {:s}\n{:s}'.format(
+        fitinfo['completionmethod'], fitinfo['param_desc'])
+    return

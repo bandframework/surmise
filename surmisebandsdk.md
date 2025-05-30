@@ -26,7 +26,6 @@
 ### Mandatory Policies
 
 **BAND SDK**
-
 | # | Policy                 |Support| Notes                   |
 |---|-----------------------|-------|-------------------------|
 | 1. | Support BAND community GNU Autoconf, CMake, or other build options. |Full| surmise is a Python package and provides a setup.py file for installation. This is compatible with Python's built-in installation feature (``python setup.py install``) and with the pip installer. GNU Autoconf or CMake are unsuitable for a Python package. |
@@ -42,7 +41,6 @@ M4 details <a id="m4-details"></a>: This was chosen based on the MIT license bei
 
 
 ### Recommended Policies
-
 | #  | Policy                 |Support| Notes                   |
 |---|------------------------|-------|-------------------------|
 |**R1.**| Have a public repository. |Full| https://github.com/bandframework/surmise is publicly available. |

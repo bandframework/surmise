@@ -294,7 +294,7 @@ def thetalpdf(fitinfo, theta, args=None):
     return (logpost-fitinfo['lpdfapproxnorm'])
 
 
-def loglik(fitinfo, emu, theta, y, x):
+def loglik(fitinfo, emu, theta, y, x, args=None):
     r"""
     This is a optional docstring for an internal function.
     """

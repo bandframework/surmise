@@ -48,7 +48,7 @@ class prior_balldrop:
 
 # Draw 100 random parameters from uniform prior
 n = 100
-theta = prior_balldrop.rnd(n)
+theta = prior_balldrop.rnd(n).reshape(n, 1)
 theta_range = np.array([1, 30])
 
 # Standardize
@@ -69,9 +69,17 @@ def cmdopt2(request):
     return request.config.getoption("--cmdopt2")
 
 
+@pytest.mark.parametrize(
+    "cmdopt2,expectation",
+    [
+     ('directbayes', does_not_raise()),
+     ('directbayeswoodbury', does_not_raise()),
+     ('mlbayeswoodbury', does_not_raise())
+    ],
+    )
 # tests for prediction class methods:
 # test to check the prediction.mean()
-def test_prediction_mean(cmdopt2):
+def test_prediction_mean(cmdopt2, expectation):
     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
     cal = calibrator(emu=emu,
                      y=y,
@@ -80,14 +88,20 @@ def test_prediction_mean(cmdopt2):
                      method=cmdopt2,
                      yvar=obsvar)
     pred = cal.predict(x=x)
-    try:
+    with expectation:
         pred.mean()
-    except Exception:
-        pytest.fail('mean() functionality does not exist in the method')
 
 
+@pytest.mark.parametrize(
+    "cmdopt2,expectation",
+    [
+     ('directbayes', does_not_raise()),
+     ('directbayeswoodbury', does_not_raise()),
+     ('mlbayeswoodbury', does_not_raise())
+    ],
+    )
 # test to check the prediction.var()
-def test_prediction_var(cmdopt2):
+def test_prediction_var(cmdopt2, expectation):
     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
     cal = calibrator(emu=emu,
                      y=y,
@@ -96,14 +110,20 @@ def test_prediction_var(cmdopt2):
                      method=cmdopt2,
                      yvar=obsvar)
     pred = cal.predict(x=x)
-    try:
+    with expectation:
         pred.var()
-    except Exception:
-        pytest.fail('var() functionality does not exist in the method')
 
 
+@pytest.mark.parametrize(
+    "cmdopt2,expectation",
+    [
+     ('directbayes', does_not_raise()),
+     ('directbayeswoodbury', does_not_raise()),
+     ('mlbayeswoodbury', does_not_raise())
+    ],
+    )
 # test to check the prediction.rnd()
-def test_prediction_rnd(cmdopt2):
+def test_prediction_rnd(cmdopt2, expectation):
     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
     cal = calibrator(emu=emu,
                      y=y,
@@ -112,14 +132,20 @@ def test_prediction_rnd(cmdopt2):
                      method=cmdopt2,
                      yvar=obsvar)
     pred = cal.predict(x=x)
-    try:
+    with expectation:
         pred.rnd()
-    except Exception:
-        pytest.fail('rnd() functionality does not exist in the method')
 
 
+@pytest.mark.parametrize(
+    "cmdopt2,expectation",
+    [
+     ('directbayes', pytest.raises(ValueError)),
+     ('directbayeswoodbury', pytest.raises(ValueError)),
+     ('mlbayeswoodbury', pytest.raises(ValueError))
+    ],
+    )
 # test to check the prediction.lpdf()
-def test_prediction_lpdf(cmdopt2):
+def test_prediction_lpdf(cmdopt2, expectation):
     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
     cal = calibrator(emu=emu,
                      y=y,
@@ -128,14 +154,20 @@ def test_prediction_lpdf(cmdopt2):
                      method=cmdopt2,
                      yvar=obsvar)
     pred = cal.predict(x=x)
-    try:
+    with expectation:
         pred.lpdf()
-    except Exception:
-        pytest.fail('lpdf() functionality does not exist in the method')
 
 
+@pytest.mark.parametrize(
+    "cmdopt2,expectation",
+    [
+     ('directbayes', does_not_raise()),
+     ('directbayeswoodbury', does_not_raise()),
+     ('mlbayeswoodbury', does_not_raise())
+    ],
+    )
 # test to check the theta.mean()
-def test_prediction_thetamean(cmdopt2):
+def test_prediction_thetamean(cmdopt2, expectation):
     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
     cal = calibrator(emu=emu,
                      y=y,
@@ -143,14 +175,20 @@ def test_prediction_thetamean(cmdopt2):
                      thetaprior=prior_balldrop,
                      method=cmdopt2,
                      yvar=obsvar)
-    try:
+    with expectation:
         cal.theta.mean()
-    except Exception:
-        pytest.fail('theta.mean() functionality does not exist in the method')
 
 
+@pytest.mark.parametrize(
+    "cmdopt2,expectation",
+    [
+     ('directbayes', does_not_raise()),
+     ('directbayeswoodbury', does_not_raise()),
+     ('mlbayeswoodbury', does_not_raise())
+    ],
+    )
 # test to check the theta.var()
-def test_prediction_thetavar(cmdopt2):
+def test_prediction_thetavar(cmdopt2, expectation):
     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
     cal = calibrator(emu=emu,
                      y=y,
@@ -158,14 +196,20 @@ def test_prediction_thetavar(cmdopt2):
                      thetaprior=prior_balldrop,
                      method=cmdopt2,
                      yvar=obsvar)
-    try:
+    with expectation:
         cal.theta.var()
-    except Exception:
-        pytest.fail('theta.var() functionality does not exist in the method')
 
 
+@pytest.mark.parametrize(
+    "cmdopt2,expectation",
+    [
+     ('directbayes', does_not_raise()),
+     ('directbayeswoodbury', does_not_raise()),
+     ('mlbayeswoodbury', does_not_raise())
+    ],
+    )
 # test to check the theta.rnd()
-def test_prediction_thetarnd(cmdopt2):
+def test_prediction_thetarnd(cmdopt2, expectation):
     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
     cal = calibrator(emu=emu,
                      y=y,
@@ -173,14 +217,20 @@ def test_prediction_thetarnd(cmdopt2):
                      thetaprior=prior_balldrop,
                      method=cmdopt2,
                      yvar=obsvar)
-    try:
+    with expectation:
         cal.theta.rnd()
-    except Exception:
-        pytest.fail('theta.rnd() functionality does not exist in the method')
 
 
+@pytest.mark.parametrize(
+    "cmdopt2,expectation",
+    [
+     ('directbayes', does_not_raise()),
+     ('directbayeswoodbury', does_not_raise()),
+     ('mlbayeswoodbury', does_not_raise())
+    ],
+    )
 # test to check the theta.lpdf()
-def test_prediction_thetalpdf(cmdopt2):
+def test_prediction_thetalpdf(cmdopt2, expectation):
     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
     cal = calibrator(emu=emu,
                      y=y,
@@ -188,7 +238,5 @@ def test_prediction_thetalpdf(cmdopt2):
                      thetaprior=prior_balldrop,
                      method=cmdopt2,
                      yvar=obsvar)
-    try:
-        cal.theta.lpdf()
-    except Exception:
-        pytest.fail('theta.lpdf() functionality does not exist in the method')
+    with expectation:
+        cal.theta.lpdf(theta=theta)
