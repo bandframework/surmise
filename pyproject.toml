@@ -1,60 +1,42 @@
+# Since surmise contains a C Extension that uses the numpy C interface, we must
+# specify outside of setup.py (i.e., here) the requirements necessary for build
+# and pip to construct an isolated build system virtual environment with an
+# appropriate version of numpy and to build source distributions and wheels in
+# it.
+#
+# According to numpy docs, users can use 1.X numpy installations with binaries
+# built with numpy >= 2.0.0.  The API and ABI are also supposed to be forward
+# compatible until the API (and potentially the ABI) are intentionally broken
+# at a minor or major release.  For now, we therefore build with numpy 2.0.0 so
+# that we get the full expected compatibility.  This assume that newer versions
+# of numpy haven't fixed bugs that affect surmise or improved surmise
+# performance significantly.
+#
+# It is assumed that all .c files to be generated with Cython have already been
+# generated and were created with respect to the same numpy target version that
+# we use to compile the files here.
+#
+# Since setting the version is also part of building distributions, we also
+# include here the version determination mechanism.
+#
+# All other information needed to compose the package itself is in setup.py in
+# accord with the Cython docs.
+#
 # IMPORTANT
-# * Please adjust GitHub actions to match changes to Python version here.
 # * Please make sure that all dependence/version changes made here are reflected
-#   in the oldest tox task in tox.ini
+#   in the documentation, tox.ini, and the like.
 
 [build-system]
 requires = [
     "setuptools>=68.2.2",
     "setuptools_scm[toml]>=6.0",
-    "numpy>=1.22.0",
-    "cython>=3.0.10",
-    "wheel"
+    "numpy==2.0.0"
 ]
 build-backend = "setuptools.build_meta"
-
-[project]
-name = "surmise"
-authors = [
-    {name = "Matthew Plumlee"},
-    {name = "Özge Sürer", email = "surero@miamioh.edu"},
-    {name = "Stefan M. Wild", email = "wild@lbl.gov"},
-    {name = "Moses Y.-H. Chan", email = "moses.chan@northwestern.edu"}
-]
-description = "A modular interface for surrogate models and tools"
-license = {file = "LICENSE"}
-readme = "README.rst"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
-requires-python = ">=3.9"
-dependencies = [
-    'numpy>=1.22.0',
-    'scipy>=1.9.0',
-    'dill>=0.3.8'
-]
-dynamic = ["version"]
-
-[project.optional-dependencies]
-scikit-learn = ['scikit-learn>=1.2.0']
-all = [
-    'surmise[scikit-learn]'
-]
-
-[project.urls]
-repository = "https://github.com/bandframework/surmise"
-
-[tool.setuptools.packages]
-find = {}
 
 [tool.setuptools_scm]
 write_to = "surmise/_version.py"
 
-[tool.cibuildwheel]
-# Skip 32-bit builds
-# Disable building PyPy wheels on all platforms
-# Disable musllinux
-skip = ["*-win32", "*_i686", "*-musllinux*", "pp*"]
-before-build = ["git status"]
+# TODO: When the next set of official wheels are generated, add back in the
+# cibuildwheel section in a way that is compatible with this scheme (Issue
+# #137).

@@ -27,9 +27,11 @@ PyPI
 Quickstart
 README
 SDK
+Setuptools
 SURmise
 SciPy
 Sürer
+TBC
 TBD
 aMWOoGvY
 attr
@@ -55,6 +57,7 @@ hastings
 html
 http
 https
+io
 lbl
 miamioh
 microsoft
@@ -69,6 +72,7 @@ ozgesurer
 pdf
 png
 py
+pypa
 pypi
 pyproject
 pytest
@@ -79,6 +83,7 @@ readthedocs
 runtime
 scikit
 scipy
+setuptools
 simulationpost
 softwaredocumentation
 surero
