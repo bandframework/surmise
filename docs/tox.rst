@@ -53,6 +53,21 @@ clone.
 
     * Run the full surmise test suite with surmise installed as a Python package
 
+* ``tox -e emu_cal``
+
+    * Run the standard emulator/calibrator tests using the current state of the
+      code in the local clone
+
+* ``tox -e new_emu``
+
+    * Run the new emulator tests using the current state of the code in the
+      local clone
+
+* ``tox -e new_cal``
+
+    * Run the new calibrator tests using the current state of the code in the
+      local clone
+
 * ``tox -e report``
 
     * Generate an HTML-format coverage-by-line report for inspection.  This
