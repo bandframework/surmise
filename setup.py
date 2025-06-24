@@ -44,7 +44,8 @@ extensions = [
 ]
 
 package_data = {
-    "surmise": ["emulationsupport/matern_covmat.c"]
+    "surmise": ["emulationsupport/matern_covmat.pyx",
+                "emulationsupport/matern_covmat.c"]
 }
 
 project_urls = {
