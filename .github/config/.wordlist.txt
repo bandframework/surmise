@@ -39,6 +39,7 @@ autofunction
 automodule
 bandframework
 buildable
+calibrationmethods
 chan
 colab
 cov
@@ -49,6 +50,7 @@ directbayes
 directbayeswoodbury
 docstrings
 edu
+emulationmethods
 gKTCLEAGE
 germain
 github
@@ -95,6 +97,7 @@ undoc
 unreferenced
 usp
 utah
+utilitiesmethods
 visualstudio
 whl
 wordpress

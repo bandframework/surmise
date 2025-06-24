@@ -27,9 +27,9 @@ place the fitting information once complete. This dictionary is used to keep the
 information that will be used by :py:func:`predict` below.
 
 
-The :py:func:`directbayeswoodbury.fit` is given below for illustration:
+The :py:func:`surmise.calibrationmethods.directbayeswoodbury.fit` is given below for illustration:
 
-.. currentmodule:: directbayeswoodbury
+.. currentmodule:: surmise.calibrationmethods.directbayeswoodbury
 
 .. autofunction:: fit
 

@@ -19,9 +19,9 @@ Mandatory functions
 
 :py:func:`sampler` is the only obligatory function for a sampler.
 
-The :py:func:`metropolis_hastings.sampler` is given below for an illustration:
+The :py:func:`surmise.utilitiesmethods.metropolis_hastings.sampler` is given below for an illustration:
 
-.. automodule:: metropolis_hastings
+.. automodule:: surmise.utilitiesmethods.metropolis_hastings
     :members:
     :undoc-members:
     :show-inheritance:
