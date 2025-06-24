@@ -39,12 +39,12 @@ install_requires = code_requires + test_requires
 
 extensions = [
     Extension("surmise.emulationsupport.matern_covmat",
-              ["surmise/emulationsupport/matern_covmat.c"],
+              ["src/surmise/emulationsupport/matern_covmat.c"],
               include_dirs=[numpy.get_include()])
 ]
 
 package_data = {
-    "surmise": []
+    "surmise": ["emulationsupport/matern_covmat.c"]
 }
 
 project_urls = {
@@ -65,7 +65,8 @@ setup(
     url="https://github.com/bandframework/surmise",
     project_urls=project_urls,
     license="MIT",
-    packages=find_packages(),
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
     package_data=package_data,
     python_requires=python_requires,
     install_requires=install_requires,

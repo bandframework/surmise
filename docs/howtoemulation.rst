@@ -30,9 +30,9 @@ In addition, the dictionary ``fitinfo`` is passed to the :py:func:`fit` function
 place the fitting information once complete. This dictionary is used keep the
 information that will be used by :py:func:`predict` below.
 
-The :py:func:`PCGP.fit` is given below for an illustration:
+The :py:func:`surmise.emulationmethods.PCGP.fit` is given below for an illustration:
 
-.. currentmodule:: PCGP
+.. currentmodule:: surmise.emulationmethods.PCGP
 
 .. autofunction:: fit
 

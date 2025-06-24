@@ -35,7 +35,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
-write_to = "surmise/_version.py"
+write_to = "src/surmise/_version.py"
 
 # TODO: When the next set of official wheels are generated, add back in the
 # cibuildwheel section in a way that is compatible with this scheme (Issue

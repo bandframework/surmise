@@ -10,7 +10,6 @@ venv*/
 cov_*
 .cov_*
 .cache
-surmise.egg-info
 docs/_build
 docs/build_html
 docs/build_pdf
@@ -21,12 +20,13 @@ venv/
 scratch/
 line_profiler/
 OpenBLAS/
-surmise/emulationsupport/matern_covmat.cpython*.so
 CaseStudy/
 .tox/
 .eggs/
 examples/develop-example/
 .coverage
-/surmise/_version.py
+src/surmise.egg-info
+src/surmise/_version.py
+src/surmise/emulationsupport/matern_covmat.cpython*.so
 /wheelhouse/
 /dist/
