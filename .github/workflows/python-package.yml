@@ -22,15 +22,11 @@ jobs:
         # supported version expressed here.
         os: [ubuntu-22.04, ubuntu-24.04,
              macos-13, macos-14, macos-15,
-             windows-2019, windows-2022]
+             windows-2022]
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
         exclude:
           # meson is not finding a Fortran compiler
           - os: macos-13
-            python-version: "3.13"
-          # Warning: Numpy built with MINGW-W64 on Windows 64 bits is
-          # experimental, and only available for testing.
-          - os: windows-2019
             python-version: "3.13"
           # Warning: Numpy built with MINGW-W64 on Windows 64 bits is
           # experimental, and only available for testing.
@@ -41,16 +37,6 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: 20
-    - name: Update compiler version
-      shell: bash
-      run: |
-        if   [ "${{ matrix.os }}" = "windows-2019" ]; then
-            # Default MinGW install has gcc v8.1.0, which is too old to build
-            # numpy v2.0 (v8.4.0 or greater required)
-            choco upgrade mingw -y --no-progress
-            # The following path is from the update log messages.
-            echo "C:\ProgramData\mingw64\mingw64\bin" >> $GITHUB_PATH
-        fi
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
