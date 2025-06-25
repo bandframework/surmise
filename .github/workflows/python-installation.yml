@@ -65,6 +65,6 @@ jobs:
         echo ""
         which python
         python -m pip list
-        echo ""
         # Run tests through package
+        echo ""
         python -c "import surmise ; exit(not surmise.test())"
