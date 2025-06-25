@@ -14,6 +14,9 @@ on:
 
 jobs:
 
+  #####----- FULL TESTING WITHOUT COVERAGE
+  # Prefer full end-to-end test of local wheel built and installed on demand
+  # rather than testing in local clone alone.
   build_supported:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -50,8 +53,4 @@ jobs:
       shell: bash
       run: $CLONE_PATH/.github/workflows/install_tox.sh
     - name: Run test suite
-      run: |
-        # This should be running nocoverage, but must run using a local install
-        # due to the current testing setup.
-        # TODO: Finalize after Issue #74 integrates the tests into the package.
-        tox -r -e coverage
+      run: tox -r -e nocoverage
