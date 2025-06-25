@@ -64,13 +64,8 @@ def does_not_raise():
     yield
 
 
-@pytest.fixture
-def cal_method(request):
-    return request.config.getoption("--cal")
-
-
 @pytest.mark.parametrize(
-    "cal_method,expectation",
+    "cmdopt2,expectation",
     [
      ('directbayes', does_not_raise()),
      ('directbayeswoodbury', does_not_raise()),
@@ -79,13 +74,13 @@ def cal_method(request):
     )
 # tests for prediction class methods:
 # test to check the prediction.mean()
-def test_prediction_mean(cal_method, expectation):
+def test_prediction_mean(cmdopt2, expectation):
     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
     cal = calibrator(emu=emu,
                      y=y,
                      x=x,
                      thetaprior=prior_balldrop,
-                     method=cal_method,
+                     method=cmdopt2,
                      yvar=obsvar)
     pred = cal.predict(x=x)
     with expectation:
@@ -93,7 +88,7 @@ def test_prediction_mean(cal_method, expectation):
 
 
 @pytest.mark.parametrize(
-    "cal_method,expectation",
+    "cmdopt2,expectation",
     [
      ('directbayes', does_not_raise()),
      ('directbayeswoodbury', does_not_raise()),
@@ -101,13 +96,13 @@ def test_prediction_mean(cal_method, expectation):
     ],
     )
 # test to check the prediction.var()
-def test_prediction_var(cal_method, expectation):
+def test_prediction_var(cmdopt2, expectation):
     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
     cal = calibrator(emu=emu,
                      y=y,
                      x=x,
                      thetaprior=prior_balldrop,
-                     method=cal_method,
+                     method=cmdopt2,
                      yvar=obsvar)
     pred = cal.predict(x=x)
     with expectation:
@@ -115,7 +110,7 @@ def test_prediction_var(cal_method, expectation):
 
 
 @pytest.mark.parametrize(
-    "cal_method,expectation",
+    "cmdopt2,expectation",
     [
      ('directbayes', does_not_raise()),
      ('directbayeswoodbury', does_not_raise()),
@@ -123,13 +118,13 @@ def test_prediction_var(cal_method, expectation):
     ],
     )
 # test to check the prediction.rnd()
-def test_prediction_rnd(cal_method, expectation):
+def test_prediction_rnd(cmdopt2, expectation):
     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
     cal = calibrator(emu=emu,
                      y=y,
                      x=x,
                      thetaprior=prior_balldrop,
-                     method=cal_method,
+                     method=cmdopt2,
                      yvar=obsvar)
     pred = cal.predict(x=x)
     with expectation:
@@ -137,7 +132,7 @@ def test_prediction_rnd(cal_method, expectation):
 
 
 @pytest.mark.parametrize(
-    "cal_method,expectation",
+    "cmdopt2,expectation",
     [
      ('directbayes', pytest.raises(ValueError)),
      ('directbayeswoodbury', pytest.raises(ValueError)),
@@ -145,13 +140,13 @@ def test_prediction_rnd(cal_method, expectation):
     ],
     )
 # test to check the prediction.lpdf()
-def test_prediction_lpdf(cal_method, expectation):
+def test_prediction_lpdf(cmdopt2, expectation):
     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
     cal = calibrator(emu=emu,
                      y=y,
                      x=x,
                      thetaprior=prior_balldrop,
-                     method=cal_method,
+                     method=cmdopt2,
                      yvar=obsvar)
     pred = cal.predict(x=x)
     with expectation:
@@ -159,7 +154,7 @@ def test_prediction_lpdf(cal_method, expectation):
 
 
 @pytest.mark.parametrize(
-    "cal_method,expectation",
+    "cmdopt2,expectation",
     [
      ('directbayes', does_not_raise()),
      ('directbayeswoodbury', does_not_raise()),
@@ -167,20 +162,20 @@ def test_prediction_lpdf(cal_method, expectation):
     ],
     )
 # test to check the theta.mean()
-def test_prediction_thetamean(cal_method, expectation):
+def test_prediction_thetamean(cmdopt2, expectation):
     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
     cal = calibrator(emu=emu,
                      y=y,
                      x=x,
                      thetaprior=prior_balldrop,
-                     method=cal_method,
+                     method=cmdopt2,
                      yvar=obsvar)
     with expectation:
         cal.theta.mean()
 
 
 @pytest.mark.parametrize(
-    "cal_method,expectation",
+    "cmdopt2,expectation",
     [
      ('directbayes', does_not_raise()),
      ('directbayeswoodbury', does_not_raise()),
@@ -188,20 +183,20 @@ def test_prediction_thetamean(cal_method, expectation):
     ],
     )
 # test to check the theta.var()
-def test_prediction_thetavar(cal_method, expectation):
+def test_prediction_thetavar(cmdopt2, expectation):
     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
     cal = calibrator(emu=emu,
                      y=y,
                      x=x,
                      thetaprior=prior_balldrop,
-                     method=cal_method,
+                     method=cmdopt2,
                      yvar=obsvar)
     with expectation:
         cal.theta.var()
 
 
 @pytest.mark.parametrize(
-    "cal_method,expectation",
+    "cmdopt2,expectation",
     [
      ('directbayes', does_not_raise()),
      ('directbayeswoodbury', does_not_raise()),
@@ -209,20 +204,20 @@ def test_prediction_thetavar(cal_method, expectation):
     ],
     )
 # test to check the theta.rnd()
-def test_prediction_thetarnd(cal_method, expectation):
+def test_prediction_thetarnd(cmdopt2, expectation):
     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
     cal = calibrator(emu=emu,
                      y=y,
                      x=x,
                      thetaprior=prior_balldrop,
-                     method=cal_method,
+                     method=cmdopt2,
                      yvar=obsvar)
     with expectation:
         cal.theta.rnd()
 
 
 @pytest.mark.parametrize(
-    "cal_method,expectation",
+    "cmdopt2,expectation",
     [
      ('directbayes', does_not_raise()),
      ('directbayeswoodbury', does_not_raise()),
@@ -230,13 +225,13 @@ def test_prediction_thetarnd(cal_method, expectation):
     ],
     )
 # test to check the theta.lpdf()
-def test_prediction_thetalpdf(cal_method, expectation):
+def test_prediction_thetalpdf(cmdopt2, expectation):
     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
     cal = calibrator(emu=emu,
                      y=y,
                      x=x,
                      thetaprior=prior_balldrop,
-                     method=cal_method,
+                     method=cmdopt2,
                      yvar=obsvar)
     with expectation:
         cal.theta.lpdf(theta=theta)
