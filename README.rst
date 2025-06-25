@@ -8,8 +8,8 @@
    :target: https://surmise.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
 
-.. image:: https://github.com/bandframework/surmise/actions/workflows/python-package.yml/badge.svg
-    :target: https://github.com/bandframework/surmise/actions/workflows/python-package.yml
+.. image:: https://github.com/bandframework/surmise/actions/workflows/python-installation.yml/badge.svg
+    :target: https://github.com/bandframework/surmise/actions/workflows/python-installation.yml
 
 .. image:: https://coveralls.io/repos/github/bandframework/surmise/badge.svg
     :target: https://coveralls.io/github/bandframework/surmise
