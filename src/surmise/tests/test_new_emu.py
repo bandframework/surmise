@@ -145,6 +145,7 @@ def test_prediction_var(emu_method, expectation):
     with expectation:
         assert pred.var() is not None
 
+
 @pytest.mark.parametrize(
     "emu_method,expectation",
     [

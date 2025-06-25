@@ -111,6 +111,7 @@ def does_not_raise():
 def emu_method(request):
     return request.config.getoption("--emu")
 
+
 @pytest.mark.parametrize(
     "emu_method,expectation",
     [
@@ -186,7 +187,7 @@ def test_predlpdf(emu_method, expectation):
 # tests for prediction class methods:
 def test_predlpdf_wgrad(emu_method, expectation):
     if emu_method == 'PCSK':
-        emu = emulator(x=x, theta=theta, f=f, method=emu_method, args={'simsd': simsd, 'return_grad':True})
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method, args={'simsd': simsd, 'return_grad': True})
     else:
         emu = emulator(x=x, theta=theta, f=f, method=emu_method, args={'return_grad': True})
     theta_test = priorphys_lin.rnd(50)

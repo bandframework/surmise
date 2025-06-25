@@ -152,6 +152,8 @@ def test_supplement_theta(input1, input2, input3, expectation):
 
 
 thetarnd2 = priorphys_lin.rnd(10)
+
+
 # test to check supplement_theta pending argument
 @pytest.mark.parametrize(
     "includepending,expectation",

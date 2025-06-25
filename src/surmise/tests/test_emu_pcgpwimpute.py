@@ -101,6 +101,8 @@ def does_not_raise():
 # tests missing data
 f_miss = f.copy()
 f_miss[np.random.rand(*f.shape) < 0.2] = np.nan
+
+
 @pytest.mark.parametrize(
     "imputemethod, expectation",
     [
@@ -114,6 +116,7 @@ def test_imputemethod(imputemethod, expectation):
         assert emulator(x=x, theta=theta, f=f_miss,
                         method='PCGPwImpute',
                         args={'completionmethod': imputemethod}) is not None
+
 
 @pytest.mark.parametrize(
     "input1, expectation",
