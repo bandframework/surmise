@@ -108,11 +108,11 @@ def does_not_raise():
 
 
 @pytest.fixture
-def cmdopt1(request):
-    return request.config.getoption("--cmdopt1")
+def emu_method(request):
+    return request.config.getoption("--emu")
 
 @pytest.mark.parametrize(
-    "cmdopt1,expectation",
+    "emu_method,expectation",
     [
      ('PCGP', does_not_raise()),
      ('PCGPwM', does_not_raise()),
@@ -120,11 +120,11 @@ def cmdopt1(request):
     ],
     )
 # tests for prediction class methods:
-def test_accuracy(cmdopt1, expectation):
-    if cmdopt1 == 'PCSK':
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+def test_accuracy(emu_method, expectation):
+    if emu_method == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method, args={'simsd': simsd})
     else:
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method)
     theta_test = priorphys_lin.rnd(50)
     ftest = balldropmodel_linear(xv, theta_test)
     pred_test = emu.predict(x=x, theta=theta_test)
@@ -155,7 +155,7 @@ def test_accuracy(cmdopt1, expectation):
 
 
 @pytest.mark.parametrize(
-    "cmdopt1,expectation",
+    "emu_method,expectation",
     [
      ('PCGP', pytest.raises(ValueError)),
      ('PCGPwM', does_not_raise()),
@@ -163,11 +163,11 @@ def test_accuracy(cmdopt1, expectation):
     ],
     )
 # tests for prediction class methods:
-def test_predlpdf(cmdopt1, expectation):
-    if cmdopt1 == 'PCSK':
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+def test_predlpdf(emu_method, expectation):
+    if emu_method == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method, args={'simsd': simsd})
     else:
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method)
     theta_test = priorphys_lin.rnd(50)
     ftest = balldropmodel_linear(xv, theta_test)
     pred_test = emu.predict(x=x, theta=theta_test)
@@ -177,18 +177,18 @@ def test_predlpdf(cmdopt1, expectation):
 
 
 @pytest.mark.parametrize(
-    "cmdopt1,expectation",
+    "emu_method,expectation",
     [
      ('PCGPwM', does_not_raise()),
      # ('PCSK', pytest.raises(np.linalg.LinAlgError))  # unknown method issue
     ],
     )
 # tests for prediction class methods:
-def test_predlpdf_wgrad(cmdopt1, expectation):
-    if cmdopt1 == 'PCSK':
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd, 'return_grad':True})
+def test_predlpdf_wgrad(emu_method, expectation):
+    if emu_method == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method, args={'simsd': simsd, 'return_grad':True})
     else:
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'return_grad': True})
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method, args={'return_grad': True})
     theta_test = priorphys_lin.rnd(50)
     ftest = balldropmodel_linear(xv, theta_test)
     pred_test = emu.predict(x=x, theta=theta_test)

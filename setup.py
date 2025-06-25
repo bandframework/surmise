@@ -30,7 +30,7 @@ code_requires = [
     'scipy>=1.9.0,<1.15.0',
     'dill>=0.3.8'
 ]
-test_requires = []
+test_requires = ["pytest"]
 extras_require = {
     "scikit-learn": ['scikit-learn>=1.2.0'],
     "all":          ['scikit-learn>=1.2.0']

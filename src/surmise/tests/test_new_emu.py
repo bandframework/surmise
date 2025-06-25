@@ -103,32 +103,32 @@ def does_not_raise():
 
 
 @pytest.fixture
-def cmdopt1(request):
-    return request.config.getoption("--cmdopt1")
+def emu_method(request):
+    return request.config.getoption("--emu")
 
 
 # tests for prediction class methods:
 # test to check the prediction.mean()
 @pytest.mark.parametrize(
-    "cmdopt1,expectation",
+    "emu_method,expectation",
     [
      ('PCGP', does_not_raise()),
      ('PCGPwM', does_not_raise()),
      ('PCSK', does_not_raise())
     ],
     )
-def test_prediction_mean(cmdopt1, expectation):
-    if cmdopt1 == 'PCSK':
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+def test_prediction_mean(emu_method, expectation):
+    if emu_method == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method, args={'simsd': simsd})
     else:
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method)
     pred = emu.predict(x=x, theta=theta)
     with expectation:
         assert pred.mean() is not None
 
 
 @pytest.mark.parametrize(
-    "cmdopt1,expectation",
+    "emu_method,expectation",
     [
      ('PCGP', does_not_raise()),
      ('PCGPwM', does_not_raise()),
@@ -136,17 +136,17 @@ def test_prediction_mean(cmdopt1, expectation):
     ],
     )
 # test to check the prediction.var()
-def test_prediction_var(cmdopt1, expectation):
-    if cmdopt1 == 'PCSK':
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+def test_prediction_var(emu_method, expectation):
+    if emu_method == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method, args={'simsd': simsd})
     else:
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method)
     pred = emu.predict(x=x, theta=theta)
     with expectation:
         assert pred.var() is not None
 
 @pytest.mark.parametrize(
-    "cmdopt1,expectation",
+    "emu_method,expectation",
     [
      ('PCGP', does_not_raise()),
      ('PCGPwM', does_not_raise()),
@@ -154,18 +154,18 @@ def test_prediction_var(cmdopt1, expectation):
     ],
     )
 # test to check the prediction.covx()
-def test_prediction_covx(cmdopt1, expectation):
-    if cmdopt1 == 'PCSK':
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+def test_prediction_covx(emu_method, expectation):
+    if emu_method == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method, args={'simsd': simsd})
     else:
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method)
     pred = emu.predict(x=x, theta=theta)
     with expectation:
         assert pred.covx() is not None
 
 
 @pytest.mark.parametrize(
-    "cmdopt1,expectation",
+    "emu_method,expectation",
     [
      ('PCGP', does_not_raise()),
      ('PCGPwM', does_not_raise()),
@@ -173,18 +173,18 @@ def test_prediction_covx(cmdopt1, expectation):
     ],
     )
 # test to check the prediction.covxhalf()
-def test_prediction_covxhalf(cmdopt1, expectation):
-    if cmdopt1 == 'PCSK':
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+def test_prediction_covxhalf(emu_method, expectation):
+    if emu_method == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method, args={'simsd': simsd})
     else:
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method)
     pred = emu.predict(x=x, theta=theta)
     with expectation:
         assert pred.covxhalf() is not None
 
 
 @pytest.mark.parametrize(
-    "cmdopt1,expectation",
+    "emu_method,expectation",
     [
      ('PCGP', pytest.raises(ValueError)),
      ('PCGPwM', does_not_raise()),
@@ -192,18 +192,18 @@ def test_prediction_covxhalf(cmdopt1, expectation):
     ],
     )
 # test to check the prediction.mean_gradtheta()
-def test_prediction_mean_gradtheta(cmdopt1, expectation):
-    if cmdopt1 == 'PCSK':
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+def test_prediction_mean_gradtheta(emu_method, expectation):
+    if emu_method == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method, args={'simsd': simsd})
     else:
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method)
     pred = emu.predict(x=x, theta=theta, args={'return_grad': True})
     with expectation:
         assert pred.mean_gradtheta() is not None
 
 
 @pytest.mark.parametrize(
-    "cmdopt1,expectation",
+    "emu_method,expectation",
     [
      ('PCGP', pytest.raises(ValueError)),
      ('PCGPwM', does_not_raise()),
@@ -211,18 +211,18 @@ def test_prediction_mean_gradtheta(cmdopt1, expectation):
     ],
     )
 # test to check the prediction.covx_gradtheta()
-def test_prediction_covxhalf_gradtheta(cmdopt1, expectation):
-    if cmdopt1 == 'PCSK':
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+def test_prediction_covxhalf_gradtheta(emu_method, expectation):
+    if emu_method == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method, args={'simsd': simsd})
     else:
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method)
     pred = emu.predict(x=x, theta=theta, args={'return_grad': True})
     with expectation:
         assert pred.covxhalf_gradtheta() is not None
 
 
 @pytest.mark.parametrize(
-    "cmdopt1,expectation",
+    "emu_method,expectation",
     [
      ('PCGP', does_not_raise()),
      ('PCGPwM', does_not_raise()),
@@ -230,11 +230,11 @@ def test_prediction_covxhalf_gradtheta(cmdopt1, expectation):
     ],
     )
 # test to check emulator.remove()
-def test_remove(cmdopt1, expectation):
-    if cmdopt1 == 'PCSK':
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+def test_remove(emu_method, expectation):
+    if emu_method == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method, args={'simsd': simsd})
     else:
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method)
 
     with expectation:
         emu.remove(theta=theta1)
@@ -242,7 +242,7 @@ def test_remove(cmdopt1, expectation):
 
 
 @pytest.mark.parametrize(
-    "cmdopt1,expectation",
+    "emu_method,expectation",
     [
      ('PCGP', does_not_raise()),
      ('PCGPwM', does_not_raise()),
@@ -250,11 +250,11 @@ def test_remove(cmdopt1, expectation):
     ],
     )
 # test to check emulator.update()
-def test_update(cmdopt1, expectation):
-    if cmdopt1 == 'PCSK':
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd})
+def test_update(emu_method, expectation):
+    if emu_method == 'PCSK':
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method, args={'simsd': simsd})
     else:
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1)
+        emu = emulator(x=x, theta=theta, f=f, method=emu_method)
     thetanew = priorphys_lin.rnd(10)
     fnew = balldropmodel_linear(xv, thetanew)
     with expectation:
