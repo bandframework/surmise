@@ -5,7 +5,15 @@ def test(level=0):
     """
     Run full set of surmise tests.
 
-    :param level: Smaller values indicate less logging
+    Parameters
+    ----------
+    level : int
+        Smaller values indicate less logging
+
+    Returns
+    -------
+    bool
+        True if all tests passed; False, otherwise.
     """
     VERBOSITY = [0, 1, 2]
 
