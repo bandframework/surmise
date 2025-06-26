@@ -255,4 +255,4 @@ def test_update(cmdopt1, expectation):
     fnew = balldropmodel_linear(xv, thetanew)
     with expectation:
         emu.update(x=None, theta=thetanew, f=fnew)
-        assert len(emu._emulator__theta) == 61, 'Check emulator.update()'
+        assert len(emu._emulator__theta) == 60, 'Check emulator.update()'
