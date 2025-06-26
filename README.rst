@@ -28,22 +28,15 @@ interface for calibration, uncertainty quantification, and sensitivity analysis.
 Dependencies
 ~~~~~~~~~~~~
 
-surmise is built with numpy, scipy, and dill, with an optional scikit-learn dependency.
-
-Please refer to the [_requires] sections of setup.py for details.
+surmise is built with NumPy_, SciPy_, scikit-learn_, dill_, and pytest_.  Please
+refer to the [_requires] sections of setup.py for more details.
 
 Installation
 ~~~~~~~~~~~~
 
-From the command line, use one of the following commands to install surmise::
+From the command line, surmise can be installed by executing::
 
  pip install surmise
- pip install surmise[scikit-learn]      # to include scikit-learn in installation
- pip install surmise[all]               # to include all optional dependencies
-
-The package scikit-learn is required by specific methods as stated above as well
-as for testing an installation.  This package can be installed along with
-surmise via the commands provided above.
 
 The list of available .whl files can be found under `PyPI-wheel`_.  If a wheel
 file for your preferred platform is not listed, then surmise has to be built
@@ -60,7 +53,6 @@ appropriate version of::
  python -m pip install --upgrade setuptools
  python -m pip install build
  python -m build --wheel
- python -m pip install scikit-learn (optional, required by full test suite)
  python -m pip install dist/surmise-<version info>.whl
 
 .. note::
@@ -71,14 +63,7 @@ Testing
 ~~~~~~~
 
 An automated test suite is integrated into the package so that users can
-directly test their installation.  Some tests in the suite require the
-installation of the otherwise optional scikit-learn_ package, which can be
-installed as shown above or via::
-
- pip install scikit-learn
-
-After ensuring that this additional dependence is installed, an installation can
-be tested by executing, for example::
+directly test their installation by executing::
 
  $ python
  >>> import surmise
@@ -86,7 +71,7 @@ be tested by executing, for example::
  <version string>
  >>> surmise.test()
 
-The pytest_ output should indicate clearly if all tests passed or provide
+The pytest output should indicate clearly if all tests passed or provide
 information related to any failures otherwise.
 
 Documentation
@@ -133,4 +118,4 @@ In addition, for a gentle introduction of emulation and calibration using Gaussi
 .. _`surmise Jupyter notebook`: https://colab.research.google.com/drive/1f4gKTCLEAGE8r-aMWOoGvY-O6zNqg1qj?usp=drive_link
 .. _PyPI-wheel: https://pypi.org/project/surmise/#files
 .. _scikit-learn: https://scikit-learn.org/stable/install.html
-
+.. _dill: https://dill.readthedocs.io
