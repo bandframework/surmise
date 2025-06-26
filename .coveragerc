@@ -1,0 +1,3 @@
+[run]
+omit =
+    ./src/surmise/test.py

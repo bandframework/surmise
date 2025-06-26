@@ -164,7 +164,7 @@ def test_call(expectation):
     with expectation:
         assert pred_test() is not None
 
-        
+
 @pytest.mark.parametrize(
     "expectation",
     [
@@ -184,7 +184,7 @@ def test_meanvar(expectation):
         assert pred_test.mean() is not None
         assert pred_test.var() is not None
 
-        
+
 @pytest.mark.parametrize(
     "expectation",
     [
@@ -203,7 +203,7 @@ def test_thetalpdf(expectation):
     with expectation:
         assert logpost is not None
 
-        
+
 @pytest.mark.parametrize(
     "expectation",
     [
@@ -223,6 +223,7 @@ def test_pred(expectation):
         assert pred_test.rnd(10) is not None
         assert pred_test(10) is not None
 
+
 @pytest.mark.parametrize(
     "expectation",
     [
@@ -241,7 +242,6 @@ def test_theta_meanvar(expectation):
         assert cal.theta.mean(args=None) is not None
         assert cal.theta.var(args=None) is not None
         assert cal.theta.rnd(10) is not None
-
 
 
 @pytest.mark.parametrize(

@@ -107,10 +107,6 @@ def does_not_raise():
     yield
 
 
-@pytest.fixture
-def cmdopt1(request):
-    return request.config.getoption("--cmdopt1")
-
 @pytest.mark.parametrize(
     "cmdopt1,expectation",
     [
@@ -186,7 +182,7 @@ def test_predlpdf(cmdopt1, expectation):
 # tests for prediction class methods:
 def test_predlpdf_wgrad(cmdopt1, expectation):
     if cmdopt1 == 'PCSK':
-        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd, 'return_grad':True})
+        emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'simsd': simsd, 'return_grad': True})
     else:
         emu = emulator(x=x, theta=theta, f=f, method=cmdopt1, args={'return_grad': True})
     theta_test = priorphys_lin.rnd(50)

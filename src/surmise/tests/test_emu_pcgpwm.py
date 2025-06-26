@@ -101,6 +101,8 @@ def does_not_raise():
 # tests missing data
 f_miss = f.copy()
 f_miss[np.random.rand(*f.shape) < 0.2] = np.nan
+
+
 @pytest.mark.parametrize(
     "input1, expectation",
     [
@@ -116,6 +118,8 @@ def test_fmissing(input1, expectation):
 
 U, S, _ = np.linalg.svd(f, full_matrices=False)
 pcinfo = {'U': U}
+
+
 @pytest.mark.parametrize("input1, expectation",
                          [({}, pytest.raises(AttributeError)),
                           (pcinfo, does_not_raise())])
@@ -160,6 +164,7 @@ def test_prediction_covxhalf_gradtheta(input1, return_grad, return_covx,
     with expectation:
         assert pred.covxhalf_gradtheta() is not None
 
+
 @pytest.mark.parametrize(
     "verbose,expectation",
     [
@@ -172,4 +177,3 @@ def test_verbosity(verbose, expectation):
     with expectation:
         assert emulator(x=x, theta=theta, f=f, method='PCGPwM',
                         args={'verbose': verbose}) is not None
-

@@ -85,9 +85,11 @@ args2 = {'theta0': np.array([[0.4]]),
          'stepType': 'normal',
          'stepParam': [0.4]}
 
+
 @contextmanager
 def does_not_raise():
     yield
+
 
 @pytest.mark.parametrize(
     "load_cal_flag, expectation",
@@ -120,6 +122,7 @@ def test_cal_saveload(load_cal_flag, expectation):
                 raise TypeError
         assert calload.theta.mean() == cal.theta.mean()
         os.remove(fname)
+
 
 @pytest.mark.parametrize(
     "expectation",

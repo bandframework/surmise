@@ -102,11 +102,6 @@ def does_not_raise():
     yield
 
 
-@pytest.fixture
-def cmdopt1(request):
-    return request.config.getoption("--cmdopt1")
-
-
 # tests for prediction class methods:
 # test to check the prediction.mean()
 @pytest.mark.parametrize(
@@ -144,6 +139,7 @@ def test_prediction_var(cmdopt1, expectation):
     pred = emu.predict(x=x, theta=theta)
     with expectation:
         assert pred.var() is not None
+
 
 @pytest.mark.parametrize(
     "cmdopt1,expectation",
