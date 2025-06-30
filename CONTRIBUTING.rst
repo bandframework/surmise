@@ -98,7 +98,7 @@ Good Example::
 Some general guidance on commenting code can be found at:
   https://www.cs.utah.edu/~germain/PPS/Topics/commenting.html
 and:
-  http://ideas-productivity.org/wordpress/wp-content/uploads/2021/02/webinar049-softwaredocumentation.pdf
+  https://www.exascaleproject.org/wp-content/uploads/2021/01/Good-practices-for-research-software-documentation-first.pdf
 
 Developer's Certificate of Origin 1.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
