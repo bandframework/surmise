@@ -51,6 +51,7 @@ directbayeswoodbury
 docstrings
 edu
 emulationmethods
+exascaleproject
 gKTCLEAGE
 germain
 github
