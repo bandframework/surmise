@@ -55,8 +55,8 @@ clone.
 
 * ``tox -e emu_cal``
 
-    * Run the standard emulator/calibrator tests using the current state of the
-      code in the local clone
+    * Run the standard emulator/calibrator tests of code integration using the
+      current state of the code in the local clone
 
 * ``tox -e new_emu``
 
