@@ -47,7 +47,8 @@ clone.
 
     * Run the full surmise test suite with coverage-by-line enabled and
       using the current state of the code in the local clone
-    * Print the coverage-by-line results to standard output
+    * The coverage-by-line results are stored for generating a coverage report.
+      See ``tox -e report`` below.
 
 * ``tox -e nocoverage``
 
