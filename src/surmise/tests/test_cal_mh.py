@@ -258,4 +258,3 @@ def test_repr(expectation):
                      args=args1)
     with expectation:
         assert repr(cal) is not None
-

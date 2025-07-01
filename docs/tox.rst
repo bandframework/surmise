@@ -47,11 +47,27 @@ clone.
 
     * Run the full surmise test suite with coverage-by-line enabled and
       using the current state of the code in the local clone
-    * Print the coverage-by-line results to standard output
+    * The coverage-by-line results are stored for generating a coverage report.
+      See ``tox -e report`` below.
 
 * ``tox -e nocoverage``
 
     * Run the full surmise test suite with surmise installed as a Python package
+
+* ``tox -e emu_cal``
+
+    * Run the standard emulator/calibrator tests of code integration using the
+      current state of the code in the local clone
+
+* ``tox -e new_emu``
+
+    * Run the new emulator tests using the current state of the code in the
+      local clone
+
+* ``tox -e new_cal``
+
+    * Run the new calibrator tests using the current state of the code in the
+      local clone
 
 * ``tox -e report``
 

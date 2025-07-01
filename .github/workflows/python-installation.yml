@@ -1,0 +1,69 @@
+name: Test installation
+env:
+  CLONE_PATH:   ${{ github.workspace }}
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+
+  #####----- FULL TESTING WITHOUT COVERAGE
+  # Prefer full end-to-end test of local wheel built and installed on demand
+  # rather than testing in local clone alone or with a tox task.
+  #
+  # This also verifies a procedure provided in the documentation.
+  test_installation:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # Please adjust pyproject.toml Python version requirement to match
+        # supported version expressed here.
+        os: [ubuntu-22.04, ubuntu-24.04,
+             macos-13, macos-14, macos-15,
+             windows-2022, windows-2025]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        exclude:
+          # meson is not finding a Fortran compiler
+          - os: macos-13
+            python-version: "3.13"
+          # Warning: Numpy built with MINGW-W64 on Windows 64 bits is
+          # experimental, and only available for testing.
+          - os: windows-2022
+            python-version: "3.13"
+          # Warning: Numpy built with MINGW-W64 on Windows 64 bits is
+          # experimental, and only available for testing.
+          - os: windows-2025
+            python-version: "3.13"
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+    - name: Install surmise & test
+      shell: bash
+      run: |
+        # Setup Python
+        echo ""
+        python -m pip install --upgrade pip
+        python -m pip install --upgrade setuptools
+        python -m pip install build
+        # Build wheel & install
+        pushd $CLONE_PATH
+        python -m build --wheel
+        python -m pip install dist/surmise-*.whl
+        popd
+        # Log info
+        echo ""
+        which python
+        python -m pip list
+        # Run tests through package
+        echo ""
+        python -c "import surmise ; exit(not surmise.test())"

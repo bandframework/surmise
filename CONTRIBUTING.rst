@@ -29,9 +29,9 @@ To check if the code passes the flake8 tests, within the directory run::
   flake8
 
 As you develop your code, we ask developers to include tests specific to their code, and
-provide their own tests in the ``tests\`` directory. To run the new tests, you can run the following::
+provide their own tests in the ``src\tests\`` directory. To run the new tests, you can run the following::
 
-  pytest tests/your-test.py
+  pytest src/tests/your-test.py
 
 When a pull request is done to include a new method, we ask developers to include their tests.
 
@@ -98,7 +98,7 @@ Good Example::
 Some general guidance on commenting code can be found at:
   https://www.cs.utah.edu/~germain/PPS/Topics/commenting.html
 and:
-  http://ideas-productivity.org/wordpress/wp-content/uploads/2021/02/webinar049-softwaredocumentation.pdf
+  https://www.exascaleproject.org/wp-content/uploads/2021/01/Good-practices-for-research-software-documentation-first.pdf
 
 Developer's Certificate of Origin 1.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

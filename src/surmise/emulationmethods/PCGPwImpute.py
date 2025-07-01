@@ -5,17 +5,12 @@ Then, :py:mod:surmise.emulationmethods.PCGPwM is used with the completed data.
 """
 import numpy as np
 import surmise.emulationmethods.PCGPwM as semPCGPwM
-try:
-    from sklearn.experimental import enable_iterative_imputer
-    tmpload = enable_iterative_imputer.IterativeImputer
-    from sklearn.impute import IterativeImputer
-    from sklearn.linear_model import BayesianRidge
-    from sklearn.neighbors import KNeighborsRegressor
-    from sklearn.ensemble import RandomForestRegressor
-except ImportError as e:  # ModuleNotFoundError introduced in Python 3.6
-    print(e)
-    raise ImportError('This emulation method requires installation of packages \'sklearn\' and '
-                      'requires enabling of iterative imputer option.')
+
+from sklearn.experimental import enable_iterative_imputer  # noqa: F401
+from sklearn.impute import IterativeImputer
+from sklearn.linear_model import BayesianRidge
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.ensemble import RandomForestRegressor
 
 methodoptionstr = ('\nTry one of the following: '
                    '\n\'KNN\' (k-nearest neighbor method), '

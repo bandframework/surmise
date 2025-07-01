@@ -55,14 +55,6 @@ xv = x.astype('float')
 
 class priorphys_lin:
     """ This defines the class instance of priors provided to the method. """
-    def lpdf(theta):
-        if theta.ndim > 1.5:
-            return np.squeeze(sps.norm.logpdf(theta[:, 0], 0, 5) +
-                              sps.gamma.logpdf(theta[:, 1], 2, 0, 10))
-        else:
-            return np.squeeze(sps.norm.logpdf(theta[0], 0, 5) +
-                              sps.gamma.logpdf(theta[1], 2, 0, 10))
-
     def rnd(n):
         return np.vstack((sps.norm.rvs(0, 5, size=n),
                           sps.gamma.rvs(2, 0, 10, size=n))).T
@@ -74,6 +66,31 @@ f1 = f[0:15, :]
 f2 = f[:, 0:25]
 theta1 = theta[0:25, :]
 x1 = x[0:15, :]
+f0d = np.array(1)
+theta0d = np.array(1)
+x0d = np.array(1)
+simsd = 1e-3 * np.ones_like(f)
+
+
+def balldroptrue(x):
+    def logcosh(x):
+        # preventing crashing
+        s = np.sign(x) * x
+        p = np.exp(-2 * s)
+        return s + np.log1p(p) - np.log(2)
+    t = x[:, 0]
+    h0 = x[:, 1]
+    vter = 20
+    g = 9.81
+    y = h0 - (vter ** 2) / g * logcosh(g * t / vter)
+    return y
+
+
+obsvar = 4*np.ones(x.shape[0])
+y = balldroptrue(xv)
+##############################################
+# Unit tests to initialize an emulator class #
+##############################################
 
 
 @contextmanager
@@ -81,29 +98,34 @@ def does_not_raise():
     yield
 
 
+# tests missing data
+f_miss = f.copy()
+f_miss[np.random.rand(*f.shape) < 0.2] = np.nan
+
+
 @pytest.mark.parametrize(
-    "input,expectation",
+    "imputemethod, expectation",
     [
-     ('PCGP', does_not_raise()),
-     ('PCGPwM', does_not_raise()),
-     ('indGP', does_not_raise()),
-     ('PCGPwImpute', does_not_raise()),
-     ('PCSK', does_not_raise()),
-     ('XXXX', pytest.raises(ValueError)),
+     ('BayesianRidge', does_not_raise()),
+     ('KNN', does_not_raise()),
+     ('RandomForest', does_not_raise()),
      ],
     )
-def test_repr(input, expectation):
+def test_imputemethod(imputemethod, expectation):
     with expectation:
-        if input != 'PCSK':
-            assert emulator(x=x,
-                            theta=theta,
-                            f=f,
-                            method=input) is not None
-        else:
-            simsd = 1e-3 * np.ones_like(f)
-            assert emulator(x=x,
-                            theta=theta,
-                            f=f,
-                            method=input,
-                            args={'simsd': simsd}) is not None
+        assert emulator(x=x, theta=theta, f=f_miss,
+                        method='PCGPwImpute',
+                        args={'completionmethod': imputemethod}) is not None
 
+
+@pytest.mark.parametrize(
+    "input1, expectation",
+    [
+     (f, does_not_raise()),
+     (f_miss, does_not_raise()),
+     ],
+    )
+def test_fmissing(input1, expectation):
+    with expectation:
+        assert emulator(x=x, theta=theta, f=input1,
+                        method='PCGPwImpute') is not None
