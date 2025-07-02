@@ -27,9 +27,11 @@ PyPI
 Quickstart
 README
 SDK
+Setuptools
 SURmise
 SciPy
 Sürer
+TBC
 TBD
 aMWOoGvY
 attr
@@ -37,6 +39,7 @@ autofunction
 automodule
 bandframework
 buildable
+calibrationmethods
 chan
 colab
 cov
@@ -47,6 +50,8 @@ directbayes
 directbayeswoodbury
 docstrings
 edu
+emulationmethods
+exascaleproject
 gKTCLEAGE
 germain
 github
@@ -55,6 +60,7 @@ hastings
 html
 http
 https
+io
 lbl
 miamioh
 microsoft
@@ -69,6 +75,7 @@ ozgesurer
 pdf
 png
 py
+pypa
 pypi
 pyproject
 pytest
@@ -79,6 +86,7 @@ readthedocs
 runtime
 scikit
 scipy
+setuptools
 simulationpost
 softwaredocumentation
 surero
@@ -90,6 +98,7 @@ undoc
 unreferenced
 usp
 utah
+utilitiesmethods
 visualstudio
 whl
 wordpress

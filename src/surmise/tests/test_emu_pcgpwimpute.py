@@ -3,9 +3,7 @@ import scipy.stats as sps
 import pytest
 from contextlib import contextmanager
 from surmise.emulation import emulator
-import pyximport
-pyximport.install(setup_args={"include_dirs": np.get_include()},
-                  reload_support=True)
+
 ##############################################
 #            Simple scenarios                #
 ##############################################
@@ -103,6 +101,23 @@ def does_not_raise():
 # tests missing data
 f_miss = f.copy()
 f_miss[np.random.rand(*f.shape) < 0.2] = np.nan
+
+
+@pytest.mark.parametrize(
+    "imputemethod, expectation",
+    [
+     ('BayesianRidge', does_not_raise()),
+     ('KNN', does_not_raise()),
+     ('RandomForest', does_not_raise()),
+     ],
+    )
+def test_imputemethod(imputemethod, expectation):
+    with expectation:
+        assert emulator(x=x, theta=theta, f=f_miss,
+                        method='PCGPwImpute',
+                        args={'completionmethod': imputemethod}) is not None
+
+
 @pytest.mark.parametrize(
     "input1, expectation",
     [
@@ -113,65 +128,4 @@ f_miss[np.random.rand(*f.shape) < 0.2] = np.nan
 def test_fmissing(input1, expectation):
     with expectation:
         assert emulator(x=x, theta=theta, f=input1,
-                        method='PCGPwM') is not None
-
-
-U, S, _ = np.linalg.svd(f, full_matrices=False)
-pcinfo = {'U': U}
-@pytest.mark.parametrize("input1, expectation",
-                         [({}, pytest.raises(AttributeError)),
-                          (pcinfo, does_not_raise())])
-def test_supply_pcinfo(input1, expectation):
-    with expectation:
-        assert emulator(x=x, theta=theta, f=f,
-                        method='PCGPwM',
-                        args={'standardpcinfo': input1}) is not None
-
-
-# test to check the prediction.mean_gradtheta()
-@pytest.mark.parametrize(
-    "input1,input2,expectation",
-    [
-     ('PCGPwM', False, pytest.raises(ValueError)),
-     ('PCGPwM', True, does_not_raise()),
-     ],
-    )
-def test_prediction_mean_gradtheta(input1, input2, expectation):
-    emu = emulator(x=x, theta=theta, f=f, method=input1)
-    pred = emu.predict(x=x, theta=theta, args={'return_grad': input2})
-    with expectation:
-        assert pred.mean_gradtheta() is not None
-
-
-# test to check the prediction.covxhalf_gradtheta()
-@pytest.mark.parametrize(
-    "input1,return_grad, return_covx,traint,testt,expectation",
-    [
-     ('PCGPwM', False, False, theta, theta, pytest.raises(ValueError)),
-     ('PCGPwM', True, False, theta, theta, pytest.raises(ValueError)),
-     ('PCGPwM', True, True, theta, theta, does_not_raise()),
-     ('PCGPwM', True, False, theta, theta1, pytest.raises(ValueError)),
-     ('PCGPwM', True, True, theta, theta1, does_not_raise()),
-     ],
-    )
-def test_prediction_covxhalf_gradtheta(input1, return_grad, return_covx,
-                                       traint, testt, expectation):
-    emu = emulator(x=x, theta=traint, f=f, method=input1)
-    pred = emu.predict(x=x, theta=testt, args={'return_covx': return_covx,
-                                               'return_grad': return_grad})
-    with expectation:
-        assert pred.covxhalf_gradtheta() is not None
-
-@pytest.mark.parametrize(
-    "verbose,expectation",
-    [
-     (0, does_not_raise()),
-     (1, does_not_raise()),
-     (2, does_not_raise()),
-     ],
-    )
-def test_verbosity(verbose, expectation):
-    with expectation:
-        assert emulator(x=x, theta=theta, f=f, method='PCGPwM',
-                        args={'verbose': verbose}) is not None
-
+                        method='PCGPwImpute') is not None

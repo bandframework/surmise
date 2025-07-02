@@ -1,0 +1,10 @@
+include LICENSE
+# setuptools-scm provides the full list of all files managed in the repo.  As
+# per its documentation, we are required to manually exclude all files in the
+# repo that don't need to be in source distributions.
+exclude .coveragerc .flake8 .gitignore .pre-commit-config.yaml .readthedocs.yml
+exclude surmisebandsdk.md tox.ini
+prune tests
+prune examples
+prune docs
+prune .github

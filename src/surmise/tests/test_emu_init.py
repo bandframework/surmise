@@ -361,4 +361,3 @@ def test_warning_filter(expectation):
                    args={'warnings': True})
     with expectation:
         assert emu(x=x, theta=theta) is not None
-

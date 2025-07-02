@@ -106,4 +106,3 @@ def test_repr(input, expectation):
                             f=f,
                             method=input,
                             args={'simsd': simsd}) is not None
-

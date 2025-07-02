@@ -4,10 +4,6 @@ import pytest
 from contextlib import contextmanager
 from surmise.emulation import emulator
 from surmise.calibration import calibrator
-import pyximport
-
-pyximport.install(setup_args={"include_dirs": np.get_include()},
-                  reload_support=True)
 
 
 ##############################################
@@ -156,6 +152,8 @@ def test_supplement_theta(input1, input2, input3, expectation):
 
 
 thetarnd2 = priorphys_lin.rnd(10)
+
+
 # test to check supplement_theta pending argument
 @pytest.mark.parametrize(
     "includepending,expectation",

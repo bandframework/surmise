@@ -64,11 +64,6 @@ def does_not_raise():
     yield
 
 
-@pytest.fixture
-def cmdopt2(request):
-    return request.config.getoption("--cmdopt2")
-
-
 @pytest.mark.parametrize(
     "cmdopt2,expectation",
     [

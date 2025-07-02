@@ -1,3 +1,4 @@
+# cython: language_level=3
 
 import numpy as np
 cimport numpy as np
@@ -5,6 +6,9 @@ from cpython cimport array
 from libc.stdio cimport printf
 from libc.math cimport fabs
 cimport cython
+
+# Cython recommends calling this if cimport-ing numpy
+np.import_array()
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
