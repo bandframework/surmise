@@ -1,27 +1,24 @@
-"""PCSK method - Principal components with stochastic kriging."""
+"""PCSK method - Principal components with stochastic kriging,
+referring to Liyanage et al. (2023)."""
 
 import numpy as np
 import scipy.optimize as spo
 from surmise.emulationsupport.matern_covmat import covmat as __covmat
 from pprint import pformat
 
-
 def fit(fitinfo, x, theta, f, epsilonPC=0.001,
-        lognugmean=-10, lognugLB=-20, varconstant=None, dampalpha=0.3, eta=10,
-        simsd=None, numpcs=-1,
+        simsd=None, numpcs = -1,
         standardpcinfo=None, verbose=0, **kwargs):
     '''
     The purpose of fit is to take information and plug all of our fit
-    information into the python dictionary fitinfo.
+    information into fitinfo, which is a python dictionary.
 
     .. note::
-       This is a modification of the method proposed by Higdon et al., 2008.
-       Refer to :py:func:`PCGP` for additional details.
+       This is a modification of the method proposed by Chan, Plumlee, and Wild (2024).
+       This method utilizes the same additional variance mechanism to account for
+       the stochastic nature of simulation outputs.
+       Refer to :py:func:`PCGPwM` for additional details.
 
-    Prior to performing the PCGP method (Higdon et al., 2008), the PCGPwM method
-    checks for missingness in `f` and provides imputations for the missing values
-    before conducting the PCGP method.  The method adds approximate variance at
-    each point requiring imputation.
 
     Parameters
     ----------
@@ -41,32 +38,13 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001,
         epsilonPC is (0.001, 0.1).  The larger epsilonPC is, the fewer PCs will be
         used.  Note that epsilonPC here is *not* the unexplained variance in
         typical principal component analysis.
-    epsilonImpute : scalar
-        A parameter to ensure covariance nonsingularity. The default is 10e-6.
-    lognugmean : scalar
-        A parameter to control the log of the nugget used in fitting the GPs.
-        The suggested range for lognugmean is (-12, -4).  The nugget is estimated,
-        and this parameter is used to guide the estimation.
-    lognugLB : scalar
-        A parameter to control the lower bound of the log of the nugget. The
-        suggested range for lognugLB is (-24, -12).
-    varconstant : scalar
-        A multiplying constant to control the inflation (deflation) of additional
-        variances if missing values are present. The default is None, corresponding to
-        the parameter will be optimized. A general working range is (np.exp(-4), np.exp(4)).
-    dampalpha : scalar
-        A parameter to control the rate of increase of variance as the number of missing
-        values increases. The default is 0.3, otherwise an appropriate range is (0, 0.5).
-        Values larger than 0.5 are permitted but can lead to poor empirical performance.
-    eta : scalar
-        A parameter as an upper bound for the additional variance term. The default is 10.
     numpcs : integer
-        An optional parameter to let a user pick the number of PCs. The default is -1, which
+        An optional parameter to let a user pick the number of PCs.  Default is -1, which
         automates the choice.
     standardpcinfo : dict
-        A dictionary a user supplies that contains information for standardization of `f`,
-        in a format such that fs = (f - offset) / scale, U are the
-        orthogonal basis vectors, and S are the singular values from the SVD of `fs`.
+        A dictionary user supplies that contains information for standardization of `f`,
+        in the following format, such that fs = (f - offset) / scale, U are the
+        orthogonal basis vectors, and S are the singular values from SVD of `fs`.
         The entry extravar contains the average squared residual for each column (x).
             {'offset': offset,
              'scale': scale,
@@ -77,7 +55,7 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001,
              }
 
     verbose : scalar
-        A parameter to suppress in-method console output. Use 0 to suppress output,
+        A parameter to suppress in-method console output.  Use 0 to suppress output,
         use 1 to show output.
 
     kwargs : dict, optional
@@ -94,9 +72,6 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001,
     assert simsd is not None, 'Variable `simsd` must be provided for PCSK method.'
 
     fitinfo['epsilonPC'] = epsilonPC
-
-    fitinfo['dampalpha'] = dampalpha
-    fitinfo['eta'] = eta
 
     fitinfo['theta'] = theta
     fitinfo['f'] = f
@@ -121,7 +96,7 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001,
 
     # Fit emulators for all PCs
     emulist = __fitGPs(fitinfo, theta, numpcs, verbose)
-    fitinfo['varc_status'] = 'fixed' if varconstant is not None else 'optimized'
+    fitinfo['varc_status'] = 'optimized'
     fitinfo['pcstdvar'] = fitinfo['unscaled_pcstdvar']
     fitinfo['emulist'] = emulist
 
@@ -398,7 +373,6 @@ def __PCs(fitinfo, simsd):
         S = fitinfo['standardpcinfo']['S']
         pct = 1 * U
         pcw = 1 * S
-        fitinfo['standardpcinfo']['scale'].shape
         stdvarsadj = (simsd.T / fitinfo['standardpcinfo']['scale']) ** 2
     else:
         U, S, _ = np.linalg.svd(fs.T, full_matrices=False)
@@ -425,7 +399,7 @@ def __PCs(fitinfo, simsd):
 
 
 def __fitGPs(fitinfo, theta, numpcs, verbose):
-    """Fit emulators for all principle components."""
+    """Fit emulators for all principal components."""
     if 'emulist' in fitinfo.keys():
         hypstarts = np.zeros((numpcs, fitinfo['emulist'][0]['hyp'].shape[0]))
         hypinds = -1 * np.ones(numpcs)
@@ -448,10 +422,17 @@ def __fitGPs(fitinfo, theta, numpcs, verbose):
                 percentagec += percentagegap
             if np.sum(hypinds == np.array(range(0, numpcs))) > 0.5:
                 hypwhere = np.where(hypinds == np.array(range(0, numpcs)))[0]
-                emulist[pcanum] = __fitGP1d(theta=theta, g=fitinfo['pc'][:, pcanum], hypstarts=hypstarts[hypwhere, :],
-                                            hypinds=hypwhere, sig2ofconst=0.01)
+                emulist[pcanum] = __fitGP1d(theta=theta,
+                                            g=fitinfo['pc'][:, pcanum],
+                                            gvar=fitinfo['unscaled_pcstdvar'][:, pcanum],
+                                            hypstarts=hypstarts[hypwhere, :],
+                                            hypinds=hypwhere,
+                                            sig2ofconst=0.01)
             else:
-                emulist[pcanum] = __fitGP1d(theta=theta, g=fitinfo['pc'][:, pcanum], sig2ofconst=0.00001)
+                emulist[pcanum] = __fitGP1d(theta=theta,
+                                            g=fitinfo['pc'][:, pcanum],
+                                            gvar=fitinfo['unscaled_pcstdvar'][:, pcanum],
+                                            sig2ofconst=0.00001)
                 hypstarts = np.zeros((numpcs, emulist[pcanum]['hyp'].shape[0]))
             emulist[pcanum]['hypind'] = min(pcanum, emulist[pcanum]['hypind'])
             hypstarts[pcanum, :] = emulist[pcanum]['hyp']
@@ -461,7 +442,7 @@ def __fitGPs(fitinfo, theta, numpcs, verbose):
     return emulist
 
 
-def __fitGP1d(theta, g, hypstarts=None, hypinds=None, sig2ofconst=None):
+def __fitGP1d(theta, g, gvar=None, hypstarts=None, hypinds=None, sig2ofconst=None):
     """Return a fitted model from the emulator model using smart method."""
     hypvarconstmean = 0
     hypvarconstLB = -3
@@ -487,6 +468,7 @@ def __fitGP1d(theta, g, hypstarts=None, hypinds=None, sig2ofconst=None):
     subinfo['g'] = g[thetac]
 
     subinfo['sig2ofconst'] = sig2ofconst
+    subinfo['gvar'] = gvar[thetac]
     hypind0 = -1
 
     L0 = __negloglik(subinfo['hyp'], subinfo)
@@ -498,6 +480,11 @@ def __fitGP1d(theta, g, hypstarts=None, hypinds=None, sig2ofconst=None):
                 subinfo['hyp'] = hypstarts[k, :]
                 L0 = 1 * L1
                 hypind0 = hypinds[k]
+
+    if hypind0 > -0.5 and hypstarts.ndim > 1:
+        dL = __negloglikgrad(subinfo['hyp'], subinfo)
+        scalL = np.std(hypstarts, 0) * hypstarts.shape[0] / \
+            (1 + hypstarts.shape[0]) + (1 / (1 + hypstarts.shape[0]) * subinfo['hypregstd'])
 
     skipop = False
 
@@ -533,6 +520,8 @@ def __fitGP1d(theta, g, hypstarts=None, hypinds=None, sig2ofconst=None):
         R = __covmat(theta, theta, subinfo['hypcov'])
 
         subinfo['R'] = (1 - subinfo['nug']) * R + subinfo['nug'] * np.eye(R.shape[0])
+        if gvar is not None:
+            subinfo['R'] += np.exp(subinfo['hypvarconst'])*np.diag(gvar)
 
         W, V = np.linalg.eigh(subinfo['R'])
         Vh = V / np.sqrt(np.abs(W))
@@ -550,7 +539,8 @@ def __fitGP1d(theta, g, hypstarts=None, hypinds=None, sig2ofconst=None):
 
         R = __covmat(theta, theta, subinfo['hypcov'])
         subinfo['R'] = (1 - subinfo['nug']) * R + subinfo['nug'] * np.eye(R.shape[0])
-
+        if gvar is not None:
+            subinfo['R'] += np.exp(subinfo['hypvarconst'])*np.diag(gvar)
         n = subinfo['R'].shape[0]
         W, V = np.linalg.eigh(subinfo['R'])
         Vh = V / np.sqrt(np.abs(W))
@@ -568,6 +558,8 @@ def __negloglik(hyp, info):
     nug = np.exp(hyp[-1]) / (1 + np.exp(hyp[-1]))
     R = (1 - nug) * R0 + nug * np.eye(info['theta'].shape[0])
 
+    if info['gvar'] is not None:
+        R += np.exp(hyp[-2])*np.diag(info['gvar'])
     W, V = np.linalg.eigh(R)
     Vh = V / np.sqrt(np.abs(W))
     fcenter = Vh.T @ info['g']
@@ -590,7 +582,11 @@ def __negloglikgrad(hyp, info):
     dR = (1 - nug) * dR
     dRappend2 = nug / (1 + np.exp(hyp[-1])) * (-R0 + np.eye(info['theta'].shape[0]))
 
-    dRappend1 = 0 * np.eye(info['theta'].shape[0])
+    if info['gvar'] is not None:
+        R += np.exp(hyp[-2]) * np.diag(info['gvar'])
+        dRappend1 = np.exp(hyp[-2]) * np.diag(info['gvar'])
+    else:
+        dRappend1 = 0 * np.eye(info['theta'].shape[0])
 
     dR = np.append(dR, dRappend1[:, :, None], axis=2)
     dR = np.append(dR, dRappend2[:, :, None], axis=2)
