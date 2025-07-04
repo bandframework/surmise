@@ -413,7 +413,7 @@ def __fitGPs(fitinfo, theta, numpcs, verbose):
     emulist = [dict() for x in range(0, numpcs)]
     for iters in range(0, 2):
         if verbose > 0:
-            print('\n interation number', iters, ': 0%', end=" ")
+            print('\n iteration number', iters, ': 0%', end=" ")
             percentagegap = 0.1
             percentagec = 1 * percentagegap
         for pcanum in range(0, numpcs):
