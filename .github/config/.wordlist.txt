@@ -9,6 +9,7 @@ Cython
 GPy
 Gitflow
 Gramacy
+Jupyter
 LHS
 Loeppky
 MCMC
@@ -19,6 +20,7 @@ Ozge
 PCGP
 PCGPwM
 PCGPwMatComp
+PCSK
 PTLMC
 PYTHONPATH
 Plumlee
@@ -27,12 +29,13 @@ PyPI
 Quickstart
 README
 SDK
-Setuptools
 SURmise
 SciPy
+Setuptools
 Sürer
 TBC
 TBD
+VAH
 aMWOoGvY
 attr
 autofunction
@@ -44,6 +47,7 @@ chan
 colab
 cov
 currentmodule
+danOSU
 dataset
 datasets
 directbayes
@@ -60,6 +64,7 @@ hastings
 html
 http
 https
+inferece
 io
 lbl
 miamioh
