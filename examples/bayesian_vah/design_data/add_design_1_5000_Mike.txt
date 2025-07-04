@@ -1,0 +1,2 @@
+Pb_Pb Mean Width Dist Flactutation Temp Kink eta_s Slope_low Slope_high Max Temp_peak Width_peak Asym_peak R
+20.0 0.063 0.98 1.44 1.05 0.136 0.223 0.096 -0.776 0.37 0.13 0.12 0.072 -0.122 0.3
