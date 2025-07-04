@@ -6,8 +6,9 @@ import scipy.optimize as spo
 from surmise.emulationsupport.matern_covmat import covmat as __covmat
 from pprint import pformat
 
+
 def fit(fitinfo, x, theta, f, epsilonPC=0.001,
-        simsd=None, numpcs = -1,
+        simsd=None, numpcs=-1,
         standardpcinfo=None, verbose=0, **kwargs):
     '''
     The purpose of fit is to take information and plug all of our fit
@@ -481,11 +482,10 @@ def __fitGP1d(theta, g, gvar=None, hypstarts=None, hypinds=None, sig2ofconst=Non
                 L0 = 1 * L1
                 hypind0 = hypinds[k]
 
-    if hypind0 > -0.5 and hypstarts.ndim > 1:
-        dL = __negloglikgrad(subinfo['hyp'], subinfo)
-        scalL = np.std(hypstarts, 0) * hypstarts.shape[0] / \
-            (1 + hypstarts.shape[0]) + (1 / (1 + hypstarts.shape[0]) * subinfo['hypregstd'])
-
+    # if hypind0 > -0.5 and hypstarts.ndim > 1:
+    #     dL = __negloglikgrad(subinfo['hyp'], subinfo)
+    #     scalL = np.std(hypstarts, 0) * hypstarts.shape[0] / \
+    #         (1 + hypstarts.shape[0]) + (1 / (1 + hypstarts.shape[0]) * subinfo['hypregstd'])
     skipop = False
 
     if not skipop:
