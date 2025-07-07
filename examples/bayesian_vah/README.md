@@ -8,7 +8,7 @@ calibration example should be referred to the original repository.
 Additional requirements for this example include:
 
 ```bash
-seaborn==0.13.2
+seaborn>=0.12.0
 ```
 
 Upon running the notebook, an `emulated_vs_simulated.png` figure, 
