@@ -222,7 +222,7 @@ def test_prediction_covxhalf_gradtheta(cmdopt1, expectation):
     [
      ('PCGP', does_not_raise()),
      ('PCGPwM', does_not_raise()),
-     ('PCSK', does_not_raise())
+     ('PCSK', pytest.raises(ValueError))  # PCSK does not support remove function
     ],
     )
 # test to check emulator.remove()
@@ -242,7 +242,7 @@ def test_remove(cmdopt1, expectation):
     [
      ('PCGP', does_not_raise()),
      ('PCGPwM', does_not_raise()),
-     ('PCSK', does_not_raise())
+     ('PCSK', pytest.raises(IndexError))  # PCSK does not support update function
     ],
     )
 # test to check emulator.update()
