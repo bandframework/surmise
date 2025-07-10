@@ -8,6 +8,7 @@ calibration example should be referred to the original repository.
 Additional requirements for this example include:
 
 ```bash
+matplotlib
 seaborn>=0.12.0
 ```
 
