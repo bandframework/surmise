@@ -2,6 +2,8 @@ import numpy as np
 from surmise.utilities import sampler
 import copy
 
+from .._create_sampler import create_sampler
+
 
 def fit(fitinfo, emu, x, y, **bayes_args):
     '''
@@ -79,12 +81,12 @@ def fit(fitinfo, emu, x, y, **bayes_args):
     thetaprior = fitinfo['thetaprior']
 
     # Define the posterior function
-    def logpostfull(theta, return_grad=False):
-        logpost = thetaprior.lpdf(theta)
-        inds = np.where(np.isfinite(logpost))[0]
-        if len(inds) > 0:
-            logpost[inds] += loglik(fitinfo, emu, theta[inds, :], y, x)
-        return logpost
+    #def logpostfull(theta, return_grad=False):
+    #    logpost = thetaprior.lpdf(theta)
+    #    inds = np.where(np.isfinite(logpost))[0]
+    #    if len(inds) > 0:
+    #        logpost[inds] += loglik(fitinfo, emu, theta[inds, :], y, x)
+    #    return logpost
 
     # Define the draw function to sample from initial theta
     def draw_func(n):
@@ -105,25 +107,45 @@ def fit(fitinfo, emu, x, y, **bayes_args):
 
     # Call the sampler
     if 'sampler' in bayes_args.keys():
-        name = bayes_args['sampler']
+        sampler_name = bayes_args['sampler']
+        del bayes_args["sampler"]
     else:
-        name = 'unspecified'
-    if name == 'PTMC':
-        def log_lik(theta):
-            return loglik(fitinfo, emu, theta, y, x)
+        # sampler_name = 'unspecified'
+        sampler_name = 'metropolis_hastings'
+    #sampler_args = copy.deepcopy(bayes_args["sampler_args"])
+    sampler_args = copy.deepcopy(bayes_args)
 
-        sampler_obj = sampler(logpostfull, thetaprior.rnd, log_likelihood=log_lik,
-                              log_prior=thetaprior.lpdf,
-                              **bayes_args)
-    else:
-        sampler_obj = sampler(logpost_func=logpostfull,
-                              draw_func=draw_func,
-                              **bayes_args)
+    if sampler_name == 'PTMC':
+        raise NotImplementedError("Ignore this for now")
+    #    def log_lik(theta):
+    #        return loglik(fitinfo, emu, theta, y, x)
 
-    theta = sampler_obj.sampler_info['theta']
+    #    sampler_obj = sampler(logpostfull, thetaprior.rnd, log_likelihood=log_lik,
+    #                          log_prior=thetaprior.lpdf,
+    #                          **bayes_args)
+    #else:
+    #    sampler_obj = sampler(logpost_func=logpostfull,
+    #                          draw_func=draw_func,
+    #                          **bayes_args)
+
+    #theta = sampler_obj.sampler_info['theta']
+
+    # TODO: Can we fix up loglik so that we can just use functools.partial here?
+    def log_likelihood(theta):
+        n_theta = theta.shape[0]
+        result = loglik(fitinfo, emu, theta, y, x)
+        if n_theta == 1:
+            return np.squeeze(result)
+        return result.reshape(n_theta, 1)
+
+    assert "use_grad" not in sampler_args
+    sampler_args["use_grad"] = False
+
+    sampler = create_sampler(sampler_name, sampler_args)
+    result = sampler(thetaprior, log_likelihood, draw_func)
 
     # Update fitinfo dict
-    fitinfo['thetarnd'] = theta
+    fitinfo['thetarnd'] = result["theta"]
     fitinfo['y'] = y
     fitinfo['x'] = x
     fitinfo['emu'] = emu

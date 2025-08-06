@@ -3,6 +3,8 @@ import scipy.stats as sps
 from surmise.utilities import sampler
 import copy
 
+from .._create_sampler import create_sampler
+
 
 def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
     '''
@@ -97,36 +99,36 @@ def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
             return grad
         thetaprior.lpdf_grad = lpdf_grad
 
-    def logpostfull_wgrad(theta, return_grad=True):
+    #def logpostfull_wgrad(theta, return_grad=True):
 
-        # obtain the log-prior
-        logpost = thetaprior.lpdf(theta)
-        inds = np.where(np.isfinite(logpost))[0]
+    #    # obtain the log-prior
+    #    logpost = thetaprior.lpdf(theta)
+    #    inds = np.where(np.isfinite(logpost))[0]
 
-        if emureturn_grad and return_grad:
-            # obtain the gradient of the log-prior
-            dlogpost = thetaprior.lpdf_grad(theta)
+    #    if emureturn_grad and return_grad:
+    #        # obtain the gradient of the log-prior
+    #        dlogpost = thetaprior.lpdf_grad(theta)
 
-            if len(inds):
-                # obtain the log-likelihood and the gradient of it
-                loglikinds, dloglikinds = loglik_grad(fitinfo,
-                                                      emu,
-                                                      theta[inds, :],
-                                                      y,
-                                                      x)
-                logpost[inds] += loglikinds
-                dlogpost[inds] += dloglikinds
-            return logpost, dlogpost
-        else:
-            if len(inds) > 0:
-                # obtain the log-likelihood
-                logpost[inds] += loglik(fitinfo,
-                                        emu,
-                                        theta[inds, :],
-                                        y,
-                                        x)
+    #        if len(inds):
+    #            # obtain the log-likelihood and the gradient of it
+    #            loglikinds, dloglikinds = loglik_grad(fitinfo,
+    #                                                  emu,
+    #                                                  theta[inds, :],
+    #                                                  y,
+    #                                                  x)
+    #            logpost[inds] += loglikinds
+    #            dlogpost[inds] += dloglikinds
+    #        return logpost, dlogpost
+    #    else:
+    #        if len(inds) > 0:
+    #            # obtain the log-likelihood
+    #            logpost[inds] += loglik(fitinfo,
+    #                                    emu,
+    #                                    theta[inds, :],
+    #                                    y,
+    #                                    x)
 
-            return logpost
+    #        return logpost
 
     # Define the draw function to sample from initial theta
     def draw_func(n):
@@ -145,18 +147,40 @@ def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
 
         return theta0
 
-    # obtain theta draws from posterior distribution
-    sampler_obj = sampler(logpost_func=logpostfull_wgrad,
-                          draw_func=draw_func,
-                          **bayeswoodbury_args)
+    if 'sampler' in bayeswoodbury_args.keys():
+        sampler_name = bayeswoodbury_args['sampler']
+        del bayeswoodbury_args["sampler"]
+    else:
+        sampler_name = 'metropolis_hastings'
+    #sampler_args = copy.deepcopy(bayeswoodbury_args["sampler_args"])
+    sampler_args = copy.deepcopy(bayeswoodbury_args)
 
-    theta = sampler_obj.sampler_info['theta']
+    # TODO: Can we fix up loglik so that we can just use functools.partial here?
+    def log_likelihood(theta):
+        n_theta = theta.shape[0]
+        result = loglik(fitinfo, emu, theta, y, x)
+        if n_theta == 1:
+            return np.squeeze(result)
+        return result.reshape(n_theta, 1)
+
+    assert "use_grad" not in sampler_args
+    sampler_args["use_grad"] = emureturn_grad
+
+    sampler = create_sampler(sampler_name, sampler_args)
+    result = sampler(thetaprior, log_likelihood, draw_func)
+
+    # obtain theta draws from posterior distribution
+    #sampler_obj = sampler(logpost_func=logpostfull_wgrad,
+    #                      draw_func=draw_func,
+    #                      **bayeswoodbury_args)
+
+    #theta = sampler_obj.sampler_info['theta']
 
     # obtain log-posterior of theta values
-    ladj = logpostfull_wgrad(theta, return_grad=False)
-    mladj = np.max(ladj)
-    fitinfo['lpdfapproxnorm'] = np.log(np.mean(np.exp(ladj - mladj))) + mladj
-    fitinfo['thetarnd'] = theta
+    #ladj = logpostfull_wgrad(theta, return_grad=False)
+    #mladj = np.max(ladj)
+    #fitinfo['lpdfapproxnorm'] = np.log(np.mean(np.exp(ladj - mladj))) + mladj
+    fitinfo['thetarnd'] = result["theta"]
     fitinfo['y'] = y
     fitinfo['x'] = x
     fitinfo['emu'] = emu
@@ -255,7 +279,8 @@ def thetalpdf(fitinfo, theta, args=None):
         logpost[inds] += loglik(fitinfo, emu, theta[inds], y, x)
     elif np.isfinite(logpost):
         logpost += loglik(fitinfo, emu, theta, y, x)
-    return (logpost-fitinfo['lpdfapproxnorm'])
+    return logpost
+    #return (logpost-fitinfo['lpdfapproxnorm'])
 
 
 def loglik(fitinfo, emu, theta, y, x):
