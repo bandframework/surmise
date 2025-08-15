@@ -67,10 +67,8 @@ jobs:
           pushd $PKG_ROOT
           python -m build --sdist
           popd
-          # Log info
-          echo ""
-          ls ${{ env.DIST_PATH }}/*.tar.gz
 
-      #- uses: actions/upload-artifact@v4
-      #  with:
-      #    path: ${{ env.DIST_PATH }}/*.tar.gz
+      - name: Archive source distribution
+        uses: actions/upload-artifact@v4
+        with:
+          path: ${{ env.DIST_PATH }}/surmise-*.tar.gz
