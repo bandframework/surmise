@@ -38,6 +38,6 @@ build-backend = "setuptools.build_meta"
 write_to = "src/surmise/_version.py"
 
 [tool.cibuildwheel]
-skip         = ["cp38-*", "*-win32", "*_i686", "*-musllinux*", "pp*"]
+skip         = ["cp38-*", "cp314-*", "*-win32", "*_i686", "*-musllinux*", "pp*"]
 before-all   = ["uname -a"]
 before-build = ["git status"]
