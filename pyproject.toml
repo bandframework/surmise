@@ -44,7 +44,7 @@ write_to = "src/surmise/_version.py"
 # For Python 3.13, numpy built with MINGW-W64 on Windows 64 bits is experimental
 # and only available for testing.
 skip         = ["cp38-*", "cp314*", "cp313-win*",
-                "*-win32", "*_i686", "*-musllinux*", "pp*"]
+                "*-win32", "*_i686", "*-musllinux*"]
 before-all   = ["uname -a"]
 before-build = ["git status"]
 #test-command = "python -c \"import surmise ; exit(not surmise.test())\""
