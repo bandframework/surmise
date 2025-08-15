@@ -37,6 +37,7 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools_scm]
 write_to = "src/surmise/_version.py"
 
-# TODO: When the next set of official wheels are generated, add back in the
-# cibuildwheel section in a way that is compatible with this scheme (Issue
-# #137).
+[tool.cibuildwheel]
+skip         = ["*-win32", "*_i686", "*-musllinux*", "pp*"]
+before-all   = ["uname -a"]
+before-build = ["git status"]
