@@ -1,4 +1,20 @@
-name: Build distributions
+#
+# This action could publish distributions that it produces to the surmise PyPI
+# account.  For more information on potential security issues associated with
+# automatic publishing, please refer to
+#
+#        https://docs.pypi.org/trusted-publishers/security-model/
+#
+# In particular, there exists the possibility of breaking that page or allowing
+# nefarious actors to alter it.  Since surmise is only released a few times a
+# year, we presently prefer the conservative route of manually publishing to
+# PyPI the distributions built and tested by this action.
+#
+# ALL CHANGES TO THIS ACTION SHOULD BE REVIEWED VERY CAREFULLY TO ENSURE THAT
+#             THE CHANGES ARE AS INTENDED AND WELL UNDERSTOOD!
+#
+
+name: Build & test distributions
 env:
   PKG_ROOT:   ${{ github.workspace }}
   DIST_PATH:  ${{ github.workspace }}/dist
@@ -78,3 +94,28 @@ jobs:
         with:
           name: cibw-sdist
           path: ${{ env.DIST_PATH }}/surmise-*.tar.gz
+
+  # THE FOLLOWING SHOULD BE CAREFULLY REVIEWED BEFORE UNCOMMENTING.  IT IS
+  # EFFECTIVELY A PLACEHOLDER.
+  #
+  # TODO: Should this only publish on release/publish events?
+  # https://cibuildwheel.pypa.io/en/stable/deliver-to-pypi/
+  #pypi-publish:
+  #  name: Upload release to PyPI
+  #  needs: [build-wheels, make-sdist]
+  #  runs-on: ubuntu-latest
+  #  environment:
+  #    name: pypi
+  #    url: https://pypi.org/project/surmise/
+  #  permissions:
+  #    id-token: write
+  #  steps:
+  #    - uses: actions/download-artifact@v5
+  #      with:
+  #        name:           cibw-*
+  #        path:           dist
+  #        merge-multiple: true
+  #    - name: Publish distribution 📦 to PyPI
+  #      uses: pypa/gh-action-pypi-publish@release/v1
+  #      with:
+  #        password: ${{ secrets.PYPI_ACCESS_TOKEN }}
