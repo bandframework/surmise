@@ -1,5 +1,6 @@
 # IMPORTANT
-# * Please adjust GitHub actions to match changes to Python version here.
+# * Please adjust pyproject.toml and GitHub actions to match changes to Python
+#   version here.
 # * Please make sure that all dependence/version changes made here are reflected
 #   in the oldest tox task in tox.ini
 #
