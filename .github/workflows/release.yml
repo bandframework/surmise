@@ -23,9 +23,6 @@ env:
 on:
   push:
     branches: [main]
-  pull_request:
-    # TODO: This is temporary so that I can test it.
-    branches: [main]
 
 jobs:
   build-wheels:
