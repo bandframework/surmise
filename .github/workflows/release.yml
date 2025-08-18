@@ -53,47 +53,47 @@ jobs:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ${{ env.WHEEL_PATH }}/*.whl
 
-#  make-sdist:
-#    name: Build source distribution
-#    strategy:
-#      matrix:
-#        os:             [ubuntu-latest]
-#        python-version: ["3.13"]
-#    runs-on: ${{ matrix.os }}
-#    steps:
-#      - uses: actions/checkout@v4
-#
-#      - name: Set up Python ${{ matrix.python-version }}
-#        uses: actions/setup-python@v5
-#        with:
-#          python-version: ${{ matrix.python-version }}
-#
-#      - name: Make & test sdist
-#        run: |
-#          # Setup Python
-#          echo ""
-#          python -m pip install --upgrade pip
-#          python -m pip install --upgrade setuptools
-#          python -m pip install build
-#          # Build distribution & install
-#          echo ""
-#          pushd $PKG_ROOT
-#          python -m build --sdist
-#          popd
-#          python -m pip install ${{ env.DIST_PATH }}/surmise-*.tar.gz
-#          # Log info
-#          echo ""
-#          which python
-#          python -m pip list
-#          # Run tests through package
-#          echo ""
-#          python -c "import surmise ; exit(not surmise.test())"
-#
-#      - name: Archive source distribution
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: cibw-sdist
-#          path: ${{ env.DIST_PATH }}/surmise-*.tar.gz
+  make-sdist:
+    name: Build source distribution
+    strategy:
+      matrix:
+        os:             [ubuntu-latest]
+        python-version: ["3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Make & test sdist
+        run: |
+          # Setup Python
+          echo ""
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade setuptools
+          python -m pip install build
+          # Build distribution & install
+          echo ""
+          pushd $PKG_ROOT
+          python -m build --sdist
+          popd
+          python -m pip install ${{ env.DIST_PATH }}/surmise-*.tar.gz
+          # Log info
+          echo ""
+          which python
+          python -m pip list
+          # Run tests through package
+          echo ""
+          python -c "import surmise ; exit(not surmise.test())"
+
+      - name: Archive source distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: cibw-sdist
+          path: ${{ env.DIST_PATH }}/surmise-*.tar.gz
 
   # THE FOLLOWING SHOULD BE CAREFULLY REVIEWED BEFORE UNCOMMENTING.  IT IS
   # EFFECTIVELY A PLACEHOLDER.
