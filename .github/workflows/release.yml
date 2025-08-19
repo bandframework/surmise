@@ -45,7 +45,7 @@ jobs:
           fetch-depth: 0
 
       - name: Build & test wheels
-        uses: pypa/cibuildwheel@v3.1.3
+        uses: pypa/cibuildwheel@v2.20.0
         with:
           package-dir: ${{ env.PKG_ROOT }}
           output-dir:  ${{ env.WHEEL_PATH }}
