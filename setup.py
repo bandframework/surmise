@@ -21,7 +21,7 @@ _PKG_ROOT = Path(__file__).resolve().parent
 def readme_rst():
     fname = _PKG_ROOT.joinpath("README.rst")
     with codecs.open(fname, encoding="utf8") as fptr:
-        return fptr.read()
+        return fptr.read().replace('\r\n', '\n')
 
 python_requires = ">=3.9"
 # numpy & scipy upper limits required by macos-13 GH action tests.  Without
