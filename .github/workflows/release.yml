@@ -65,7 +65,11 @@ jobs:
         python-version: ["3.13"]
     runs-on: ${{ matrix.os }}
     steps:
+      # Clone the repository with the full history since setuptools-scm needs
+      # the tags to set the correct version.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
