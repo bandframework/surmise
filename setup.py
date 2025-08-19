@@ -23,6 +23,13 @@ def readme_rst():
     with codecs.open(fname, encoding="utf8") as fptr:
         return fptr.read().replace('\r\n', '\n')
 
+
+def version():
+    fname = _PKG_ROOT.joinpath("VERSION")
+    with open(fname, "r") as fptr:
+        return fptr.read().strip()
+
+
 python_requires = ">=3.9"
 # numpy & scipy upper limits required by macos-13 GH action tests.  Without
 # these, there are segmentation faults.
@@ -55,6 +62,7 @@ project_urls = {
 
 setup(
     name="surmise",
+    version=version(),
     author="Matthew Plumlee, Özge Sürer, Stefan M. Wild, and Moses Y.-H. Chan",
     author_email="moses.chan@northwestern.edu",
     maintainer="Moses Y.-H. Chan",
