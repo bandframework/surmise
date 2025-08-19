@@ -23,6 +23,9 @@ env:
 on:
   push:
     branches: [main]
+  pull_request:
+    # TODO: This is temporary so that I can test it.
+    branches: [main]
 
 jobs:
   build-wheels:
@@ -35,7 +38,11 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      # Clone the repository with the full history since setuptools-scm needs
+      # the tags to set the correct version.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Build & test wheels
         uses: pypa/cibuildwheel@v3.1.3
