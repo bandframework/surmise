@@ -72,3 +72,9 @@ jobs:
         # Run tests through package
         echo ""
         python -c "import surmise ; exit(not surmise.test())"
+
+    - name: Archive prebuilt wheels
+      uses: actions/upload-artifact@v4
+      with:
+        name: manual-wheels-${{ matrix.os }}-${{ strategy.python-version }}
+        path: dist/surmise-*.whl
