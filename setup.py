@@ -61,7 +61,7 @@ setup(
     maintainer_email="moses.chan@northwestern.edu",
     description="A modular interface for surrogate models and tools",
     long_description=readme_rst(),
-    long_description_content_type="text/rst",
+    long_description_content_type="text/x-rst",
     url="https://github.com/bandframework/surmise",
     project_urls=project_urls,
     license="MIT",
