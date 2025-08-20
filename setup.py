@@ -8,7 +8,6 @@
 # pyproject.toml).  No need to handle version manually here.
 
 import numpy
-# import codecs
 
 from pathlib import Path
 from setuptools import (
@@ -22,13 +21,6 @@ def readme_rst():
     fname = _PKG_ROOT.joinpath("README.rst")
     with open(fname, encoding="utf8") as fptr:
         return fptr.read()
-
-
-def version():
-    fname = _PKG_ROOT.joinpath("VERSION")
-    with open(fname, "r") as fptr:
-        return fptr.read().strip()
-
 
 python_requires = ">=3.9"
 # numpy & scipy upper limits required by macos-13 GH action tests.  Without
@@ -62,7 +54,6 @@ project_urls = {
 
 setup(
     name="surmise",
-    version=version(),
     author="Matthew Plumlee, Özge Sürer, Stefan M. Wild, and Moses Y.-H. Chan",
     author_email="moses.chan@northwestern.edu",
     maintainer="Moses Y.-H. Chan",

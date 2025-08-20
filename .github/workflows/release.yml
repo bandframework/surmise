@@ -23,6 +23,8 @@ env:
 on:
   push:
     branches: [main]
+  release:
+      types:  [published]
   pull_request:
     # TODO: This is temporary so that I can test it.
     branches: [main]
