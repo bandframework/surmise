@@ -1,5 +1,6 @@
 # IMPORTANT
-# * Please adjust GitHub actions to match changes to Python version here.
+# * Please adjust pyproject.toml and GitHub actions to match changes to Python
+#   version here.
 # * Please make sure that all dependence/version changes made here are reflected
 #   in the oldest tox task in tox.ini
 #
@@ -7,7 +8,6 @@
 # pyproject.toml).  No need to handle version manually here.
 
 import numpy
-import codecs
 
 from pathlib import Path
 from setuptools import (
@@ -19,7 +19,7 @@ _PKG_ROOT = Path(__file__).resolve().parent
 
 def readme_rst():
     fname = _PKG_ROOT.joinpath("README.rst")
-    with codecs.open(fname, encoding="utf8") as fptr:
+    with open(fname, encoding="utf8") as fptr:
         return fptr.read()
 
 python_requires = ">=3.9"
@@ -60,7 +60,7 @@ setup(
     maintainer_email="moses.chan@northwestern.edu",
     description="A modular interface for surrogate models and tools",
     long_description=readme_rst(),
-    long_description_content_type="text/rst",
+    long_description_content_type="text/x-rst",
     url="https://github.com/bandframework/surmise",
     project_urls=project_urls,
     license="MIT",
