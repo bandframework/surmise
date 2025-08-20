@@ -8,7 +8,7 @@
 # pyproject.toml).  No need to handle version manually here.
 
 import numpy
-import codecs
+# import codecs
 
 from pathlib import Path
 from setuptools import (
@@ -20,8 +20,8 @@ _PKG_ROOT = Path(__file__).resolve().parent
 
 def readme_rst():
     fname = _PKG_ROOT.joinpath("README.rst")
-    with codecs.open(fname, encoding="utf8") as fptr:
-        return fptr.read().replace('\r\n', '\n')
+    with open(fname, encoding="utf8") as fptr:
+        return fptr.read()
 
 
 def version():
