@@ -4,6 +4,10 @@ import pytest
 from contextlib import contextmanager
 from surmise.emulation import emulator
 from surmise.calibration import calibrator
+
+
+METHOD_IN_TEST = 'directbayes'
+
 ##############################################
 #            Simple scenarios                #
 ##############################################
@@ -16,7 +20,7 @@ x = np.array([[0.178, 0.356, 0.534, 0.712, 0.89, 1.068, 1.246, 1.424, 1.602,
 # time
 y = np.array([[0.27, 0.22, 0.27, 0.43, 0.41, 0.49, 0.46, 0.6, 0.65, 0.62, 0.7,
                0.81, 0.69, 0.81, 0.89, 0.86, 0.89, 1.1, 1.05, 0.99, 1.05]]).T
-obsvar = np.maximum(0.2*y, 0.1)
+obsvar = np.maximum(0.2 * y, 0.1)
 
 
 def timedrop(x, theta, hr, gr):
@@ -28,14 +32,15 @@ def timedrop(x, theta, hr, gr):
     range_h = max(hr) - min_h
     f = np.zeros((theta.shape[0], x.shape[0]))
     for k in range(0, theta.shape[0]):
-        g = range_g*theta[k] + min_g
-        h = range_h*x + min_h
-        f[k, :] = np.sqrt(2*h/g).reshape(x.shape[0])
+        g = range_g * theta[k] + min_g
+        h = range_h * x + min_h
+        f[k, :] = np.sqrt(2 * h / g).reshape(x.shape[0])
     return f.T
 
 
 class prior_balldrop:
     """ This defines the class instance of priors provided to the method. """
+
     def lpdf(theta):
         return sps.uniform.logpdf(theta[:, 0], 0, 1).reshape((len(theta), 1))
 
@@ -50,7 +55,7 @@ theta_range = np.array([1, 30])
 
 # Standardize
 x_range = np.array([min(x), max(x)])
-x_std = (x - min(x))/(max(x) - min(x))
+x_std = (x - min(x)) / (max(x) - min(x))
 
 # Obtain computer model output via filtered data
 f = timedrop(x_std, theta, x_range, theta_range)
@@ -61,7 +66,7 @@ pred_nf = emulator_nf_1.predict(x=x_std, theta=theta)
 pred_nf_mean = pred_nf.mean()
 
 # Filter out the data
-ys = 1 - np.sum((pred_nf_mean - y)**2, 0)/np.sum((y - np.mean(y))**2, 0)
+ys = 1 - np.sum((pred_nf_mean - y) ** 2, 0) / np.sum((y - np.mean(y)) ** 2, 0)
 theta_f = theta[ys > 0.5]
 
 # Obtain computer model output via filtered data
@@ -79,6 +84,7 @@ args3 = {'theta0': np.array([[0.4]]),
          'stepParam': [0.4]}
 args4 = {'theta0': np.array([[0.4]])}
 args5 = {'stepParam': [0.4]}
+args6 = {'sampler': 'metropolis_hastings'}
 
 
 @contextmanager
@@ -89,21 +95,22 @@ def does_not_raise():
 @pytest.mark.parametrize(
     "input1,input2,expectation",
     [
-     # (emulator_f_1, args1, does_not_raise()),
-     # (emulator_f_2, args1, does_not_raise()),
-     (emulator_f_1, args2, does_not_raise()),
-     (emulator_f_1, args3, does_not_raise()),
-     (emulator_f_1, args4, does_not_raise()),
-     (emulator_f_1, args5, does_not_raise()),
-     ],
-    )
+        # (emulator_f_1, args1, does_not_raise()),
+        # (emulator_f_2, args1, does_not_raise()),
+        (emulator_f_1, args2, does_not_raise()),
+        (emulator_f_1, args3, does_not_raise()),
+        (emulator_f_1, args4, does_not_raise()),
+        (emulator_f_1, args5, does_not_raise()),
+        (emulator_f_1, args6, does_not_raise()),
+    ],
+)
 def test_cal_MLcal(input1, input2, expectation):
     with expectation:
         assert calibrator(emu=input1,
                           y=y,
                           x=x_std,
                           thetaprior=prior_balldrop,
-                          method='directbayes',
+                          method=METHOD_IN_TEST,
                           yvar=obsvar,
                           args=input2) is not None
 
@@ -111,16 +118,16 @@ def test_cal_MLcal(input1, input2, expectation):
 @pytest.mark.parametrize(
     "input1,expectation",
     [
-     (x_std, does_not_raise()),
-     (None, does_not_raise()),
-     ],
-    )
+        (x_std, does_not_raise()),
+        (None, does_not_raise()),
+    ],
+)
 def test_cal_predict(input1, expectation):
     cal_test = calibrator(emu=emulator_f_1,
                           y=y,
                           x=x_std,
                           thetaprior=prior_balldrop,
-                          method='directbayes',
+                          method=METHOD_IN_TEST,
                           yvar=obsvar,
                           args=args2)
     with expectation:
@@ -130,15 +137,15 @@ def test_cal_predict(input1, expectation):
 @pytest.mark.parametrize(
     "expectation",
     [
-     (does_not_raise()),
-     ],
-    )
+        (does_not_raise()),
+    ],
+)
 def test_repr(expectation):
     cal = calibrator(emu=emulator_f_1,
                      y=y,
                      x=x_std,
                      thetaprior=prior_balldrop,
-                     method='directbayes',
+                     method=METHOD_IN_TEST,
                      yvar=obsvar,
                      args=args2)
     pred_test = cal.predict(x=x_std)
@@ -149,15 +156,15 @@ def test_repr(expectation):
 @pytest.mark.parametrize(
     "expectation",
     [
-     (does_not_raise()),
-     ],
-    )
+        (does_not_raise()),
+    ],
+)
 def test_call(expectation):
     cal = calibrator(emu=emulator_f_1,
                      y=y,
                      x=x_std,
                      thetaprior=prior_balldrop,
-                     method='directbayes',
+                     method=METHOD_IN_TEST,
                      yvar=obsvar,
                      args=args2)
     pred_test = cal.predict(x=x_std)
@@ -168,15 +175,15 @@ def test_call(expectation):
 @pytest.mark.parametrize(
     "expectation",
     [
-     (does_not_raise()),
-     ],
-    )
+        (does_not_raise()),
+    ],
+)
 def test_meanvar(expectation):
     cal = calibrator(emu=emulator_f_1,
                      y=y,
                      x=x_std,
                      thetaprior=prior_balldrop,
-                     method='directbayes',
+                     method=METHOD_IN_TEST,
                      yvar=obsvar,
                      args=args2)
     pred_test = cal.predict(x=x_std)
@@ -188,15 +195,15 @@ def test_meanvar(expectation):
 @pytest.mark.parametrize(
     "expectation",
     [
-     (does_not_raise()),
-     ],
-    )
+        (does_not_raise()),
+    ],
+)
 def test_thetalpdf(expectation):
     cal = calibrator(emu=emulator_f_1,
                      y=y,
                      x=x_std,
                      thetaprior=prior_balldrop,
-                     method='directbayes',
+                     method=METHOD_IN_TEST,
                      yvar=obsvar,
                      args=args2)
     logpost = cal.theta.lpdf(theta=theta)
@@ -207,15 +214,15 @@ def test_thetalpdf(expectation):
 @pytest.mark.parametrize(
     "expectation",
     [
-     (does_not_raise()),
-     ],
-    )
+        (does_not_raise()),
+    ],
+)
 def test_pred(expectation):
     cal = calibrator(emu=emulator_f_1,
                      y=y,
                      x=x_std,
                      thetaprior=prior_balldrop,
-                     method='directbayes',
+                     method=METHOD_IN_TEST,
                      yvar=obsvar,
                      args=args2)
     pred_test = cal.predict(x=x_std)
@@ -227,15 +234,15 @@ def test_pred(expectation):
 @pytest.mark.parametrize(
     "expectation",
     [
-     (does_not_raise()),
-     ],
-    )
+        (does_not_raise()),
+    ],
+)
 def test_theta_meanvar(expectation):
     cal = calibrator(emu=emulator_f_1,
                      y=y,
                      x=x_std,
                      thetaprior=prior_balldrop,
-                     method='directbayes',
+                     method=METHOD_IN_TEST,
                      yvar=obsvar,
                      args=args2)
     with expectation:
@@ -247,17 +254,28 @@ def test_theta_meanvar(expectation):
 @pytest.mark.parametrize(
     "expectation",
     [
-     (does_not_raise()),
-     ],
-    )
+        (does_not_raise()),
+    ],
+)
 def test_cal_repr(expectation):
     cal = calibrator(emu=emulator_f_1,
                      y=y,
                      x=x_std,
                      thetaprior=prior_balldrop,
-                     method='directbayes',
+                     method=METHOD_IN_TEST,
                      yvar=obsvar,
                      args=args2)
     with expectation:
         assert cal(x_std) is not None
         assert repr(cal.theta()) is not None
+
+
+def test_cal_noobsvar():
+    with pytest.raises(ValueError):
+        calibrator(emu=emulator_f_1,
+                   y=y,
+                   x=x_std,
+                   thetaprior=prior_balldrop,
+                   method=METHOD_IN_TEST,
+                   # yvar=obsvar,
+                   args=args2)

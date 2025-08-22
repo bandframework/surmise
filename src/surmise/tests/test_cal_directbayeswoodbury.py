@@ -5,6 +5,9 @@ from surmise.emulation import emulator
 from surmise.calibration import calibrator
 import pytest
 
+
+METHOD_IN_TEST = 'directbayeswoodbury'
+
 ##############################################
 #            Simple scenarios                #
 ##############################################
@@ -85,7 +88,9 @@ def balldroptrue(x):
 obsvar = 4*np.ones(x.shape[0])
 y = balldroptrue(xv)
 emulator_1 = emulator(x=x, theta=theta_lin, f=f_lin, method='PCGPwM')
-# emulator_2 = emulator(x=x, theta=theta_lin, f=f_lin, method='PCGP')
+emulator_w_grad = emulator(x=x, theta=theta_lin, f=f_lin,
+                           method='PCGPwM',
+                           args={'return_grad': True})
 
 ##############################################
 # Unit tests to initialize an emulator class #
@@ -102,7 +107,7 @@ def does_not_raise():
     "input1,expectation",
     [
      (emulator_1, does_not_raise()),
-     # (emulator_2, does_not_raise()),
+     (emulator_w_grad, does_not_raise()),
      ],
     )
 def test_cal_directbayes(input1, expectation):
@@ -111,7 +116,7 @@ def test_cal_directbayes(input1, expectation):
                           y=y,
                           x=x,
                           thetaprior=priorphys_lin,
-                          method='directbayeswoodbury',
+                          method=METHOD_IN_TEST,
                           yvar=obsvar) is not None
 
 
@@ -128,7 +133,7 @@ def test_cal_predict(input1, expectation):
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
-                           method='directbayeswoodbury',
+                           method=METHOD_IN_TEST,
                            yvar=obsvar)
     with expectation:
         assert cal_bayes.predict(x=x) is not None
@@ -146,7 +151,7 @@ def test_cal_predict_mean(input1, expectation):
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
-                           method='directbayeswoodbury',
+                           method=METHOD_IN_TEST,
                            yvar=obsvar)
     pred_bayes = cal_bayes.predict(x=x)
     with expectation:
@@ -165,7 +170,7 @@ def test_cal_predict_var(input1, expectation):
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
-                           method='directbayeswoodbury',
+                           method=METHOD_IN_TEST,
                            yvar=obsvar)
     pred_bayes = cal_bayes.predict(x=x)
     with expectation:
@@ -184,7 +189,7 @@ def test_cal_predict_rnd(input1, expectation):
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
-                           method='directbayeswoodbury',
+                           method=METHOD_IN_TEST,
                            yvar=obsvar)
     pred_bayes = cal_bayes.predict(x=x)
     with expectation:
@@ -203,7 +208,7 @@ def test_cal_predict_lpdf(input1, expectation):
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
-                           method='directbayeswoodbury',
+                           method=METHOD_IN_TEST,
                            yvar=obsvar)
     pred_bayes = cal_bayes.predict(x=x)
     with expectation:
@@ -222,7 +227,7 @@ def test_cal_thetadist(input1, expectation):
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
-                           method='directbayeswoodbury',
+                           method=METHOD_IN_TEST,
                            yvar=obsvar)
     with expectation:
         assert cal_bayes.theta is not None
@@ -240,7 +245,7 @@ def test_cal_thetadist_repr(input1, expectation):
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
-                           method='directbayeswoodbury',
+                           method=METHOD_IN_TEST,
                            yvar=obsvar)
     thetadist_cal_bayes = cal_bayes.theta
     with expectation:
@@ -259,7 +264,7 @@ def test_cal_thetadist_call(input1, expectation):
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
-                           method='directbayeswoodbury',
+                           method=METHOD_IN_TEST,
                            yvar=obsvar)
     with expectation:
         assert cal_bayes.theta(s=input1) is not None
@@ -277,7 +282,7 @@ def test_cal_thetadist_mean(input1, expectation):
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
-                           method='directbayeswoodbury',
+                           method=METHOD_IN_TEST,
                            yvar=obsvar)
     with expectation:
         assert cal_bayes.theta.mean() is not None
@@ -295,7 +300,7 @@ def test_cal_thetadist_var(input1, expectation):
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
-                           method='directbayeswoodbury',
+                           method=METHOD_IN_TEST,
                            yvar=obsvar)
     with expectation:
         assert cal_bayes.theta.var() is not None
@@ -313,7 +318,7 @@ def test_cal_thetadist_rnd(input1, expectation):
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
-                           method='directbayeswoodbury',
+                           method=METHOD_IN_TEST,
                            yvar=obsvar)
     with expectation:
         assert cal_bayes.theta.rnd() is not None
@@ -331,7 +336,7 @@ def test_cal_thetadist_lpdf(input1, expectation):
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
-                           method='directbayeswoodbury',
+                           method=METHOD_IN_TEST,
                            yvar=obsvar)
     with expectation:
         assert cal_bayes.theta.lpdf(theta=theta_lin) is not None
