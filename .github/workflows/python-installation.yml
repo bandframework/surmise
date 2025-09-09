@@ -29,6 +29,11 @@ jobs:
           # meson is not finding a Fortran compiler
           - os: macos-13
             python-version: "3.13"
+          # This fails intermittently when numpy is built from source, which
+          # fails due to known issue
+          # https://github.com/numpy/numpy/pull/27416
+          - os: macos-15
+            python-version: "3.13"
           # Warning: Numpy built with MINGW-W64 on Windows 64 bits is
           # experimental, and only available for testing.
           - os: windows-2022

@@ -24,7 +24,7 @@
 #
 # IMPORTANT
 # * Please make sure that all dependence/version changes made here are reflected
-#   in the documentation, tox.ini, and the like.
+#   in the documentation, setup.py, tox.ini, and the like.
 
 [build-system]
 requires = [
@@ -37,6 +37,13 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools_scm]
 write_to = "src/surmise/_version.py"
 
-# TODO: When the next set of official wheels are generated, add back in the
-# cibuildwheel section in a way that is compatible with this scheme (Issue
-# #137).
+[tool.cibuildwheel]
+# This currently fails on cp314t-*, which is OK since 3.14 is only prerelease.
+#
+# For Python 3.13, numpy built with MINGW-W64 on Windows 64 bits is experimental
+# and only available for testing.
+skip         = ["cp38-*", "cp314*", "cp313-win*",
+                "*-win32", "*_i686", "*-musllinux*"]
+before-all   = ["uname -a"]
+before-build = ["git status"]
+test-command = "python -c \"import surmise ; exit(not surmise.test())\""
