@@ -75,6 +75,10 @@ def fit(fitinfo,
     None.
 
     '''
+    if clf_method is not None:
+        raise NotImplementedError(
+            "CLF method use is not under test nor officially offered yet"
+        )
 
     thetaprior = fitinfo['thetaprior']
 
