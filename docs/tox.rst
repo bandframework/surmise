@@ -90,6 +90,16 @@ clone.
     *  Generate in ``docs/build_pdf`` the package's sphinx-based documentation
        as a PDF file
 
+* ``tox -e book``
+
+    * Generate from scratch in ``book/_build`` the package's examples
+      Jupyterbook
+    * Using this task repeatedly to interactively develop individual notebooks
+      can be inefficient.  A workaround is to run ``tox -r -e book`` once at the
+      start of development, load the ``book`` venv, render the notebook at each
+      step using a simpler version of the build command for this task (see
+      ``tox.ini``), and rerun ``tox -r -e book`` once finished.
+
 Developers can also run multiple tasks at once by executing, for example,
 
 .. code-block::
