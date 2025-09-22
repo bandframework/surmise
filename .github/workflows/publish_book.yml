@@ -1,4 +1,4 @@
-name: Build & publish Jupyterbook
+name: Build & publish Jupyter book
 env:
   CLONE_PATH:      ${{ github.workspace }}
   BOOK_HTML_BUILD: ${{ github.workspace }}/book/_build/html
@@ -31,15 +31,15 @@ jobs:
     - name: Setup Python with tox
       shell: bash
       run: $CLONE_PATH/.github/workflows/install_tox.sh
-    - name: Build Jupyterbook
+    - name: Build Jupyter book
       run: |
         pushd $CLONE_PATH
         tox -r -e book
         popd
-    - name: Archive examples Jupyterbook 
+    - name: Archive examples Jupyter book 
       uses: actions/upload-pages-artifact@v3
       with:
         path: ${{ env.BOOK_HTML_BUILD}}
-    - name: Publish Jupyterbook to surmise's GH page
+    - name: Publish Jupyter book to surmise's GH page
       id:   deployment
       uses: actions/deploy-pages@v4

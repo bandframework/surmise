@@ -93,7 +93,7 @@ clone.
 * ``tox -e book``
 
     * Generate from scratch in ``book/_build`` the package's examples
-      Jupyterbook
+      Jupyter book
     * Using this task repeatedly to interactively develop individual notebooks
       can be inefficient.  A workaround is to run ``tox -r -e book`` once at the
       start of development, load the ``book`` venv, render the notebook at each

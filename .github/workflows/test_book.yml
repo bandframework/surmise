@@ -1,4 +1,4 @@
-name: Use Jupyterbook build as test suite
+name: Use Jupyter book build as test suite
 env:
   CLONE_PATH:      ${{ github.workspace }}
   BOOK_HTML_BUILD: ${{ github.workspace }}/book/_build/html
@@ -12,7 +12,7 @@ jobs:
   # Since notebooks contain regular and sanity checks, this action not only
   # confirms that the book is building correctly, but also
   # * that notebooks are generating correct content and
-  # * that our "Jupyterbook test suite" passed.
+  # * that our "Jupyter book test suite" passed.
   build:
     strategy:
       matrix:
@@ -28,12 +28,12 @@ jobs:
     - name: Setup Python with tox
       shell: bash
       run: $CLONE_PATH/.github/workflows/install_tox.sh
-    - name: Build Jupyterbook
+    - name: Build Jupyter book
       run: |
         pushd $CLONE_PATH
         tox -r -e book
         popd
-    - name: Archive examples Jupyterbook 
+    - name: Archive examples Jupyter book 
       uses: actions/upload-pages-artifact@v3
       with:
         path: ${{ env.BOOK_HTML_BUILD}}

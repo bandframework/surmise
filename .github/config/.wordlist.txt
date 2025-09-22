@@ -106,6 +106,7 @@ unreferenced
 usp
 utah
 utilitiesmethods
+venv
 visualstudio
 whl
 wordpress
