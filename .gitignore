@@ -10,7 +10,7 @@ venv*/
 cov_*
 .cov_*
 .cache
-docs/_build
+book/_build
 docs/build_html
 docs/build_pdf
 x.log

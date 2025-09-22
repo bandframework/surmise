@@ -1,0 +1,113 @@
+################################################################################
+# Book settings
+title            : surmise
+author           : Matthew Plumlee and Özge Sürer and Stefan M. Wild and Moses Y-H. Chan
+copyright        : "2023"
+logo             : surmise-named-logo.png
+exclude_patterns : [_build, "**.ipynb_checkpoints"]
+
+# Add a bibtex file so that we can create citations
+bibtex_bibfiles:
+    - "./references.bib"
+
+################################################################################
+# Execution settings
+execute:
+  execute_notebooks : force
+  timeout           : -1
+
+################################################################################
+# Parse and render settings
+#
+# Match substitutions used here to those used in the Sphinx/RTD docs.
+parse:
+  myst_enable_extensions:
+    - dollarmath
+    - amsmath
+    - substitution
+  myst_substitutions:
+    ie:       "*i.e.,*"
+    eg:       "*e.g.,*"
+    via:      "*via*"
+    band:     "BAND"
+    surmise:  "surmise"
+
+################################################################################
+# HTML-specific settings
+html:
+  use_repository_button : true
+  use_edit_page_button  : true
+  use_issues_button     : true
+
+################################################################################
+# LaTeX-specific settings
+latex:
+  latex_documents:
+    targetname : surmise.tex
+
+################################################################################
+# Launch button settings
+repository:
+  url: https://github.com/bandframework/surmise
+  path_to_book: book # Optional path to your book, relative to the repository root
+  branch: main # Which branch of the repository should be used when creating links (optional)
+
+################################################################################
+# Advanced and power-user settings
+#
+# Match LaTeX macros used here to those used in the Sphinx/RTD docs.
+sphinx:
+  config:
+    bibtex_reference_style : label
+    bibtex_default_style   : 'alpha'
+    mathjax3_config:
+      tex:
+        macros:
+          "diag":       "\\mathrm{diag}"
+          "eye":        "\\mathcal{I}"  # Identity (e.g., for matrices)
+          "N":          "\\mathbb{N}"   # Natural numbers
+          "Z":          "\\mathbb{Z}"   # Integers
+          "Q":          "\\mathbb{Q}"   # Rational numbers
+          "R":          "\\mathbb{R}"   # Real numbers
+          "C":          "\\mathbb{C}"   # Complex numbers
+          "F":          "\\mathbb{F}"   # General field
+          "E":          "\\mathbb{E}"   # Expectation
+          "V":          "\\mathbb{V}"   # Variance
+          "vec":       ["{\\mathbf{#1}}", 1]
+          "avec":       "\\vec{a}"
+          "bvec":       "\\vec{b}"
+          "cvec":       "\\vec{c}"
+          "dvec":       "\\vec{d}"
+          "evec":       "\\vec{e}"
+          "fvec":       "\\vec{f}"
+          "gvec":       "\\vec{g}"
+          "hvec":       "\\vec{h}"
+          "ivec":       "\\vec{i}"
+          "jvec":       "\\vec{j}"
+          "kvec":       "\\vec{k}"
+          "lvec":       "\\vec{l}"
+          "mvec":       "\\vec{m}"
+          "nvec":       "\\vec{n}"
+          "ovec":       "\\vec{o}"
+          "pvec":       "\\vec{p}"
+          "qvec":       "\\vec{q}"
+          "rvec":       "\\vec{r}"
+          "svec":       "\\vec{s}"
+          "tvec":       "\\vec{t}"
+          "uvec":       "\\vec{u}"
+          "vvec":       "\\vec{v}"
+          "wvec":       "\\vec{w}"
+          "xvec":       "\\vec{x}"
+          "yvec":       "\\vec{y}"
+          "zvec":       "\\vec{z}"
+          "abs":       ["\\left\\lvert#1\\right\\rvert", 1]
+          "norm":      ["\\left\\lVert#1\\right\\rVert", 1]
+          "argmin":     "\\mathop{\\mathrm{arg\\,min}\\,}"
+          "Cov":       ["\\mathrm{Cov}\\left[#1\\right]", 1]
+          "Corr":      ["\\mathrm{Corr}\\left[#1\\right]", 1]
+          "iterate":   ["#1^{(#2)}", 2]
+          "np":         "n"  # Number of parameters / parameter space's dimension
+          "nd":         "d"  # Number of data points in dataset
+          "invar":      "\\xvec"     # Independent/input variables
+          "PS":         "\\Theta"    # Parameter space
+          "psp":        "\\boldsymbol{\\theta}"   # parameter-space point
