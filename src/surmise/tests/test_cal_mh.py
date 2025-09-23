@@ -4,6 +4,10 @@ import pytest
 from contextlib import contextmanager
 from surmise.emulation import emulator
 from surmise.calibration import calibrator
+
+SAMPLERS_IN_TEST = ['metropolis_hastings', 'PTLMC']  #, 'LMC']
+
+
 ##############################################
 #            Simple scenarios                #
 ##############################################
@@ -73,6 +77,7 @@ def balldroptrue(x):
         s = np.sign(x) * x
         p = np.exp(-2 * s)
         return s + np.log1p(p) - np.log(2)
+
     t = x[:, 0]
     h0 = x[:, 1]
     vter = 20
@@ -81,10 +86,9 @@ def balldroptrue(x):
     return y
 
 
-obsvar = 4*np.ones(x.shape[0])
+obsvar = 4 * np.ones(x.shape[0])
 y = balldroptrue(xv)
 emu_test = emulator(x=x, theta=theta_lin, f=f_lin, method='PCGP')
-
 
 # Additional examples
 y1 = y[0:3]
@@ -92,7 +96,7 @@ y1 = y[0:3]
 # setting obsvar
 obsvar1 = obsvar[0:10]
 obsvar2 = -obsvar
-obsvar3 = 10**(10)*obsvar
+obsvar3 = 10 ** (10) * obsvar
 
 # 2-d x (30 x 2), 2-d theta (50 x 2), f1 (15 x 50)
 f1 = f_lin[0:15, :]
@@ -151,110 +155,158 @@ class prior_lpdf2:
 
 
 # Some additional args
-args1 = {'theta0': np.array([[0, 9]]),
-         'numsamp': 50,
-         'stepType': 'normal',
-         'stepParam': [0.1, 1]}
-args2 = {'theta0': np.array([[0, 9]]),
-         'numsamp': 50,
-         'stepType': 'uniform',
-         'stepParam': [0.1, 1]}
-args3 = {'theta0': np.array([[0, 9]]),
-         'stepParam': [0.1, 1]}
-args4 = {'stepParam': [0.1, 1]}
-args5 = {'theta0': np.array([[0, 9]])}
+mh_args1 = {'theta0': np.array([[0, 9]]),
+            'numsamp': 50,
+            'stepType': 'normal',
+            'stepParam': [0.1, 1]}
+mh_args2 = {'theta0': np.array([[0, 9]]),
+            'numsamp': 50,
+            'stepType': 'uniform',
+            'stepParam': [0.1, 1]}
+mh_args3 = {'theta0': np.array([[0, 9]]),
+            'stepParam': [0.1, 1]}
+mh_args4 = {'stepParam': [0.1, 1]}
+mh_args5 = {'theta0': np.array([[0, 9]])}
 
+#
+ptlmc_args1 = {'theta0': np.array([[0, 9]]),
+               'numsamp': 50,
+               'numtemps': 8,
+               'sampperchain': 25}
+ptlmc_args2 = {'theta0': np.array([[0, 9]]),
+               'numsamp': 50,
+               'numchain': 8,
+               'maxtemp': 30}
+ptlmc_args3 = {'theta0': np.array([[0, 9]])}
+
+#
+lmc_args1 = {'theta0': np.array([[0, 9]]),
+             'numsamp': 50}
+
+args_dict = {'metropolis_hastings': [mh_args1, mh_args2, mh_args3, mh_args4, mh_args5],
+             'PTLMC': [ptlmc_args1, ptlmc_args2, ptlmc_args3],
+             'LMC': [lmc_args1]}
 
 ##############################################
 # Unit tests to initialize an emulator class #
 ##############################################
-
 
 @contextmanager
 def does_not_raise():
     yield
 
 
-@pytest.mark.parametrize(
-    "input1,input2,expectation",
-    [
-     (emu_test, args1, does_not_raise()),
-     (emu_test, args2, does_not_raise()),
-     (emu_test, args3, does_not_raise()),
-     (emu_test, args4, does_not_raise()),
-     (emu_test, args5, does_not_raise()),
-     ],
+@pytest.mark.parametrize('sampler', SAMPLERS_IN_TEST)
+class TestSampler:
+
+    @pytest.mark.parametrize(
+        "args", [mh_args1, mh_args2, mh_args3, mh_args4, mh_args5],
     )
-def test_cal_MLcal(input1, input2, expectation):
-    with expectation:
-        assert calibrator(emu=input1,
-                          y=y,
-                          x=x,
-                          thetaprior=priorphys_lin,
-                          method='directbayes',
-                          yvar=obsvar,
-                          args=input2) is not None
+    def test_cal_MLcal(self, sampler, args):
+        args_tmp = args.copy()
+        args_tmp['sampler'] = sampler
+        with does_not_raise():
+            assert calibrator(emu=emu_test,
+                              y=y,
+                              x=x,
+                              thetaprior=priorphys_lin,
+                              method='directbayes',
+                              yvar=obsvar,
+                              args=args_tmp) is not None
 
-
-@pytest.mark.parametrize(
-    "input1,input2,input3,input4,input5,expectation",
-    [
-     (emu_test, y, x, priorphys_lin, obsvar, does_not_raise()),
-     (emu_test, y, x1, priorphys_lin, obsvar, pytest.raises(ValueError)),
-     (emu_test, y, x, priorphys_lin, obsvar1, pytest.raises(ValueError)),
-     (emu_test, y, x, priorphys_lin, obsvar2, pytest.raises(ValueError)),
-     (emu_test, y, x, priorphys_lin, obsvar3, pytest.raises(ValueError)),
-     (emu_test, y, x, prior_rnd1, obsvar, pytest.raises(ValueError)),
-     (emu_test, y, x, prior_rnd2, obsvar, pytest.raises(ValueError)),
-     (emu_test, y, x, prior_lpdf1, obsvar, pytest.raises(ValueError)),
-     (emu_test, y, x, prior_lpdf2, obsvar, pytest.raises(ValueError)),
-     (emu_test, y, x, prior_example1, obsvar, pytest.raises(ValueError)),
-     (emu_test, y1, x, priorphys_lin, obsvar, pytest.raises(ValueError)),
-     (emu_test, None, x, priorphys_lin, obsvar, pytest.raises(ValueError)),
-     (None, y, x, priorphys_lin, obsvar, pytest.raises(ValueError)),
-     (emu_test, y, x, None, obsvar, pytest.raises(ValueError)),
-     ],
+    @pytest.mark.parametrize(
+        "input1,input2,input3,input4,input5,expectation",
+        [
+            (emu_test, y, x1, priorphys_lin, obsvar, pytest.raises(ValueError)),
+            (emu_test, y, x, priorphys_lin, obsvar1, pytest.raises(ValueError)),
+            (emu_test, y, x, priorphys_lin, obsvar2, pytest.raises(ValueError)),
+            (emu_test, y, x, priorphys_lin, obsvar3, pytest.raises(ValueError)),
+            (emu_test, y, x, prior_rnd1, obsvar, pytest.raises(ValueError)),
+            (emu_test, y, x, prior_rnd2, obsvar, pytest.raises(ValueError)),
+            (emu_test, y, x, prior_lpdf1, obsvar, pytest.raises(ValueError)),
+            (emu_test, y, x, prior_lpdf2, obsvar, pytest.raises(ValueError)),
+            (emu_test, y, x, prior_example1, obsvar, pytest.raises(ValueError)),
+            (emu_test, y1, x, priorphys_lin, obsvar, pytest.raises(ValueError)),
+            (emu_test, None, x, priorphys_lin, obsvar, pytest.raises(ValueError)),
+            (None, y, x, priorphys_lin, obsvar, pytest.raises(ValueError)),
+            (emu_test, y, x, None, obsvar, pytest.raises(ValueError)),
+        ],
     )
-def test_cal_emu(input1, input2, input3, input4, input5, expectation):
-    with expectation:
-        assert calibrator(emu=input1,
-                          y=input2,
-                          x=input3,
-                          thetaprior=input4,
-                          method='directbayes',
-                          yvar=input5,
-                          args=args1) is not None
+    def test_cal_emu_fails(self, sampler, input1, input2, input3, input4, input5, expectation):
+        if sampler == 'metropolis_hastings':
+            args1 = mh_args1
+        elif sampler == 'PTLMC':
+            args1 = ptlmc_args1
+        elif sampler == 'LMC':
+            args1 = lmc_args1
+        args_tmp = args1.copy()
+        with expectation:
+            args_tmp['sampler'] = sampler
+            assert calibrator(emu=input1,
+                              y=input2,
+                              x=input3,
+                              thetaprior=input4,
+                              method='directbayes',
+                              yvar=input5,
+                              args=args_tmp) is not None
 
-
-@pytest.mark.parametrize(
-    "input2,input3,input4,input5,input6,expectation",
-    [
-     (y, x, priorphys_lin, 'XXXX', obsvar, pytest.raises(ValueError)),
-     ],
+    @pytest.mark.parametrize(
+        "input1,input2,input3,input4,input5",
+        [
+            (emu_test, y, x, priorphys_lin, obsvar)
+        ]
     )
-def test_cal_method1(input2, input3, input4, input5, input6, expectation):
-    with expectation:
-        assert calibrator(emu=emu_test,
-                          y=input2,
-                          x=input3,
-                          thetaprior=input4,
-                          method=input5,
-                          yvar=input6) is not None
+    def test_cal_emu(self, sampler, input1, input2, input3, input4, input5):
+        # Does not mix failures and non-failures
+        if sampler == 'metropolis_hastings':
+            args1 = mh_args1
+        elif sampler == 'PTLMC':
+            args1 = ptlmc_args1
+        elif sampler == 'LMC':
+            args1 = lmc_args1
+        args_tmp = args1.copy()
+        with does_not_raise():
+            args_tmp['sampler'] = sampler
+            assert calibrator(emu=input1,
+                              y=input2,
+                              x=input3,
+                              thetaprior=input4,
+                              method='directbayes',
+                              yvar=input5,
+                              args=args_tmp) is not None
 
-
-@pytest.mark.parametrize(
-    "expectation",
-    [
-     (does_not_raise()),
-     ],
+    @pytest.mark.parametrize(
+        "input2,input3,input4,input5,input6,expectation",
+        [
+            (y, x, priorphys_lin, 'XXXX', obsvar, pytest.raises(ValueError)),
+        ],
     )
-def test_repr(expectation):
-    cal = calibrator(emu=emu_test,
-                     y=y,
-                     x=x,
-                     thetaprior=priorphys_lin,
-                     method='directbayes',
-                     yvar=obsvar,
-                     args=args1)
-    with expectation:
-        assert repr(cal) is not None
+    def test_cal_method1(self, sampler, input2, input3, input4, input5, input6, expectation):
+        with expectation:
+            assert calibrator(emu=emu_test,
+                              y=input2,
+                              x=input3,
+                              thetaprior=input4,
+                              method=input5,
+                              yvar=input6,
+                              args={'sampler': sampler}) is not None
+
+    def test_repr(self, sampler):
+        if sampler == 'metropolis_hastings':
+            args1 = mh_args1
+        elif sampler == 'PTLMC':
+            args1 = ptlmc_args1
+        elif sampler == 'LMC':
+            args1 = lmc_args1
+
+        args_tmp = args1.copy()
+        args_tmp['sampler'] = sampler
+        cal = calibrator(emu=emu_test,
+                         y=y,
+                         x=x,
+                         thetaprior=priorphys_lin,
+                         method='directbayes',
+                         yvar=obsvar,
+                         args=args_tmp)
+        with does_not_raise():
+            assert repr(cal) is not None
