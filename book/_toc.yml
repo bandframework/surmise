@@ -9,7 +9,9 @@ parts:
   - caption: Examples
     numbered: 2
     chapters:
+    # TODO: Remove the placeholder notebook
     - file: notebooks/Placeholder.ipynb
+    - file: notebooks/BallDrop.ipynb
   - caption: Reference
     chapters:
     - file: bibliography
