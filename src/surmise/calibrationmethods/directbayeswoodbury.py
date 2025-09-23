@@ -75,6 +75,7 @@ def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
         theta = thetaprior.rnd(10)
         emupredict = emu.predict(x, theta, args={'return_grad': True})
         emupredict.mean_gradtheta()
+
         emureturn_grad = True
     except Exception:
         emureturn_grad = False

@@ -108,17 +108,10 @@ def fit(fitinfo, emu, x, y, **bayes_args):
         name = bayes_args['sampler']
     else:
         name = 'unspecified'
-    if name == 'PTMC':
-        def log_lik(theta):
-            return loglik(fitinfo, emu, theta, y, x)
 
-        sampler_obj = sampler(logpostfull, thetaprior.rnd, log_likelihood=log_lik,
-                              log_prior=thetaprior.lpdf,
-                              **bayes_args)
-    else:
-        sampler_obj = sampler(logpost_func=logpostfull,
-                              draw_func=draw_func,
-                              **bayes_args)
+    sampler_obj = sampler(logpost_func=logpostfull,
+                          draw_func=draw_func,
+                          **bayes_args)
 
     theta = sampler_obj.sampler_info['theta']
 
