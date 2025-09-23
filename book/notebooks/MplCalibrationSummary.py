@@ -35,16 +35,16 @@ class MplCalibrationSummary(mfig.Figure):
     def linewidth(self, width_points):
         assert width_points > 0
         self.__linewidth = width_points
-    
+
     def draw_figure(self, parameter, samples_MC, samples_randomized, bins):
         assert self.fontsize > 0
         assert self.tick_fontsize > 0
         assert self.linewidth > 0
 
         assert len(samples_MC) == len(samples_randomized)
-        
+
         self.clear()
-        
+
         subp_1 = self.add_subplot(221)
         subp_1.set_title("MC Order", fontsize=self.fontsize)
         subp_1.plot(samples_MC, 'k-', linewidth=self.linewidth)

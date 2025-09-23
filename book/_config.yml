@@ -58,6 +58,7 @@ repository:
 # Match LaTeX macros used here to those used in the Sphinx/RTD docs.
 sphinx:
   config:
+    nb_execution_show_tb   : True
     bibtex_reference_style : label
     bibtex_default_style   : 'alpha'
     mathjax3_config:
