@@ -1,3 +1,5 @@
 [run]
-omit =
-    ./src/surmise/test.py
+omit = 
+    src/surmise/_version.py
+    src/surmise/test.py
+source = surmise
