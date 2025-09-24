@@ -64,49 +64,18 @@ sphinx:
     mathjax3_config:
       tex:
         macros:
-          "diag":       "\\mathrm{diag}"
-          "eye":        "\\mathcal{I}"  # Identity (e.g., for matrices)
           "N":          "\\mathbb{N}"   # Natural numbers
           "Z":          "\\mathbb{Z}"   # Integers
-          "Q":          "\\mathbb{Q}"   # Rational numbers
           "R":          "\\mathbb{R}"   # Real numbers
           "C":          "\\mathbb{C}"   # Complex numbers
-          "F":          "\\mathbb{F}"   # General field
           "E":          "\\mathbb{E}"   # Expectation
           "V":          "\\mathbb{V}"   # Variance
           "vec":       ["{\\mathbf{#1}}", 1]
-          "avec":       "\\vec{a}"
-          "bvec":       "\\vec{b}"
-          "cvec":       "\\vec{c}"
-          "dvec":       "\\vec{d}"
-          "evec":       "\\vec{e}"
-          "fvec":       "\\vec{f}"
-          "gvec":       "\\vec{g}"
-          "hvec":       "\\vec{h}"
-          "ivec":       "\\vec{i}"
-          "jvec":       "\\vec{j}"
-          "kvec":       "\\vec{k}"
-          "lvec":       "\\vec{l}"
-          "mvec":       "\\vec{m}"
-          "nvec":       "\\vec{n}"
-          "ovec":       "\\vec{o}"
-          "pvec":       "\\vec{p}"
-          "qvec":       "\\vec{q}"
-          "rvec":       "\\vec{r}"
-          "svec":       "\\vec{s}"
-          "tvec":       "\\vec{t}"
-          "uvec":       "\\vec{u}"
-          "vvec":       "\\vec{v}"
-          "wvec":       "\\vec{w}"
           "xvec":       "\\vec{x}"
-          "yvec":       "\\vec{y}"
-          "zvec":       "\\vec{z}"
           "abs":       ["\\left\\lvert#1\\right\\rvert", 1]
           "norm":      ["\\left\\lVert#1\\right\\rVert", 1]
-          "argmin":     "\\mathop{\\mathrm{arg\\,min}\\,}"
           "Cov":       ["\\mathrm{Cov}\\left[#1\\right]", 1]
           "Corr":      ["\\mathrm{Corr}\\left[#1\\right]", 1]
-          "iterate":   ["#1^{(#2)}", 2]
           "np":         "n"  # Number of parameters / parameter space's dimension
           "nd":         "d"  # Number of data points in dataset
           "invar":      "\\xvec"     # Independent/input variables
