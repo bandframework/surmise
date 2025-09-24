@@ -108,6 +108,7 @@ def fit(fitinfo, emu, x, y, **bayes_args):
         name = bayes_args['sampler']
     else:
         name = 'unspecified'
+    _ = name  # to satisfy flake8, can be removed when variable is used
 
     sampler_obj = sampler(logpost_func=logpostfull,
                           draw_func=draw_func,

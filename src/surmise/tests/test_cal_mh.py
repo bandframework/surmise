@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from surmise.emulation import emulator
 from surmise.calibration import calibrator
 
-SAMPLERS_IN_TEST = ['metropolis_hastings', 'PTLMC'] #, 'LMC']
+SAMPLERS_IN_TEST = ['metropolis_hastings', 'PTLMC']  # , 'LMC']
 
 
 ##############################################
@@ -190,6 +190,7 @@ args_dict = {'metropolis_hastings': [mh_args1, mh_args2, mh_args3, mh_args4, mh_
 ##############################################
 # Unit tests to initialize an emulator class #
 ##############################################
+
 
 @contextmanager
 def does_not_raise():
