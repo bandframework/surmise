@@ -13,6 +13,7 @@ Gramacy
 Jupyter
 Kriging
 LHS
+LaTeX
 Loeppky
 MCMC
 MPI
@@ -37,6 +38,7 @@ Setuptools
 Sürer
 TBC
 TBD
+TODO
 VAH
 aMWOoGvY
 attr
@@ -75,6 +77,7 @@ mlbayeswoodbury
 moses
 mosesyhc
 mplumlee
+myst
 namespace
 nan
 numpy
