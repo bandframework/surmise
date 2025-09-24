@@ -20,6 +20,9 @@ execute:
 # Parse and render settings
 #
 # Match substitutions used here to those used in the Sphinx/RTD docs.
+#
+# All changes to Myst substitutions should be be made in the sphinx_macros.json
+# Sphinx configuration file as well.
 parse:
   myst_enable_extensions:
     - dollarmath
@@ -55,7 +58,10 @@ repository:
 ################################################################################
 # Advanced and power-user settings
 #
-# Match LaTeX macros used here to those used in the Sphinx/RTD docs.
+# Match LaTeX macros used here to those used in the Sphinx/RTD configuration
+# files
+# * latex_macros_base.json
+# * latex_macros_notation.json
 sphinx:
   config:
     nb_execution_show_tb   : True
@@ -74,8 +80,6 @@ sphinx:
           "xvec":       "\\vec{x}"
           "abs":       ["\\left\\lvert#1\\right\\rvert", 1]
           "norm":      ["\\left\\lVert#1\\right\\rVert", 1]
-          "Cov":       ["\\mathrm{Cov}\\left[#1\\right]", 1]
-          "Corr":      ["\\mathrm{Corr}\\left[#1\\right]", 1]
           "np":         "n"  # Number of parameters / parameter space's dimension
           "nd":         "d"  # Number of data points in dataset
           "invar":      "\\xvec"     # Independent/input variables
