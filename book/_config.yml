@@ -53,7 +53,12 @@ latex:
 repository:
   url: https://github.com/bandframework/surmise
   path_to_book: book # Optional path to your book, relative to the repository root
-  branch: main # Which branch of the repository should be used when creating links (optional)
+#  branch: main # Which branch of the repository should be used when creating links (optional)
+  branch: 170Jupterbook  # Which branch of the repository should be used when creating links (optional)
+
+launch_buttons:
+  notebook_interface: "classic"
+  binderhub_url: "https://mybinder.org"
 
 ################################################################################
 # Advanced and power-user settings
