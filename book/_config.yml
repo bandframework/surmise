@@ -60,7 +60,9 @@ repository:
 launch_buttons:
   notebook_interface : "classic"
   binderhub_url      : "https://mybinder.org"
-  colab_url          : "https://colab.research.google.com"
+# Google colab appears to require extra cells to install surmise and get a clone
+# that contains local files used by notebooks.  Skip this for now at least.
+#  colab_url          : "https://colab.research.google.com"
 
 ################################################################################
 # Advanced and power-user settings
