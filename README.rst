@@ -8,6 +8,8 @@
    :target: https://surmise.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
 
+.. image:: [![Jupyter Book Badge](https://jupyterbook.org/badge.svg)](https://bandframework.github.io/surmise)
+
 .. image:: https://github.com/bandframework/surmise/actions/workflows/python-installation.yml/badge.svg
     :target: https://github.com/bandframework/surmise/actions/workflows/python-installation.yml
 
@@ -77,7 +79,11 @@ information related to any failures otherwise.
 Documentation
 ~~~~~~~~~~~~~
 
-The documentation is stored in ``docs/`` and is hosted at `Read the Docs <http://surmise.readthedocs.io>`_.
+The user and developer guides are stored in ``docs/`` and are hosted at `Read the Docs <http://surmise.readthedocs.io>`_.
+
+Examples are stored in ``book/`` and are hosted online as a `Jupyter book <https://bandframework.github.io/surmise>`_.
+In addition, for a gentle introduction of emulation and calibration using
+Gaussian processes, visit `surmise Jupyter notebook`_.
 
 Users and developers that would like to generate the documentation locally are
 encouraged to use ``tox``, which automatically creates a dedicated,
@@ -101,14 +107,6 @@ it to generate documentation.
      url         = {https://surmise.readthedocs.io}
    }
 
-Examples
-~~~~~~~~
-
-We provide examples in the ``examples/`` directory to illustrate the basic usage
-of surmise.
-
-In addition, for a gentle introduction of emulation and calibration using Gaussian processes, visit
-`surmise Jupyter notebook`_.
 
 .. _NumPy: http://www.numpy.org
 .. _pytest: https://pypi.org/project/pytest/
