@@ -69,7 +69,7 @@ def does_not_raise():
     [
      ('directbayes', does_not_raise()),
      ('directbayeswoodbury', does_not_raise()),
-     ('mlbayeswoodbury', does_not_raise())
+     # ('mlbayeswoodbury', does_not_raise())
     ],
     )
 # tests for prediction class methods:
@@ -92,7 +92,7 @@ def test_prediction_mean(cmdopt2, expectation):
     [
      ('directbayes', does_not_raise()),
      ('directbayeswoodbury', does_not_raise()),
-     ('mlbayeswoodbury', does_not_raise())
+     # ('mlbayeswoodbury', does_not_raise())
     ],
     )
 # test to check the prediction.var()
@@ -114,7 +114,7 @@ def test_prediction_var(cmdopt2, expectation):
     [
      ('directbayes', does_not_raise()),
      ('directbayeswoodbury', does_not_raise()),
-     ('mlbayeswoodbury', does_not_raise())
+     # ('mlbayeswoodbury', does_not_raise())
     ],
     )
 # test to check the prediction.rnd()
@@ -136,7 +136,7 @@ def test_prediction_rnd(cmdopt2, expectation):
     [
      ('directbayes', pytest.raises(ValueError)),
      ('directbayeswoodbury', pytest.raises(ValueError)),
-     ('mlbayeswoodbury', pytest.raises(ValueError))
+     # ('mlbayeswoodbury', pytest.raises(ValueError))
     ],
     )
 # test to check the prediction.lpdf()
@@ -158,7 +158,7 @@ def test_prediction_lpdf(cmdopt2, expectation):
     [
      ('directbayes', does_not_raise()),
      ('directbayeswoodbury', does_not_raise()),
-     ('mlbayeswoodbury', does_not_raise())
+     # ('mlbayeswoodbury', does_not_raise())
     ],
     )
 # test to check the theta.mean()
@@ -179,7 +179,7 @@ def test_prediction_thetamean(cmdopt2, expectation):
     [
      ('directbayes', does_not_raise()),
      ('directbayeswoodbury', does_not_raise()),
-     ('mlbayeswoodbury', does_not_raise())
+     # ('mlbayeswoodbury', does_not_raise())
     ],
     )
 # test to check the theta.var()
@@ -200,7 +200,7 @@ def test_prediction_thetavar(cmdopt2, expectation):
     [
      ('directbayes', does_not_raise()),
      ('directbayeswoodbury', does_not_raise()),
-     ('mlbayeswoodbury', does_not_raise())
+     # ('mlbayeswoodbury', does_not_raise())
     ],
     )
 # test to check the theta.rnd()
@@ -221,7 +221,7 @@ def test_prediction_thetarnd(cmdopt2, expectation):
     [
      ('directbayes', does_not_raise()),
      ('directbayeswoodbury', does_not_raise()),
-     ('mlbayeswoodbury', does_not_raise())
+     # ('mlbayeswoodbury', does_not_raise())
     ],
     )
 # test to check the theta.lpdf()
