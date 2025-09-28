@@ -1,10 +1,24 @@
 # Introduction
 
-__TODO__: Moses to write the intro and populate bibliography with real
-sources if necessary.  Moses to review and improve myst substitutions and LaTeX
-macros for his notation, needs, and taste.
+This collection of notebooks aims to provide the basic yet practical 
+usage of {{surmise}} in constructing statistical emulators and conducting 
+Bayesian calibration.  In a nutshell, Bayesian calibration refers to the task
+of learning unknown parameters of a simulation model through estimating the 
+posterior distribution of the parameters.  When a simulation model is computationally
+expensive, emulators serve as fast approximations that are constructed based on 
+simulation outputs. 
 
-I would like to cite something {cite}`Demmel1997`.
+Readers may use these notebooks for several purposes.
+First and foremost, the notebooks are examples for learning the functionalities 
+offered in {{surmise}}.  Second, the notebooks are case studies of general topics 
+in Bayesian calibration, for which each notebook introduces the context and topics
+it covers.
+
+For an in-depth introduction of Bayesian calibration, readers may refer to 
+{cite:t}`kennedy2001bayesian`.  For exploring the basics of Gaussian process 
+emulators, which form the foundation of many available emulators in {{surmise}}, 
+readers are directed to {cite:t}`santner2003design, williams2006gaussian, gramacy2020surrogates`.
+
 
 ## Documentation
 The full documentation including the programmatic interface of the package is
