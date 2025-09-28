@@ -74,7 +74,7 @@ launch_buttons:
 sphinx:
   config:
     nb_execution_show_tb   : True
-    bibtex_reference_style : label
+    bibtex_reference_style : author_year
     bibtex_default_style   : 'alpha'
     mathjax3_config:
       tex:
