@@ -45,6 +45,7 @@ attr
 autofunction
 automodule
 bandframework
+bayesian
 buildable
 calibrationmethods
 chan
@@ -62,6 +63,7 @@ emulationmethods
 exascaleproject
 gKTCLEAGE
 germain
+gh
 github
 githubusercontent
 hastings
@@ -70,6 +72,8 @@ http
 https
 inferece
 io
+ipynb
+jupyter
 lbl
 miamioh
 microsoft
@@ -80,6 +84,8 @@ mplumlee
 myst
 namespace
 nan
+nb
+nbviewer
 numpy
 ozgesurer
 pdf
@@ -109,6 +115,7 @@ unreferenced
 usp
 utah
 utilitiesmethods
+vah
 venv
 visualstudio
 whl
