@@ -14,21 +14,22 @@ Examples linked below require `matplotlib` as an additional plotting package to 
 
     $ pip install matplotlib
 
-Example 1 (Emulation of falling ball example)
-##################################################
+Example 1 (A falling ball example with two physics models)
+##########################################################
 
-To illustrate how the ``surmise``'s  ``emulator`` object works in practice, we
-use the falling ball example.
+The falling ball example illustrates the usage of both ``emulator`` and
+``calibrator`` in conducting the calibration of two possible models in
+describing the falling ball mechanics.
 
-`Link to Example 1 <https://nbviewer.jupyter.org/github/bandframework/surmise/blob/main/examples/Example1/Example1_nb.ipynb>`_.
+`Link to falling ball example`_
 
-Example 2 (Calibration of falling ball example)
-##################################################
+Example 2 (Emulation of nuclear physics simulation)
+###################################################
 
-To illustrate how the ``surmise``'s  ``calibrator`` object works in practice, we
-use Example 1's falling ball example.
+This example illustrates the usage of Principal Component Stochastic Kriging model (PCSK) on simulation data from a
+Viscous Anisotropic Hydrodynamic model via ``surmise``'s ``emulator`` object.
 
-`Link to Example 2 <https://nbviewer.jupyter.org/github/bandframework/surmise/blob/main/examples/Example2/Example2_nb.ipynb>`_.
+`Link to VAH model emulation`_
 
 Example 3 (Acceleration due to gravity)
 ##################################################
@@ -37,7 +38,7 @@ This example is discussed in Chapter 8 in `Gramacy, 2020 <https://bookdown.org/r
 
 It demonstrates how to use ``surmise``'s  ``emulator`` and  ``calibrator`` objects.
 
-`Link to Example 3 <https://nbviewer.jupyter.org/github/bandframework/surmise/blob/main/examples/Example3/Example3_nb.ipynb>`_.
+`Link to gravity example`_
 
 Example 4 (Emulation and calibration of epidemic model)
 #######################################################
@@ -47,14 +48,11 @@ Recovered (SIR) type epidemic model via ``surmise``'s  ``emulator`` and ``calibr
 
 Although there are many model parameters, we estimated most of them based on the epidemiological studies of COVID-19, and infer only 10 influential parameters in this example.
 
-`Link to Example 4 <https://nbviewer.jupyter.org/github/bandframework/surmise/blob/main/examples/Example4/Example4_nb.ipynb>`_.
+`Link to epidemic model calibration`_
 
-Example 5 (Emulation of nuclear physics simulation)
-###################################################
-
-This example illustrates the usage of Principal Component Stochastic Kriging model (PCSK) on simulation data from a
-Viscous Anisotropic Hydrodynamic model via ``surmise``'s ``emulator`` object.
-
-`Link to Example 5 <https://nbviewer.org/github/bandframework/surmise/blob/main/examples/bayesian_vah/emulation_and_calibration/emulator_validation.ipynb>`_.
 
 .. _`surmise Jupyter notebook`: https://colab.research.google.com/drive/1f4gKTCLEAGE8r-aMWOoGvY-O6zNqg1qj?usp=drive_link
+.. _`Link to falling ball example`: https://to_be_updated_to_gh_page
+.. _`Link to gravity example`: https://nbviewer.jupyter.org/github/bandframework/surmise/blob/main/examples/Example3/Example3_nb.ipynb
+.. _`Link to VAH model emulation`: https://nbviewer.org/github/bandframework/surmise/blob/main/examples/bayesian_vah/emulation_and_calibration/emulator_validation.ipynb
+.. _`Link to epidemic model calibration`: https://nbviewer.jupyter.org/github/bandframework/surmise/blob/main/examples/Example4/Example4_nb.ipynb
