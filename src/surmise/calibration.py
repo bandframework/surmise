@@ -98,6 +98,27 @@ class calibrator(object):
         None.
 
         '''
+        # Calibrators that could be loaded, but that are research-grade only and
+        # should not be offered through the public interface.
+        #
+        # TODO: This should be removed as part of refactoring the calibrator
+        # portion of the public interface.
+        RESEARCH_CALS = ["mlbayeswoodbury", "simulationpost"]
+        if method.lower() in RESEARCH_CALS:
+            if ("expertMode" not in args.keys()) or (not args["expertMode"]):
+                msg = "{} is included for unofficial research purposes only"
+                raise ValueError(msg.format(method))
+            else:
+                # With the current implementation, expertMode=True could be
+                # added to the calibration arguments with the intent of using a
+                # research-grade calibrator but unintentionally allowing the use
+                # of a research-grade sampler (or vice versa).  Refactorings
+                # will hopefully avoid this ambiguity.
+                #
+                # Emit warning to extend a helping hand to the experts.
+                msg = f"Using unofficial research {method} calibrator"
+                warnings.warn(msg)
+
         # cast to numpy.float64, currently only for theta and f.
         if y is not None:
             y = cast_f64_dtype(y)

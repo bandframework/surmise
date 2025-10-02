@@ -1,3 +1,4 @@
+import warnings
 import importlib
 
 
@@ -59,6 +60,29 @@ class sampler(object):
         None.
 
         '''
+        # Samplers that could be loaded, but that are research-grade only and
+        # should not be offered through the public interface.
+        #
+        # TODO: This should be removed as part of refactoring the sampler
+        # portion of the public interface (Issue #159).
+        KEY = "expertMode"
+        RESEARCH_SAMPLERS = ["lmc"]
+
+        if sampler.lower() in RESEARCH_SAMPLERS:
+            if (KEY not in self.options) or (not self.options[KEY]):
+                msg = "{} is included for unofficial research purposes only"
+                raise ValueError(msg.format(sampler))
+            else:
+                # With the current implementation, expertMode=True could be
+                # added to the calibration arguments with the intent of using a
+                # research-grade calibrator but unintentionally allowing the use
+                # of a research-grade sampler (or vice versa).  The refactoring
+                # will hopefully avoid this ambiguity.
+                #
+                # Emit warning to extend a helping hand to the experts.
+                msg = f"Using unofficial research {sampler} sampler"
+                warnings.warn(msg)
+
         self.method = importlib.import_module('surmise.utilitiesmethods.'
                                               + sampler)
 
