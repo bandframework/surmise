@@ -46,7 +46,6 @@ attr
 autofunction
 automodule
 bandframework
-bayesian
 buildable
 calibrationmethods
 chan
