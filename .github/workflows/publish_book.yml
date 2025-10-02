@@ -6,11 +6,8 @@ on:
   # TODO: Should this publish for every commit on main or only on release events
   # on main?  If only release events, then the test_book action should also be
   # run on pushes to main that aren't release events.
-  # TODO: Running on PR for now to setup publishing to GH page.
   push:
     branches: main 
-  pull_request:
-    branches: main
 
 jobs:
   build:
