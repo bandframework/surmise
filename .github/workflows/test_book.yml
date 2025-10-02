@@ -1,4 +1,4 @@
-name: Use Jupyter book build as test suite
+name: Jupyter book build as test suite
 env:
   CLONE_PATH:      ${{ github.workspace }}
   BOOK_HTML_BUILD: ${{ github.workspace }}/book/_build/html

@@ -53,7 +53,7 @@ class MplCalibrationSummary(mfig.Figure):
         subp_1.tick_params(axis="both", labelsize=self.tick_fontsize)
         subp_1.grid(True)
 
-        subp = self.add_subplot(222, sharey=subp_1)
+        subp = self.add_subplot(222, sharex=subp_1, sharey=subp_1)
         subp.set_title("Randomized Order", fontsize=self.fontsize)
         subp.plot(samples_randomized, 'k-', linewidth=self.linewidth)
         subp.set_xlabel("Calibration Sample", fontsize=self.fontsize)

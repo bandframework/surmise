@@ -2,13 +2,10 @@ Usage Examples
 ==============
 
 The Python scripts and the corresponding notebooks of the examples are located in
-``\examples`` directory.  In addition, a full emulation and calibration example with
-Gaussian process models can be found at `surmise Jupyter notebook`_.
+``\examples`` directory.  In addition, for a gentle introduction to emulation and calibration using
+Gaussian processes, visit `surmise Jupyter notebook`_.
 
-In addition, for a gentle introduction of emulation and calibration using Gaussian processes, visit
-`surmise Jupyter notebook`_.
-
-Examples linked below require `matplotlib` as an additional plotting package to visualize results, which can be installed via
+Examples linked below require ``matplotlib`` as an additional plotting package to visualize results, which can be installed via
 
 .. code-block:: console
 

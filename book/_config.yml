@@ -19,8 +19,6 @@ execute:
 ################################################################################
 # Parse and render settings
 #
-# Match substitutions used here to those used in the Sphinx/RTD docs.
-#
 # All changes to Myst substitutions should be be made in the sphinx_macros.json
 # Sphinx configuration file as well.
 parse:
@@ -51,9 +49,9 @@ latex:
 ################################################################################
 # Launch button settings
 repository:
-  url: https://github.com/bandframework/surmise
-  path_to_book: book # Optional path to your book, relative to the repository root
-  branch: main # Which branch of the repository should be used when creating links (optional)
+  url          : https://github.com/bandframework/surmise
+  path_to_book : book
+  branch       : main
 
 launch_buttons:
   notebook_interface : "classic"
