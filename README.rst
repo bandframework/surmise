@@ -4,17 +4,26 @@
 .. image:: https://badge.fury.io/py/surmise.svg
     :target: https://badge.fury.io/py/surmise
 
-.. image:: https://readthedocs.org/projects/surmise/badge/?version=latest
-   :target: https://surmise.readthedocs.io/en/latest/?badge=latest
-   :alt: Documentation Status
-
-.. image:: [![Jupyter Book Badge](https://jupyterbook.org/badge.svg)](https://bandframework.github.io/surmise)
-
 .. image:: https://github.com/bandframework/surmise/actions/workflows/python-installation.yml/badge.svg
     :target: https://github.com/bandframework/surmise/actions/workflows/python-installation.yml
 
 .. image:: https://coveralls.io/repos/github/bandframework/surmise/badge.svg
     :target: https://coveralls.io/github/bandframework/surmise
+
+.. image:: https://github.com/bandframework/surmise/actions/workflows/test_book.yml/badge.svg?branch=main
+    :target: https://github.com/bandframework/surmise/actions/workflows/test_book.yml
+
+|
+
+.. image:: https://readthedocs.org/projects/surmise/badge/?version=latest
+   :target: https://surmise.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
+
+.. image:: https://github.com/bandframework/surmise/actions/workflows/publish_book.yml/badge.svg?branch=main
+    :target: https://github.com/bandframework/surmise/actions/workflows/publish_book.yml
+
+.. image:: https://jupyterbook.org/badge.svg
+    :target: https://bandframework.github.io/surmise
 
 |
 
