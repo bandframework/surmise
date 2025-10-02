@@ -52,7 +52,7 @@ Although there are many model parameters, we estimated most of them based on the
 
 
 .. _`surmise Jupyter notebook`: https://colab.research.google.com/drive/1f4gKTCLEAGE8r-aMWOoGvY-O6zNqg1qj?usp=drive_link
-.. _`Link to falling ball example`: https://to_be_updated_to_gh_page
+.. _`Link to falling ball example`: https://bandframework.github.io/surmise/notebooks/BallDrop.html
 .. _`Link to gravity example`: https://nbviewer.jupyter.org/github/bandframework/surmise/blob/main/examples/Example3/Example3_nb.ipynb
 .. _`Link to VAH model emulation`: https://nbviewer.org/github/bandframework/surmise/blob/main/examples/bayesian_vah/emulation_and_calibration/emulator_validation.ipynb
 .. _`Link to epidemic model calibration`: https://nbviewer.jupyter.org/github/bandframework/surmise/blob/main/examples/Example4/Example4_nb.ipynb

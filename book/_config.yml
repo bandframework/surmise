@@ -53,9 +53,7 @@ latex:
 repository:
   url: https://github.com/bandframework/surmise
   path_to_book: book # Optional path to your book, relative to the repository root
-  # TODO: Revert this to main once this branch is ready for merging into main.
-#  branch: main # Which branch of the repository should be used when creating links (optional)
-  branch: 170Jupterbook  # Which branch of the repository should be used when creating links (optional)
+  branch: main # Which branch of the repository should be used when creating links (optional)
 
 launch_buttons:
   notebook_interface : "classic"
