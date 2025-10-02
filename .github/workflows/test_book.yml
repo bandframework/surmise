@@ -1,0 +1,39 @@
+name: Jupyter book build as test suite
+env:
+  CLONE_PATH:      ${{ github.workspace }}
+  BOOK_HTML_BUILD: ${{ github.workspace }}/book/_build/html
+on:
+  # Only execute on PRs into main under the assumption that the publish_book
+  # action builds the book and publishes it on pushes to main.
+  pull_request:
+    branches: main
+
+jobs:
+  # Since notebooks contain regular and sanity checks, this action not only
+  # confirms that the book is building correctly, but also
+  # * that notebooks are generating correct content and
+  # * that our "Jupyter book test suite" passed.
+  build:
+    strategy:
+      matrix:
+        os:             [ubuntu-latest]
+        python-version: ["3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version}}
+    - name: Setup Python with tox
+      shell: bash
+      run: $CLONE_PATH/.github/workflows/install_tox.sh
+    - name: Build Jupyter book
+      run: |
+        pushd $CLONE_PATH
+        tox -r -e book
+        popd
+    - name: Archive examples Jupyter book 
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ${{ env.BOOK_HTML_BUILD}}

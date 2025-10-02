@@ -1,0 +1,9 @@
+{
+    "ie":          "*i.e.,*",
+    "eg":          "*e.g.,*",
+    "via":         "*via*",
+    "band":        "BAND",
+    "surmise":     "surmise",
+    "pip":         "``pip``",
+    "tox":         "``tox``"
+}

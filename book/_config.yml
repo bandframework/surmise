@@ -1,0 +1,92 @@
+################################################################################
+# Book settings
+title            : surmise
+author           : Matthew Plumlee and Özge Sürer and Stefan M. Wild and Moses Y-H. Chan
+copyright        : "2023"
+logo             : surmise-named-logo.png
+exclude_patterns : [_build, "**.ipynb_checkpoints"]
+
+# Add a bibtex file so that we can create citations
+bibtex_bibfiles:
+    - "./references.bib"
+
+################################################################################
+# Execution settings
+execute:
+  execute_notebooks : force
+  timeout           : -1
+
+################################################################################
+# Parse and render settings
+#
+# All changes to Myst substitutions should be be made in the sphinx_macros.json
+# Sphinx configuration file as well.
+parse:
+  myst_enable_extensions:
+    - dollarmath
+    - amsmath
+    - substitution
+  myst_substitutions:
+    ie:       "*i.e.,*"
+    eg:       "*e.g.,*"
+    via:      "*via*"
+    band:     "BAND"
+    surmise:  "surmise"
+
+################################################################################
+# HTML-specific settings
+html:
+  use_repository_button : true
+  use_edit_page_button  : true
+  use_issues_button     : true
+
+################################################################################
+# LaTeX-specific settings
+latex:
+  latex_documents:
+    targetname : surmise.tex
+
+################################################################################
+# Launch button settings
+repository:
+  url          : https://github.com/bandframework/surmise
+  path_to_book : book
+  branch       : main
+
+launch_buttons:
+  notebook_interface : "classic"
+  binderhub_url      : "https://mybinder.org"
+# Google colab appears to require extra cells to install surmise and get a clone
+# that contains local files used by notebooks.  Skip this for now at least.
+#  colab_url          : "https://colab.research.google.com"
+
+################################################################################
+# Advanced and power-user settings
+#
+# Match LaTeX macros used here to those used in the Sphinx/RTD configuration
+# files
+# * latex_macros_base.json
+# * latex_macros_notation.json
+sphinx:
+  config:
+    nb_execution_show_tb   : True
+    bibtex_reference_style : author_year
+    bibtex_default_style   : 'alpha'
+    mathjax3_config:
+      tex:
+        macros:
+          "N":          "\\mathbb{N}"   # Natural numbers
+          "Z":          "\\mathbb{Z}"   # Integers
+          "R":          "\\mathbb{R}"   # Real numbers
+          "C":          "\\mathbb{C}"   # Complex numbers
+          "E":          "\\mathbb{E}"   # Expectation
+          "V":          "\\mathbb{V}"   # Variance
+          "vec":       ["{\\mathbf{#1}}", 1]
+          "xvec":       "\\vec{x}"
+          "abs":       ["\\left\\lvert#1\\right\\rvert", 1]
+          "norm":      ["\\left\\lVert#1\\right\\rVert", 1]
+          "np":         "n"  # Number of parameters / parameter space's dimension
+          "nd":         "d"  # Number of data points in dataset
+          "invar":      "\\xvec"     # Independent/input variables
+          "PS":         "\\Theta"    # Parameter space
+          "psp":        "\\boldsymbol{\\theta}"   # parameter-space point
