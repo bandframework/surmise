@@ -10,9 +10,6 @@
 .. image:: https://coveralls.io/repos/github/bandframework/surmise/badge.svg
     :target: https://coveralls.io/github/bandframework/surmise
 
-.. image:: https://github.com/bandframework/surmise/actions/workflows/test_book.yml/badge.svg?branch=main
-    :target: https://github.com/bandframework/surmise/actions/workflows/test_book.yml
-
 |
 
 .. image:: https://readthedocs.org/projects/surmise/badge/?version=latest
