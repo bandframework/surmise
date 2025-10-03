@@ -1,0 +1,7 @@
+{
+    "style":         "ggplot",
+    "fontsize":      12,
+    "tick_fontsize": 10,
+    "linewidth":      2.0,
+    "markersize":     5
+}

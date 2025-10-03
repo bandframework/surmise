@@ -1,6 +1,7 @@
 ANL
 Anisotropic
 Autoconf
+BallDrop
 Bestwalter
 Bingham
 CHANGELOG
@@ -13,6 +14,7 @@ Gramacy
 Jupyter
 Kriging
 LHS
+LaTeX
 Loeppky
 MCMC
 MPI
@@ -37,12 +39,14 @@ Setuptools
 Sürer
 TBC
 TBD
+TODO
 VAH
 aMWOoGvY
 attr
 autofunction
 automodule
 bandframework
+bayesian
 buildable
 calibrationmethods
 chan
@@ -60,6 +64,7 @@ emulationmethods
 exascaleproject
 gKTCLEAGE
 germain
+gh
 github
 githubusercontent
 hastings
@@ -68,6 +73,8 @@ http
 https
 inferece
 io
+ipynb
+jupyter
 lbl
 miamioh
 microsoft
@@ -75,8 +82,11 @@ mlbayeswoodbury
 moses
 mosesyhc
 mplumlee
+myst
 namespace
 nan
+nb
+nbviewer
 numpy
 ozgesurer
 pdf
@@ -106,11 +116,14 @@ unreferenced
 usp
 utah
 utilitiesmethods
+vah
+venv
 visualstudio
 whl
 wordpress
 wp
 www
 youtube
+yml
 zNqg
 Özge

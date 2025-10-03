@@ -1,0 +1,9 @@
+{
+    "newcommand": {
+        "np":         "n",
+        "nd":         "d",
+        "invar":      "\\xvec",
+        "PS":         "\\Theta",
+        "psp":        "\\boldsymbol{\\theta}"
+    }
+}

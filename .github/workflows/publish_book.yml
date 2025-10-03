@@ -1,0 +1,47 @@
+name: Build & publish Jupyter book
+env:
+  CLONE_PATH:      ${{ github.workspace }}
+  BOOK_HTML_BUILD: ${{ github.workspace }}/book/_build/html
+on:
+  # TODO: Should this publish for every commit on main or only on release events
+  # on main?  If only release events, then the test_book action should also be
+  # run on pushes to main that aren't release events.
+  push:
+    branches: main 
+
+jobs:
+  build:
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages:    write # to deploy to Pages
+      id-token: write # to verify the deployment originates from an appropriate source
+    # Deploy to github-pages environment
+    environment:
+      name: github-pages
+      url:  ${{ steps.deployment.outputs.page_url }}
+    strategy:
+      matrix:
+        os:             [ubuntu-latest]
+        python-version: ["3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version}}
+    - name: Setup Python with tox
+      shell: bash
+      run: $CLONE_PATH/.github/workflows/install_tox.sh
+    - name: Build Jupyter book
+      run: |
+        pushd $CLONE_PATH
+        tox -r -e book
+        popd
+    - name: Archive examples Jupyter book 
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ${{ env.BOOK_HTML_BUILD}}
+    - name: Publish Jupyter book to surmise's GH page
+      id:   deployment
+      uses: actions/deploy-pages@v4
