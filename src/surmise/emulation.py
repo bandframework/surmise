@@ -77,6 +77,21 @@ class emulator(object):
         None.
 
         '''
+        # Emulators that could be loaded but that are research-grade only and
+        # should not be offered through the public interface.
+        #
+        # TODO: This should be removed as part of refactoring the emulator
+        # portion of the public interface.
+        RESEARCH_EMUS = ["pcgpr"]
+        if method.lower() in RESEARCH_EMUS:
+            if ("expertMode" not in args.keys()) or (not args["expertMode"]):
+                msg = "{} is included for unofficial research purposes only"
+                raise ValueError(msg.format(method))
+            else:
+                # Emit warning to extend a helping hand to the experts.
+                msg = f"Using unofficial research {method} emulator"
+                warnings.warn(msg)
+
         # cast to numpy.float64, currently only for theta and f.
         if theta is not None:
             theta = cast_f64_dtype(theta)
