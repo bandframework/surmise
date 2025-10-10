@@ -51,8 +51,8 @@ file for your preferred platform is not listed, then surmise has to be built
 from source.  There is C code in the package that will be compiled for your
 setup by `setuptools`_ during this process.  Therefore, a valid C compiler must
 be installed beforehand.  In such cases, the installation should be built
-automatically from the source distribution in PyPI when installed via pip
-(**TBC**).  For those who prefer to work from a clone, please execute an
+automatically from the source distribution in PyPI when installed via pip.
+For those who prefer to work from a clone, please execute an
 appropriate version of::
 
  git clone https://github.com/bandframework/surmise/
@@ -70,7 +70,7 @@ appropriate version of::
 Testing
 ~~~~~~~
 
-An automated test suite is integrated into the package so that users can
+An automated test suite [1]_ is integrated into the package so that users can
 directly test their installation by executing::
 
  $ python
@@ -123,3 +123,7 @@ it to generate documentation.
 .. _PyPI-wheel: https://pypi.org/project/surmise/#files
 .. _scikit-learn: https://scikit-learn.org/stable/install.html
 .. _dill: https://dill.readthedocs.io
+.. [1] There are multiple methods in surmise that are not thoroughly tested via the test suite.
+       These methods are either under development, or no longer maintained.  The methods
+       are offered for use via an expert user mode, but the associated code files are measured
+       with 0% coverage.
