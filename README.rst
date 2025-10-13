@@ -104,12 +104,12 @@ it to generate documentation.
 
 .. code-block:: bibtex
 
-   @techreport{surmise2024,
+   @techreport{surmise2025,
      author      = {Matthew Plumlee and \"Ozge S\"urer and Stefan M. Wild and Moses Y-H. Chan},
-     title       = {{surmise 0.3.0} Users Manual},
+     title       = {{surmise 0.4.0} Users Manual},
      institution = {NAISE},
-     number      = {Version 0.3.0},
-     year        = {2024},
+     number      = {Version 0.4.0},
+     year        = {2025},
      url         = {https://surmise.readthedocs.io}
    }
 
