@@ -4,6 +4,37 @@ Release Notes
 
 Below are the notes from all surmise releases.
 
+Release 0.4.0
+-------------
+
+:Date: October 14, 2025
+
+* Improve coverage of test suite for future integration of additional code
+* Designate methods to "research-grade" if methods are neither fully tested or maintained.
+* Integrate a first example in Jupyterbook as a collection of usage examples
+
+**Full Changelog**: https://github.com/bandframework/surmise/compare/v0.3.1...v0.4.0
+
+Release 0.3.0
+-------------
+
+:Date: September 12, 2024
+
+* Tested in Python 3.9, 3.10, 3.11, 3.12, on Linux, macOS, and Windows.
+* Functionality:
+  * Include tox developer integration.
+  * Include save/load functions for emulator and calibrator.
+  * Include empirical coverage calculations in calibrator.
+  * Modify `covx()`-returned object to improve usability.
+  * Modify object `repr` to improve user feedback.
+  * Update test suite to improve testing, including bookending versions and testing of major methods.
+* Documentation:
+  * Update documentation to emphasize introductory materials and usage tutorials.
+  * Update scientific usage references.
+  * Update README to include collaborator and contributor list.
+
+**Full Changelog**: https://github.com/bandframework/surmise/compare/v0.2.1...v0.3.0
+
 Release 0.2.1
 -------------
 
