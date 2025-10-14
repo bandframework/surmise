@@ -9,6 +9,7 @@ CMake
 COVID
 Changelog
 Cython
+Cythonizing
 GPy
 Gitflow
 Gramacy
