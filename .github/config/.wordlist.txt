@@ -7,11 +7,14 @@ Bingham
 CHANGELOG
 CMake
 COVID
+Changelog
 Cython
+Cythonizing
 GPy
 Gitflow
 Gramacy
 Jupyter
+Jupyterbook
 Kriging
 LHS
 LaTeX
@@ -47,6 +50,7 @@ autofunction
 automodule
 bandframework
 bayesian
+bookending
 buildable
 calibrationmethods
 chan
@@ -76,6 +80,7 @@ io
 ipynb
 jupyter
 lbl
+macOS
 miamioh
 microsoft
 mlbayeswoodbury
@@ -123,7 +128,7 @@ whl
 wordpress
 wp
 www
-youtube
 yml
+youtube
 zNqg
 Özge
