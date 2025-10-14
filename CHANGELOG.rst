@@ -9,9 +9,11 @@ Release 0.4.0
 
 :Date: October 14, 2025
 
-* Improve coverage of test suite for future integration of additional code
+* Improve coverage of test suite for future integration of additional code.
 * Designate methods to "research-grade" if methods are neither fully tested or maintained.
-* Integrate a first example in Jupyterbook as a collection of usage examples
+* Integrate a first example in Jupyterbook as a collection of usage examples.
+* Improve Cython integration by reducing the number of external dependencies.
+* Develop Github wiki pages to log developer notes in terms of packaging, Cythonizing, and major dependency intricacies.
 
 **Full Changelog**: https://github.com/bandframework/surmise/compare/v0.3.1...v0.4.0
 
