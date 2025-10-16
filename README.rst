@@ -37,7 +37,7 @@ Dependencies
 ~~~~~~~~~~~~
 
 surmise is built with NumPy_, SciPy_, scikit-learn_, dill_, and pytest_.  Please
-refer to the [_requires] sections of setup.py for more details.
+refer to the `[_requires]` sections of setup.py for more details.
 
 Installation
 ~~~~~~~~~~~~
@@ -66,6 +66,17 @@ appropriate version of::
 .. note::
     Currently surmise on Windows system is built and tested with MinGW, in order to support the GCC compiler.
     The expectation is that other Windows build environments are compatible as well.
+
+.. note::
+    **Upgrading from previous repository clone (pre-v.0.3.0)**
+
+    If you have an existing `surmise` repository clone and are upgrading from previous versions, you should remove the
+    `root/surmise` folder for any versions on or after `v0.3.0`.  At `v0.3.0`, we have migrated from a flat layout
+    to a src layout.  As a result, all functional `surmise` codes live under `root/src/surmise`.  The remaining
+    `root/surmise` folder may cause unintended errors when importing the package (e.g., a wrong version,
+    testing procedures failing, or coverage report not recording).
+
+    See `Issues #150`_, `#151`_ for details.
 
 Testing
 ~~~~~~~
@@ -123,6 +134,8 @@ it to generate documentation.
 .. _PyPI-wheel: https://pypi.org/project/surmise/#files
 .. _scikit-learn: https://scikit-learn.org/stable/install.html
 .. _dill: https://dill.readthedocs.io
+.. _`Issues #150`: https://github.com/bandframework/surmise/pull/150
+.. _#151: https://github.com/bandframework/surmise/pull/151
 .. [1] There are multiple methods in surmise that are not thoroughly tested via the test suite.
        These methods are either under development, or no longer maintained.  The methods
        are offered for use via an expert user mode, but the associated code files are measured
