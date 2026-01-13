@@ -31,9 +31,8 @@ jobs:
     name: Build wheels on ${{ matrix.os }}
     strategy:
       matrix:
-        # macOS 13 should build for Intel processors
         # macOS 14 should build for Arm64 processors
-        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+        os: [ubuntu-latest, windows-latest, macos-14]
     runs-on: ${{ matrix.os }}
 
     steps:
