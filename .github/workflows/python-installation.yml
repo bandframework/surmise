@@ -26,6 +26,9 @@ jobs:
              windows-2022, windows-2025]
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
         exclude:
+          # Not finding gfortran, which is installed natively in runner
+          - os: macos-14
+            python-version: "3.14"
           # This fails intermittently when numpy is built from source, which
           # fails due to known issue
           # https://github.com/numpy/numpy/pull/27416
