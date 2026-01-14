@@ -52,6 +52,14 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: 20
+    - name: Install compilers
+      run: |
+        if [ "${{ runner.os }}" == "macOS" ]; then
+            if [ "${{ matrix.python-version }}" == "3.14" ]; then
+                # Fortran compiler needed for scipy installation
+                brew install gcc
+            fi
+        fi
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
