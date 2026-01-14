@@ -41,6 +41,8 @@ jobs:
           # experimental, and only available for testing.
           - os: windows-2022
             python-version: "3.13"
+          - os: windows-2022
+            python-version: "3.14"
           # Warning: Numpy built with MINGW-W64 on Windows 64 bits is
           # experimental, and only available for testing.
           - os: windows-2025
