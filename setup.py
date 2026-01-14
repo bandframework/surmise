@@ -23,8 +23,6 @@ def readme_rst():
         return fptr.read()
 
 python_requires = ">=3.9"
-# numpy & scipy upper limits required by macos-13 GH action tests.  Without
-# these, there are segmentation faults.
 code_requires = [
     'numpy>=1.22.0',
     'scipy>=1.9.0',
