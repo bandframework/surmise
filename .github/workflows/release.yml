@@ -32,7 +32,8 @@ jobs:
     strategy:
       matrix:
         # macOS 14 should build for Arm64 processors
-        os: [ubuntu-latest, windows-latest, macos-14]
+        # macOS 15-intel should build for Intel processors
+        os: [ubuntu-latest, windows-latest, macos-14, macos-15-intel]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -60,7 +61,7 @@ jobs:
     strategy:
       matrix:
         os:             [ubuntu-latest]
-        python-version: ["3.13"]
+        python-version: ["3.14"]
     runs-on: ${{ matrix.os }}
     steps:
       # Clone the repository with the full history since setuptools-scm needs
