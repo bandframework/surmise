@@ -45,6 +45,8 @@ jobs:
           # experimental, and only available for testing.
           - os: windows-2025
             python-version: "3.13"
+          - os: windows-2025
+            python-version: "3.14"
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
