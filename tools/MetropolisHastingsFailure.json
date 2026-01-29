@@ -11,9 +11,8 @@
                     "random_seed":  100092616225039682105425248025433037719
                 },
                 "StartDistribution": {
-                    "Name":  "Normal",
-                    "mu":     0.0,
-                    "sigma":  0.75
+                    "Name":      "Uniform",
+                    "Intervals": [-0.5, 0.5]
                 },
                 "StepDistribution": {
                     "Name":  "uniform",
