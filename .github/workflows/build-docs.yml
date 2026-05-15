@@ -52,13 +52,12 @@ jobs:
         $CLONE_PATH/.github/workflows/install_tox.sh
     - name: Build sphinx docs
       run: |
-        pushd $CLONE_PATH
+        cd $CLONE_PATH
         tox -r -e pdf,html
-        popd
 
     ##-- Make documents available as artifacts
     - name: Archive surmise docs
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: surmise-sphinx-docs
         path: |
