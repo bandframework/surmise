@@ -10,7 +10,7 @@ which pip
 which tox
 echo
 python --version
-pip --version
 tox --version
 echo
-pip list
+python -m pip list
+echo
