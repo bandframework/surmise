@@ -49,8 +49,9 @@ jobs:
     # from source, which requires a compiler.
     - name: Install GCC
       run: |
-           apt-get update
-           apt-get -y install gcc
+        apk update
+        apk add build-base
+        gcc --version
 
     - name: Setup python with tox
       run: |
