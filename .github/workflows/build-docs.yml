@@ -45,6 +45,13 @@ jobs:
       with:
         python-version: 3.14
 
+    # numpy version needed to build package is old enough that it is being built
+    # from source, which requires a compiler.
+    - name: Install GCC
+      run: |
+           sudo apt-get update
+           sudo apt-get -y install gcc
+
     - name: Setup python with tox
       run: |
         echo "UID/GID from configure = $UID_GID"
