@@ -160,7 +160,14 @@ def sampler(logpostfunc,
         stepadj = 4
         l0 = neglogpostf_nograd(opval.x)
         while notmoved:
-            r = (V.T*np.sqrt(W)) @ (V @ np.random.standard_normal(size=thetacen.shape[0]))
+            if (W > 0).all():
+                r = (V.T*np.sqrt(W)) @ (V @ np.random.standard_normal(size=thetacen.shape[0]))
+            else:
+                stepadj /= 2
+                if stepadj < 1/16:
+                    thetaop[k, :] = thetacen + thetas * opval.x
+                    notmoved = False
+                continue
 
             if (neglogpostf_nograd((stepadj * r + opval.x)) -
                     l0) < 3*thetacen.shape[0]:
@@ -168,9 +175,6 @@ def sampler(logpostfunc,
                 notmoved = False
             else:
                 stepadj /= 2
-            if stepadj < 1/16:
-                thetaop[k, :] = thetacen + thetas * opval.x
-                notmoved = False
     # end preoptimizer
     # initialize the starting point
     thetac = thetaop
