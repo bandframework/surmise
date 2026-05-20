@@ -21,6 +21,10 @@ env:
   WHEEL_PATH: ${{ github.workspace }}/wheelhouse
 
 on:
+  # TODO: Remove triggering via PR after the current updates to this action have
+  # been fully finished and verified.
+  pull_request:
+    branches: main
   push:
     branches: [main]
   release:
@@ -32,17 +36,19 @@ jobs:
     strategy:
       matrix:
         # macOS 14 should build for Arm64 processors
-        # macOS 15-intel should build for Intel processors
-        os: [ubuntu-latest, windows-latest, macos-14, macos-15-intel]
+        # macOS 14-large should build for Intel processors
+        os: [ubuntu-latest, windows-latest, macos-14, macos-14-large]
     runs-on: ${{ matrix.os }}
 
     steps:
       # Clone the repository with the full history since setuptools-scm needs
       # the tags to set the correct version.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
+      # TODO: Looks like this action is no longer being recommended.
+      # https://github.com/pypa/cibuildwheel
       - name: Build & test wheels
         uses: pypa/cibuildwheel@v3.1.3
         with:
@@ -51,7 +57,7 @@ jobs:
           config-file: "{package}/pyproject.toml"
 
       - name: Archive prebuilt wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ${{ env.WHEEL_PATH }}/*.whl
@@ -66,12 +72,12 @@ jobs:
     steps:
       # Clone the repository with the full history since setuptools-scm needs
       # the tags to set the correct version.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -97,7 +103,7 @@ jobs:
           python -c "import surmise ; exit(not surmise.test())"
 
       - name: Archive source distribution
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cibw-sdist
           path: ${{ env.DIST_PATH }}/surmise-*.tar.gz
