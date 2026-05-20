@@ -5,9 +5,9 @@ env:
   PDF_DOCS:   ${{ github.workspace }}/docs/build_pdf
 on:
   push:
-    branches: [main, develop]
+    branches: main
   pull_request:
-    branches: [main, develop]
+    branches: main
 
 jobs:
   build_pypkg_sphinx:

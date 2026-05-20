@@ -5,9 +5,9 @@ env:
   HTML_REPORT:   ${{ github.workspace }}/htmlcov
 on:
   push:
-    branches: [main, develop]
+    branches: main
   pull_request:
-    branches: [main, develop]
+    branches: main
 
 jobs:
   coverage_ubuntu:
