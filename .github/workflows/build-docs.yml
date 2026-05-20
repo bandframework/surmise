@@ -29,6 +29,11 @@ jobs:
   build_pypkg_sphinx:
     # Prefer LaTeX installation by official image over manual installation to
     # get more consistent and quick setup times.
+    #
+    # It's challenging at the very least to get a compiler suite installed in
+    # this container.  Therefore, we need to choose the OS and Python version
+    # such that pip can install all packages (e.g., the numpy version needed to
+    # build the package) from prebuilt wheels.
     runs-on: ubuntu-latest
     needs: configure
     env:
@@ -43,15 +48,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
-        python-version: 3.14
-
-    # numpy version needed to build package is old enough that it is being built
-    # from source, which requires a compiler.
-    - name: Install GCC
-      run: |
-        apk update
-        apk add build-base
-        gcc --version
+        python-version: 3.13
 
     - name: Setup python with tox
       run: |
