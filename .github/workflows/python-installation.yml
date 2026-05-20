@@ -22,26 +22,20 @@ jobs:
         # Please adjust pyproject.toml Python version requirement to match
         # supported version expressed here.
         os: [ubuntu-22.04, ubuntu-24.04,
-             macos-13, macos-14, macos-15,
+             macos-14, macos-15, macos-15-intel,
              windows-2022, windows-2025]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
         exclude:
-          # meson is not finding a Fortran compiler
-          - os: macos-13
-            python-version: "3.13"
-          # This fails intermittently when numpy is built from source, which
-          # fails due to known issue
-          # https://github.com/numpy/numpy/pull/27416
-          - os: macos-15
-            python-version: "3.13"
           # Warning: Numpy built with MINGW-W64 on Windows 64 bits is
-          # experimental, and only available for testing.
+          # experimental, and only available for testing.  Happens when building
+          # numpy v2.1.2.
           - os: windows-2022
-            python-version: "3.13"
+            python-version: "3.14"
           # Warning: Numpy built with MINGW-W64 on Windows 64 bits is
-          # experimental, and only available for testing.
+          # experimental, and only available for testing.  Happens when building
+          # numpy v2.1.2.
           - os: windows-2025
-            python-version: "3.13"
+            python-version: "3.14"
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
