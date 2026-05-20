@@ -36,8 +36,8 @@ jobs:
     strategy:
       matrix:
         # macOS 14 should build for Arm64 processors
-        # macOS 14-large should build for Intel processors
-        os: [ubuntu-latest, windows-latest, macos-14, macos-14-large]
+        # macOS 15-intel should build for Intel processors
+        os: [ubuntu-latest, windows-latest, macos-14, macos-15-intel]
     runs-on: ${{ matrix.os }}
 
     steps:
