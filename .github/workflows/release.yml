@@ -21,10 +21,6 @@ env:
   WHEEL_PATH: ${{ github.workspace }}/wheelhouse
 
 on:
-  # TODO: Remove triggering via PR after the current updates to this action have
-  # been fully finished and verified.
-  pull_request:
-    branches: main
   push:
     branches: [main]
   release:
@@ -121,7 +117,7 @@ jobs:
   #  permissions:
   #    id-token: write
   #  steps:
-  #    - uses: actions/download-artifact@v5
+  #    - uses: actions/download-artifact@v8
   #      with:
   #        name:           cibw-*
   #        path:           dist
