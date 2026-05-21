@@ -39,9 +39,9 @@ jobs:
         tox -r -e book
         popd
     - name: Archive examples Jupyter book 
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v5
       with:
         path: ${{ env.BOOK_HTML_BUILD}}
     - name: Publish Jupyter book to surmise's GH page
       id:   deployment
-      uses: actions/deploy-pages@v4
+      uses: actions/deploy-pages@v5
