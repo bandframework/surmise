@@ -4,9 +4,9 @@ env:
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: main
   pull_request:
-    branches: [ main, develop ]
+    branches: main
 
 jobs:
 
@@ -22,7 +22,7 @@ jobs:
         # Please adjust pyproject.toml Python version requirement to match
         # supported version expressed here.
         os: [ubuntu-22.04, ubuntu-24.04,
-             macos-14, macos-15, macos-15-intel,
+             macos-14, macos-15, macos-26, macos-26-intel,
              windows-2022, windows-2025]
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
         exclude:
@@ -37,15 +37,11 @@ jobs:
           - os: windows-2025
             python-version: "3.14"
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 20
+    - uses: actions/checkout@v6
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
-        cache: 'pip'
     - name: Install surmise & test
       shell: bash
       run: |
