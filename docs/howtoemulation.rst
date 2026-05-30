@@ -5,8 +5,8 @@ In this tutorial, we describe how to include a new emulator to the surmise's
 framework. We illustrate this with ``PCGP``--an emulator method located in the
 directory ``\emulationmethods``.
 
-In surmise, all emulator methods inherit from the base class :py:class:`surmise.emulation.emulator`.
-An emulator class calls the user input method, and fits the corresponding
+In surmise, all emulator methods are automatically discovered from `.py` code files under `src/surmise/emulationmethods`.
+An emulator class calls the user input method by the filename of the respective `.py` file, e.g., `PCGP` for `PCGP.py`, and fits the corresponding
 emulator. :py:func:`surmise.emulation.emulator.fit` and :py:func:`surmise.emulation.emulator.predict`
 are the main :py:class:`surmise.emulation.emulator` class methods.
 It also provides the functionality of updating and manipulating the

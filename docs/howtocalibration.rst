@@ -5,9 +5,8 @@ In this tutorial, we describe how to include a new calibrator to the surmise's
 framework. We illustrate this with ``directbayeswoodbury``--a calibrator method located
 in the directory ``\calibrationmethods``.
 
-In surmise, all calibrator methods inherit from the base class
-:py:class:`surmise.calibration.calibrator`. A calibrator class calls the user
-input method, and fits the corresponding calibrator.
+In surmise, all calibrator methods are automatically discovered from `.py` code files under `src/surmise/calibrationmethods`.
+A calibrator class calls the user input method via the filename without extension, e.g., `directbayeswoodbury`, and fits the corresponding calibrator.
 :py:meth:`surmise.calibration.calibrator.fit` is the main
 :py:class:`surmise.calibration.calibrator` class methods. It also provides the
 functionality of updating and manipulating the fitted calibrator by
