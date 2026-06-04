@@ -8,9 +8,9 @@ env:
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: main
   pull_request:
-    branches: [ main, develop ]
+    branches: main
 
 jobs:
 
@@ -21,19 +21,15 @@ jobs:
         # Please adjust pyproject.toml Python version requirement to match
         # supported version expressed here.
         os: [ubuntu-22.04, ubuntu-24.04,
-             macos-13, macos-14, macos-15,
+             macos-14, macos-15, macos-26, macos-26-intel,
              windows-2022, windows-2025]
-        python-version: ["3.9"]
+        python-version: ["3.10"]
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 20
+    - uses: actions/checkout@v6
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
-        cache: 'pip'
     - name: Setup python with tox
       shell: bash
       run: $CLONE_PATH/.github/workflows/install_tox.sh

@@ -5,9 +5,9 @@ env:
   PDF_DOCS:   ${{ github.workspace }}/docs/build_pdf
 on:
   push:
-    branches: [main, develop]
+    branches: main
   pull_request:
-    branches: [main, develop]
+    branches: main
 
 jobs:
   build_pypkg_sphinx:
@@ -20,10 +20,10 @@ jobs:
         python-version: ["3.11"]
     steps:
     ##-- General Setup Steps
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -43,7 +43,7 @@ jobs:
 
     ##-- Make documents available as artifacts
     - name: Archive surmise docs
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: surmise-sphinx-docs
         path: |
