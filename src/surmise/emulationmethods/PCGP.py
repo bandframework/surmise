@@ -261,9 +261,6 @@ def emulation_negloglik(hyperparameters, fitinfo):
     # eigendecomposition of R
     W, V = np.linalg.eigh(R)
 
-    if not (W > 0).all():
-        return -np.inf
-
     # MLEs for mu and sigma^2
     fspin = V.T @ f
     onespin = V.T @ np.ones(f.shape)
