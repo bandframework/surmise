@@ -18,6 +18,7 @@ def create_sampler(test_setup):
     step_type = step_cfg["Name"]
     if "Scale" in step_cfg:
         step_scale = np.atleast_1d(np.squeeze(step_cfg["Scale"]))
+        assert step_scale.ndim == 1
     else:
         step_scale = None
 

@@ -34,7 +34,15 @@ class AbstractDistribution(metaclass=abc.ABCMeta):
     @abc.abstractproperty
     def moments(self):
         """
-        :return: (mean, variance)
+        .. todo::
+            * What sets the ordering for greater than 1D?
+
+        :return: ``(mean, Sigma)`` where
+            * ``mean`` is a scalar for a 1D problem and a 1D numpy array
+              containing the mean of each parameter otherwise and
+            * ``Sigma`` is the variance as a scalar for a 1D problem and a
+              square, 2D numpy array containing the variances and covariances
+              otherwise
         """
         ...
 

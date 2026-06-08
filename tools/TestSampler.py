@@ -88,7 +88,6 @@ class TestSampler(unittest.TestCase):
         verbose = test_setup["Verbose"]
 
         # RNG
-        # TODO: In the future this will be used to set the RNG into surmise.
         rng_cfg = test_setup["rng"]
         rand_method = rng_cfg["method"]
         rand_seed = rng_cfg["random_seed"]
@@ -133,6 +132,14 @@ class TestSampler(unittest.TestCase):
         #
         # Seems like the interface of draw_func should be updated so that it
         # accepts an RNG on all calls.
+        #
+        # Since it's an argument passed to the sampler, should calling code be
+        # allowed to set the RNG into it however they please?  Should surmise
+        # define these so that they always get the surmise-wide RNG in use at
+        # the moment if it is sampling?
+        #
+        # What if it's a sampler function that users pass in?  We can't force it
+        # to use the surmise RNG?
         start_dist_sampler = None
         if start_distribution is not None:
             start_dist_sampler = functools.partial(start_distribution.sample,
@@ -175,8 +182,8 @@ class TestSampler(unittest.TestCase):
                 fig.linewidth_pt = LINEWIDTH
                 fig.draw_plot(target_distribution, start_distribution,
                               samples, 0.05)
-            elif dimension == 2:
-                raise NotImplementedError("No 2D tests yet")
+            else:
+                raise NotImplementedError("Only 1D visualizations for now")
             plt.show()
 
         self.assertTrue(0.3 <= result_1["acc_rate"] <= 0.4)

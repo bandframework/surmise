@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 
 import sys
+import unittest
 import argparse
-import traceback
 
 from pathlib import Path
-
-
-import unittest
 
 from TestSampler import TestSampler
 
@@ -20,7 +17,6 @@ def main():
 
     def log_and_abort(msg):
         print(f"\n{msg}\n")
-        print(traceback.format_exc())
         sys.exit(FAILURE)
 
     # ----- SPECIFY COMMAND LINE USAGE
