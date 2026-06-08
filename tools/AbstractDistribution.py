@@ -43,15 +43,32 @@ class AbstractDistribution(metaclass=abc.ABCMeta):
             * ``Sigma`` is the variance as a scalar for a 1D problem and a
               square, 2D numpy array containing the variances and covariances
               otherwise
+            For >1D, the ordering of the array and matrix match the ordering
+            provided by calling code during construction of the distribution
         """
         ...
 
     @abc.abstractmethod
     def pdf(self, theta):
+        """
+        :param theta: 2D numpy array of points at which to evaluate the PDF.
+            Each row should correspond to a single point; each column, to a
+            different parameter.  The column order should match the ordering
+            provided by calling code during construction of the distribution.
+        :return: 1D numpy array of values
+        """
         ...
 
     @abc.abstractmethod
     def logpdf(self, theta, return_grad):
+        """
+        :param theta: 2D numpy array of points at which to evaluate the log of
+            the PDF.  Each row should correspond to a single point; each column,
+            to a different parameter.  The column order should match the
+            ordering provided by calling code during construction of the
+            distribution.
+        :return: 1D numpy array of values
+        """
         ...
 
     @abc.abstractmethod
@@ -60,5 +77,7 @@ class AbstractDistribution(metaclass=abc.ABCMeta):
         :param rng: must be scipy.stats-compatible RNG
         :return: :math:`n` independent samples from distribution as 2D numpy
             array with each row corresponding to a sample.
+            For >1D, the column ordering matches the ordering provided by
+            calling code during construction of the distribution
         """
         ...
