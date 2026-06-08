@@ -13,13 +13,9 @@ class UniformDistribution(AbstractDistribution):
         """
         super().__init__()
 
-        if (not isinstance(a, numbers.Real)) \
-                or (not np.isreal(a)) \
-                or (not np.isfinite(a)):
+        if (not isinstance(a, numbers.Real)) or (not np.isfinite(a)):
             raise ValueError("a must be finite real")
-        if (not isinstance(b, numbers.Real)) \
-                or (not np.isreal(b)) \
-                or (not np.isfinite(b)):
+        if (not isinstance(b, numbers.Real)) or (not np.isfinite(b)):
             raise ValueError("b must be finite real")
 
         length = b - a

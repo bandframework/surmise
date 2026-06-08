@@ -12,6 +12,8 @@ from pathlib import Path
 
 from create_distribution import create_distribution
 from create_sampler import create_sampler
+from save_mcmc_results import save_mcmc_results
+from load_mcmc_results import load_mcmc_results
 from MplMcmcApprox1D import MplMcmcApprox1D
 from MplMcConvergence import MplMcConvergence
 
@@ -75,6 +77,9 @@ class TestSampler(unittest.TestCase):
         LINEWIDTH = 2.0
 
         plt.style.use("ggplot")
+
+        # ----  "HARDCODED"
+        FNAME_H5 = self.__dir.joinpath(f"{name}.h5")
 
         # ----- TRUE MOMENTS
         dimension = target_distribution.dimension
@@ -150,6 +155,9 @@ class TestSampler(unittest.TestCase):
             **universal_cfg,
             **sampler_cfg
         )
+        self.assertFalse(FNAME_H5.exists())
+        save_mcmc_results(FNAME_H5, result_1)
+        self.assertTrue(FNAME_H5.is_file())
         print("done")
         sys.stdout.flush()
         self.assertEqual(set(result_1), {"theta", "acc_rate", "lpostlist"})
@@ -197,7 +205,9 @@ class TestSampler(unittest.TestCase):
         fname_benchmark = test_setup["Benchmark"]
         self.assertTrue(isinstance(fname_benchmark, str))
         if fname_benchmark != "":
-            raise NotImplementedError("No regression testing yet")
+            fname_benchmark = Path(fname_benchmark).resolve()
+            self.assertTrue(fname_benchmark.is_file())
+            self.__compare_results(fname_benchmark, FNAME_H5)
 
         # ----- CONFIRM DETERMINISTIC
         # Rerun with identical RNG setup & confirm bitwise exact samples
@@ -224,4 +234,21 @@ class TestSampler(unittest.TestCase):
         self.assertNotEqual(result_1["acc_rate"], result_2["acc_rate"])
         theta_1 = result_1["theta"]
         theta_2 = result_2["theta"]
-        self.assertTrue(any(theta_1.flatten() != theta_2.flatten()))
+        self.assertTrue(
+            np.array_equal(theta_1, theta_2, equal_nan=False)
+        )
+
+    def __compare_results(self, fname_benchmark, fname_new):
+        print()
+        print("Regression Check")
+        print(f"New\t\t\t\t{fname_new}")
+        print(f"Benchmark\t\t\t{fname_benchmark}")
+        benchmark = load_mcmc_results(fname_benchmark)
+        new = load_mcmc_results(fname_new)
+
+        self.assertEqual(new["acceptance_rate"], benchmark["acceptance_rate"])
+        theta_new = new["theta"]
+        theta_benchmark = benchmark["theta"]
+        self.assertTrue(
+            np.array_equal(theta_new, theta_benchmark, equal_nan=False)
+        )
