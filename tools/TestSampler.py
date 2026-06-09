@@ -173,15 +173,27 @@ class TestSampler(unittest.TestCase):
         samples = result_1["theta"]
         self.assertEqual(len(samples), n_samples)
 
-        # -- Compute integrated quantities & log
         if dimension == 1:
+            from statsmodels.graphics.tsaplots import plot_acf
+            fig, ax = plt.subplots(nrows=1, ncols=2)
+            plot_acf(samples, ax=ax[0], lags=50, title='Before subsampling')
+            ax[0].set_xlabel('lags')
+
+            # WILL REVERT
+            samples = samples[::10]
+            plot_acf(samples, ax=ax[1], lags=50, title='Every 10th')
+            ax[1].set_xlabel('lags')
+            plt.tight_layout()
+            plt.show()
+
+        # -- Compute integrated quantities & log
             samples_rmse = np.sqrt(np.mean((samples - mu_true)**2))
             quantiles_results = np.atleast_2d(np.quantile(samples, quantiles_probs)).T
             quantiles_absdiff = np.abs(quantiles_true - quantiles_results)
             table_quantiles = np.column_stack((np.atleast_2d(quantiles_probs).T,
                                                quantiles_true, quantiles_results,
                                                quantiles_absdiff))
-            print(f'Number of samples: {n_samples} \t RMSE in sample mean: {samples_rmse:.4E}')
+            print(f'Number of samples: {n_samples} \t Standard deviation of dist.: {samples_rmse:.4E}')
             print(['Prob.', 'True Quantiles', 'Sample Quantiles', 'Abs. Diff.'])
             print(table_quantiles)
 
@@ -191,24 +203,24 @@ class TestSampler(unittest.TestCase):
             # quantity convergence plots mimic what we would see if the samples
             # used to approximate the integrals were drawn independently.
             resampling = rng.choice(
-                np.arange(n_samples),
-                size=n_samples,
+                np.arange(len(samples)),
+                size=len(samples),
                 replace=False
             )
 
             if dimension == 1:
-                fig = plt.figure(num=1, FigureClass=MplMcConvergence,
+                fig2 = plt.figure(num=2, FigureClass=MplMcConvergence,
                                  figsize=(8, 8))
-                fig.fontsize_pt = FONTSIZE
-                fig.markersize_pt = MARKERSIZE
-                fig.linewidth_pt = LINEWIDTH
-                fig.draw_plot(samples[resampling], mu_true, var_true)
+                fig2.fontsize_pt = FONTSIZE
+                fig2.markersize_pt = MARKERSIZE
+                fig2.linewidth_pt = LINEWIDTH
+                fig2.draw_plot(samples[resampling], mu_true, var_true)
 
-                fig = plt.figure(num=2, FigureClass=MplMcmcApprox1D,
+                fig2 = plt.figure(num=3, FigureClass=MplMcmcApprox1D,
                                  figsize=(10, 4))
-                fig.fontsize_pt = FONTSIZE
-                fig.linewidth_pt = LINEWIDTH
-                fig.draw_plot(target_distribution, start_distribution,
+                fig2.fontsize_pt = FONTSIZE
+                fig2.linewidth_pt = LINEWIDTH
+                fig2.draw_plot(target_distribution, start_distribution,
                               samples, 0.05)
             else:
                 raise NotImplementedError("Only 1D visualizations for now")
