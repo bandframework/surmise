@@ -22,7 +22,6 @@ def create_distribution(configuration):
         mu = configuration["mu"]
         dimension = 1 if isinstance(mu, numbers.Real) else len(mu)
         if dimension == 1:
-            # TODO: Have users provide variance?
             sigma = configuration["sigma"]
             distribution = NormalDistribution(mu, sigma**2)
         else:
