@@ -6,10 +6,11 @@ from pathlib import Path
 def save_mcmc_results(filename, results, overwrite=False):
     GROUP = "/MCMC"
 
-    if Path(filename).resolve().exists() and (not overwrite):
-        raise ValueError(f"{filename} already exists")
+    fname = Path(filename).resolve()
+    if fname.exists() and (not overwrite):
+        raise ValueError(f"{fname} already exists")
 
-    with h5py.File(filename, "w") as fptr:
+    with h5py.File(fname, "w") as fptr:
         fptr["/"].create_group("MCMC")
         # Common configuration
         # TODO: Add these
