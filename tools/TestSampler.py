@@ -89,7 +89,8 @@ class TestSampler(unittest.TestCase):
         mu_true, var_true = target_distribution.moments
 
         # ----- TRUE QUANTILES
-        quantiles_probs = np.array([0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99])
+        quantiles_probs = np.array([0.01, 0.05, 0.1, 0.25,
+                                    0.5, 0.75, 0.9, 0.95, 0.99])
         quantiles_true = target_distribution.inv_cdf(quantiles_probs)
 
         # ----- MCMC CONFIGURATION
@@ -188,12 +189,15 @@ class TestSampler(unittest.TestCase):
 
         # -- Compute integrated quantities & log
             samples_rmse = np.sqrt(np.mean((samples - mu_true)**2))
-            quantiles_results = np.atleast_2d(np.quantile(samples, quantiles_probs)).T
+            quantiles_results = np.atleast_2d(
+                np.quantile(samples, quantiles_probs)).T
             quantiles_absdiff = np.abs(quantiles_true - quantiles_results)
-            table_quantiles = np.column_stack((np.atleast_2d(quantiles_probs).T,
-                                               quantiles_true, quantiles_results,
-                                               quantiles_absdiff))
-            print(f'Number of samples: {n_samples} \t Standard deviation of dist.: {samples_rmse:.4E}')
+            table_quantiles = np.column_stack(
+                (np.atleast_2d(quantiles_probs).T,
+                 quantiles_true, quantiles_results,
+                 quantiles_absdiff))
+            print(f'Number of samples: {n_samples} \t '
+                  f'Standard deviation of dist.: {samples_rmse:.4E}')
             print(['Prob.', 'True Quantiles', 'Sample Quantiles', 'Abs. Diff.'])
             print(table_quantiles)
 
@@ -210,18 +214,18 @@ class TestSampler(unittest.TestCase):
 
             if dimension == 1:
                 fig2 = plt.figure(num=2, FigureClass=MplMcConvergence,
-                                 figsize=(8, 8))
+                                  figsize=(8, 8))
                 fig2.fontsize_pt = FONTSIZE
                 fig2.markersize_pt = MARKERSIZE
                 fig2.linewidth_pt = LINEWIDTH
                 fig2.draw_plot(samples[resampling], mu_true, var_true)
 
                 fig2 = plt.figure(num=3, FigureClass=MplMcmcApprox1D,
-                                 figsize=(10, 4))
+                                  figsize=(10, 4))
                 fig2.fontsize_pt = FONTSIZE
                 fig2.linewidth_pt = LINEWIDTH
                 fig2.draw_plot(target_distribution, start_distribution,
-                              samples, 0.05)
+                               samples, 0.05)
             else:
                 raise NotImplementedError("Only 1D visualizations for now")
             plt.show()
