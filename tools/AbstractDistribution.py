@@ -48,7 +48,6 @@ class AbstractDistribution(metaclass=abc.ABCMeta):
         """
         ...
 
-
     def inv_cdf(self, p):
         """
         :param p: 1D numpy array of probability values, must be between 0 and 1.
