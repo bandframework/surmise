@@ -34,9 +34,6 @@ class AbstractDistribution(metaclass=abc.ABCMeta):
     @abc.abstractproperty
     def moments(self):
         """
-        .. todo::
-            * What sets the ordering for greater than 1D?
-
         :return: ``(mean, Sigma)`` where
             * ``mean`` is a scalar for a 1D problem and a 1D numpy array
               containing the mean of each parameter otherwise and
@@ -84,8 +81,8 @@ class AbstractDistribution(metaclass=abc.ABCMeta):
         """
         :param rng: must be scipy.stats-compatible RNG
         :return: :math:`n` independent samples from distribution as 2D numpy
-            array with each row corresponding to a sample.
-            For >1D, the column ordering matches the ordering provided by
-            calling code during construction of the distribution
+            array with each row corresponding to a sample.  For >1D, the column
+            ordering matches the ordering provided by calling code during
+            construction of the distribution
         """
         ...
