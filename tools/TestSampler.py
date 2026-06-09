@@ -170,15 +170,15 @@ class TestSampler(unittest.TestCase):
         self.assertEqual(len(samples), n_samples)
 
         # -- Compute integrated quantities & log
-        # TODO: Write this
-        quantiles_results = np.atleast_2d(np.quantile(samples, quantiles_probs)).T
-        quantiles_absdiff = np.abs(quantiles_true - quantiles_results)
-        table_quantiles = np.column_stack((np.atleast_2d(quantiles_probs).T,
-                                           quantiles_true, quantiles_results,
-                                           quantiles_absdiff))
+        if dimension == 1:
+            quantiles_results = np.atleast_2d(np.quantile(samples, quantiles_probs)).T
+            quantiles_absdiff = np.abs(quantiles_true - quantiles_results)
+            table_quantiles = np.column_stack((np.atleast_2d(quantiles_probs).T,
+                                               quantiles_true, quantiles_results,
+                                               quantiles_absdiff))
 
-        print(['Prob.', 'True Quantiles', 'Sample Quantiles', 'Abs. Diff.'])
-        print(table_quantiles)
+            print(['Prob.', 'True Quantiles', 'Sample Quantiles', 'Abs. Diff.'])
+            print(table_quantiles)
 
         # -- Visualize results
         if test_setup["Plot"]:
