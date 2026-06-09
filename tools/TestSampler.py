@@ -85,6 +85,10 @@ class TestSampler(unittest.TestCase):
         dimension = target_distribution.dimension
         mu_true, var_true = target_distribution.moments
 
+        # ----- TRUE QUANTILES
+        quantiles_probs = np.array([0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99])
+        quantiles_true = target_distribution.inv_cdf(quantiles_probs)
+
         # ----- MCMC CONFIGURATION
         # -- Universal Configuration
         # General
@@ -167,6 +171,14 @@ class TestSampler(unittest.TestCase):
 
         # -- Compute integrated quantities & log
         # TODO: Write this
+        quantiles_results = np.atleast_2d(np.quantile(samples, quantiles_probs)).T
+        quantiles_absdiff = np.abs(quantiles_true - quantiles_results)
+        table_quantiles = np.column_stack((np.atleast_2d(quantiles_probs).T,
+                                           quantiles_true, quantiles_results,
+                                           quantiles_absdiff))
+
+        print(['Prob.', 'True Quantiles', 'Sample Quantiles', 'Abs. Diff.'])
+        print(table_quantiles)
 
         # -- Visualize results
         if test_setup["Plot"]:
