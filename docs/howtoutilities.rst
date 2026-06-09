@@ -5,10 +5,8 @@ In this tutorial, we describe how to include a new utility (specifically, a samp
 to the surmise's framework. We illustrate this with ``metropolis_hastings``--a
 well-known sampler located in the directory ``\utilitiesmethods``.
 
-In surmise, all utilities inherit from the base class :py:class:`surmise.utilities.sampler`.
-Note that for now, we only have samplers as utilities. Later, we plan to have
-different classes (such as :py:class:`surmise.utilities.optimizer`) that can be
-used during calibration.
+In surmise, all utilities are automatically discovered from `.py` code files under ``\utilitiesmethods``.
+Note that for now, we only have samplers as utilities.
 
 A sampler takes the function returning the log of the posterior of given theta as
 an input, and returns a dictionary including a random sample of thetas from the
