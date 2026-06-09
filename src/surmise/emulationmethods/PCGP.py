@@ -402,7 +402,6 @@ def emulation_fit(theta, pcaval):
                          bounds=bounds,
                          args=(subinfo),
                          method='L-BFGS-B',
-                         options={'disp': False},
                          jac=emulation_negloglikgrad)
 
     # Obtain the optimized hyperparameter values
