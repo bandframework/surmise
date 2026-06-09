@@ -5,6 +5,7 @@ import numpy as np
 from UniformDistribution import UniformDistribution
 from NormalDistribution import NormalDistribution
 
+
 def create_distribution(configuration):
     name = configuration["Name"]
     if name.lower() == "uniform":

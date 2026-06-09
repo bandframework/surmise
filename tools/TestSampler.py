@@ -206,7 +206,8 @@ class TestSampler(unittest.TestCase):
             if dimension == 1:
                 from statsmodels.graphics.tsaplots import plot_acf
                 fig, ax = plt.subplots(nrows=1, ncols=2)
-                plot_acf(result_1['theta'], ax=ax[0], lags=50, title='Before subsampling')
+                plot_acf(result_1['theta'], ax=ax[0], lags=50,
+                         title='Before subsampling')
                 ax[0].set_xlabel('lags')
 
                 # Subsampling
