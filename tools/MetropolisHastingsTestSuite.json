@@ -18,12 +18,12 @@
                     "Name":  "normal",
                     "Scale":  2.5
                 },
+                "SampleSkip":         10,
+                "Plot":            false,
+                "Benchmark":          "",
                 "n_burn_samples":  10000,
                 "n_samples":      100000,
-                "sample_skip":        10,
-                "Verbose":         false,
-                "Plot":            false,
-                "Benchmark":          ""
+                "verbose":         false
             }
         }
     },
@@ -48,12 +48,12 @@
                     "Name":  "normal",
                     "Scale":  3.5
                 },
+                "SampleSkip":         10,
+                "Plot":             true,
+                "Benchmark":          "",
                 "n_burn_samples":  10000,
                 "n_samples":      100000,
-                "sample_skip":        10,
-                "Verbose":          true,
-                "Plot":             true,
-                "Benchmark":          ""
+                "verbose":          true
             }
         }
     }

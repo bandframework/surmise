@@ -98,7 +98,7 @@ class TestSampler(unittest.TestCase):
         # General
         n_burn_samples = test_setup["n_burn_samples"]
         n_samples = test_setup["n_samples"]
-        verbose = test_setup["Verbose"]
+        verbose = test_setup["verbose"]
 
         # RNG
         rng_cfg = test_setup["rng"]
@@ -174,11 +174,11 @@ class TestSampler(unittest.TestCase):
         samples = result_1["theta"]
         self.assertEqual(len(samples), n_samples)
 
-        sample_skip = test_setup["sample_skip"]
+        sample_skip = test_setup["SampleSkip"]
         samples = samples[::sample_skip]
 
+        # -- Compute integrated quantities & log
         if dimension == 1:
-            # -- Compute integrated quantities & log
             samples_rmse = np.sqrt(np.mean((samples - mu_true)**2))
             quantiles_results = np.atleast_2d(
                 np.quantile(samples, quantiles_probs)).T
@@ -214,19 +214,19 @@ class TestSampler(unittest.TestCase):
                 ax[1].set_xlabel('lags')
                 plt.tight_layout()
 
-                fig2 = plt.figure(num=2, FigureClass=MplMcConvergence,
-                                  figsize=(8, 8))
-                fig2.fontsize_pt = FONTSIZE
-                fig2.markersize_pt = MARKERSIZE
-                fig2.linewidth_pt = LINEWIDTH
-                fig2.draw_plot(samples[resampling], mu_true, var_true)
+                fig = plt.figure(num=2, FigureClass=MplMcConvergence,
+                                 figsize=(8, 8))
+                fig.fontsize_pt = FONTSIZE
+                fig.markersize_pt = MARKERSIZE
+                fig.linewidth_pt = LINEWIDTH
+                fig.draw_plot(samples[resampling], mu_true, var_true)
 
-                fig2 = plt.figure(num=3, FigureClass=MplMcmcApprox1D,
-                                  figsize=(10, 4))
-                fig2.fontsize_pt = FONTSIZE
-                fig2.linewidth_pt = LINEWIDTH
-                fig2.draw_plot(target_distribution, start_distribution,
-                               samples, 0.05)
+                fig = plt.figure(num=3, FigureClass=MplMcmcApprox1D,
+                                 figsize=(10, 4))
+                fig.fontsize_pt = FONTSIZE
+                fig.linewidth_pt = LINEWIDTH
+                fig.draw_plot(target_distribution, start_distribution,
+                              samples, 0.05)
             else:
                 raise NotImplementedError("Only 1D visualizations for now")
             plt.show()
