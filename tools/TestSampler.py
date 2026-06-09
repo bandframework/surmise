@@ -175,12 +175,13 @@ class TestSampler(unittest.TestCase):
 
         # -- Compute integrated quantities & log
         if dimension == 1:
+            samples_rmse = np.sqrt(np.mean((samples - mu_true)**2))
             quantiles_results = np.atleast_2d(np.quantile(samples, quantiles_probs)).T
             quantiles_absdiff = np.abs(quantiles_true - quantiles_results)
             table_quantiles = np.column_stack((np.atleast_2d(quantiles_probs).T,
                                                quantiles_true, quantiles_results,
                                                quantiles_absdiff))
-
+            print(f'Number of samples: {n_samples} \t RMSE in sample mean: {samples_rmse:.4E}')
             print(['Prob.', 'True Quantiles', 'Sample Quantiles', 'Abs. Diff.'])
             print(table_quantiles)
 
