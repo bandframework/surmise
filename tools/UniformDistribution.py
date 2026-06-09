@@ -37,6 +37,9 @@ class UniformDistribution(AbstractDistribution):
     def moments(self):
         return self.__U.stats("mv")
 
+    def inv_cdf(self, p):
+        return self.__U.ppf(self._as2darray_checked(p))
+
     def pdf(self, theta):
         return self.__U.pdf(self._as2darray_checked(theta))
 
