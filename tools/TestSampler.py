@@ -46,6 +46,9 @@ class TestSampler(unittest.TestCase):
             self.__problems = json.load(fptr)
 
     def setUp(self):
+        # We don't remove this folder in tearDown() since users might want to
+        # inspect the results manually or use them as benchmarks for later
+        # testing.
         self.__dir = Path().cwd().joinpath("SamplerTestResults")
         if self.__dir.is_file():
             os.remove(self.__dir)
@@ -107,8 +110,9 @@ class TestSampler(unittest.TestCase):
         # Initial theta
         theta_0 = None
         if "theta_0" in test_setup:
-            theta_0 = np.atleast_1d(np.squeeze(test_setup["theta_0"]))
-            assert theta_0.ndim == 1
+            theta_0 = np.atleast_2d(np.squeeze(test_setup["theta_0"]))
+            assert theta_0.ndim == 2
+            assert theta_0.shape[0] == 1
 
         # Starting distribution
         start_distribution = None
@@ -182,6 +186,9 @@ class TestSampler(unittest.TestCase):
 
         # -- Visualize results
         if test_setup["Plot"]:
+            # Randomly shuffle the original MCMC samples so that the integrated
+            # quantity convergence plots mimic what we would see if the samples
+            # used to approximate the integrals were drawn independently.
             resampling = rng.choice(
                 np.arange(n_samples),
                 size=n_samples,
@@ -253,12 +260,12 @@ class TestSampler(unittest.TestCase):
     def __compare_results(self, fname_benchmark, fname_new):
         print()
         print("Regression Check")
-        print(f"New\t\t\t\t{fname_new}")
-        print(f"Benchmark\t\t\t{fname_benchmark}")
+        print(f"New\t\t\t{fname_new}")
+        print(f"Benchmark\t\t{fname_benchmark}")
         benchmark = load_mcmc_results(fname_benchmark)
         new = load_mcmc_results(fname_new)
 
-        self.assertEqual(new["acceptance_rate"], benchmark["acceptance_rate"])
+        self.assertEqual(new["acc_rate"], benchmark["acc_rate"])
         theta_new = new["theta"]
         theta_benchmark = benchmark["theta"]
         self.assertTrue(
