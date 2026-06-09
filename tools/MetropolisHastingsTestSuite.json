@@ -20,6 +20,35 @@
                 },
                 "n_burn_samples":  10000,
                 "n_samples":      100000,
+                "Verbose":         false,
+                "Plot":            false,
+                "Benchmark":          ""
+            }
+        }
+    },
+    "Normal1D": {
+        "TargetDistribution": {
+            "Name": "Normal",
+            "mu":    -1.1,
+            "sigma":  1.2
+        },
+        "TestSetups": {
+            "NormalStep": {
+                "rng": {
+                    "method":      "default",
+                    "random_seed": 100092616225039682105425248025433037719
+                },
+                "StartDistribution": {
+                    "Name": "Normal",
+                    "mu":    0.0,
+                    "sigma": 1.0
+                },
+                "StepDistribution": {
+                    "Name":  "normal",
+                    "Scale":  3.5
+                },
+                "n_burn_samples":  10000,
+                "n_samples":      100000,
                 "Verbose":          true,
                 "Plot":             true,
                 "Benchmark":          ""

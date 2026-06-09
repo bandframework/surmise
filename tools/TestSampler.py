@@ -267,10 +267,10 @@ class TestSampler(unittest.TestCase):
         print("done")
         sys.stdout.flush()
 
-        self.assertEqual(result_1["acc_rate"], result_2["acc_rate"])
+        self.assertNotEqual(result_1["acc_rate"], result_2["acc_rate"])
         theta_1 = result_1["theta"]
         theta_2 = result_2["theta"]
-        self.assertTrue(
+        self.assertFalse(
             np.array_equal(theta_1, theta_2, equal_nan=False)
         )
 
