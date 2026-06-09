@@ -1,6 +1,9 @@
+import numbers
+
 import numpy as np
 
 from UniformDistribution import UniformDistribution
+from NormalDistribution import NormalDistribution
 
 
 def create_distribution(configuration):
@@ -15,6 +18,14 @@ def create_distribution(configuration):
             distribution = UniformDistribution(a, b)
         else:
             raise NotImplementedError("No ND uniform yet")
+    elif name.lower() == "normal":
+        mu = configuration["mu"]
+        dimension = 1 if isinstance(mu, numbers.Real) else len(mu)
+        if dimension == 1:
+            sigma = configuration["sigma"]
+            distribution = NormalDistribution(mu, sigma**2)
+        else:
+            raise NotImplementedError("No ND normal yet")
     else:
         raise ValueError(f"Unknown distribution {name}")
 

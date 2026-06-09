@@ -98,7 +98,7 @@ class TestSampler(unittest.TestCase):
         # General
         n_burn_samples = test_setup["n_burn_samples"]
         n_samples = test_setup["n_samples"]
-        verbose = test_setup["Verbose"]
+        verbose = test_setup["verbose"]
 
         # RNG
         rng_cfg = test_setup["rng"]
@@ -174,20 +174,11 @@ class TestSampler(unittest.TestCase):
         samples = result_1["theta"]
         self.assertEqual(len(samples), n_samples)
 
-        if dimension == 1:
-            from statsmodels.graphics.tsaplots import plot_acf
-            fig, ax = plt.subplots(nrows=1, ncols=2)
-            plot_acf(samples, ax=ax[0], lags=50, title='Before subsampling')
-            ax[0].set_xlabel('lags')
-
-            # WILL REVERT
-            samples = samples[::10]
-            plot_acf(samples, ax=ax[1], lags=50, title='Every 10th')
-            ax[1].set_xlabel('lags')
-            plt.tight_layout()
-            plt.show()
+        sample_skip = test_setup["SampleSkip"]
+        samples = samples[::sample_skip]
 
         # -- Compute integrated quantities & log
+        if dimension == 1:
             samples_rmse = np.sqrt(np.mean((samples - mu_true)**2))
             quantiles_results = np.atleast_2d(
                 np.quantile(samples, quantiles_probs)).T
@@ -213,19 +204,30 @@ class TestSampler(unittest.TestCase):
             )
 
             if dimension == 1:
-                fig2 = plt.figure(num=2, FigureClass=MplMcConvergence,
-                                  figsize=(8, 8))
-                fig2.fontsize_pt = FONTSIZE
-                fig2.markersize_pt = MARKERSIZE
-                fig2.linewidth_pt = LINEWIDTH
-                fig2.draw_plot(samples[resampling], mu_true, var_true)
+                from statsmodels.graphics.tsaplots import plot_acf
+                fig, ax = plt.subplots(nrows=1, ncols=2)
+                plot_acf(result_1['theta'], ax=ax[0], lags=50,
+                         title='Before subsampling')
+                ax[0].set_xlabel('lags')
 
-                fig2 = plt.figure(num=3, FigureClass=MplMcmcApprox1D,
-                                  figsize=(10, 4))
-                fig2.fontsize_pt = FONTSIZE
-                fig2.linewidth_pt = LINEWIDTH
-                fig2.draw_plot(target_distribution, start_distribution,
-                               samples, 0.05)
+                # Subsampling
+                plot_acf(samples, ax=ax[1], lags=50, title='Subsampled')
+                ax[1].set_xlabel('lags')
+                plt.tight_layout()
+
+                fig = plt.figure(num=2, FigureClass=MplMcConvergence,
+                                 figsize=(8, 8))
+                fig.fontsize_pt = FONTSIZE
+                fig.markersize_pt = MARKERSIZE
+                fig.linewidth_pt = LINEWIDTH
+                fig.draw_plot(samples[resampling], mu_true, var_true)
+
+                fig = plt.figure(num=3, FigureClass=MplMcmcApprox1D,
+                                 figsize=(10, 4))
+                fig.fontsize_pt = FONTSIZE
+                fig.linewidth_pt = LINEWIDTH
+                fig.draw_plot(target_distribution, start_distribution,
+                              samples, 0.05)
             else:
                 raise NotImplementedError("Only 1D visualizations for now")
             plt.show()
@@ -267,10 +269,10 @@ class TestSampler(unittest.TestCase):
         print("done")
         sys.stdout.flush()
 
-        self.assertEqual(result_1["acc_rate"], result_2["acc_rate"])
+        self.assertNotEqual(result_1["acc_rate"], result_2["acc_rate"])
         theta_1 = result_1["theta"]
         theta_2 = result_2["theta"]
-        self.assertTrue(
+        self.assertFalse(
             np.array_equal(theta_1, theta_2, equal_nan=False)
         )
 

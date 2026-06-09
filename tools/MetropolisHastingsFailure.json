@@ -18,11 +18,42 @@
                     "Name":  "uniform",
                     "Scale":  6.0
                 },
+                "SampleSkip":       10,
+                "Plot":           true,
+                "Benchmark":        "",
                 "n_burn_samples":    0,
                 "n_samples":      1000,
-                "Verbose":        true,
+                "verbose":        true
+            }
+        }
+    },
+    "Normal1D": {
+        "TargetDistribution": {
+            "Name": "Normal",
+            "mu":    -1.1,
+            "sigma":  1.2
+        },
+        "TestSetups": {
+            "UniformStep": {
+                "rng": {
+                    "method":      "default",
+                    "random_seed":  100092616225039682105425248025433037719
+                },
+                "StartDistribution": {
+                    "Name": "Normal",
+                    "mu":    0.0,
+                    "sigma": 1.0
+                },
+                "StepDistribution": {
+                    "Name":  "uniform",
+                    "Scale":  6.0
+                },
+                "SampleSkip":       10,
                 "Plot":           true,
-                "Benchmark":        ""
+                "Benchmark":        "",
+                "n_burn_samples":    0,
+                "n_samples":      1000,
+                "verbose":        true
             }
         }
     }
