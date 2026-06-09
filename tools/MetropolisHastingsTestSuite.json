@@ -20,6 +20,7 @@
                 },
                 "n_burn_samples":  10000,
                 "n_samples":      100000,
+                "sample_skip":        10,
                 "Verbose":         false,
                 "Plot":            false,
                 "Benchmark":          ""
@@ -49,6 +50,7 @@
                 },
                 "n_burn_samples":  10000,
                 "n_samples":      100000,
+                "sample_skip":        10,
                 "Verbose":          true,
                 "Plot":             true,
                 "Benchmark":          ""
