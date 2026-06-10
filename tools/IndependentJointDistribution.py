@@ -34,6 +34,9 @@ class IndependentJointDistribution(AbstractDistribution):
         sigma_sqr = mu.copy()
         for i, distribution_i in enumerate(self.__univariates):
             mu[i], sigma_sqr[i] = distribution_i.moments
+        assert all(np.isreal(mu)) and all(np.isfinite(mu))
+        assert all(np.isreal(sigma_sqr)) and all(np.isfinite(sigma_sqr))
+        assert all(sigma_sqr > 0.0)
         return mu, np.diag(sigma_sqr)
 
     def inv_cdf(self, p):
@@ -47,7 +50,9 @@ class IndependentJointDistribution(AbstractDistribution):
         values = np.ones(theta_2d.shape[0])
         for i, distribution_i in enumerate(self.__univariates):
             values *= distribution_i.pdf(theta_2d[:, i])
-        return np.squeeze(values)
+        assert all(np.isreal(values)) and all(np.isfinite(values))
+        assert all(values >= 0.0)
+        return values
 
     def logpdf(self, theta, return_grad):
         if return_grad:
@@ -56,11 +61,15 @@ class IndependentJointDistribution(AbstractDistribution):
         theta_2d = self._as2darray_checked(theta)
         values = np.zeros(theta_2d.shape[0])
         for i, distribution_i in enumerate(self.__univariates):
-            values += distribution_i.logpdf(theta_2d[:, i], return_grad).reshape(-1)
-        return np.squeeze(values)
+            values += distribution_i.logpdf(theta_2d[:, i], return_grad)
+        assert all(np.isreal(values)) and (not any(np.isnan(values)))
+        assert not any(values == np.inf)
+        return values
 
     def sample(self, n, rng):
         samples = np.full([n, self.dimension], np.nan, float)
         for i, distribution_i in enumerate(self.__univariates):
             samples[:, i] = np.squeeze(distribution_i.sample(n, rng))
+        assert all(np.isreal(samples.flatten()))
+        assert all(np.isfinite(samples.flatten()))
         return samples

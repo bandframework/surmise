@@ -20,9 +20,13 @@ class NormalDistribution(AbstractDistribution):
             raise ValueError("sigma_sqr must be positive")
 
         self.__N = sps.norm(loc=mu, scale=np.sqrt(sigma_sqr))
+        mean, var = self.moments
+        assert mean == mu
+        assert var == sigma_sqr
 
-        print(f"Mean\t\t\t{mu}")
-        print(f"Variance\t\t{sigma_sqr}")
+        print(f"Mean\t\t\t{mean}")
+        print(f"Variance\t\t{var}")
+        print(f"Standard deviation\t{self.__N.std()}")
 
     @property
     def dimension(self):
@@ -33,15 +37,21 @@ class NormalDistribution(AbstractDistribution):
         return self.__N.stats("mv")
 
     def inv_cdf(self, p):
-        return self.__N.ppf(self._as2darray_checked(p))
+        values = self.__N.ppf(self._as1darray_checked(p))
+        assert values.ndim == 1
+        return values
 
     def pdf(self, theta):
-        return self.__N.pdf(self._as2darray_checked(theta))
+        values = self.__N.pdf(self._as1darray_checked(theta))
+        assert values.ndim == 1
+        return values
 
     def logpdf(self, theta, return_grad):
         if return_grad:
             raise NotImplementedError("gradient not implemented yet")
-        return self.__N.logpdf(self._as2darray_checked(theta))
+        values = self.__N.logpdf(self._as1darray_checked(theta))
+        assert values.ndim == 1
+        return values
 
     def sample(self, n, rng):
         samples = np.atleast_2d(self.__N.rvs(size=n, random_state=rng))
