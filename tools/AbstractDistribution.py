@@ -20,6 +20,10 @@ class AbstractDistribution(metaclass=abc.ABCMeta):
             checked = np.atleast_2d(checked).T
             assert checked.shape[1] == 1
             return checked
+        elif self.dimension > 1:
+            checked = np.atleast_2d(checked)
+            assert checked.shape[1] == self.dimension
+            return checked
         elif checked.ndim != 2:
             raise ValueError("theta must be 2D array")
         elif checked.shape[1] != self.dimension:
