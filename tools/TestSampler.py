@@ -16,7 +16,7 @@ from save_mcmc_results import save_mcmc_results
 from load_mcmc_results import load_mcmc_results
 from print_sample_statistics import print_sample_statistics
 from MplMcmcApprox1D import MplMcmcApprox1D
-from MplMcConvergence import MplMcConvergence
+from MplMcConvergence1D import MplMcConvergence1D
 
 
 class TestSampler(unittest.TestCase):
@@ -216,8 +216,8 @@ class TestSampler(unittest.TestCase):
                 ax[1].set_xlabel('lags')
                 plt.tight_layout()
 
-                fig = plt.figure(num=2, FigureClass=MplMcConvergence,
-                                 figsize=(8, 8))
+                fig = plt.figure(num=2, FigureClass=MplMcConvergence1D,
+                                 figsize=(8, 5))
                 fig.fontsize_pt = FONTSIZE
                 fig.markersize_pt = MARKERSIZE
                 fig.linewidth_pt = LINEWIDTH
