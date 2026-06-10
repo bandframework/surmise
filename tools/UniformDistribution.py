@@ -38,15 +38,21 @@ class UniformDistribution(AbstractDistribution):
         return self.__U.stats("mv")
 
     def inv_cdf(self, p):
-        return self.__U.ppf(self._as2darray_checked(p))
+        values = self.__U.ppf(self._as1darray_checked(p))
+        assert values.ndim == 1
+        return values
 
     def pdf(self, theta):
-        return self.__U.pdf(self._as2darray_checked(theta))
+        values = self.__U.pdf(self._as1darray_checked(theta))
+        assert values.ndim == 1
+        return values
 
     def logpdf(self, theta, return_grad):
         if return_grad:
             raise NotImplementedError("gradient not implemented yet")
-        return self.__U.logpdf(self._as2darray_checked(theta))
+        values = self.__U.logpdf(self._as1darray_checked(theta))
+        assert values.ndim == 1
+        return values
 
     def sample(self, n, rng):
         samples = np.atleast_2d(self.__U.rvs(size=n, random_state=rng))
