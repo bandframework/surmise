@@ -39,7 +39,7 @@ class IndependentJointDistribution(AbstractDistribution):
     def inv_cdf(self, p):
         quantiles = np.full((self.dimension, len(p)), np.nan, float)
         for i, distribution_i in enumerate(self.__univariates):
-            quantiles[i] = distribution_i.inv_cdf(p)
+            quantiles[i] = distribution_i.inv_cdf(p).reshape(-1)
         return quantiles
 
     def pdf(self, theta):
@@ -56,7 +56,7 @@ class IndependentJointDistribution(AbstractDistribution):
         theta_2d = self._as2darray_checked(theta)
         values = np.zeros(theta_2d.shape[0])
         for i, distribution_i in enumerate(self.__univariates):
-            values += distribution_i.logpdf(theta_2d[:, i], return_grad)
+            values += distribution_i.logpdf(theta_2d[:, i], return_grad).reshape(-1)
         return np.squeeze(values)
 
     def sample(self, n, rng):
