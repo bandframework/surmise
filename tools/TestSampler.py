@@ -240,8 +240,41 @@ class TestSampler(unittest.TestCase):
                 fig.draw_plot(target_distribution, start_distribution,
                               samples, 0.05)
             elif dimension == 2:
-                # TODO: Moses to add in corner plots here
-                pass
+                PLOT_QUANTILES_PROB = np.array([0.1, 0.5, 0.9])
+                plot_quantiles_true = target_distribution.inv_cdf(PLOT_QUANTILES_PROB)
+                from corner import corner
+                fig = corner(
+                    samples,
+                    quantiles=PLOT_QUANTILES_PROB,
+                    show_titles=True,
+                    title_fmt=".3g",
+                    # TODO: Moses to decide on setting over normal test case
+                    # plot_contour=True,
+                    # plot_density=True,
+                )
+                axes = np.array(fig.axes).reshape((dimension, dimension))
+                for d in range(dimension):
+                    added_truth = False
+                    ax = axes[d, d]
+                    for q in plot_quantiles_true[d]:
+                        ax.axvline(q, color="C0", ls=":", lw=2, alpha=0.5, label='Truth' if not added_truth else None)
+                        added_truth = True
+
+                from matplotlib.lines import Line2D
+                # figure-level legend
+                handles = [
+                    Line2D([0], [0], color="C0", ls=":", lw=2, label="Truth"),
+                    Line2D([0], [0], color="k", ls="--", lw=2, label="Empirical"),
+                ]
+
+                fig.legend(
+                    handles=handles,
+                    loc="upper center",
+                    bbox_to_anchor=(0.75, 0.8),
+                    ncol=1,
+                    frameon=False,
+                )
+
             else:
                 raise NotImplementedError("Only 1D/2D visualizations for now")
             plt.show()
