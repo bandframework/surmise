@@ -36,6 +36,12 @@ class IndependentJointDistribution(AbstractDistribution):
             mu[i], sigma_sqr[i] = distribution_i.moments
         return mu, np.diag(sigma_sqr)
 
+    def inv_cdf(self, p):
+        quantiles = np.full((self.dimension, len(p)), np.nan, float)
+        for i, distribution_i in enumerate(self.__univariates):
+            quantiles[i] = distribution_i.inv_cdf(p)
+        return quantiles
+
     def pdf(self, theta):
         theta_2d = self._as2darray_checked(theta)
         values = np.ones(theta_2d.shape[0])
