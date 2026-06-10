@@ -1,0 +1,32 @@
+{
+    "Uniform2D": {
+        "TargetDistribution": {
+            "Name": "Uniform",
+            "Intervals": [[0, 4],
+                          [-1.1, 1.2]]
+        },
+        "TestSetups": {
+            "NormalStep": {
+                "rng": {
+                    "method": "default",
+                    "random_seed": 40964995216837009177257723716779840101
+                },
+                "StartDistribution": {
+                    "Name": "Uniform",
+                    "Intervals": [[-0.5, 0.5],
+                                  [-0.5, 0.5]]
+                },
+                "StepDistribution": {
+                    "Name": "normal",
+                    "Scale": [2.5, 2.5]
+                },
+                "SampleSkip": 10,
+                "Plot": false,
+                "Benchmark": "",
+                "n_burn_samples": 10000,
+                "n_samples": 100000,
+                "verbose": false
+            }
+        }
+    }
+}
