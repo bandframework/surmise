@@ -241,7 +241,6 @@ class TestSampler(unittest.TestCase):
                 fig.draw_plot(target_distribution, start_distribution,
                               samples, 0.05)
             elif dimension == 2:
-                # TODO: Moses to add in corner plots here
                 fig = plt.figure(num=1, FigureClass=MplMcConvergence2D,
                                  figsize=(12, 5))
                 fig.fontsize_pt = FONTSIZE
@@ -249,45 +248,101 @@ class TestSampler(unittest.TestCase):
                 fig.linewidth_pt = LINEWIDTH
                 fig.draw_plot(samples[resampling], mu_true, var_true)
 
+                from corner import corner
                 PLOT_QUANTILES_PROB = np.array([0.1, 0.5, 0.9])
                 plot_quantiles_true = target_distribution.inv_cdf(
                     PLOT_QUANTILES_PROB)
-                from corner import corner
+
+                # Defining ranges
+                lo = samples.min(axis=0)
+                hi = samples.max(axis=0)
+
+                pad = 0.10 * (hi - lo)
+
+                ranges = np.array((lo - pad, hi + pad)).T
+
+                # Plotting corner plot
                 fig = corner(
                     samples,
+                    range=ranges,
                     quantiles=PLOT_QUANTILES_PROB,
                     show_titles=True,
                     title_fmt=".3g",
+                    hist_kwargs={'linewidth': 1.5}
                     # TODO: Moses to decide on setting over normal test case
                     # plot_contour=True,
                     # plot_density=True,
                 )
+
+                # Set up grid for analytical pdfs
+                target_ref = np.median(samples, axis=0)
+                grid_size = 120
+
                 axes = np.array(fig.axes).reshape((dimension, dimension))
                 for d in range(dimension):
                     added_truth = False
                     ax = axes[d, d]
                     for q in plot_quantiles_true[d]:
-                        ax.axvline(q, color="C0", ls=":", lw=2,
-                                   alpha=0.5,
+                        x = np.linspace(*ranges[d], grid_size)
+                        points = np.tile(target_ref, (x.size, 1))
+                        points[:, d] = x.ravel()
+
+                        z = target_distribution.pdf(points).reshape(x.shape)
+                        hist_ymax = ax.get_ylim()[1]
+                        z = z / np.max(z) * hist_ymax * 0.85
+                        ax.plot(x, z, color='C0', ls=":",
+                                lw=1.5, alpha=0.5)
+
+                        ax.axvline(q, color="C0", ls=":",
+                                   lw=1, alpha=0.5,
                                    label='Truth' if not added_truth else None)
                         added_truth = True
 
+                # Add target distribution on off-upper diagonal
+                for i in range(dimension):
+                    for j in range(i + 1, dimension):
+                        # TODO: Moses to figure out plot grid aesthetics
+                        ax = axes[i, j]
+
+                        x = np.linspace(*ranges[j], grid_size)
+                        y = np.linspace(*ranges[i], grid_size)
+                        X, Y = np.meshgrid(x, y)
+
+                        points = np.tile(target_ref, (X.size, 1))
+                        points[:, j] = X.ravel()
+                        points[:, i] = Y.ravel()
+                        Z = target_distribution.pdf(points).reshape(X.shape)
+
+                        ax.contour(
+                            X, Y, Z,
+                            levels=5,
+                            colors="C0",
+                            linestyles=":",
+                            linewidths=1.5,
+                        )
+
+                        ax.set_xlim(ranges[j])
+                        ax.set_ylim(ranges[i])
+
+                # Producing legend
                 from matplotlib.lines import Line2D
-                # figure-level legend
                 handles = [
                     Line2D([0], [0],
-                           color="C0", ls=":", lw=2, label="Truth"),
+                           color="C0", ls=":", lw=2, alpha=0.7,
+                           label="Truth"),
                     Line2D([0], [0],
-                           color="k", ls="--", lw=2, label="Empirical"),
+                           color="k", ls="--", lw=2, alpha=0.7,
+                           label="Empirical"),
                 ]
 
                 fig.legend(
                     handles=handles,
                     loc="upper center",
-                    bbox_to_anchor=(0.75, 0.8),
-                    ncol=1,
+                    bbox_to_anchor=(0.5, 1.02),
+                    ncol=2,
                     frameon=False,
                 )
+                plt.tight_layout()
 
             else:
                 raise NotImplementedError("Only 1D/2D visualizations for now")
