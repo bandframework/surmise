@@ -27,11 +27,8 @@ class AbstractDistribution(metaclass=abc.ABCMeta):
         checked = np.atleast_2d(np.squeeze(np.asarray_chkfinite(theta)))
         if not all(np.isreal(checked.flatten())):
             raise ValueError("theta values are not real")
-
         if self.dimension == 1:
             checked = checked.T
-            assert checked.shape[1] == 1
-            return checked
 
         if checked.ndim != 2:
             raise ValueError("theta must be 2D array")
