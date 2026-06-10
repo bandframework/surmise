@@ -7,20 +7,30 @@ class AbstractDistribution(metaclass=abc.ABCMeta):
     def __init__(self):
         pass
 
+    def _as1darray_checked(self, x):
+        """
+        :return: real, finite 1d numpy array
+        """
+        checked = np.atleast_1d(np.squeeze(np.asarray_chkfinite(x)))
+        if not all(np.isreal(checked.flatten())):
+            raise ValueError("x values are not real")
+        if checked.ndim != 1:
+            raise ValueError("x must be 1D array")
+
+        return checked
+
     def _as2darray_checked(self, theta):
         """
         :return: real, finite 2d numpy array where rows correspond to theta
             points; columns, to theta coordinates.
         """
-        checked = np.squeeze(np.asarray_chkfinite(theta))
+        checked = np.atleast_2d(np.squeeze(np.asarray_chkfinite(theta)))
         if not all(np.isreal(checked.flatten())):
             raise ValueError("theta values are not real")
-
         if self.dimension == 1:
-            checked = np.atleast_2d(checked).T
-            assert checked.shape[1] == 1
-            return checked
-        elif checked.ndim != 2:
+            checked = checked.T
+
+        if checked.ndim != 2:
             raise ValueError("theta must be 2D array")
         elif checked.shape[1] != self.dimension:
             raise ValueError("theta array has invalid shape")
@@ -50,7 +60,6 @@ class AbstractDistribution(metaclass=abc.ABCMeta):
         :param p: 1D numpy array of probability values, must be between 0 and 1.
         :return: 1D numpy array of quantile values of the distribution.
         """
-
         raise NotImplementedError("Inverse cdf inv_cdf is not implemented.")
 
     @abc.abstractmethod

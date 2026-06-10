@@ -84,14 +84,12 @@ class TestSampler(unittest.TestCase):
         # ----  "HARDCODED"
         FNAME_H5 = self.__dir.joinpath(f"{name}.h5")
 
+        QUANTILES_PROBS = np.array([0.01, 0.05, 0.1, 0.25,
+                                    0.5, 0.75, 0.9, 0.95, 0.99])
+
         # ----- TRUE MOMENTS
         dimension = target_distribution.dimension
         mu_true, var_true = target_distribution.moments
-
-        # ----- TRUE QUANTILES
-        quantiles_probs = np.array([0.01, 0.05, 0.1, 0.25,
-                                    0.5, 0.75, 0.9, 0.95, 0.99])
-        quantiles_true = target_distribution.inv_cdf(quantiles_probs)
 
         # ----- MCMC CONFIGURATION
         # -- Universal Configuration
@@ -179,12 +177,12 @@ class TestSampler(unittest.TestCase):
 
         # -- Compute integrated quantities & log
         if dimension == 1:
+            quantiles_true = target_distribution.inv_cdf(QUANTILES_PROBS)
             samples_rmse = np.sqrt(np.mean((samples - mu_true)**2))
-            quantiles_results = np.atleast_2d(
-                np.quantile(samples, quantiles_probs)).T
+            quantiles_results = np.quantile(samples, QUANTILES_PROBS)
             quantiles_absdiff = np.abs(quantiles_true - quantiles_results)
             table_quantiles = np.column_stack(
-                (np.atleast_2d(quantiles_probs).T,
+                (QUANTILES_PROBS,
                  quantiles_true, quantiles_results,
                  quantiles_absdiff))
             print(f'Number of samples: {n_samples} \t '
