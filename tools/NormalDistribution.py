@@ -20,9 +20,13 @@ class NormalDistribution(AbstractDistribution):
             raise ValueError("sigma_sqr must be positive")
 
         self.__N = sps.norm(loc=mu, scale=np.sqrt(sigma_sqr))
+        mean, var = self.moments
+        assert mean == mu
+        assert var == sigma_sqr
 
-        print(f"Mean\t\t\t{mu}")
-        print(f"Variance\t\t{sigma_sqr}")
+        print(f"Mean\t\t\t{mean}")
+        print(f"Variance\t\t{var}")
+        print(f"Standard deviation\t{self.__N.std()}")
 
     @property
     def dimension(self):
