@@ -226,8 +226,11 @@ class TestSampler(unittest.TestCase):
                 fig.linewidth_pt = LINEWIDTH
                 fig.draw_plot(target_distribution, start_distribution,
                               samples, 0.05)
+            elif dimension == 2:
+                # TODO: Moses to add in corner plots here
+                pass
             else:
-                raise NotImplementedError("Only 1D visualizations for now")
+                raise NotImplementedError("Only 1D/2D visualizations for now")
             plt.show()
 
         self.assertTrue(0.3 <= result_1["acc_rate"] <= 0.4)
