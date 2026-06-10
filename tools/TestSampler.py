@@ -17,6 +17,7 @@ from load_mcmc_results import load_mcmc_results
 from print_sample_statistics import print_sample_statistics
 from MplMcmcApprox1D import MplMcmcApprox1D
 from MplMcConvergence1D import MplMcConvergence1D
+from MplMcConvergence2D import MplMcConvergence2D
 
 
 class TestSampler(unittest.TestCase):
@@ -231,7 +232,12 @@ class TestSampler(unittest.TestCase):
                               samples, 0.05)
             elif dimension == 2:
                 # TODO: Moses to add in corner plots here
-                pass
+                fig = plt.figure(num=1, FigureClass=MplMcConvergence2D,
+                                 figsize=(12, 5))
+                fig.fontsize_pt = FONTSIZE
+                fig.markersize_pt = MARKERSIZE
+                fig.linewidth_pt = LINEWIDTH
+                fig.draw_plot(samples[resampling], mu_true, var_true)
             else:
                 raise NotImplementedError("Only 1D/2D visualizations for now")
             plt.show()

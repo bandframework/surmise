@@ -4,7 +4,7 @@ import matplotlib.figure as mfig
 from estimate_sample_statistics import estimate_sample_statistics
 
 
-class MplMcConvergence(mfig.Figure):
+class MplMcConvergence1D(mfig.Figure):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -24,7 +24,7 @@ class MplMcConvergence(mfig.Figure):
 
         self.clear()
 
-        self.suptitle("Monte Carlo Convergence Check",
+        self.suptitle("1D Monte Carlo Convergence Check",
                       fontsize=self.fontsize_pt)
 
         subp = self.add_subplot(221)
