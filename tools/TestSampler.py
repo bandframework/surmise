@@ -14,6 +14,7 @@ from create_distribution import create_distribution
 from create_sampler import create_sampler
 from save_mcmc_results import save_mcmc_results
 from load_mcmc_results import load_mcmc_results
+from print_sample_statistics import print_sample_statistics
 from MplMcmcApprox1D import MplMcmcApprox1D
 from MplMcConvergence import MplMcConvergence
 
@@ -175,7 +176,12 @@ class TestSampler(unittest.TestCase):
         sample_skip = test_setup["SampleSkip"]
         samples = samples[::sample_skip]
 
-        # -- Compute integrated quantities & log
+        # -- Log sample statistics
+        print()
+        print_sample_statistics(target_distribution, samples)
+        print()
+
+        # -- Compute distribution approximation quality info
         if dimension == 1:
             quantiles_true = target_distribution.inv_cdf(QUANTILES_PROBS)
             samples_rmse = np.sqrt(np.mean((samples - mu_true)**2))
@@ -185,8 +191,6 @@ class TestSampler(unittest.TestCase):
                 (QUANTILES_PROBS,
                  quantiles_true, quantiles_results,
                  quantiles_absdiff))
-            print(f'Number of samples: {n_samples} \t '
-                  f'Standard deviation of dist.: {samples_rmse:.4E}')
             print(['Prob.', 'True Quantiles', 'Sample Quantiles', 'Abs. Diff.'])
             print(table_quantiles)
 
