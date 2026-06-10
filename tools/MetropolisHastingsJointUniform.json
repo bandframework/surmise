@@ -21,7 +21,7 @@
                     "Scale": [2.5, 2.5]
                 },
                 "SampleSkip": 10,
-                "Plot": false,
+                "Plot": true,
                 "Benchmark": "",
                 "n_burn_samples": 10000,
                 "n_samples": 100000,
