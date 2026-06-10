@@ -184,7 +184,6 @@ class TestSampler(unittest.TestCase):
         # -- Compute distribution approximation quality info
         if dimension == 1:
             quantiles_true = target_distribution.inv_cdf(QUANTILES_PROBS)
-            samples_rmse = np.sqrt(np.mean((samples - mu_true)**2))
             quantiles_results = np.quantile(samples, QUANTILES_PROBS)
             quantiles_absdiff = np.abs(quantiles_true - quantiles_results)
             table_quantiles = np.column_stack(
