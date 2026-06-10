@@ -191,6 +191,16 @@ class TestSampler(unittest.TestCase):
                   f'Standard deviation of dist.: {samples_rmse:.4E}')
             print(['Prob.', 'True Quantiles', 'Sample Quantiles', 'Abs. Diff.'])
             print(table_quantiles)
+        elif dimension == 2:
+            quantiles_results = np.atleast_2d(
+                np.quantile(samples, quantiles_probs, axis=0))
+            quantiles_absdiff = np.abs(quantiles_true.T - quantiles_results)
+
+            table_quantiles = np.column_stack(
+                (np.atleast_2d(quantiles_probs).T,
+                 quantiles_absdiff))
+            print(['Prob.', 'Abs. Diffs. in Quantiles (each dim.)'])
+            print(table_quantiles)
 
         # -- Visualize results
         if test_setup["Plot"]:
