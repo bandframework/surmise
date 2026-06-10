@@ -86,7 +86,7 @@ class MplMcConvergence2D(mfig.Figure):
             cov_err_label = "Relative Error"
 
         subp = self.add_subplot(2, 5, 5)
-        subp.set_title(rf"$X_1 X_2$", fontsize=self.fontsize_pt)
+        subp.set_title(r"$X_1 X_2$", fontsize=self.fontsize_pt)
         subp.plot(steps, Cov_hat_n[:, 0, 1],
                   'k.', markersize=self.markersize_pt)
         subp.axhline(Cov[0, 1], label=r"$Cov$",
