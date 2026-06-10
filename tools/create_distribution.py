@@ -4,6 +4,7 @@ import numpy as np
 
 from UniformDistribution import UniformDistribution
 from NormalDistribution import NormalDistribution
+from JointUniformDistribution import JointUniformDistribution
 
 
 def create_distribution(configuration):
@@ -17,7 +18,8 @@ def create_distribution(configuration):
             a, b = ivals[0]
             distribution = UniformDistribution(a, b)
         else:
-            raise NotImplementedError("No ND uniform yet")
+            distribution = JointUniformDistribution(*ivals)
+            # raise NotImplementedError("No ND uniform yet")
     elif name.lower() == "normal":
         mu = configuration["mu"]
         dimension = 1 if isinstance(mu, numbers.Real) else len(mu)
