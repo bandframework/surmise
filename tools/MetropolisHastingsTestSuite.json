@@ -27,6 +27,37 @@
             }
         }
     },
+    "Uniform2D": {
+        "TargetDistribution": {
+            "Name":      "Uniform",
+            "Intervals": [[-1.1, 1.2],
+                          [ 1.3, 4.3]]
+        },
+        "TestSetups": {
+            "NormalStep": {
+                "rng": {
+                    "method": "default",
+                    "random_seed": 100092616225039682105425248025433037719
+                },
+                "StartDistribution": {
+                    "Name":      "Uniform",
+                    "Intervals": [[-0.5, 0.5],
+                                  [0.0, 1.0]]
+                },
+                "StepDistribution": {
+                    "Name":       "normal",
+                    "Scale":    [1.0, 2.0]
+                },
+                "SampleSkip":         10,
+                "Benchmark":           "",
+                "Plot":              true,
+                "CornerPlotBins":      30,
+                "n_burn_samples":    1000,
+                "n_samples":       100000,
+                "verbose":           true
+            }
+        }
+    },
     "Normal1D": {
         "TargetDistribution": {
             "Name": "Normal",
@@ -49,11 +80,11 @@
                     "Scale":  3.5
                 },
                 "SampleSkip":         10,
-                "Plot":             true,
+                "Plot":            false,
                 "Benchmark":          "",
                 "n_burn_samples":  10000,
                 "n_samples":      100000,
-                "verbose":          true
+                "verbose":         false
             }
         }
     }

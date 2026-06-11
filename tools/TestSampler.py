@@ -14,8 +14,11 @@ from create_distribution import create_distribution
 from create_sampler import create_sampler
 from save_mcmc_results import save_mcmc_results
 from load_mcmc_results import load_mcmc_results
+from print_sample_statistics import print_sample_statistics
 from MplMcmcApprox1D import MplMcmcApprox1D
-from MplMcConvergence import MplMcConvergence
+from MplMcConvergence1D import MplMcConvergence1D
+from MplMcConvergence2D import MplMcConvergence2D
+from MplCornerPlot import MplCornerPlot
 
 
 class TestSampler(unittest.TestCase):
@@ -84,8 +87,13 @@ class TestSampler(unittest.TestCase):
         # ----  "HARDCODED"
         FNAME_H5 = self.__dir.joinpath(f"{name}.h5")
 
+        # For quantile-quantile tables
         QUANTILES_PROBS = np.array([0.01, 0.05, 0.1, 0.25,
                                     0.5, 0.75, 0.9, 0.95, 0.99])
+        # For marginal histograms in corner plots
+        PLOT_QUANTILES_PROB = np.array([0.1, 0.5, 0.9])
+        # N points for evaluating target pdf in corner plots
+        GRID_SIZE = 500
 
         # ----- TRUE MOMENTS
         dimension = target_distribution.dimension
@@ -175,19 +183,31 @@ class TestSampler(unittest.TestCase):
         sample_skip = test_setup["SampleSkip"]
         samples = samples[::sample_skip]
 
-        # -- Compute integrated quantities & log
+        # -- Log sample statistics
+        print()
+        print_sample_statistics(target_distribution, samples)
+        print()
+
+        # -- Compute distribution approximation quality info
+        quantiles_true = target_distribution.inv_cdf(QUANTILES_PROBS)
         if dimension == 1:
-            quantiles_true = target_distribution.inv_cdf(QUANTILES_PROBS)
-            samples_rmse = np.sqrt(np.mean((samples - mu_true)**2))
             quantiles_results = np.quantile(samples, QUANTILES_PROBS)
             quantiles_absdiff = np.abs(quantiles_true - quantiles_results)
             table_quantiles = np.column_stack(
                 (QUANTILES_PROBS,
                  quantiles_true, quantiles_results,
                  quantiles_absdiff))
-            print(f'Number of samples: {n_samples} \t '
-                  f'Standard deviation of dist.: {samples_rmse:.4E}')
             print(['Prob.', 'True Quantiles', 'Sample Quantiles', 'Abs. Diff.'])
+            print(table_quantiles)
+        elif dimension == 2:
+            quantiles_results = np.atleast_2d(
+                np.quantile(samples, QUANTILES_PROBS, axis=0))
+            quantiles_absdiff = np.abs(quantiles_true.T - quantiles_results)
+
+            table_quantiles = np.column_stack(
+                (np.atleast_2d(QUANTILES_PROBS).T,
+                 quantiles_absdiff))
+            print(['Prob.', 'Abs. Diffs. in Quantiles (each dim.)'])
             print(table_quantiles)
 
         # -- Visualize results
@@ -213,8 +233,8 @@ class TestSampler(unittest.TestCase):
                 ax[1].set_xlabel('lags')
                 plt.tight_layout()
 
-                fig = plt.figure(num=2, FigureClass=MplMcConvergence,
-                                 figsize=(8, 8))
+                fig = plt.figure(num=2, FigureClass=MplMcConvergence1D,
+                                 figsize=(8, 5))
                 fig.fontsize_pt = FONTSIZE
                 fig.markersize_pt = MARKERSIZE
                 fig.linewidth_pt = LINEWIDTH
@@ -226,8 +246,24 @@ class TestSampler(unittest.TestCase):
                 fig.linewidth_pt = LINEWIDTH
                 fig.draw_plot(target_distribution, start_distribution,
                               samples, 0.05)
+            elif dimension == 2:
+                corner_bins = test_setup["CornerPlotBins"]
+                fig = plt.figure(num=1, FigureClass=MplMcConvergence2D,
+                                 figsize=(12, 5))
+                fig.fontsize_pt = FONTSIZE
+                fig.markersize_pt = MARKERSIZE
+                fig.linewidth_pt = LINEWIDTH
+                fig.draw_plot(samples[resampling], mu_true, var_true)
+
+                fig = plt.figure(num=2, FigureClass=MplCornerPlot,
+                                 figsize=(8, 8))
+                fig.alpha = 0.7
+                fig.fontsize_pt = FONTSIZE
+                fig.linewidth_pt = LINEWIDTH
+                fig.draw_plot(target_distribution, samples,
+                              PLOT_QUANTILES_PROB, GRID_SIZE, corner_bins)
             else:
-                raise NotImplementedError("Only 1D visualizations for now")
+                raise NotImplementedError("Only 1D/2D visualizations for now")
             plt.show()
 
         self.assertTrue(0.3 <= result_1["acc_rate"] <= 0.4)

@@ -20,9 +20,13 @@ class NormalDistribution(AbstractDistribution):
             raise ValueError("sigma_sqr must be positive")
 
         self.__N = sps.norm(loc=mu, scale=np.sqrt(sigma_sqr))
+        mean, var = self.moments
+        assert mean == mu
+        assert var == sigma_sqr
 
-        print(f"Mean\t\t\t{mu}")
-        print(f"Variance\t\t{sigma_sqr}")
+        print(f"Mean\t\t\t{mean}")
+        print(f"Variance\t\t{var}")
+        print(f"Standard deviation\t{self.__N.std()}")
 
     @property
     def dimension(self):
@@ -48,6 +52,9 @@ class NormalDistribution(AbstractDistribution):
         values = self.__N.logpdf(self._as1darray_checked(theta))
         assert values.ndim == 1
         return values
+
+    def marginal_pdf(self, _):
+        raise NotImplementedError("No need for marginals with 1D distributions")
 
     def sample(self, n, rng):
         samples = np.atleast_2d(self.__N.rvs(size=n, random_state=rng))
