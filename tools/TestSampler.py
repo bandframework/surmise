@@ -246,8 +246,9 @@ class TestSampler(unittest.TestCase):
                 fig.linewidth_pt = LINEWIDTH
                 fig.draw_plot(target_distribution, start_distribution,
                               samples, 0.05)
-            elif dimension == 2:
+            elif dimension >= 2:
                 corner_bins = test_setup["CornerPlotBins"]
+                # TODO: Jared to decide on Convergence plot for >=2D
                 fig = plt.figure(num=1, FigureClass=MplMcConvergence2D,
                                  figsize=(12, 5))
                 fig.fontsize_pt = FONTSIZE
