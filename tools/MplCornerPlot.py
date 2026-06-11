@@ -14,7 +14,8 @@ class MplCornerPlot(mfig.Figure):
         self.fontsize_pt = 18
         self.linewidth_pt = 1.5
 
-    def draw_plot(self, target_distribution, samples, quantiles, grid_size):
+    def draw_plot(self, target_distribution, samples, quantiles,
+                  grid_size, bins):
         dimension = target_distribution.dimension
         plot_quantiles_true = target_distribution.inv_cdf(quantiles)
 
@@ -28,6 +29,7 @@ class MplCornerPlot(mfig.Figure):
 
         corner.corner(
             samples,
+            bins=bins,
             range=ranges,
             quantiles=quantiles,
             show_titles=True,

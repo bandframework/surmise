@@ -81,6 +81,7 @@ class TestSampler(unittest.TestCase):
         FONTSIZE = 12
         MARKERSIZE = 2
         LINEWIDTH = 2.0
+        BINS = 25
 
         plt.style.use("ggplot")
 
@@ -260,7 +261,7 @@ class TestSampler(unittest.TestCase):
                 fig.fontsize_pt = FONTSIZE
                 fig.linewidth_pt = LINEWIDTH
                 fig.draw_plot(target_distribution, samples,
-                              PLOT_QUANTILES_PROB, GRID_SIZE)
+                              PLOT_QUANTILES_PROB, GRID_SIZE, BINS)
             else:
                 raise NotImplementedError("Only 1D/2D visualizations for now")
             plt.show()
