@@ -92,6 +92,8 @@ class TestSampler(unittest.TestCase):
                                     0.5, 0.75, 0.9, 0.95, 0.99])
         # For marginal histograms in corner plots
         PLOT_QUANTILES_PROB = np.array([0.1, 0.5, 0.9])
+        # N points for evaluating target pdf in corner plots
+        GRID_SIZE = 500
 
         # ----- TRUE MOMENTS
         dimension = target_distribution.dimension
@@ -257,7 +259,8 @@ class TestSampler(unittest.TestCase):
                 fig.alpha = 0.7
                 fig.fontsize_pt = FONTSIZE
                 fig.linewidth_pt = LINEWIDTH
-                fig.draw_plot(target_distribution, samples, PLOT_QUANTILES_PROB)
+                fig.draw_plot(target_distribution, samples,
+                              PLOT_QUANTILES_PROB, GRID_SIZE)
             else:
                 raise NotImplementedError("Only 1D/2D visualizations for now")
             plt.show()

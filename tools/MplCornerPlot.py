@@ -14,10 +14,7 @@ class MplCornerPlot(mfig.Figure):
         self.fontsize_pt = 16
         self.linewidth_pt = 1.5
                 
-    def draw_plot(self, target_distribution, samples, quantiles):
-        # ----- HARCODED VALUES
-        GRID_SIZE = 501
-
+    def draw_plot(self, target_distribution, samples, quantiles, grid_size):
         dimension = target_distribution.dimension
         plot_quantiles_true = target_distribution.inv_cdf(quantiles)
 
@@ -51,7 +48,7 @@ class MplCornerPlot(mfig.Figure):
             ax = axes[d, d]
 
             # Evaluate PDF with frozen coordinates fixed at medians
-            points = np.tile(sample_median, (GRID_SIZE, 1))
+            points = np.tile(sample_median, (grid_size, 1))
             points[:, d] = np.linspace(*ranges[d], points.shape[0])
             z = target_distribution.pdf(points)
 
@@ -74,8 +71,8 @@ class MplCornerPlot(mfig.Figure):
                 ax = axes[i, j]
 
                 X, Y = np.meshgrid(
-                    np.linspace(*ranges[j], GRID_SIZE),
-                    np.linspace(*ranges[i], GRID_SIZE)
+                    np.linspace(*ranges[j], grid_size),
+                    np.linspace(*ranges[i], grid_size)
                 )
                 points = np.tile(sample_median, (X.size, 1))
                 points[:, j] = X.ravel()
