@@ -53,7 +53,7 @@ class MplCornerPlot(mfig.Figure):
             x = np.linspace(*ranges[d], grid_size)
             try:
                 marginal_pdf = target_distribution.marginal_pdf(x, d)
-            except:
+            except Exception:
                 marginal_pdf = None
             if marginal_pdf is not None:
                 ax.plot(x, marginal_pdf, color='C0', ls=":",
