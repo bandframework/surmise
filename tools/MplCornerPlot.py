@@ -39,8 +39,6 @@ class MplCornerPlot(mfig.Figure):
             hist_kwargs={'linewidth': self.linewidth_pt,
                          'density': True},
             fig=self,
-            # TODO: Moses to decide on setting over normal test case
-            # plot_contour=True,
         )
 
         # Add quantiles and target distribution pdf on diagonals
@@ -54,10 +52,7 @@ class MplCornerPlot(mfig.Figure):
 
             # Plot marginal pdf
             x = np.linspace(*ranges[d], grid_size)
-            try:
-                marginal_pdf = target_distribution.marginal_pdf(x, d)
-            except Exception:
-                marginal_pdf = None
+            marginal_pdf = target_distribution.marginal_pdf(x, d)
             if marginal_pdf is not None:
                 ax.plot(x, marginal_pdf, color='C0', ls=":",
                         lw=self.linewidth_pt, alpha=self.alpha)

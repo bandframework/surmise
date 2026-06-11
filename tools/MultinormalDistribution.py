@@ -32,8 +32,16 @@ class MultinormalDistribution(AbstractDistribution):
         return self.__N.mean, self.__N.cov
 
     def inv_cdf(self, p):
-        # TODO: Moses to code this up
-        raise NotImplementedError("This still needs some work")
+        # Marginal quantiles
+        quantiles = np.full((self.dimension, len(p)), np.nan, float)
+        for i in range(self.dimension):
+            quantiles[i, :] = self._as1darray_checked(
+                sps.norm.ppf(p, loc=self.__N.mean[i],
+                             scale=np.sqrt(self.__N.cov[i, i])))
+
+        assert all(np.isreal(quantiles.ravel()))
+        assert all(np.isfinite(quantiles.ravel()))
+        return quantiles
 
     def pdf(self, theta):
         values = self.__N.pdf(self._as2darray_checked(theta))
@@ -52,9 +60,15 @@ class MultinormalDistribution(AbstractDistribution):
         assert not any(values == np.inf)
         return values
 
-    def marginal_pdf(self, _):
-        # TODO: Moses to code this up
-        raise NotImplementedError("This still needs some work")
+    def marginal_pdf(self, theta, index):
+        if (index < 0) or (index >= self.dimension):
+            raise ValueError(f"Invalid random variable index ({index})")
+        values = sps.norm.pdf(theta,
+                              loc=self.__N.mean[index],
+                              scale=np.sqrt(self.__N.cov[index,index]))
+        assert all(np.isreal(values)) and all(np.isfinite(values))
+        assert all(values >= 0.0)
+        return values
 
     def sample(self, n, rng):
         samples = np.atleast_2d(self.__N.rvs(size=n, random_state=rng))
