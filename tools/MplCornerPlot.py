@@ -49,9 +49,13 @@ class MplCornerPlot(mfig.Figure):
 
             # Plot marginal pdf
             x = np.linspace(*ranges[d], grid_size)
-            marginal_pdf = target_distribution.marginal_pdf(x, d)
-            ax.plot(x, marginal_pdf, color='C0', ls=":",
-                    lw=self.linewidth_pt, alpha=self.alpha)
+            try:
+                marginal_pdf = target_distribution.marginal_pdf(x, d)
+            except:
+                marginal_pdf = None
+            if marginal_pdf is not None:
+                ax.plot(x, marginal_pdf, color='C0', ls=":",
+                        lw=self.linewidth_pt, alpha=self.alpha)
 
             added_truth = False
             for q in plot_quantiles_true[d]:

@@ -90,8 +90,12 @@ class AbstractDistribution(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def marginal_pdf(self, theta, index):
         """
-        :param theta: WRITE THIS
-        :param index: WRITE THIS
+        :param theta: 2D numpy array of points at which to evaluate the marginal
+            PDF.  Each row should correspond to a single point; each column, to
+            a different parameter.  The column order should match the ordering
+            provided by calling code during construction of the distribution.
+        :param index: 0-based index of the parameter whose marginal pdf should
+            be evaluated
         :return: 1D numpy array of values
         """
         ...
