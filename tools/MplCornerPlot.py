@@ -18,6 +18,8 @@ class MplCornerPlot(mfig.Figure):
                   grid_size, bins):
         dimension = target_distribution.dimension
         plot_quantiles_true = target_distribution.inv_cdf(quantiles)
+        assert plot_quantiles_true.ndim == 2
+        assert plot_quantiles_true.shape == (dimension, len(quantiles))
 
         # Defining ranges
         lo = samples.min(axis=0)
@@ -41,12 +43,13 @@ class MplCornerPlot(mfig.Figure):
             # plot_contour=True,
         )
 
-        # Set up grid for analytical pdfs
-        sample_median = np.median(samples, axis=0)
-
         # Add quantiles and target distribution pdf on diagonals
         axes = np.array(self.axes).reshape((dimension, dimension))
         for d in range(dimension):
+            # We are assuming that this is ordered according to the column
+            # ordering of samples and that the column ordering of samples
+            # correctly matches the ordering used to construct the target
+            # distribution.
             ax = axes[d, d]
 
             # Plot marginal pdf
@@ -60,18 +63,21 @@ class MplCornerPlot(mfig.Figure):
                         lw=self.linewidth_pt, alpha=self.alpha)
 
             added_truth = False
-            for q in plot_quantiles_true[d]:
+            for q in plot_quantiles_true[d, :]:
                 ax.axvline(q, color="C0", ls=":",
                            lw=self.linewidth_pt, alpha=self.alpha,
                            label='Truth' if not added_truth else None)
                 added_truth = True
 
         # Add target distribution on off-upper diagonal
+        sample_median = np.median(samples, axis=0)
         for i in range(dimension):
             for j in range(i + 1, dimension):
                 # TODO: Moses to figure out plot grid aesthetics
                 ax = axes[i, j]
 
+                # TODO: If we want to use this for 3D or higher, does this code
+                # need updating?
                 X, Y = np.meshgrid(
                     np.linspace(*ranges[j], grid_size),
                     np.linspace(*ranges[i], grid_size)
@@ -90,9 +96,9 @@ class MplCornerPlot(mfig.Figure):
                 ax.set_ylim(axes[j, i].get_xlim())
 
                 # TODO: Is there a routine for computing the contours
-                # corresponding do the different quantiles?
+                # corresponding to the different quantiles?
                 # ax.contour(
-                #     X, Y, Z,
+                #     X, Y, target_pdf,
                 #     levels=5,
                 #     colors="C0",
                 #     linestyles=":",
