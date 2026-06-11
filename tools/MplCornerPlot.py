@@ -11,7 +11,7 @@ class MplCornerPlot(mfig.Figure):
         super().__init__(*args, **kwargs)
 
         self.alpha = 0.7
-        self.fontsize_pt = 16
+        self.fontsize_pt = 18
         self.linewidth_pt = 1.5
 
     def draw_plot(self, target_distribution, samples, quantiles, grid_size):
@@ -32,8 +32,8 @@ class MplCornerPlot(mfig.Figure):
             quantiles=quantiles,
             show_titles=True,
             title_fmt=".3g",
-            hist_kwargs={'linewidth': self.linewidth_pt},
-            plot_density=True,
+            hist_kwargs={'linewidth': self.linewidth_pt,
+                         'density': True},
             fig=self,
             # TODO: Moses to decide on setting over normal test case
             # plot_contour=True,
@@ -52,6 +52,8 @@ class MplCornerPlot(mfig.Figure):
             points[:, d] = np.linspace(*ranges[d], points.shape[0])
             z = target_distribution.pdf(points)
 
+            # TODO: to review relationship with "density=True" in histogram plots
+            # adjust pdf to match histogram heights
             hist_ymax = ax.get_ylim()[1]
             z = z / np.max(z) * hist_ymax * 0.85
             ax.plot(points[:, d], z, color='C0', ls=":",
@@ -82,7 +84,7 @@ class MplCornerPlot(mfig.Figure):
                 pdf_extent = [np.min(points[:, j]), np.max(points[:, j]),
                               np.min(points[:, i]), np.max(points[:, i])]
 
-                ax.imshow(target_pdf, interpolation="none",
+                ax.imshow(target_pdf, interpolation="none", aspect="auto",
                           origin="lower", extent=pdf_extent)
                 ax.set_xlim(axes[j, i].get_ylim())
                 ax.set_ylim(axes[j, i].get_xlim())
@@ -110,7 +112,7 @@ class MplCornerPlot(mfig.Figure):
         self.legend(
             handles=handles,
             loc="upper center",
-            bbox_to_anchor=(0.5, 1.02),
+            bbox_to_anchor=(0.5, 1.01),
             ncol=2,
             frameon=False,
         )
