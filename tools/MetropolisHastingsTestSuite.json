@@ -50,11 +50,11 @@
                 },
                 "SampleSkip":         10,
                 "Benchmark":           "",
-                "Plot":              true,
+                "Plot":             false,
                 "CornerPlotBins":      30,
                 "n_burn_samples":    1000,
                 "n_samples":       100000,
-                "verbose":           true
+                "verbose":          false
             }
         }
     },
@@ -85,6 +85,39 @@
                 "n_burn_samples":  10000,
                 "n_samples":      100000,
                 "verbose":         false
+            }
+        }
+    },
+    "Normal2D": {
+        "TargetDistribution": {
+            "Name": "Normal",
+            "mu":     [1.1, -2.2],
+            "sigma": [[1.0,  2.0],
+                      [2.0, 10.0]]
+        },
+        "TestSetups": {
+            "NormalStep": {
+                "rng": {
+                    "method": "default",
+                    "random_seed": 100092616225039682105425248025433037719
+                },
+                "StartDistribution": {
+                    "Name": "normal",
+                    "mu":     [-1.0, 2.0],
+                    "sigma": [[1.0, 0.0],
+                              [0.0, 5.0]]
+                },
+                "StepDistribution": {
+                    "Name":         "normal",
+                    "Scale":      [1.0, 5.0]
+                },
+                "SampleSkip":         20,
+                "Plot":             true,
+                "Benchmark":          "",
+                "CornerPlotBins":     50,
+                "n_burn_samples":  10000,
+                "n_samples":      250000,
+                "verbose":          true
             }
         }
     }
