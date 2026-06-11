@@ -65,7 +65,7 @@ class MultinormalDistribution(AbstractDistribution):
             raise ValueError(f"Invalid random variable index ({index})")
         values = sps.norm.pdf(theta,
                               loc=self.__N.mean[index],
-                              scale=np.sqrt(self.__N.cov[index,index]))
+                              scale=np.sqrt(self.__N.cov[index, index]))
         assert all(np.isreal(values)) and all(np.isfinite(values))
         assert all(values >= 0.0)
         return values
