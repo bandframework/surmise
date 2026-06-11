@@ -51,6 +51,7 @@
                 "SampleSkip":         10,
                 "Benchmark":           "",
                 "Plot":              true,
+                "CornerPlotBins":      30,
                 "n_burn_samples":    1000,
                 "n_samples":       100000,
                 "verbose":           true
