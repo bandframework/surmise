@@ -33,10 +33,10 @@ class MplCornerPlot(mfig.Figure):
             show_titles=True,
             title_fmt=".3g",
             hist_kwargs={'linewidth': self.linewidth_pt},
-            fig=self
+            plot_density=True,
+            fig=self,
             # TODO: Moses to decide on setting over normal test case
             # plot_contour=True,
-            # plot_density=True,
         )
 
         # Set up grid for analytical pdfs

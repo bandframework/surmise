@@ -58,7 +58,7 @@ class AbstractDistribution(metaclass=abc.ABCMeta):
     def inv_cdf(self, p):
         """
         :param p: 1D numpy array of probability values, must be between 0 and 1.
-        :return: 1D numpy array of quantile values of the distribution.
+        :return: ND numpy array of quantile values of each dimension of the distribution, N being the number of dimensions.
         """
 
         raise NotImplementedError("Inverse cdf inv_cdf is not implemented.")
