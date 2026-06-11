@@ -47,16 +47,10 @@ class MplCornerPlot(mfig.Figure):
         for d in range(dimension):
             ax = axes[d, d]
 
-            # Evaluate PDF with frozen coordinates fixed at medians
-            points = np.tile(sample_median, (grid_size, 1))
-            points[:, d] = np.linspace(*ranges[d], points.shape[0])
-            z = target_distribution.pdf(points)
-
-            # TODO: to review relationship with "density=True" in histogram plots
-            # adjust pdf to match histogram heights
-            hist_ymax = ax.get_ylim()[1]
-            z = z / np.max(z) * hist_ymax * 0.85
-            ax.plot(points[:, d], z, color='C0', ls=":",
+            # Plot marginal pdf
+            x = np.linspace(*ranges[d], grid_size)
+            marginal_pdf = target_distribution.marginal_pdf(x, d)
+            ax.plot(x, marginal_pdf, color='C0', ls=":",
                     lw=self.linewidth_pt, alpha=self.alpha)
 
             added_truth = False

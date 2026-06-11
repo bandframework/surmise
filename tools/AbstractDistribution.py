@@ -88,6 +88,15 @@ class AbstractDistribution(metaclass=abc.ABCMeta):
         ...
 
     @abc.abstractmethod
+    def marginal_pdf(self, theta, index):
+        """
+        :param theta: WRITE THIS
+        :param index: WRITE THIS
+        :return: 1D numpy array of values
+        """
+        ...
+
+    @abc.abstractmethod
     def sample(self, n, rng):
         """
         :param rng: must be scipy.stats-compatible RNG

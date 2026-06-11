@@ -54,6 +54,9 @@ class UniformDistribution(AbstractDistribution):
         assert values.ndim == 1
         return values
 
+    def marginal_pdf(self, _):
+        raise NotImplementedError("No need for marginals with 1D distributions")
+
     def sample(self, n, rng):
         samples = np.atleast_2d(self.__U.rvs(size=n, random_state=rng))
         assert samples.shape == (1, n)

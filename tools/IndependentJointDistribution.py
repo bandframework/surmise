@@ -68,6 +68,13 @@ class IndependentJointDistribution(AbstractDistribution):
         assert not any(values == np.inf)
         return values
 
+    def marginal_pdf(self, theta, index):
+        assert 0 <= index < self.dimension
+        values = self.__univariates[index].pdf(theta)
+        assert all(np.isreal(values)) and all(np.isfinite(values))
+        assert all(values >= 0.0)
+        return values
+
     def sample(self, n, rng):
         samples = np.full([n, self.dimension], np.nan, float)
         for i, distribution_i in enumerate(self.__univariates):
