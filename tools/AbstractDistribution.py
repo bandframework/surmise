@@ -12,7 +12,7 @@ class AbstractDistribution(metaclass=abc.ABCMeta):
         :return: real, finite 1d numpy array
         """
         checked = np.atleast_1d(np.squeeze(np.asarray_chkfinite(x)))
-        if not all(np.isreal(checked.flatten())):
+        if not all(np.isreal(checked.ravel())):
             raise ValueError("x values are not real")
         if checked.ndim != 1:
             raise ValueError("x must be 1D array")
@@ -25,7 +25,7 @@ class AbstractDistribution(metaclass=abc.ABCMeta):
             points; columns, to theta coordinates.
         """
         checked = np.atleast_2d(np.squeeze(np.asarray_chkfinite(theta)))
-        if not all(np.isreal(checked.flatten())):
+        if not all(np.isreal(checked.ravel())):
             raise ValueError("theta values are not real")
         if self.dimension == 1:
             checked = checked.T
@@ -58,7 +58,8 @@ class AbstractDistribution(metaclass=abc.ABCMeta):
     def inv_cdf(self, p):
         """
         :param p: 1D numpy array of probability values, must be between 0 and 1.
-        :return: ND numpy array of quantile values of each dimension of the distribution, N being the number of dimensions.
+        :return: ND numpy array of quantile values of each dimension of the
+            distribution, N being the number of dimensions.
         """
 
         raise NotImplementedError("Inverse cdf inv_cdf is not implemented.")
