@@ -13,7 +13,7 @@ class MplCornerPlot(mfig.Figure):
         self.alpha = 0.7
         self.fontsize_pt = 16
         self.linewidth_pt = 1.5
-                
+
     def draw_plot(self, target_distribution, samples, quantiles, grid_size):
         dimension = target_distribution.dimension
         plot_quantiles_true = target_distribution.inv_cdf(quantiles)
@@ -100,7 +100,7 @@ class MplCornerPlot(mfig.Figure):
         # Producing legend
         handles = [
             Line2D([0], [0],
-                   color="C0",ls=":", lw=self.linewidth_pt, alpha=self.alpha,
+                   color="C0", ls=":", lw=self.linewidth_pt, alpha=self.alpha,
                    label="Truth"),
             Line2D([0], [0],
                    color="k", ls="--", lw=self.linewidth_pt, alpha=self.alpha,
