@@ -30,8 +30,6 @@ def create_distribution(configuration):
             sigma = configuration["sigma"]
             distribution = NormalDistribution(mu, sigma**2)
         else:
-            # TODO: Allow for >2
-            assert dimension == 2
             mu = np.array(mu)
             Cov = np.array(configuration["sigma"])
             distribution = MultinormalDistribution(mu, Cov)
