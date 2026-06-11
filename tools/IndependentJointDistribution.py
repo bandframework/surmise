@@ -42,7 +42,9 @@ class IndependentJointDistribution(AbstractDistribution):
     def inv_cdf(self, p):
         quantiles = np.full((self.dimension, len(p)), np.nan, float)
         for i, distribution_i in enumerate(self.__univariates):
-            quantiles[i] = distribution_i.inv_cdf(p).reshape(-1)
+            quantiles[i, :] = distribution_i.inv_cdf(p).reshape(-1)
+        assert all(np.isreal(quantiles.ravel()))
+        assert all(np.isfinite(quantiles.ravel()))
         return quantiles
 
     def pdf(self, theta):
