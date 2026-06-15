@@ -1,3 +1,5 @@
+import numbers
+
 import numpy as np
 import scipy.stats as sps
 
@@ -61,11 +63,37 @@ class MultinormalDistribution(AbstractDistribution):
         return values
 
     def marginal_pdf(self, theta, index):
-        if (index < 0) or (index >= self.dimension):
-            raise ValueError(f"Invalid random variable index ({index})")
-        values = sps.norm.pdf(theta,
-                              loc=self.__N.mean[index],
-                              scale=np.sqrt(self.__N.cov[index, index]))
+        if isinstance(index, numbers.Integral):
+            if (index < 0) or (index >= self.dimension):
+                raise ValueError(f"Invalid random variable index ({index})")
+            values = sps.norm.pdf(self._as1darray_checked(theta),
+                                  loc=self.__N.mean[index],
+                                  scale=np.sqrt(self.__N.cov[index, index]))
+        elif isinstance(index, (list, tuple)):
+            # TODO: Asserts should ideally be error checks that raise exceptions
+            indices = self._as1darray_checked(index)
+            assert len(indices) == 2
+            i_0, i_1 = indices
+            assert (0 <= i_0) and (i_0 < self.dimension)
+            assert (0 <= i_1) and (i_1 < self.dimension)
+            assert i_0 != i_1
+            mean = np.array([self.__N.mean[i_0], self.__N.mean[i_1]])
+            Cov = np.array([
+                [self.__N.cov[i_0, i_0], self.__N.cov[i_0, i_1]],
+                [self.__N.cov[i_1, i_0], self.__N.cov[i_1, i_1]]
+            ])
+            checked = np.atleast_2d(np.squeeze(np.asarray_chkfinite(theta)))
+            assert checked.ndim == 2
+            assert checked.shape[1] == len(indices)
+            assert all(np.isreal(checked.ravel()))
+            assert all(np.isfinite(checked.ravel()))
+            values = sps.multivariate_normal.pdf(
+                checked,
+                mean=mean, cov=Cov,
+                allow_singular=False
+            )
+        else:
+            raise NotImplementedError("No need for >2D marginals yet")
         assert all(np.isreal(values)) and all(np.isfinite(values))
         assert all(values >= 0.0)
         return values

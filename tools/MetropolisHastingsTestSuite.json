@@ -50,7 +50,7 @@
                 },
                 "SampleSkip":         10,
                 "Benchmark":           "",
-                "Plot":             false,
+                "Plot":              true,
                 "CornerPlotBins":      30,
                 "n_burn_samples":    1000,
                 "n_samples":       100000,
@@ -125,9 +125,9 @@
         "TargetDistribution": {
             "Name": "Normal",
             "mu":     [1.1, -2.2, 0.2],
-            "sigma": [[1.0,  2.0, 0.1],
-                      [2.0, 10.0, 0.2],
-                      [0.1,  0.2, 0.05]]
+            "sigma": [[1.0,   2.0,  0.05],
+                      [2.0,  10.0, -0.6],
+                      [0.05, -0.6,  0.5]]
         },
         "TestSetups": {
             "NormalStep": {
