@@ -274,21 +274,21 @@ class TestSampler(unittest.TestCase):
                 fig.fontsize_pt = FONTSIZE
                 fig.markersize_pt = MARKERSIZE
                 fig.linewidth_pt = LINEWIDTH
-                fig.draw_plot(samples[resampling], mu_true, var_true)
+                fig.draw_plot(samples[resampling], mu_true)
 
                 fig = plt.figure(num=2, FigureClass=MplMcConvergenceVarND,
                                  figsize=(12, 5))
                 fig.fontsize_pt = FONTSIZE
                 fig.markersize_pt = MARKERSIZE
                 fig.linewidth_pt = LINEWIDTH
-                fig.draw_plot(samples[resampling], mu_true, var_true)
+                fig.draw_plot(samples[resampling], var_true)
 
                 fig = plt.figure(num=3, FigureClass=MplMcConvergenceCovND,
                                  figsize=(12, 5))
                 fig.fontsize_pt = FONTSIZE
                 fig.markersize_pt = MARKERSIZE
                 fig.linewidth_pt = LINEWIDTH
-                fig.draw_plot(samples[resampling], mu_true, var_true)
+                fig.draw_plot(samples[resampling], var_true)
 
                 fig = plt.figure(num=4, FigureClass=MplCornerPlot,
                                  figsize=(8, 8))

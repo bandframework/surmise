@@ -12,15 +12,11 @@ class MplMcConvergenceMeansND(mfig.Figure):
         self.markersize_pt = 5
         self.linewidth_pt = 1.5
 
-    def draw_plot(self, randomized_samples, mean, Cov):
+    def draw_plot(self, randomized_samples, mean):
         n_samples = len(randomized_samples)
 
         assert mean.ndim == 1
         dim = len(mean)
-        assert Cov.ndim == 2
-        assert Cov.shape == (dim, dim)
-        assert np.array_equal(Cov, Cov.T)
-        assert all(np.diag(Cov) > 0.0)
 
         steps = np.array([int(n) for n in np.linspace(0, n_samples, 101)])[1:]
         n_steps = len(steps)

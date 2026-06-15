@@ -12,13 +12,12 @@ class MplMcConvergenceVarND(mfig.Figure):
         self.markersize_pt = 5
         self.linewidth_pt = 1.5
 
-    def draw_plot(self, randomized_samples, mean, Cov):
+    def draw_plot(self, randomized_samples, Cov):
         n_samples = len(randomized_samples)
 
-        assert mean.ndim == 1
-        dim = len(mean)
         assert Cov.ndim == 2
-        assert Cov.shape == (dim, dim)
+        assert Cov.shape[1] == Cov.shape[0]
+        dim = Cov.shape[0]
         assert np.array_equal(Cov, Cov.T)
         assert all(np.diag(Cov) > 0.0)
 
