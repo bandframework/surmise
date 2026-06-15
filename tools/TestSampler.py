@@ -18,6 +18,9 @@ from print_sample_statistics import print_sample_statistics
 from MplMcmcApprox1D import MplMcmcApprox1D
 from MplMcConvergence1D import MplMcConvergence1D
 from MplMcConvergence2D import MplMcConvergence2D
+from MplMcConvergenceMeansND import MplMcConvergenceMeansND
+from MplMcConvergenceVarND import MplMcConvergenceVarND
+from MplMcConvergenceCovND import MplMcConvergenceCovND
 from MplCornerPlot import MplCornerPlot
 
 
@@ -246,9 +249,9 @@ class TestSampler(unittest.TestCase):
                 fig.linewidth_pt = LINEWIDTH
                 fig.draw_plot(target_distribution, start_distribution,
                               samples, 0.05)
-            elif dimension >= 2:
+            elif dimension == 2:
                 corner_bins = test_setup["CornerPlotBins"]
-                # TODO: Jared to decide on Convergence plot for >=2D
+
                 fig = plt.figure(num=1, FigureClass=MplMcConvergence2D,
                                  figsize=(12, 5))
                 fig.fontsize_pt = FONTSIZE
@@ -263,8 +266,42 @@ class TestSampler(unittest.TestCase):
                 fig.linewidth_pt = LINEWIDTH
                 fig.draw_plot(target_distribution, samples,
                               PLOT_QUANTILES_PROB, GRID_SIZE, corner_bins)
+            elif dimension in [3, 4]:
+                corner_bins = test_setup["CornerPlotBins"]
+
+                fig = plt.figure(num=1, FigureClass=MplMcConvergenceMeansND,
+                                 figsize=(12, 5))
+                fig.fontsize_pt = FONTSIZE
+                fig.markersize_pt = MARKERSIZE
+                fig.linewidth_pt = LINEWIDTH
+                fig.draw_plot(samples[resampling], mu_true, var_true)
+
+                fig = plt.figure(num=2, FigureClass=MplMcConvergenceVarND,
+                                 figsize=(12, 5))
+                fig.fontsize_pt = FONTSIZE
+                fig.markersize_pt = MARKERSIZE
+                fig.linewidth_pt = LINEWIDTH
+                fig.draw_plot(samples[resampling], mu_true, var_true)
+
+                fig = plt.figure(num=3, FigureClass=MplMcConvergenceCovND,
+                                 figsize=(12, 5))
+                fig.fontsize_pt = FONTSIZE
+                fig.markersize_pt = MARKERSIZE
+                fig.linewidth_pt = LINEWIDTH
+                fig.draw_plot(samples[resampling], mu_true, var_true)
+
+                fig = plt.figure(num=4, FigureClass=MplCornerPlot,
+                                 figsize=(8, 8))
+                fig.alpha = 0.7
+                fig.fontsize_pt = FONTSIZE
+                fig.linewidth_pt = LINEWIDTH
+                fig.draw_plot(target_distribution, samples,
+                              PLOT_QUANTILES_PROB, GRID_SIZE, corner_bins)
             else:
-                raise NotImplementedError("Only 1D/2D visualizations for now")
+                # TODO: Too many integrated quantities to include a full set of
+                # convergence plots.  Don't plot at all or plot a subset of the
+                # quantities with the worst convergence?
+                raise NotImplementedError("Only 1D to 4D visualizations for now")
             plt.show()
 
         self.assertTrue(0.3 <= result_1["acc_rate"] <= 0.4)
