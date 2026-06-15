@@ -52,7 +52,10 @@ class MplCornerPlot(mfig.Figure):
 
             # Plot marginal pdf
             x = np.linspace(*ranges[d], grid_size)
-            marginal_pdf = target_distribution.marginal_pdf(x, d)
+            try:
+                marginal_pdf = target_distribution.marginal_pdf(x, d)
+            except Exception:
+                marginal_pdf = None
             if marginal_pdf is not None:
                 ax.plot(x, marginal_pdf, color='C0', ls=":",
                         lw=self.linewidth_pt, alpha=self.alpha)
@@ -69,6 +72,8 @@ class MplCornerPlot(mfig.Figure):
             for j in range(i + 1, dimension):
                 ax = axes[i, j]
 
+                # Match column order of points to order of indices passed to
+                # distribution for constructing the 2D marginal.
                 X, Y = np.meshgrid(
                     np.linspace(*ranges[j], grid_size),
                     np.linspace(*ranges[i], grid_size)
