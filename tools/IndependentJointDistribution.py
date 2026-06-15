@@ -93,7 +93,7 @@ class IndependentJointDistribution(AbstractDistribution):
             values = self.__univariates[i_0].pdf(theta_0) * \
                 self.__univariates[i_1].pdf(theta_1)
         else:
-            raise NotImplementedError("No need for >2D marginals yet")
+            raise NotImplementedError(f"Invalid marginal indices ({index})")
         assert all(np.isreal(values)) and all(np.isfinite(values))
         assert all(values >= 0.0)
         return values

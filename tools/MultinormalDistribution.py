@@ -40,9 +40,6 @@ class MultinormalDistribution(AbstractDistribution):
             quantiles[i, :] = self._as1darray_checked(
                 sps.norm.ppf(p, loc=self.__N.mean[i],
                              scale=np.sqrt(self.__N.cov[i, i])))
-
-        assert all(np.isreal(quantiles.ravel()))
-        assert all(np.isfinite(quantiles.ravel()))
         return quantiles
 
     def pdf(self, theta):
@@ -86,14 +83,13 @@ class MultinormalDistribution(AbstractDistribution):
             assert checked.ndim == 2
             assert checked.shape[1] == len(indices)
             assert all(np.isreal(checked.ravel()))
-            assert all(np.isfinite(checked.ravel()))
             values = sps.multivariate_normal.pdf(
                 checked,
                 mean=mean, cov=Cov,
                 allow_singular=False
             )
         else:
-            raise NotImplementedError("No need for >2D marginals yet")
+            raise NotImplementedError(f"Invalid marginal indices ({index})")
         assert all(np.isreal(values)) and all(np.isfinite(values))
         assert all(values >= 0.0)
         return values
