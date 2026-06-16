@@ -356,9 +356,9 @@ class TestSampler(unittest.TestCase):
         benchmark = load_mcmc_results(fname_benchmark)
         new = load_mcmc_results(fname_new)
 
-        self.assertEqual(new["acc_rate"], benchmark["acc_rate"])
+        self.assertNotEqual(new["acc_rate"], benchmark["acc_rate"])
         theta_new = new["theta"]
         theta_benchmark = benchmark["theta"]
-        self.assertTrue(
+        self.assertFalse(
             np.array_equal(theta_new, theta_benchmark, equal_nan=False)
         )

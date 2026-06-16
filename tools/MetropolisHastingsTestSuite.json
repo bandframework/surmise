@@ -19,8 +19,8 @@
                     "Scale":  2.5
                 },
                 "SampleSkip":         10,
-                "Plot":            false,
-                "Benchmark":          "",
+                "Plot":             true,
+                "Benchmark":          "Uniform1D_NormalStep.benchmark",
                 "n_burn_samples":  10000,
                 "n_samples":      100000,
                 "verbose":         false
@@ -49,7 +49,7 @@
                     "Scale":    [1.0, 2.0]
                 },
                 "SampleSkip":         10,
-                "Benchmark":           "",
+                "Benchmark":           "Uniform2D_NormalStep.benchmark",
                 "Plot":              true,
                 "CornerPlotBins":      30,
                 "n_burn_samples":    1000,
@@ -80,8 +80,8 @@
                     "Scale":  3.5
                 },
                 "SampleSkip":         10,
-                "Plot":            false,
-                "Benchmark":          "",
+                "Plot":             true,
+                "Benchmark":          "Normal1D_NormalStep.benchmark",
                 "n_burn_samples":  10000,
                 "n_samples":      100000,
                 "verbose":         false
@@ -113,11 +113,11 @@
                 },
                 "SampleSkip":         20,
                 "Plot":             true,
-                "Benchmark":          "",
+                "Benchmark":          "Normal2D_NormalStep.benchmark",
                 "CornerPlotBins":     50,
                 "n_burn_samples":  10000,
                 "n_samples":      250000,
-                "verbose":          true
+                "verbose":         false
             }
         }
     },
@@ -148,11 +148,11 @@
                 },
                 "SampleSkip":         20,
                 "Plot":             true,
-                "Benchmark":          "",
+                "Benchmark":          "Normal3D_NormalStep.benchmark",
                 "CornerPlotBins":     50,
                 "n_burn_samples":  10000,
                 "n_samples":      250000,
-                "verbose":          true
+                "verbose":         false
             }
         }
     }
