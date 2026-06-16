@@ -94,8 +94,12 @@ class AbstractDistribution(metaclass=abc.ABCMeta):
             PDF.  Each row should correspond to a single point; each column, to
             a different parameter.  The column order should match the ordering
             provided by calling code during construction of the distribution.
-        :param index: 0-based index of the parameter whose marginal pdf should
-            be evaluated
+        :param index: 0-based indices of the parameters whose marginal pdf
+            should be evaluated.  If a single integer is given, then the
+            associated 1D marginal will be evaluated.  If a list or tuple
+            containing two integers is given, then the associated 2D marginal
+            will be evaluated.  For the 2D case, the column order of ``theta``
+            must match the order of the provided indices.
         :return: 1D numpy array of values
         """
         ...

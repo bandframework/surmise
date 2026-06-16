@@ -39,8 +39,6 @@ class MplCornerPlot(mfig.Figure):
             hist_kwargs={'linewidth': self.linewidth_pt,
                          'density': True},
             fig=self,
-            # TODO: Moses to decide on setting over normal test case
-            # plot_contour=True,
         )
 
         # Add quantiles and target distribution pdf on diagonals
@@ -70,25 +68,23 @@ class MplCornerPlot(mfig.Figure):
                 added_truth = True
 
         # Add target distribution on off-upper diagonal
-        sample_median = np.median(samples, axis=0)
         for i in range(dimension):
             for j in range(i + 1, dimension):
-                # TODO: Moses to figure out plot grid aesthetics
                 ax = axes[i, j]
 
-                # TODO: If we want to use this for 3D or higher, does this code
-                # need updating?
+                # Match column order of points to order of indices passed to
+                # distribution for constructing the 2D marginal.
                 X, Y = np.meshgrid(
                     np.linspace(*ranges[j], grid_size),
                     np.linspace(*ranges[i], grid_size)
                 )
-                points = np.tile(sample_median, (X.size, 1))
-                points[:, j] = X.ravel()
-                points[:, i] = Y.ravel()
-                target_pdf = target_distribution.pdf(points).reshape(X.shape)
+                points = np.full([X.ravel().size, 2], np.nan, float)
+                points[:, 1] = X.ravel()
+                points[:, 0] = Y.ravel()
+                target_pdf = target_distribution.marginal_pdf(points, [i, j]).reshape(X.shape)
 
-                pdf_extent = [np.min(points[:, j]), np.max(points[:, j]),
-                              np.min(points[:, i]), np.max(points[:, i])]
+                pdf_extent = [np.min(points[:, 1]), np.max(points[:, 1]),
+                              np.min(points[:, 0]), np.max(points[:, 0])]
 
                 ax.imshow(target_pdf, interpolation="none", aspect="auto",
                           origin="lower", extent=pdf_extent)

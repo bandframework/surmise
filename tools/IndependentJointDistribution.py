@@ -1,3 +1,5 @@
+import numbers
+
 import numpy as np
 
 from AbstractDistribution import AbstractDistribution
@@ -69,9 +71,29 @@ class IndependentJointDistribution(AbstractDistribution):
         return values
 
     def marginal_pdf(self, theta, index):
-        if (index < 0) or (index >= self.dimension):
-            raise ValueError(f"Invalid random variable index ({index})")
-        values = self.__univariates[index].pdf(theta)
+        if isinstance(index, numbers.Integral):
+            if (index < 0) or (index >= self.dimension):
+                raise ValueError(f"Invalid random variable index ({index})")
+            values = self.__univariates[index].pdf(
+                self._as1darray_checked(theta)
+            )
+        elif isinstance(index, (list, tuple)):
+            # TODO: Asserts should ideally be error checks that raise
+            # exceptions.
+            indices = self._as1darray_checked(index)
+            assert len(indices) == 2
+            i_0, i_1 = indices
+            assert (0 <= i_0) and (i_0 < self.dimension)
+            assert (0 <= i_1) and (i_1 < self.dimension)
+            assert i_0 != i_1
+            assert theta.ndim == 2
+            assert theta.shape[1] == len(indices)
+            theta_0 = self._as1darray_checked(theta[:, 0])
+            theta_1 = self._as1darray_checked(theta[:, 1])
+            values = self.__univariates[i_0].pdf(theta_0) * \
+                self.__univariates[i_1].pdf(theta_1)
+        else:
+            raise NotImplementedError(f"Invalid marginal indices ({index})")
         assert all(np.isreal(values)) and all(np.isfinite(values))
         assert all(values >= 0.0)
         return values

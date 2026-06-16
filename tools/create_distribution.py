@@ -5,6 +5,7 @@ import numpy as np
 from UniformDistribution import UniformDistribution
 from JointUniformDistribution import JointUniformDistribution
 from NormalDistribution import NormalDistribution
+from MultinormalDistribution import MultinormalDistribution
 
 
 def create_distribution(configuration):
@@ -29,7 +30,9 @@ def create_distribution(configuration):
             sigma = configuration["sigma"]
             distribution = NormalDistribution(mu, sigma**2)
         else:
-            raise NotImplementedError("No ND normal yet")
+            mu = np.array(mu)
+            Cov = np.array(configuration["sigma"])
+            distribution = MultinormalDistribution(mu, Cov)
     else:
         raise ValueError(f"Unknown distribution {name}")
 
