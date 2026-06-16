@@ -39,6 +39,16 @@ def sampler(logpost_func,
         returns numsamp random draws from posterior.
 
     '''
+    # random number generator
+    # TODO: This is an intermediate step.  Eventually calling code should be
+    # forced to provide an RNG.
+    rng = None
+    if "RNG" in mh_options:
+        rng = mh_options["RNG"]
+    if rng is None:
+        rng = np.random.default_rng()
+    elif not isinstance(rng, np.random.Generator):
+        raise TypeError("Given RNG is not a valid scipy.stats RNG")
 
     # scaling parameter
     if stepParam is None:
@@ -66,10 +76,12 @@ def sampler(logpost_func,
         theta_cand = None
         if stepType == 'normal':
             theta_cand = [theta[i-1, :][k] + stepParam[k] *
-                          sps.norm.rvs(0, 1, size=1) for k in range(p)]
+                          sps.norm.rvs(0, 1, size=1, random_state=rng)
+                          for k in range(p)]
         elif stepType == 'uniform':
             theta_cand = [theta[i-1, :][k] + stepParam[k] *
-                          sps.uniform.rvs(-0.5, 0.5, size=1) for k in range(p)]
+                          sps.uniform.rvs(-0.5, 0.5, size=1, random_state=rng)
+                          for k in range(p)]
 
         theta_cand = np.reshape(np.array(theta_cand), (1, p))
 
@@ -77,9 +89,8 @@ def sampler(logpost_func,
         logpost = logpost_func(theta_cand, return_grad=False).item()
 
         if np.isfinite(logpost):
-            logp_accept = min(0, logpost - lposterior[i-1])
-            # p_accept = min(1, np.exp(logpost - lposterior[i-1]))
-            accept = np.random.uniform() < np.exp(logp_accept)
+            p_accept = min(1.0, np.exp(logpost - lposterior[i-1]))
+            accept = (sps.bernoulli.rvs(p=p_accept, size=1, random_state=rng) == 1)
         else:
             accept = False
 

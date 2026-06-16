@@ -141,12 +141,12 @@ class TestSampler(unittest.TestCase):
 
         # -- Create sampler & load sampler-specific configuration
         run_MCMC, sampler_cfg = create_sampler(test_setup)
+        sampler_cfg["RNG"] = np.random.default_rng(rand_seed)
 
         # ------ RUN SAMPLER & CONFIRM REASONABLE RESULTS
         print()
         print("Sampling ...\t\t", end="")
         sys.stdout.flush()
-        rng = np.random.default_rng(rand_seed)
         # TODO: Should we really pass an RNG as an argument?  We are creating a
         # function that is storing the RNG internally, which seems bad.  Also,
         # it seems like the sampler should be in charge of the RNG and pass it
@@ -166,7 +166,7 @@ class TestSampler(unittest.TestCase):
         start_dist_sampler = None
         if start_distribution is not None:
             start_dist_sampler = functools.partial(start_distribution.sample,
-                                                   rng=rng)
+                                                   rng=sampler_cfg["RNG"])
         result_1 = run_MCMC(
             logpost_func=target_distribution.logpdf,
             draw_func=start_dist_sampler,
@@ -218,7 +218,7 @@ class TestSampler(unittest.TestCase):
             # Randomly shuffle the original MCMC samples so that the integrated
             # quantity convergence plots mimic what we would see if the samples
             # used to approximate the integrals were drawn independently.
-            resampling = rng.choice(
+            resampling = sampler_cfg["RNG"].choice(
                 np.arange(len(samples)),
                 size=len(samples),
                 replace=False
@@ -321,17 +321,14 @@ class TestSampler(unittest.TestCase):
 
         # ----- CONFIRM DETERMINISTIC
         # Rerun with identical RNG setup & confirm bitwise exact samples
-        #
-        # TODO: To the contrary, we cannot presently get deterministic results,
-        # this needs improvement.  Fix this once, we can test determinism.
+        sampler_cfg["RNG"] = np.random.default_rng(rand_seed)
         print()
         print("Sampling again ...\t", end="")
         sys.stdout.flush()
-        rng = np.random.default_rng(rand_seed)
         start_dist_sampler = None
         if start_distribution is not None:
             start_dist_sampler = functools.partial(start_distribution.sample,
-                                                   rng=rng)
+                                                   rng=sampler_cfg["RNG"])
         result_2 = run_MCMC(
             logpost_func=target_distribution.logpdf,
             draw_func=start_dist_sampler,
@@ -341,10 +338,10 @@ class TestSampler(unittest.TestCase):
         print("done")
         sys.stdout.flush()
 
-        self.assertNotEqual(result_1["acc_rate"], result_2["acc_rate"])
+        self.assertEqual(result_1["acc_rate"], result_2["acc_rate"])
         theta_1 = result_1["theta"]
         theta_2 = result_2["theta"]
-        self.assertFalse(
+        self.assertTrue(
             np.array_equal(theta_1, theta_2, equal_nan=False)
         )
 
@@ -356,9 +353,9 @@ class TestSampler(unittest.TestCase):
         benchmark = load_mcmc_results(fname_benchmark)
         new = load_mcmc_results(fname_new)
 
-        self.assertNotEqual(new["acc_rate"], benchmark["acc_rate"])
+        self.assertEqual(new["acc_rate"], benchmark["acc_rate"])
         theta_new = new["theta"]
         theta_benchmark = benchmark["theta"]
-        self.assertFalse(
+        self.assertTrue(
             np.array_equal(theta_new, theta_benchmark, equal_nan=False)
         )
