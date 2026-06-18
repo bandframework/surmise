@@ -66,7 +66,7 @@ def sampler(logpost_func,
         mean, std = (0.0, 1.0)
         step_distribution = sps.norm(loc=mean, scale=std)
     else:
-        raise ValueError("Bad step_type {step_type}")
+        raise ValueError("Bad step_type {stepType}")
 
     # intial theta to start the chain
     if theta0 is None:
