@@ -76,11 +76,11 @@ def sampler(logpost_func,
         theta_cand = None
         if stepType == 'normal':
             theta_cand = [theta[i-1, :][k] + stepParam[k] *
-                          sps.norm.rvs(0, 1, size=1, random_state=rng)
+                          sps.norm.rvs(loc=0.0, scale=1.0, size=1, random_state=rng)
                           for k in range(p)]
         elif stepType == 'uniform':
             theta_cand = [theta[i-1, :][k] + stepParam[k] *
-                          sps.uniform.rvs(-0.5, 0.5, size=1, random_state=rng)
+                          sps.uniform.rvs(loc=-0.5, scale=1.0, size=1, random_state=rng)
                           for k in range(p)]
 
         theta_cand = np.reshape(np.array(theta_cand), (1, p))
