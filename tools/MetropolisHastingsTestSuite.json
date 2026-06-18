@@ -39,7 +39,7 @@
                     "Scale":  6.0
                 },
                 "SampleSkip":         10,
-                "Plot":             true,
+                "Plot":            false,
                 "Benchmark":          "MH_Uniform1D_UniformStep.benchmark",
                 "n_burn_samples":  10000,
                 "n_samples":      100000,
@@ -121,7 +121,7 @@
                     "Scale":  10.0
                 },
                 "SampleSkip":         10,
-                "Plot":             true,
+                "Plot":            false,
                 "Benchmark":          "MH_Normal1D_UniformStep.benchmark",
                 "n_burn_samples":  10000,
                 "n_samples":      100000,
@@ -223,7 +223,7 @@
                     "Scale": [1.0, 1.75, 2.5, 0.2]
                 },
                 "SampleSkip":          20,
-                "Plot":              true,
+                "Plot":             false,
                 "Benchmark":           "MH_Uniform4D_UniformStep.benchmark",
                 "CornerPlotBins":      25,
                 "n_burn_samples":   10000,
