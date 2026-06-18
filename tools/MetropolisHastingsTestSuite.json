@@ -196,5 +196,40 @@
                 "verbose":         false
             }
         }
+    },
+    "Uniform4D": {
+        "TargetDistribution": {
+            "Name":      "Uniform",
+            "Intervals": [[-1.1,  1.2],
+                          [ 1.3,  4.3],
+                          [-4.5, -0.3],
+                          [-0.5, -0.4]]
+        },
+        "TestSetups": {
+            "NormalStep": {
+                "rng": {
+                    "method": "default",
+                    "random_seed": 94151694354502029434490913866546038801
+                },
+                "StartDistribution": {
+                    "Name":      "Uniform",
+                    "Intervals": [[-0.5,  0.5],
+                                  [ 1.5,  2.5],
+                                  [-4.0, -1.0],
+                                  [-0.5, -0.4]]
+                },
+                "StepDistribution": {
+                    "Name":  "uniform",
+                    "Scale": [1.0, 1.75, 2.5, 0.2]
+                },
+                "SampleSkip":          20,
+                "Plot":              true,
+                "Benchmark":           "",
+                "CornerPlotBins":      25,
+                "n_burn_samples":   10000,
+                "n_samples":       250000,
+                "verbose":          false
+            }
+        }
     }
 }

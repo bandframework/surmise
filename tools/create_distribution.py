@@ -19,10 +19,7 @@ def create_distribution(configuration):
             a, b = ivals[0]
             distribution = UniformDistribution(a, b)
         else:
-            # TODO: Allow for >2
-            # distribution = JointUniformDistribution(*ivals)
-            assert dimension == 2
-            distribution = JointUniformDistribution(ivals[0], ivals[1])
+            distribution = JointUniformDistribution(*ivals)
     elif name.lower() == "normal":
         mu = configuration["mu"]
         dimension = 1 if isinstance(mu, numbers.Real) else len(mu)
