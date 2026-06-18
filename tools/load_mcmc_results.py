@@ -15,7 +15,7 @@ def load_mcmc_results(filename):
         acceptance_rate = fptr[GROUP].attrs["AcceptanceRate"]
 
         table_name = Path(GROUP).joinpath("OfficialSamples")
-        samples = np.array(fptr[str(table_name)])
+        samples = np.array(fptr[str(table_name.as_posix())])
 
     return {"theta": samples,
             "acc_rate": acceptance_rate}
