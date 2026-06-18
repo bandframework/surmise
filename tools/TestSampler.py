@@ -64,6 +64,9 @@ class TestSampler(unittest.TestCase):
 
     def testAllSetups(self):
         for problem_name, problem in self.__problems.items():
+            # TODO: replace with dynamic sampler tags
+            sampler_tag = "MH" if 'SamplerTag' not in problem else problem['SamplerTag']
+
             target_cfg = problem["TargetDistribution"]
             target_name = target_cfg["Name"]
             print()
@@ -76,7 +79,7 @@ class TestSampler(unittest.TestCase):
                 print(setup_name)
                 print("-" * 45)
 
-                name = f"{problem_name}_{setup_name}"
+                name = f"{sampler_tag}_{problem_name}_{setup_name}"
                 self.__testSampler(name, target_distribution, test_setup)
 
     def __testSampler(self, name, target_distribution, test_setup):
