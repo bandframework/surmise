@@ -19,8 +19,8 @@
                     "Scale":  2.5
                 },
                 "SampleSkip":         10,
-                "Plot":            false,
-                "Benchmark":          "",
+                "Plot":             true,
+                "Benchmark":          "MH_Uniform1D_NormalStep.benchmark",
                 "n_burn_samples":  10000,
                 "n_samples":      100000,
                 "verbose":         false
@@ -49,7 +49,7 @@
                     "Scale":    [1.0, 2.0]
                 },
                 "SampleSkip":         10,
-                "Benchmark":           "",
+                "Benchmark":           "MH_Uniform2D_NormalStep.benchmark",
                 "Plot":              true,
                 "CornerPlotBins":      30,
                 "n_burn_samples":    1000,
@@ -68,7 +68,7 @@
             "NormalStep": {
                 "rng": {
                     "method":      "default",
-                    "random_seed": 100092616225039682105425248025433037719
+                    "random_seed": 302600551637442857926044200047590648793 
                 },
                 "StartDistribution": {
                     "Name": "Normal",
@@ -80,8 +80,8 @@
                     "Scale":  3.5
                 },
                 "SampleSkip":         10,
-                "Plot":            false,
-                "Benchmark":          "",
+                "Plot":             true,
+                "Benchmark":          "MH_Normal1D_NormalStep.benchmark",
                 "n_burn_samples":  10000,
                 "n_samples":      100000,
                 "verbose":         false
@@ -99,7 +99,7 @@
             "NormalStep": {
                 "rng": {
                     "method": "default",
-                    "random_seed": 100092616225039682105425248025433037719
+                    "random_seed": 154258990039341960530188925037451447669
                 },
                 "StartDistribution": {
                     "Name": "normal",
@@ -113,11 +113,11 @@
                 },
                 "SampleSkip":         20,
                 "Plot":             true,
-                "Benchmark":          "",
+                "Benchmark":          "MH_Normal2D_NormalStep.benchmark",
                 "CornerPlotBins":     50,
                 "n_burn_samples":  10000,
                 "n_samples":      250000,
-                "verbose":          true
+                "verbose":         false
             }
         }
     },
@@ -133,7 +133,7 @@
             "NormalStep": {
                 "rng": {
                     "method": "default",
-                    "random_seed": 100092616225039682105425248025433037719
+                    "random_seed": 247792508579165123881908434854520003545
                 },
                 "StartDistribution": {
                     "Name": "normal",
@@ -148,11 +148,11 @@
                 },
                 "SampleSkip":         20,
                 "Plot":             true,
-                "Benchmark":          "",
+                "Benchmark":          "MH_Normal3D_NormalStep.benchmark",
                 "CornerPlotBins":     50,
                 "n_burn_samples":  10000,
                 "n_samples":      250000,
-                "verbose":          true
+                "verbose":         false
             }
         }
     }
