@@ -24,6 +24,26 @@
                 "n_burn_samples":  10000,
                 "n_samples":      100000,
                 "verbose":         false
+            },
+            "UniformStep": {
+                "rng": {
+                    "method":      "default",
+                    "random_seed": 273495583654866805492797112903413765323
+                },
+                "StartDistribution": {
+                    "Name":      "Uniform",
+                    "Intervals": [-0.5, 0.5]
+                },
+                "StepDistribution": {
+                    "Name":  "uniform",
+                    "Scale":  6.0
+                },
+                "SampleSkip":         10,
+                "Plot":             true,
+                "Benchmark":          "",
+                "n_burn_samples":  10000,
+                "n_samples":      100000,
+                "verbose":         false
             }
         }
     },
@@ -82,6 +102,27 @@
                 "SampleSkip":         10,
                 "Plot":            false,
                 "Benchmark":          "MH_Normal1D_NormalStep.benchmark",
+                "n_burn_samples":  10000,
+                "n_samples":      100000,
+                "verbose":         false
+            },
+            "UniformStep": {
+                "rng": {
+                    "method":      "default",
+                    "random_seed": 96249791203211713241001619333135103061
+                },
+                "StartDistribution": {
+                    "Name": "Normal",
+                    "mu":    0.0,
+                    "sigma": 1.0
+                },
+                "StepDistribution": {
+                    "Name":  "uniform",
+                    "Scale":  10.0
+                },
+                "SampleSkip":         10,
+                "Plot":             true,
+                "Benchmark":          "",
                 "n_burn_samples":  10000,
                 "n_samples":      100000,
                 "verbose":         false
