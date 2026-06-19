@@ -77,7 +77,7 @@ def sampler(logpost_func,
     theta[0] = theta0
 
     lposterior = np.full(burnSamples + numsamp, np.nan, float)
-    lposterior[0] = np.squeeze(logpost_func(theta[0], return_grad=False))
+    lposterior[0] = np.squeeze(logpost_func(theta0, return_grad=False))
     if not np.isfinite(lposterior[0]):
         assert lposterior[0] == -np.inf
         raise RuntimeError("Initial theta evaluates to zero density")
