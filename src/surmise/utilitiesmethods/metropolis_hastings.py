@@ -97,11 +97,31 @@ def sampler(logpost_func,
         # Compute loglikelihood
         logpost = logpost_func(theta_cand, return_grad=False).item()
 
-        if np.isfinite(logpost):
-            p_accept = min(1.0, np.exp(logpost - lposterior[i-1]))
-            accept = (sps.bernoulli.rvs(p=p_accept, size=1, random_state=rng) == 1)
-        else:
+        if logpost == -np.inf:
             accept = False
+        elif not np.isfinite(logpost):
+            raise ValueError(f"Invalid log posterior evaluation ({logpost})")
+        elif logpost >= lposterior[i-1]:
+            # Handle easy case directly, which precludes any possibility of an
+            # overflow when exponentiating the difference in successive log
+            # posterior values below.
+            #
+            # This also prevents unnecessary Bernoulli draws.
+            accept = True
+        else:
+            # While analytically p_accept must be in (0, 1) here, if the
+            # magnitude of the difference is large enough numerically this will
+            # underflow to zero, which will sensibly result in the proposal
+            # being rejected.
+            #
+            # In testing this, I found that np.exp(-745.0) = 5e-324, which
+            # indicates the use of subnormal numbers before underflowing.
+            p_accept = np.exp(logpost - lposterior[i-1])
+            if p_accept == 0.0:
+                accept = False
+            else:
+                assert 0.0 < p_accept < 1.0
+                accept = (sps.bernoulli.rvs(p=p_accept, size=1, random_state=rng) == 1)
 
         # Accept candidate?
         if accept:
