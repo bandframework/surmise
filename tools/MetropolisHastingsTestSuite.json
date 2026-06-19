@@ -62,7 +62,7 @@
                 "StartDistribution": {
                     "Name":      "Uniform",
                     "Intervals": [[-0.5, 0.5],
-                                  [0.0, 1.0]]
+                                  [ 1.5, 2.1]]
                 },
                 "StepDistribution": {
                     "Name":       "normal",
@@ -70,7 +70,7 @@
                 },
                 "SampleSkip":         10,
                 "Benchmark":           "MH_Uniform2D_NormalStep.benchmark",
-                "Plot":             false,
+                "Plot":              true,
                 "CornerPlotBins":      30,
                 "n_burn_samples":    1000,
                 "n_samples":       100000,
