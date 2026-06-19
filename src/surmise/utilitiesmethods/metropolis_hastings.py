@@ -54,6 +54,20 @@ def sampler(logpost_func,
     if stepParam is None:
         stepParam = np.std(draw_func(burnSamples), axis=0)
 
+    # For the current, symmetric step proposal distributions, we can create a
+    # frozen step proposal distribution object up front and draw from it blindly
+    # within the MCMC loop to determine the sample proposal with no need for
+    # conditionals inside the loop.
+    if stepType.lower() == "uniform":
+        a, b = [-0.5, 0.5]
+        length = b - a
+        step_distribution = sps.uniform(loc=a, scale=length)
+    elif stepType.lower() == "normal":
+        mean, std = (0.0, 1.0)
+        step_distribution = sps.norm(loc=mean, scale=std)
+    else:
+        raise ValueError("Bad step type {stepType}")
+
     # intial theta to start the chain
     if theta0 is None:
         theta0 = draw_func(1)
@@ -72,17 +86,12 @@ def sampler(logpost_func,
         if verbose:
             if i % 30000 == 0:
                 print("At sample {}, acceptance rate is {}.".format(i, n_acc/i))
-        # Candidate theta
-        theta_cand = None
-        if stepType == 'normal':
-            theta_cand = [theta[i-1, :][k] + stepParam[k] *
-                          sps.norm.rvs(loc=0.0, scale=1.0, size=1, random_state=rng)
-                          for k in range(p)]
-        elif stepType == 'uniform':
-            theta_cand = [theta[i-1, :][k] + stepParam[k] *
-                          sps.uniform.rvs(loc=-0.5, scale=1.0, size=1, random_state=rng)
-                          for k in range(p)]
 
+        # Candidate theta
+        step = step_distribution.rvs(size=p, random_state=rng)
+        theta_cand = theta[i-1, :] + stepParam * step
+        if not all(np.isfinite(theta_cand)):
+            raise RuntimeError("Proposed theta contains invalid values")
         theta_cand = np.reshape(np.array(theta_cand), (1, p))
 
         # Compute loglikelihood
