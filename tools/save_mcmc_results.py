@@ -3,7 +3,7 @@ import h5py
 from pathlib import Path
 
 
-def save_mcmc_results(filename, results, overwrite=False):
+def save_mcmc_results(filename, sampler_name, results, overwrite=False):
     GROUP = "/MCMC"
 
     fname = Path(filename).resolve()
@@ -16,8 +16,12 @@ def save_mcmc_results(filename, results, overwrite=False):
         # TODO: Add these
 
         # Method-specific configuration
-        fptr[GROUP].attrs["Method"] = "Metropolis"
-        fptr[GROUP].attrs["AcceptanceRate"] = results["acc_rate"]
-        # TODO: Add others
+        if sampler_name.upper() == "MH":
+            fptr[GROUP].attrs["Method"] = "Metropolis"
+            fptr[GROUP].attrs["AcceptanceRate"] = results["acc_rate"]
+        elif sampler_name.upper() == "LMC":
+            fptr[GROUP].attrs["Method"] = "LMC"
+        else:
+            raise ValueError(f"Unsupported sampler ({sampler_name})")
 
         fptr[GROUP].create_dataset("OfficialSamples", data=results["theta"])
