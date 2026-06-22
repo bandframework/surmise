@@ -1,0 +1,29 @@
+{
+    "Uniform1D": {
+        "TargetDistribution": {
+            "Name":      "Uniform",
+            "Intervals": [-1.1, 1.2]
+        },
+        "TestSetups": {
+            "UniformStart": {
+                "rng": {
+                    "method":      "default",
+                    "random_seed": 2531535131186259872329283269888015535
+                },
+                "StartDistribution": {
+                    "Name":      "Uniform",
+                    "Intervals": [-0.5, 0.5]
+                },
+                "Sampler": {
+                   "Name": "LMC"
+                },
+                "SampleSkip":         10,
+                "Plot":             true,
+                "Benchmark":          "",
+                "n_burn_samples":  10000,
+                "n_samples":      100000,
+                "verbose":          true 
+            }
+        }
+    }
+}
