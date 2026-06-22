@@ -343,7 +343,7 @@ def predictlpdf(predinfo, f, addvar=0, **kwargs):
         Gfrf2 = (Gf @ rf2.transpose(1, 0, 2)).transpose(1, 0, 2)
         dlikv = 2 * np.sum(rf2.transpose(2, 1, 0) * rf.transpose(1, 0), 2).T
     for c in range(0, predinfo['predvars'].shape[0]):
-        w, v = np.linalg.eig(np.diag(1 / (predinfo['predvars'][c, :])) + Gf2)
+        w, v = np.linalg.eigh(np.diag(1 / (predinfo['predvars'][c, :])) + Gf2)
         term1 = (v * (1 / w)) @ (v.T @ Gfrf[:, c])
 
         likv[c] -= Gfrf[:, c].T @ term1
