@@ -73,15 +73,17 @@ def sampler(logpost_func,
         theta0 = draw_func(1)
 
     p = theta0.shape[1]
-    lposterior = np.zeros(burnSamples + numsamp)
-    theta = np.zeros((burnSamples + numsamp, theta0.shape[1]))
-    # print(theta0)
-    lposterior[0] = logpost_func(theta0, return_grad=False).item()
+    theta = np.full((burnSamples + numsamp, p), np.nan, float)
     theta[0] = theta0
+
+    lposterior = np.full(burnSamples + numsamp, np.nan, float)
+    lposterior[0] = np.squeeze(logpost_func(theta0, return_grad=False))
+    if not np.isfinite(lposterior[0]):
+        assert lposterior[0] == -np.inf
+        raise RuntimeError("Initial theta evaluates to zero density")
+
     n_acc = 0
-
     lposterior_list = []
-
     for i in range(1, burnSamples + numsamp):
         if verbose:
             if i % 30000 == 0:
@@ -95,7 +97,7 @@ def sampler(logpost_func,
         theta_cand = np.reshape(np.array(theta_cand), (1, p))
 
         # Compute loglikelihood
-        logpost = logpost_func(theta_cand, return_grad=False).item()
+        logpost = np.squeeze(logpost_func(theta_cand, return_grad=False))
 
         if logpost == -np.inf:
             accept = False
