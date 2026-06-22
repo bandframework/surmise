@@ -6,7 +6,7 @@ Parallel-Tempering Ensemble MCMC (uses Langevin Monte Carlo)
 '''
 
 
-def sampler(logpostfunc,
+def sampler(logpost_func,
             draw_func,
             theta0=None,
             numsamp=2000,
@@ -19,12 +19,12 @@ def sampler(logpostfunc,
 
     Parameters
     ----------
-    logpostfunc : function
+    logpost_func : function
         A function call describing the log of the posterior distribution.
-            If no gradient, logpostfunc should take a value of an m by p numpy
+            If no gradient, logpost_func should take a value of an m by p numpy
             array of parameters and theta and return
             a length m numpy array of log posterior evaluations.
-            If gradient, logpostfunc should return a tuple.  The first element
+            If gradient, logpost_func should return a tuple.  The first element
             in the tuple should be as listed above.
             The second element in the tuple should be an m by p matrix of
             gradients of the log posterior.
@@ -83,30 +83,30 @@ def sampler(logpostfunc,
     # number of optimization at each chain before starting
     numopt = temps.shape[0]
     # before beginning, let's test out the given logpdf function
-    testout = logpostfunc(theta0[0:2, :])
+    testout = logpost_func(theta0[0:2, :])
     if type(testout) is tuple:
         if len(testout) != 2:
             raise ValueError('log density does not return 1 or 2 elements')
         if testout[1].shape[1] is not theta0.shape[1]:
             raise ValueError('derivative appears to be the wrong shape')
-        logpostf = logpostfunc
+        logpostf = logpost_func
 
         def logpostf_grad(thetain):
-            return logpostfunc(thetain)[1]
+            return logpost_func(thetain)[1]
         try:
-            testout = logpostfunc(theta0[10, :], return_grad=False)
+            testout = logpost_func(theta0[10, :], return_grad=False)
             if type(testout) is tuple:  # make sure that return_grad functionality works
                 raise ValueError('Cannot stop returning a grad')
 
             def logpostf_nograd(theta):
-                return logpostfunc(theta, return_grad=False)
+                return logpost_func(theta, return_grad=False)
         except Exception:
             def logpostf_nograd(theta):  # if not, do not use return_grad key
-                return logpostfunc(theta)[0]
+                return logpost_func(theta)[0]
     else:
         logpostf_grad = None  # sometimes no derivative is given
-        logpostf = logpostfunc
-        logpostf_nograd = logpostfunc
+        logpostf = logpost_func
+        logpostf_nograd = logpost_func
 
     if logpostf_grad is None:  # these are standard parameters if there is
         taracc = 0.25  # close to theoretical result 0.234
