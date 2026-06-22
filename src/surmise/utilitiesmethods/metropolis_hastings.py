@@ -39,6 +39,9 @@ def sampler(logpost_func,
         returns numsamp random draws from posterior.
 
     '''
+    # Hardcoded values
+    LOG_RATE = 25_000
+
     # random number generator
     # TODO: This is an intermediate step.  Eventually calling code should be
     # forced to provide an RNG.
@@ -82,13 +85,12 @@ def sampler(logpost_func,
         assert lposterior[0] == -np.inf
         raise RuntimeError("Initial theta evaluates to zero density")
 
-    n_acc = 0
+    # We implicitly treat theta0 as accepted.  If the number of burn-in samples
+    # is positive, we also treat it as part of the burn-in.
+    n_acc = 1 if burnSamples == 0 else 0
+    n_official_i = 1 if burnSamples == 0 else 0
     lposterior_list = []
     for i in range(1, burnSamples + numsamp):
-        if verbose:
-            if i % 30000 == 0:
-                print("At sample {}, acceptance rate is {}.".format(i, n_acc/i))
-
         # Candidate theta
         step = step_distribution.rvs(size=p, random_state=rng)
         theta_cand = theta[i-1, :] + stepParam * step
@@ -138,9 +140,24 @@ def sampler(logpost_func,
             lposterior[i] = lposterior[i-1]
             lposterior_list.append(logpost)
 
+        # N official samples completed by end of i^th iteration
+        # - Nonpositive value indicates still in warm-up phase
+        n_official_i = i - burnSamples + 1
+
+        if verbose:
+            if (n_official_i >= 1) and (n_official_i % LOG_RATE == 0):
+                acc_rate = n_acc / float(n_official_i)
+                assert 0.0 <= acc_rate <= 1.0
+                print(
+                    f"Sample {n_official_i:>10} acceptance rate={acc_rate}"
+                )
+    assert n_official_i == numsamp
+    acc_rate = n_acc / float(numsamp)
+    assert 0.0 <= acc_rate <= 1.0
+
     theta = theta[(burnSamples):(burnSamples + numsamp), :]
-    sampler_info = {'theta': theta, 'acc_rate': n_acc/numsamp,
+    sampler_info = {'theta': theta, 'acc_rate': acc_rate,
                     'lpostlist': np.array(lposterior_list)}
     if verbose:
-        print("Final Acceptance Rate: ", n_acc/numsamp)
+        print("Final Acceptance Rate: ", sampler_info["acc_rate"])
     return sampler_info
