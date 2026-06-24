@@ -1,0 +1,235 @@
+{
+    "Uniform1D": {
+        "TargetDistribution": {
+            "Name":      "Uniform",
+            "Intervals": [-1.1, 1.2]
+        },
+        "TestSetups": {
+            "NormalStep": {
+                "rng": {
+                    "method":      "default",
+                    "random_seed": 40964995216837009177257723716779840101
+                },
+                "StartDistribution": {
+                    "Name":      "Uniform",
+                    "Intervals": [-0.5, 0.5]
+                },
+                "StepDistribution": {
+                    "Name":  "normal",
+                    "Scale":  2.5
+                },
+                "SampleSkip":         10,
+                "Plot":            false,
+                "Benchmark":          "MH_Uniform1D_NormalStep.benchmark",
+                "n_burn_samples":  10000,
+                "n_samples":      100000,
+                "verbose":         false
+            },
+            "UniformStep": {
+                "rng": {
+                    "method":      "default",
+                    "random_seed": 273495583654866805492797112903413765323
+                },
+                "StartDistribution": {
+                    "Name":      "Uniform",
+                    "Intervals": [-0.5, 0.5]
+                },
+                "StepDistribution": {
+                    "Name":  "uniform",
+                    "Scale":  6.0
+                },
+                "SampleSkip":         10,
+                "Plot":            false,
+                "Benchmark":          "MH_Uniform1D_UniformStep.benchmark",
+                "n_burn_samples":  10000,
+                "n_samples":      100000,
+                "verbose":         false
+            }
+        }
+    },
+    "Uniform2D": {
+        "TargetDistribution": {
+            "Name":      "Uniform",
+            "Intervals": [[-1.1, 1.2],
+                          [ 1.3, 4.3]]
+        },
+        "TestSetups": {
+            "NormalStep": {
+                "rng": {
+                    "method": "default",
+                    "random_seed": 100092616225039682105425248025433037719
+                },
+                "StartDistribution": {
+                    "Name":      "Uniform",
+                    "Intervals": [[-0.5, 0.5],
+                                  [ 1.5, 2.1]]
+                },
+                "StepDistribution": {
+                    "Name":       "normal",
+                    "Scale":    [1.0, 2.0]
+                },
+                "SampleSkip":         10,
+                "Benchmark":           "MH_Uniform2D_NormalStep.benchmark",
+                "Plot":             false,
+                "CornerPlotBins":      30,
+                "n_burn_samples":    1000,
+                "n_samples":       100000,
+                "verbose":          false
+            }
+        }
+    },
+    "Normal1D": {
+        "TargetDistribution": {
+            "Name": "Normal",
+            "mu":    -1.1,
+            "sigma":  1.2
+        },
+        "TestSetups": {
+            "NormalStep": {
+                "rng": {
+                    "method":      "default",
+                    "random_seed": 302600551637442857926044200047590648793 
+                },
+                "StartDistribution": {
+                    "Name": "Normal",
+                    "mu":    0.0,
+                    "sigma": 1.0
+                },
+                "StepDistribution": {
+                    "Name":  "normal",
+                    "Scale":  3.5
+                },
+                "SampleSkip":         10,
+                "Plot":            false,
+                "Benchmark":          "MH_Normal1D_NormalStep.benchmark",
+                "n_burn_samples":  10000,
+                "n_samples":      100000,
+                "verbose":         false
+            },
+            "UniformStep": {
+                "rng": {
+                    "method":      "default",
+                    "random_seed": 96249791203211713241001619333135103061
+                },
+                "StartDistribution": {
+                    "Name": "Normal",
+                    "mu":    0.0,
+                    "sigma": 1.0
+                },
+                "StepDistribution": {
+                    "Name":  "uniform",
+                    "Scale":  10.0
+                },
+                "SampleSkip":         10,
+                "Plot":            false,
+                "Benchmark":          "MH_Normal1D_UniformStep.benchmark",
+                "n_burn_samples":  10000,
+                "n_samples":      100000,
+                "verbose":         false
+            }
+        }
+    },
+    "Normal2D": {
+        "TargetDistribution": {
+            "Name": "Normal",
+            "mu":     [1.1, -2.2],
+            "sigma": [[1.0,  2.0],
+                      [2.0, 10.0]]
+        },
+        "TestSetups": {
+            "NormalStep": {
+                "rng": {
+                    "method": "default",
+                    "random_seed": 154258990039341960530188925037451447669
+                },
+                "StartDistribution": {
+                    "Name": "normal",
+                    "mu":     [-1.0, 2.0],
+                    "sigma": [[1.0, 0.0],
+                              [0.0, 5.0]]
+                },
+                "StepDistribution": {
+                    "Name":         "normal",
+                    "Scale":      [1.0, 5.0]
+                },
+                "SampleSkip":         20,
+                "Plot":            false,
+                "Benchmark":          "MH_Normal2D_NormalStep.benchmark",
+                "CornerPlotBins":     50,
+                "n_burn_samples":  10000,
+                "n_samples":      250000,
+                "verbose":         false
+            }
+        }
+    },
+    "Normal3D": {
+        "TargetDistribution": {
+            "Name": "Normal",
+            "mu":     [1.1, -2.2, 0.2],
+            "sigma": [[1.0,   2.0,  0.05],
+                      [2.0,  10.0, -0.6],
+                      [0.05, -0.6,  0.5]]
+        },
+        "TestSetups": {
+            "NormalStep": {
+                "rng": {
+                    "method": "default",
+                    "random_seed": 247792508579165123881908434854520003545
+                },
+                "StartDistribution": {
+                    "Name": "normal",
+                    "mu":     [-1.0, 2.0, 0.0],
+                    "sigma": [[1.0, 0.0, 0.0],
+                              [0.0, 5.0, 0.0],
+                              [0.0, 0.0, 0.5]]
+                },
+                "StepDistribution": {
+                    "Name":         "normal",
+                    "Scale":      [1.0, 5.0, 0.2]
+                },
+                "SampleSkip":         20,
+                "Plot":            false,
+                "Benchmark":          "MH_Normal3D_NormalStep.benchmark",
+                "CornerPlotBins":     50,
+                "n_burn_samples":  10000,
+                "n_samples":      250000,
+                "verbose":         false
+            }
+        }
+    },
+    "Uniform4D": {
+        "TargetDistribution": {
+            "Name":      "Uniform",
+            "Intervals": [[-1.1,  1.2],
+                          [ 1.3,  4.3],
+                          [-4.5, -0.3],
+                          [-0.5, -0.4]]
+        },
+        "TestSetups": {
+            "UniformStep": {
+                "rng": {
+                    "method": "default",
+                    "random_seed": 94151694354502029434490913866546038801
+                },
+                "StartDistribution": {
+                    "Name":      "Uniform",
+                    "Intervals": [[-0.5,  0.5],
+                                  [ 1.5,  2.5],
+                                  [-4.0, -1.0],
+                                  [-0.5, -0.4]]
+                },
+                "StepDistribution": {
+                    "Name":  "uniform",
+                    "Scale": [1.0, 1.75, 2.5, 0.2]
+                },
+                "SampleSkip":          20,
+                "Plot":             false,
+                "Benchmark":           "MH_Uniform4D_UniformStep.benchmark",
+                "CornerPlotBins":      25,
+                "n_burn_samples":   10000,
+                "n_samples":       250000,
+                "verbose":          false
+            }
+        }
+    }
+}
