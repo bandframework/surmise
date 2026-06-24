@@ -6,10 +6,12 @@
 #
 # According to numpy docs, users can use 1.X numpy installations with binaries
 # built with numpy >= 2.0.0.  The API and ABI are also supposed to be forward
-# compatible until the API (and potentially the ABI) are intentionally broken
-# at a minor or major release.  For now, we therefore build with numpy 2.0.0 so
-# that we get the full expected compatibility.  This assume that newer versions
-# of numpy haven't fixed bugs that affect surmise or improved surmise
+# compatible until the API (and potentially the ABI) are intentionally broken at
+# a minor or major release.  For now, we build with numpy 2.1.2 so that we use a
+# sufficiently old version of numpy to get the best possible compatibility while
+# taking advantage of a bug fix (See https://github.com/numpy/numpy/pull/27416)
+# and prebuilt numpy wheels for Windows.  This assume that newer versions of
+# numpy haven't fixed other bugs that affect surmise or improved surmise
 # performance significantly.
 #
 # It is assumed that all .c files to be generated with Cython have already been
@@ -27,10 +29,11 @@
 #   in the documentation, setup.py, tox.ini, and the like.
 
 [build-system]
+# Issue #185 details numpy v2.1.2 decision.
 requires = [
     "setuptools>=68.2.2",
     "setuptools_scm[toml]>=6.0",
-    "numpy==2.0.0"
+    "numpy==2.1.2"
 ]
 build-backend = "setuptools.build_meta"
 
@@ -38,11 +41,9 @@ build-backend = "setuptools.build_meta"
 write_to = "src/surmise/_version.py"
 
 [tool.cibuildwheel]
-# This currently fails on cp314t-*, which is OK since 3.14 is only prerelease.
-#
-# For Python 3.13, numpy built with MINGW-W64 on Windows 64 bits is experimental
+# For Python 3.14, numpy built with MINGW-W64 on Windows 64 bits is experimental
 # and only available for testing.
-skip         = ["cp38-*", "cp314*", "cp313-win*",
+skip         = ["cp38-*", "cp39-*", "cp314-win*", "cp314t-win*",
                 "*-win32", "*_i686", "*-musllinux*"]
 before-all   = ["uname -a"]
 before-build = ["git status"]

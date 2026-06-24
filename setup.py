@@ -22,12 +22,10 @@ def readme_rst():
     with open(fname, encoding="utf8") as fptr:
         return fptr.read()
 
-python_requires = ">=3.9"
-# numpy & scipy upper limits required by macos-13 GH action tests.  Without
-# these, there are segmentation faults.
+python_requires = ">=3.10"
 code_requires = [
-    'numpy>=1.22.0,<2.2.0',
-    'scipy>=1.9.0,<1.15.0',
+    'numpy>=1.22.0',
+    'scipy>=1.9.0',
     'scikit-learn>=1.2.0',
     'dill>=0.3.8'
 ]
@@ -61,7 +59,7 @@ setup(
     description="A modular interface for surrogate models and tools",
     long_description=readme_rst(),
     long_description_content_type="text/x-rst",
-    url="https://github.com/bandframework/surmise",
+    url=project_urls["Source"],
     project_urls=project_urls,
     license="MIT",
     packages=find_packages(where="src"),
@@ -73,8 +71,18 @@ setup(
     ext_modules=extensions,
     keywords="surmise",
     classifiers=[
+        "Natural Language :: English",
+        "Development Status :: 5 - Production/Stable",
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: POSIX :: Linux",
+        "Operating System :: Microsoft :: Windows",
+        "Intended Audience :: Science/Research",
+        "Topic :: Scientific/Engineering"
     ]
 )
