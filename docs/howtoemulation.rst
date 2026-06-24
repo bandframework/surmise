@@ -1,13 +1,16 @@
 How to include a new emulator
 ==============================================
+When loaded, the surmise package automatically identifies all available
+emulators by locating all ``.py`` codes in the ``emulationmethods`` folder
+within its installation [#f1]_.  For example, it assumes that the
+``emulationmethods/PCGP.py`` file provides the ``PCGP`` emulator, which is the
+emulator name that users should provide when choosing a particular emulator to
+use for a fit.  Therefore, users can integrate their own emulator in surmise by
+placing their emulator's Python source code in that same folder.  This tutorial
+describes how to structure a custom emulator code so that this integration is
+successful.
 
-In this tutorial, we describe how to include a new emulator to the surmise's
-framework. We illustrate this with ``PCGP``--an emulator method located in the
-directory ``\emulationmethods``.
-
-In surmise, all emulator methods are automatically discovered from `.py` code files under ``\emulationmethods``.
-An emulator class calls the user input method by the filename of the respective `.py` file, e.g., `PCGP` for `PCGP.py`, and fits the corresponding
-emulator. :py:func:`surmise.emulation.emulator.fit` and :py:func:`surmise.emulation.emulator.predict`
+:py:func:`surmise.emulation.emulator.fit` and :py:func:`surmise.emulation.emulator.predict`
 are the main :py:class:`surmise.emulation.emulator` class methods.
 It also provides the functionality of updating and manipulating the
 fitted emulator by :py:func:`surmise.emulation.emulator.supplement`,
@@ -67,3 +70,7 @@ Optional functions
 ++++++++++++++++++++
 
 ``supplementtheta()`` is an optional function for an emulation method.
+
+.. rubric:: Footnotes
+
+.. [#f1] The location of a surmise installation that was installed into a virtual environment, for example, might be ``~/local/venv/my_surmise/lib/python3.14/site-packages/surmise`` or, in Windows, ``TBD``
