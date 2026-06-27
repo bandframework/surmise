@@ -21,6 +21,8 @@ def save_mcmc_results(filename, sampler_name, results, overwrite=False):
             fptr[GROUP].attrs["AcceptanceRate"] = results["acc_rate"]
         elif sampler_name.upper() == "LMC":
             fptr[GROUP].attrs["Method"] = "LMC"
+        elif sampler_name.upper() == "PTLMC":
+            fptr[GROUP].attrs["Method"] = "PTLMC"
         else:
             raise ValueError(f"Unsupported sampler ({sampler_name})")
 

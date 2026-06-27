@@ -353,6 +353,9 @@ class TestSampler(unittest.TestCase):
         elif sampler_name.upper() == "LMC":
             # Nothing extra to test
             pass
+        elif sampler_name.upper() == "PTLMC":
+            # Nothing extra to test
+            pass
         else:
             raise ValueError("Not testing sampler-specific results")
         self.assertEqual(set(benchmark), set(new))

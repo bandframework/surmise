@@ -79,15 +79,17 @@ def sampler(logpost_func,
                                                np.log(maxtemp)/(numtemps+1),
                                                numtemps)),
                             np.ones(numchain)))  # ratio idea tend from emcee
-    temps = np.array(temps, ndmin=2).T
+    # print(f"orig temp: {temps.shape}")
+    # temps = np.array(temps, ndmin=2).T
+    # print(f"reshape temp: {temps.shape}")
     # number of optimization at each chain before starting
     numopt = temps.shape[0]
     # before beginning, let's test out the given logpdf function
     testout = logpost_func(theta0[0:2, :])
     if type(testout) is tuple:
-        if len(testout) != 2:
+        if len(testout) > 2:
             raise ValueError('log density does not return 1 or 2 elements')
-        if testout[1].shape[1] is not theta0.shape[1]:
+        if testout[1].shape[1] != theta0.shape[1]:
             raise ValueError('derivative appears to be the wrong shape')
         logpostf = logpost_func
 
@@ -122,6 +124,7 @@ def sampler(logpost_func,
     thetacen = np.mean(theta0, 0)
     thetas = np.maximum(np.std(theta0, 0), 10 ** (-8) * np.std(theta0))
 
+    # print(f"theta0: {theta0.shape}")
     # rescale the input to make it easier to optimize
     def neglogpostf_nograd(thetap):
         theta = thetacen + thetas * thetap
@@ -178,6 +181,9 @@ def sampler(logpost_func,
     # end preoptimizer
     # initialize the starting point
     thetac = thetaop
+
+    # print(f"thetac: {thetac.shape}")
+
     if logpostf_grad is not None:
         fval, dfval = logpostf(thetac)
         fval = fval/temps
@@ -185,6 +191,13 @@ def sampler(logpost_func,
     else:
         fval = logpostf_nograd(thetac)
         fval = fval/temps
+    #
+    # print("\n\n\n\n")
+    # print(fval)
+    #
+    # print("\n\n\n\n")
+    # print(f"fval: {fval.shape}")
+
     # preallocate the saving matrix
     thetasave = np.zeros((numchain,
                           sampperchain,
@@ -205,9 +218,14 @@ def sampler(logpost_func,
     adjrho = rho*temps**(1/3)  # this adjusts rho across different temperatures
     numtimes = 0  # number of times we reject, just to star
     for k in range(0, samptunning+sampperchain):  # loop over all chains
-        rvalo = np.random.normal(0, 1, thetac.shape)
-        rval = np.sqrt(2) * adjrho * (rvalo @ hc)
-        thetap = thetac + rval
+        rvalo = np.random.normal(0, 1, size=thetac.shape)
+        # print(f"rvalo: {rvalo.shape}")
+        # print(f"hc: {hc.shape}")
+        # print(f"adjrho: {adjrho.shape}")
+        # print(f"mult: {(rvalo @ hc).shape}")
+        rval = np.sqrt(2) * adjrho * np.squeeze(rvalo @ hc)
+        # print(f"rval: {rval.shape}")
+        thetap = thetac + rval[:, np.newaxis]
         if logpostf_grad is not None:
             # calculate the elements to move if there is a gradiant
             diffval = (adjrho ** 2) * (dfval @ covmat0)
@@ -220,6 +238,7 @@ def sampler(logpost_func,
             qadj = -(2 * np.sum(term1 * term2, 1) + np.sum(term2**2, 1))
         else:
             # calculate the elements to move if there is not a gradiant
+            # print(f"thetap: {thetap.shape}")
             fvalp = logpostf_nograd(thetap)  # thetap : no chain x dimension
             fvalp = fvalp / temps
             qadj = np.zeros(fvalp.shape)
@@ -229,11 +248,13 @@ def sampler(logpost_func,
                              + np.squeeze(qadj))[0]  # MH step to find which of the chains to swap
         if whereswap.shape[0] > 0:  # if we swap, do it where needed
             numtimes = numtimes + np.sum(whereswap > -1)/totnumchain
-            thetac[whereswap, :] = 1*thetap[whereswap, :]
-            fval[whereswap] = 1*fvalp[whereswap]
+            thetac[whereswap] = np.copy(thetap[whereswap])
+            fval[whereswap] = np.copy(fvalp[whereswap])
             if logpostf_grad is not None:
-                dfval[whereswap, :] = 1*dfvalp[whereswap, :]
+                dfval[whereswap] = np.copy(dfvalp[whereswap])
         # do some swaps along the temperatures
+        # print(f"fval: {fval.shape}")
+        # print(f"temp: {temps.shape}")
         fvaln = fval*temps
         orderprop = tempexchange(fvaln, temps, iters=5)  # go through 5 times, swapping where needed
         fval = fvaln[orderprop] / temps
@@ -265,10 +286,16 @@ def tempexchange(lpostf, temps, iters=1):
     # array lpostf with temperature array temps. It will do it iters number of times.
     # It returns the (random) revised order.
     order = np.arange(0, lpostf.shape[0])  # initializing
+    # print(f"order: {order.shape}")
+    # print(f"temp: {temps.shape}")
+    # print(f"lpostf: {lpostf.shape}")
     for k in range(0, iters):
         rtv = np.random.choice(range(1, lpostf.shape[0]), lpostf.shape[0])  # choose random values to check for swapping
+        # print(rtv.shape)
         for rt in rtv:
+            # print(rt)
             rhoh = (1/temps[rt-1] - 1 / temps[rt])
+            # print(rhoh.shape)
             if ((lpostf[order[rt]]-lpostf[order[rt - 1]]) * rhoh >
                     np.log(np.random.uniform(size=1))):  # swap via the PT rule
                 temporder = order[rt - 1]
