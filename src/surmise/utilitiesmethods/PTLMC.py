@@ -91,7 +91,7 @@ def sampler(logpost_func,
                                                np.log(maxtemp)/(numtemps+1),
                                                numtemps)),
                             np.ones(numchain)))  # ratio idea tend from emcee
-
+    print(temps.shape)
     # number of optimization at each chain before starting
     numopt = temps.shape[0]
     # before beginning, let's test out the given logpdf function
@@ -197,7 +197,7 @@ def sampler(logpost_func,
         fval /= temps
         dfval /= temps
     else:
-        fval = logpostf_nograd(thetac)
+        fval = np.squeeze(logpostf_nograd(thetac))
         fval /= temps
 
     # preallocate the saving matrix
@@ -238,7 +238,7 @@ def sampler(logpost_func,
             qadj = -(2 * np.sum(term1 * term2, 1) + np.sum(term2**2, 1))
         else:
             # calculate the elements to move if there is not a gradiant
-            fvalp = logpostf_nograd(thetap)  # thetap : no chain x dimension
+            fvalp = np.squeeze(logpostf_nograd(thetap))  # thetap : no chain x dimension
             fvalp /= temps
             qadj = np.zeros(fvalp.shape)
         swaprnd = np.log(np.random.uniform(size=fval.shape[0]))
