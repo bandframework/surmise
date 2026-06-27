@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.stats as sps
 import scipy.optimize as spo
 
 '''
@@ -61,6 +62,17 @@ def sampler(logpost_func,
 
     """
 
+    # random number generator
+    # TODO: This is an intermediate step.  Eventually calling code should be
+    # forced to provide an RNG.
+    rng = None
+    if "RNG" in ptlmc_options:
+        rng = ptlmc_options["RNG"]
+    if rng is None:
+        rng = np.random.default_rng()
+    elif not isinstance(rng, np.random.Generator):
+        raise TypeError("Given RNG is not a valid scipy.stats RNG")
+
     # If we do not get parameters to start, draw 1000
     if theta0 is None:
         theta0 = draw_func(1000)
@@ -79,9 +91,7 @@ def sampler(logpost_func,
                                                np.log(maxtemp)/(numtemps+1),
                                                numtemps)),
                             np.ones(numchain)))  # ratio idea tend from emcee
-    # print(f"orig temp: {temps.shape}")
-    # temps = np.array(temps, ndmin=2).T
-    # print(f"reshape temp: {temps.shape}")
+
     # number of optimization at each chain before starting
     numopt = temps.shape[0]
     # before beginning, let's test out the given logpdf function
@@ -118,13 +128,13 @@ def sampler(logpost_func,
     # order the existing initial theta's by log pdf
     ord1 = np.argsort(-np.squeeze(logpostf_nograd(theta0)) +
                       (theta0.shape[1] *
-                       np.random.standard_normal(size=theta0.shape[0])**2))
+                       sps.norm.rvs(size=theta0.shape[0],
+                                    random_state=rng)**2))
     theta0 = theta0[ord1[0:totnumchain], :]
     # begin optimizing at each chain
     thetacen = np.mean(theta0, 0)
     thetas = np.maximum(np.std(theta0, 0), 10 ** (-8) * np.std(theta0))
 
-    # print(f"theta0: {theta0.shape}")
     # rescale the input to make it easier to optimize
     def neglogpostf_nograd(thetap):
         theta = thetacen + thetas * thetap
@@ -164,7 +174,8 @@ def sampler(logpost_func,
         l0 = neglogpostf_nograd(opval.x)
         while notmoved:
             if (W > 0).all():
-                r = (V.T*np.sqrt(W)) @ (V @ np.random.standard_normal(size=thetacen.shape[0]))
+                r = (V.T*np.sqrt(W)) @ (V @ sps.norm.rvs(size=thetacen.shape[0],
+                                                         random_state=rng))
             else:
                 stepadj /= 2
                 if stepadj < 1/16:
@@ -172,7 +183,7 @@ def sampler(logpost_func,
                     notmoved = False
                 continue
 
-            if (neglogpostf_nograd((stepadj * r + opval.x)) -
+            if (neglogpostf_nograd(stepadj * r + opval.x) -
                     l0) < 3*thetacen.shape[0]:
                 thetaop[k, :] = thetacen + thetas * (stepadj * r + opval.x)
                 notmoved = False
@@ -181,22 +192,13 @@ def sampler(logpost_func,
     # end preoptimizer
     # initialize the starting point
     thetac = thetaop
-
-    # print(f"thetac: {thetac.shape}")
-
     if logpostf_grad is not None:
         fval, dfval = logpostf(thetac)
-        fval = fval/temps
-        dfval = dfval/temps
+        fval /= temps
+        dfval /= temps
     else:
         fval = logpostf_nograd(thetac)
-        fval = fval/temps
-    #
-    # print("\n\n\n\n")
-    # print(fval)
-    #
-    # print("\n\n\n\n")
-    # print(f"fval: {fval.shape}")
+        fval /= temps
 
     # preallocate the saving matrix
     thetasave = np.zeros((numchain,
@@ -218,13 +220,8 @@ def sampler(logpost_func,
     adjrho = rho*temps**(1/3)  # this adjusts rho across different temperatures
     numtimes = 0  # number of times we reject, just to star
     for k in range(0, samptunning+sampperchain):  # loop over all chains
-        rvalo = np.random.normal(0, 1, size=thetac.shape)
-        # print(f"rvalo: {rvalo.shape}")
-        # print(f"hc: {hc.shape}")
-        # print(f"adjrho: {adjrho.shape}")
-        # print(f"mult: {(rvalo @ hc).shape}")
+        rvalo = sps.norm.rvs(size=thetac.shape, random_state=rng)
         rval = (np.sqrt(2) * adjrho * np.squeeze(rvalo @ hc).T).T
-        # print(f"rval: {rval.shape}")
         if thetac.shape[1] > 1:
             thetap = thetac + rval
         elif thetac.shape[1] == 1:
@@ -234,16 +231,15 @@ def sampler(logpost_func,
             diffval = (adjrho ** 2) * (dfval @ covmat0)
             thetap += diffval
             fvalp, dfvalp = logpostf(thetap)  # thetap : no chain x dimension
-            fvalp = fvalp / temps  # to flatten the posterior
-            dfvalp = dfvalp / temps
+            fvalp /= temps  # to flatten the posterior
+            dfvalp /= temps
             term1 = rvalo / np.sqrt(2)
             term2 = (adjrho / 2) * ((dfval + dfvalp) @ hc)
             qadj = -(2 * np.sum(term1 * term2, 1) + np.sum(term2**2, 1))
         else:
             # calculate the elements to move if there is not a gradiant
-            # print(f"thetap: {thetap.shape}")
             fvalp = logpostf_nograd(thetap)  # thetap : no chain x dimension
-            fvalp = fvalp / temps
+            fvalp /= temps
             qadj = np.zeros(fvalp.shape)
         swaprnd = np.log(np.random.uniform(size=fval.shape[0]))
         whereswap = np.where(np.squeeze(swaprnd)
@@ -256,10 +252,8 @@ def sampler(logpost_func,
             if logpostf_grad is not None:
                 dfval[whereswap] = np.copy(dfvalp[whereswap])
         # do some swaps along the temperatures
-        # print(f"fval: {fval.shape}")
-        # print(f"temp: {temps.shape}")
-        fvaln = fval*temps
-        orderprop = tempexchange(fvaln, temps, iters=5)  # go through 5 times, swapping where needed
+        fvaln = fval * temps
+        orderprop = tempexchange(fvaln, temps, iters=5, rng=rng)  # go through 5 times, swapping where needed
         fval = fvaln[orderprop] / temps
         thetac = thetac[orderprop, :]
         if logpostf_grad is not None:
@@ -275,32 +269,28 @@ def sampler(logpost_func,
         elif k >= samptunning:  # if done with tuning
             thetasave[:, k-samptunning, :] = 1 * thetac[numtemps:, ]
     # save the theta values in the temp=1 chains, squeezing flattening the values of all chains
-    thetasave = np.reshape(thetasave, (-1, thetac.shape[1]))
+    thetasave_flatten = np.reshape(thetasave, (-1, thetac.shape[1]))
     # save random values from the chain of size numsamp
-    theta = thetasave[np.random.choice(range(0, thetasave.shape[0]),
-                                       size=numsamp), :]
+    theta = thetasave_flatten[rng.choice(range(0, thetasave_flatten.shape[0]),
+                                         size=numsamp)]
     # store this in a dictionary
-    sampler_info = {'theta': theta, 'logpost': logpostf_nograd(theta)}
+    sampler_info = {'theta': theta, 'theta_from_chain': thetasave, 'logpost': logpostf_nograd(theta)}
     return sampler_info
 
 
-def tempexchange(lpostf, temps, iters=1):
+def tempexchange(lpostf, temps, iters=1, rng=None):
     # This function will swap values along the chain given the log pdf values in an
     # array lpostf with temperature array temps. It will do it iters number of times.
     # It returns the (random) revised order.
+    assert rng is not None
+
     order = np.arange(0, lpostf.shape[0])  # initializing
-    # print(f"order: {order.shape}")
-    # print(f"temp: {temps.shape}")
-    # print(f"lpostf: {lpostf.shape}")
     for k in range(0, iters):
-        rtv = np.random.choice(range(1, lpostf.shape[0]), lpostf.shape[0])  # choose random values to check for swapping
-        # print(rtv.shape)
+        rtv = rng.choice(range(1, lpostf.shape[0]), lpostf.shape[0])  # choose random values to check for swapping
         for rt in rtv:
-            # print(rt)
             rhoh = (1/temps[rt-1] - 1 / temps[rt])
-            # print(rhoh.shape)
             if ((lpostf[order[rt]]-lpostf[order[rt - 1]]) * rhoh >
-                    np.log(np.random.uniform(size=1))):  # swap via the PT rule
+                    np.log(sps.uniform.rvs(size=1, random_state=rng))):  # swap via the PT rule
                 temporder = order[rt - 1]
                 order[rt-1] = 1*order[rt]
                 order[rt] = 1 * temporder
