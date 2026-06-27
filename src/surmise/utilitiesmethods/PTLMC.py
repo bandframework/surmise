@@ -223,9 +223,12 @@ def sampler(logpost_func,
         # print(f"hc: {hc.shape}")
         # print(f"adjrho: {adjrho.shape}")
         # print(f"mult: {(rvalo @ hc).shape}")
-        rval = np.sqrt(2) * adjrho * np.squeeze(rvalo @ hc)
+        rval = (np.sqrt(2) * adjrho * np.squeeze(rvalo @ hc).T).T
         # print(f"rval: {rval.shape}")
-        thetap = thetac + rval[:, np.newaxis]
+        if thetac.shape[1] > 1:
+            thetap = thetac + rval
+        elif thetac.shape[1] == 1:
+            thetap = thetac + rval[:, np.newaxis]
         if logpostf_grad is not None:
             # calculate the elements to move if there is a gradiant
             diffval = (adjrho ** 2) * (dfval @ covmat0)
