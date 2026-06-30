@@ -91,7 +91,7 @@ def sampler(logpost_func,
                                                np.log(maxtemp)/(numtemps+1),
                                                numtemps)),
                             np.ones(numchain)))  # ratio idea tend from emcee
-    print(temps.shape)
+
     # number of optimization at each chain before starting
     numopt = temps.shape[0]
     # before beginning, let's test out the given logpdf function
