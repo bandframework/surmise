@@ -241,7 +241,7 @@ def sampler(logpost_func,
             fvalp = np.squeeze(logpostf_nograd(thetap))  # thetap : no chain x dimension
             fvalp /= temps
             qadj = np.zeros(fvalp.shape)
-        swaprnd = np.log(np.random.uniform(size=fval.shape[0]))
+        swaprnd = np.log(sps.uniform.rvs(size=fval.shape[0], random_state=rng))
         whereswap = np.where(np.squeeze(swaprnd)
                              < np.squeeze(fvalp - fval)
                              + np.squeeze(qadj))[0]  # MH step to find which of the chains to swap
