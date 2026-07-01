@@ -20,7 +20,7 @@
     :target: https://github.com/bandframework/surmise/actions/workflows/publish_book.yml
 
 .. image:: https://jupyterbook.org/badge.svg
-    :target: https://bandframework.github.io/surmise
+    :target: https://bandframework.github.io/surmise/intro.html
 
 |
 
