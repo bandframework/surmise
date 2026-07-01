@@ -84,7 +84,6 @@ def sampler(logpost_func,
     elif not isinstance(rng, np.random.Generator):
         raise TypeError("Given RNG is not a valid scipy.stats RNG")
 
-
     if theta0 is None:
         theta0 = draw_func(1000)
 
