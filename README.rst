@@ -19,7 +19,7 @@
 .. image:: https://github.com/bandframework/surmise/actions/workflows/publish_book.yml/badge.svg?branch=main
     :target: https://github.com/bandframework/surmise/actions/workflows/publish_book.yml
 
-.. image:: https://jupyterbook.org/badge.svg
+.. image:: https://img.shields.io/badge/jupyter-book-orange
     :target: https://bandframework.github.io/surmise/intro.html
 
 |
