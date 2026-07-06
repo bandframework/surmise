@@ -64,9 +64,6 @@ class TestSampler(unittest.TestCase):
 
     def testAllSetups(self):
         for problem_name, problem in self.__problems.items():
-            # TODO: replace with dynamic sampler tags
-            sampler_tag = "MH" if 'SamplerTag' not in problem else problem['SamplerTag']
-
             target_cfg = problem["TargetDistribution"]
             target_name = target_cfg["Name"]
             print()
@@ -79,7 +76,8 @@ class TestSampler(unittest.TestCase):
                 print(setup_name)
                 print("-" * 45)
 
-                name = f"{sampler_tag}_{problem_name}_{setup_name}"
+                sampler_name = test_setup["Sampler"]["Name"]
+                name = f"{sampler_name}_{problem_name}_{setup_name}"
                 self.__testSampler(name, target_distribution, test_setup)
 
     def __testSampler(self, name, target_distribution, test_setup):
@@ -143,7 +141,7 @@ class TestSampler(unittest.TestCase):
         }
 
         # -- Create sampler & load sampler-specific configuration
-        run_MCMC, sampler_cfg = create_sampler(test_setup)
+        sampler_name, run_MCMC, sampler_cfg = create_sampler(test_setup)
         sampler_cfg["RNG"] = np.random.default_rng(rand_seed)
 
         # ------ RUN SAMPLER & CONFIRM REASONABLE RESULTS
@@ -177,11 +175,10 @@ class TestSampler(unittest.TestCase):
             **sampler_cfg
         )
         self.assertFalse(FNAME_H5.exists())
-        save_mcmc_results(FNAME_H5, result_1)
+        save_mcmc_results(FNAME_H5, sampler_name, result_1)
         self.assertTrue(FNAME_H5.is_file())
         print("done")
         sys.stdout.flush()
-        self.assertEqual(set(result_1), {"theta", "acc_rate", "lpostlist"})
 
         samples = result_1["theta"]
         self.assertEqual(len(samples), n_samples)
@@ -307,8 +304,6 @@ class TestSampler(unittest.TestCase):
                 raise NotImplementedError("Only 1D to 4D visualizations for now")
             plt.show()
 
-        self.assertTrue(0.3 <= result_1["acc_rate"] <= 0.4)
-
         # TODO: Compute effective N samples
         # TODO: Compute Rhat
         # TODO: Check against CDF?
@@ -320,7 +315,7 @@ class TestSampler(unittest.TestCase):
         if fname_benchmark != "":
             fname_benchmark = Path(fname_benchmark).resolve()
             self.assertTrue(fname_benchmark.is_file())
-            self.__compare_results(fname_benchmark, FNAME_H5)
+            self.__compare_results(sampler_name, fname_benchmark, FNAME_H5)
 
         # ----- CONFIRM DETERMINISTIC
         # Rerun with identical RNG setup & confirm bitwise exact samples
@@ -341,14 +336,31 @@ class TestSampler(unittest.TestCase):
         print("done")
         sys.stdout.flush()
 
-        self.assertEqual(result_1["acc_rate"], result_2["acc_rate"])
+        self.__compare_sampler_specific(sampler_name, result_1, result_2)
         theta_1 = result_1["theta"]
         theta_2 = result_2["theta"]
         self.assertTrue(
             np.array_equal(theta_1, theta_2, equal_nan=False)
         )
 
-    def __compare_results(self, fname_benchmark, fname_new):
+    def __compare_sampler_specific(self, sampler_name, benchmark, new):
+        if sampler_name.upper() == "MH":
+            # TODO: lpostlist should probably be saved in the files so that we
+            # can check new results against benchmarks as well.
+            # self.assertEqual(set(benchmark), {"theta", "acc_rate", "lpostlist"})
+            self.assertEqual(new["acc_rate"], benchmark["acc_rate"])
+            self.assertTrue(0.3 <= benchmark["acc_rate"] <= 0.4)
+        elif sampler_name.upper() == "LMC":
+            # Nothing extra to test
+            pass
+        elif sampler_name.upper() == "PTLMC":
+            # Nothing extra to test
+            pass
+        else:
+            raise ValueError("Not testing sampler-specific results")
+        self.assertEqual(set(benchmark), set(new))
+
+    def __compare_results(self, sampler_name, fname_benchmark, fname_new):
         print()
         print("Regression Check")
         print(f"New\t\t\t{fname_new}")
@@ -356,7 +368,8 @@ class TestSampler(unittest.TestCase):
         benchmark = load_mcmc_results(fname_benchmark)
         new = load_mcmc_results(fname_new)
 
-        self.assertEqual(new["acc_rate"], benchmark["acc_rate"])
+        self.__compare_sampler_specific(sampler_name, benchmark, new)
+
         theta_new = new["theta"]
         theta_benchmark = benchmark["theta"]
         self.assertTrue(

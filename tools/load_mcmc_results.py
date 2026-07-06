@@ -8,14 +8,15 @@ from pathlib import Path
 def load_mcmc_results(filename):
     GROUP = "/MCMC"
 
+    results = {}
+
     fname = Path(filename).resolve()
     with h5py.File(fname, "r") as fptr:
-        method = fptr[GROUP].attrs["Method"]
-        assert method == "Metropolis"
-        acceptance_rate = fptr[GROUP].attrs["AcceptanceRate"]
-
         table_name = Path(GROUP).joinpath("OfficialSamples")
-        samples = np.array(fptr[str(table_name.as_posix())])
+        results["theta"] = np.array(fptr[str(table_name.as_posix())])
 
-    return {"theta": samples,
-            "acc_rate": acceptance_rate}
+        method = fptr[GROUP].attrs["Method"]
+        if method == "Metropolis":
+            results["acc_rate"] = fptr[GROUP].attrs["AcceptanceRate"]
+
+    return results
