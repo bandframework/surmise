@@ -272,8 +272,7 @@ def sampler(logpost_func,
     thetasave_flatten = np.reshape(thetasave, (-1, thetac.shape[1]))
     # save random values from the chain of size numsamp
     # TODO: choose the first numsamp as required samples, the flattening should be revisited.
-    theta = thetasave_flatten[:numsamp]  #[rng.choice(range(0, thetasave_flatten.shape[0]),
-                               #           size=numsamp)]
+    theta = thetasave_flatten[:numsamp]  # [rng.choice(range(0, thetasave_flatten.shape[0]), size=numsamp)]
     # store this in a dictionary
     sampler_info = {'theta': theta, 'theta_from_chain': thetasave, 'logpost': logpostf_nograd(theta)}
     return sampler_info
