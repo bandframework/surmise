@@ -19,7 +19,7 @@
                 },
                 "SampleSkip":         10,
                 "Plot":             true,
-                "Benchmark":          "",
+                "Benchmark":          "LMC_Uniform1D_UniformStart.benchmark",
                 "n_burn_samples":  10000,
                 "n_samples":      100000,
                 "verbose":          true 

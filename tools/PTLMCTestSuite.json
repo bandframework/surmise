@@ -22,11 +22,11 @@
                     "maxtemp":        30
                 },
                 "SampleSkip":          1,
-                "Plot":            false,
+                "Plot":             true,
                 "Benchmark":      "PTLMC_Uniform1D_UniformStart.benchmark",
                 "n_burn_samples":  10000,
                 "n_samples":       32000,
-                "verbose":         false
+                "verbose":          true
             }
         }
     },
@@ -56,12 +56,12 @@
                     "maxtemp":        30
                 },
                 "SampleSkip":          1,
-                "Plot":            false,
+                "Plot":             true,
                 "CornerPlotBins":     30,
                 "Benchmark":      "PTLMC_Uniform2D_NormalStart.benchmark",
                 "n_burn_samples":  50000,
                 "n_samples":       32000,
-                "verbose":         false
+                "verbose":          true 
             }
         }
     },
@@ -89,11 +89,11 @@
                     "maxtemp":        30
                 },
                 "SampleSkip":          1,
-                "Plot":            false,
+                "Plot":             true,
                 "Benchmark":      "PTLMC_Normal1D_UniformStart.benchmark",
                 "n_burn_samples":  50000,
                 "n_samples":       32000,
-                "verbose":         false
+                "verbose":          true 
             }
         }
     },
@@ -124,12 +124,12 @@
                     "maxtemp":        30
                 },
                 "SampleSkip":          1,
-                "Plot":            false,
+                "Plot":             true,
                 "CornerPlotBins":     30,
                 "Benchmark":      "PTLMC_Normal2D_NormalStart.benchmark",
                 "n_burn_samples":  50000,
                 "n_samples":       32000,
-                "verbose":         false
+                "verbose":          true 
             }
         }
     }
