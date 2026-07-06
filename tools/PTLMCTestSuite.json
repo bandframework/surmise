@@ -18,14 +18,14 @@
                     "Name":      "PTLMC",
                     "numtemps":       32,
                     "numchain":       16,
-                    "sampperchain":  400,
+                    "sampperchain":  2000,
                     "maxtemp":        30
                 },
                 "SampleSkip":          1,
                 "Plot":            false,
                 "Benchmark":      "PTLMC_Uniform1D_UniformStart.benchmark",
                 "n_burn_samples":  10000,
-                "n_samples":      100000,
+                "n_samples":       32000,
                 "verbose":         false
             }
         }
@@ -52,15 +52,83 @@
                     "Name":      "PTLMC",
                     "numtemps":       32,
                     "numchain":       16,
-                    "sampperchain":  400,
+                    "sampperchain": 2000,
                     "maxtemp":        30
                 },
                 "SampleSkip":          1,
                 "Plot":            false,
                 "CornerPlotBins":     30,
                 "Benchmark":      "PTLMC_Uniform2D_NormalStart.benchmark",
-                "n_burn_samples":  10000,
-                "n_samples":      100000,
+                "n_burn_samples":  50000,
+                "n_samples":       32000,
+                "verbose":         false
+            }
+        }
+    },
+    "Normal1D": {
+        "TargetDistribution": {
+            "Name": "Normal",
+            "mu":    -1.1,
+            "sigma":  1.2
+        },
+        "TestSetups": {
+            "UniformStart": {
+                "rng": {
+                    "method":      "default",
+                    "random_seed": 192610724096912622599077596010199726791
+                },
+                "StartDistribution": {
+                    "Name":      "Uniform",
+                    "Intervals": [-0.5, 0.5]
+                },
+                "Sampler": {
+                    "Name":      "PTLMC",
+                    "numtemps":       32,
+                    "numchain":       16,
+                    "sampperchain":  2000,
+                    "maxtemp":        30
+                },
+                "SampleSkip":          1,
+                "Plot":            false,
+                "Benchmark":      "PTLMC_Normal1D_UniformStart.benchmark",
+                "n_burn_samples":  50000,
+                "n_samples":       32000,
+                "verbose":         false
+            }
+        }
+    },
+    "Normal2D": {
+        "TargetDistribution": {
+            "Name": "Normal",
+            "mu":     [1.1, -2.2],
+            "sigma": [[1.0,  2.0],
+                      [2.0, 10.0]]
+        },
+        "TestSetups": {
+            "NormalStart": {
+                "rng": {
+                    "method": "default",
+                    "random_seed": 100092616225039682105425248025433037719
+                },
+                "StartDistribution": {
+                    "Name":     "normal",
+                    "mu":    [-1.0, 2.0],
+                    "sigma": [[1.0, 0.0],
+                              [0.0, 5.0]]
+                },
+                "Sampler": {
+                    "Name":      "PTLMC",
+                    "numtemps":       32,
+                    "numchain":       16,
+                    "sampperchain":  2000,
+                    "maxtemp":        30
+                },
+                "SampleSkip":          1,
+                "Plot":            false,
+                "CornerPlotBins":     30,
+                "Benchmark":      "PTLMC_Normal2D_NormalStart.benchmark",
+                "n_burn_samples":  50000,
+                "n_samples":       32000,
                 "verbose":         false
             }
         }
