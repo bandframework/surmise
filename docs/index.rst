@@ -41,6 +41,7 @@ To begin using surmise, we encourage checking out the following pages:
    :maxdepth: 4
 
    contributing
+   rng_dev_guide
 
 .. toctree::
    :caption: Collaborators & Contributors:
