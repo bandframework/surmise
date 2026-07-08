@@ -4,7 +4,7 @@ Following typical practices, we refer to pseudorandom number generation and
 generators more generically as random number generation and random number
 generators (RNGs).
 
-Please familiarize yourself with the RNG content in the User Guide before
+Please familiarize yourself with the RNG content in :ref:`rng_user_guide` before
 reading this section.  Similarly, reviewing the historic record of |surmise| RNG
 requirements might be helpful to motivate the design and explain certain design
 decisions detailed here.
@@ -14,17 +14,13 @@ Design
 .. _`generator documentation`: https://numpy.org/doc/stable/reference/random/index.html#quick-start
 .. _`statistically independent RNGs`: https://numpy.org/doc/stable/reference/random/parallel.html#parallel-random-number-generation
 
-__TODO__: Set scipy minimum allowable version to v1.15.0 in setup.py and add
-comment to indicate that this was done to insist on using the new scipy.stats
-interface.
-
 Design discussions originally considered two possible schemes for providing
 |surmise| code access to user-provided RNGs:
 
-1. **Manual propagation scheme** - all |surmise| code elements that use RNGs
-accept and require an RNG argument, which they use directly.
-2. **Single "global" RNG scheme** - users set into |surmise| a single RNG object
-that all |surmise| code elements that use RNGs access directly for direct use.
+#. **Manual propagation scheme** - all |surmise| code elements that use RNGs
+   accept and require an RNG argument, which they use directly.
+#. **Single "global" RNG scheme** - users set into |surmise| a single RNG object
+   that all |surmise| code elements that use RNGs access directly for direct use.
 
 ..
     #### Manual propagation scheme
@@ -53,21 +49,21 @@ maintainance by using only one, large statistics package with RNG capabilities,
 this design stipulates that all sampling of random numbers in |surmise| occur
 using either the
 
-* `scipy.stats` package (using improved interface introduced at v1.15.0) or
-* `scipy.stats` RNG currently in use (|eg| using the RNG's `choice` method).
+* ``scipy.stats`` package (preferrably using improved interface introduced at
+  v1.15.0) or
+* ``scipy.stats`` RNG currently in use (|eg| using the RNG's ``choice`` method).
 
-In particular, no other packages, such as `numpy.random`, should be used in
+In particular, no other packages, such as ``numpy.random``, should be used in
 |surmise| even if the current RNG is compatible with that package.  This
 decision is also motivated by the fact that
 
-* `scipy.stats` is considered to be sufficient for correct statistics-based
-  modeling and simulation (but not more demanding than that __TODO__: cite
-  reference),
-* the `scipy.stats` RNG can be used with cryptographically-strong seeds
-  generated with `secrets.randbits` (as suggested by the `generator
+* ``scipy.stats`` is considered to be sufficient for correct statistics-based
+  modeling and simulation (but not more demanding than that),
+* the ``scipy.stats`` RNG can be used with cryptographically-strong seeds
+  generated with ``secrets.randbits`` (as suggested by the `generator
   documentation`_), and
-* the `scipy.stats` RNG supports the creation of sets of
-  `statistically independent RNGs`_ (e.g., `spawn()`).
+* the ``scipy.stats`` RNG supports the creation of sets of
+  `statistically independent RNGs`_ (|eg| ``spawn()``).
 
 ..
     We will use only `scipy.stats` throughout surmise instead of, for example,
@@ -106,7 +102,7 @@ RNG Access Pattern
 .. _`Singleton pattern`: https://en.wikipedia.org/wiki/Singleton_pattern
 
 We enforce the restriction of having at most one single RNG in existence at any
-time by designing the dedicated, internal :py:class:`RandomNumberGenerator`
+time by designing the dedicated, internal :py:class:`_RandomNumberGenerator`
 class using the `Singleton pattern`_.  In accordance with requirements,
 |surmise| code must
 
@@ -115,7 +111,7 @@ class using the `Singleton pattern`_.  In accordance with requirements,
   for random number generation,
 * be designed and implemented where possible so that results are identical when
   rerun with an identical random number generation scenario, and
-* be designed so that all related random number generation (e.g., performing a
+* be designed so that all related random number generation (|eg| performing a
   single calibration and generating a random reordering of ts MCMC samples) are
   performed such that calling code cannot alter the single RNG during the middle
   of that computational process.
@@ -129,25 +125,24 @@ A typical use of the RNG in a |surmise| routine might be
 
 .. code:: python
 
-    from .RandomNumberGenerator import RandomNumberGenerator
+    from ._RandomNumberGenerator import RandomNumberGenerator
 
     def my_surmise_code(...):
         global_rng = RandomNumberGenerator().scipy_start_RNG
-
-        scipy.stats.normal.rvs(..., rand_state=global_rng)
+        scipy.stats.normal.rvs(..., random_state=global_rng)
 
 To keep this class in the private package interface, the public interface
 includes the :py:func:`set_RNG` function, which accepts from the user the RNG
-object to be used and sets it into the Singleton object.  See the User Guide for
-more information regarding the RNG public interface.
+object to be used and sets it into the Singleton object.  See
+:ref:`rng_user_guide` for more information regarding the RNG public interface.
 
 External Packages
 ^^^^^^^^^^^^^^^^^
-|surmise| is designed so that external packages, including user-provided code,
-can be used as part of executing its work.  For instance, |surmise| calibrators
-can use both |surmise| internal and external |bilby| samplers.  Since |surmise|
-cannot impose RNG use rules on external code, inclusion of external code must
-only be made official if the use of RNGs in the external code are compatible
-with |surmise| and allow for users to perform statistically correct studies.
-Users are responsible for determining if RNG use in their user-provided code is
-valid.
+We plan to extend |surmise| so that external packages, including user-provided
+code, can be used as part of executing its work.  For instance, |surmise|
+calibrators will hopefully use both |surmise| internal and external |bilby|
+samplers.  Since |surmise| cannot impose RNG use rules on external code,
+inclusion of external code must only be made official if the use of RNGs in the
+external code are compatible with |surmise| and allow for users to perform
+statistically correct studies.  Users are responsible for determining if RNG use
+in their user-provided code is valid.
