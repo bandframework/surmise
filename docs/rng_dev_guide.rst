@@ -1,5 +1,7 @@
 Random Number Generation
 ========================
+.. _scientific Python RNG specification: https://scientific-python.org/specs/spec-0007/
+
 Following typical practices, we refer to pseudorandom number generation and
 generators more generically as random number generation and random number
 generators (RNGs).
@@ -8,6 +10,9 @@ Please familiarize yourself with the RNG content in :ref:`rng_user_guide` before
 reading this section.  Similarly, reviewing the historic record of |surmise| RNG
 requirements might be helpful to motivate the design and explain certain design
 decisions detailed here.
+
+Our design and implementation should be informed by and, where possible, follow the
+advice and decisions reported in the `scientific Python RNG specification`_.
 
 Design
 ------
@@ -42,6 +47,10 @@ Since it was decided that the |surmise| design and use cases are consistent with
 users providing a single RNG for use by all |surmise| code, we adopted the
 latter access scheme.
 
+|surmise| is effectively an application, and, therefore, we do not believe that
+this decision is contrary to the scientific Python RNG specification, which is
+geared toward libraries.
+
 High-level
 ^^^^^^^^^^
 To adhere to the |surmise| RNG requirements related to easing implementation and
@@ -64,6 +73,11 @@ decision is also motivated by the fact that
   documentation`_), and
 * the ``scipy.stats`` RNG supports the creation of sets of
   `statistically independent RNGs`_ (|eg| ``spawn()``).
+
+Note that, for simplicity's sake, code that accepts an RNG will be constrained to
+only accept ``scipy.stats`` RNG objects rather than, as suggested by the scientific
+Python RNG specification, any object that is or could be used to construct such
+an RNG object.
 
 ..
     We will use only `scipy.stats` throughout surmise instead of, for example,
@@ -135,6 +149,27 @@ To keep this class in the private package interface, the public interface
 includes the :py:func:`set_RNG` function, which accepts from the user the RNG
 object to be used and sets it into the Singleton object.  See
 :ref:`rng_user_guide` for more information regarding the RNG public interface.
+
+We recognize that in |surmise| the emulators and calibrators play a prominent,
+application-specific role and are, therefore, in the public interface.  However,
+the MCMC samplers are general statistical tools that are hidden behind the
+calibrators.  To decouple the samplers from |surmise| design decisions and
+enable their implementations to be more generic and widely useful, we exempt
+them from having to access the global RNG |via| the |surmise| RNG design, and
+instead require that the calibrators
+
+* access the global |surmise| RNG as specified,
+* determine the correct RNG usage for the larger calibration process including
+  sampling, and
+* pass to its sampler the necessary ``scipy.stats``-compatible RNG for its
+  exclusive use directly and with ``scipy.stats`` for random number generation
+  during its current invocation and only for that invocation.
+
+Note that this design decision does effectively treat samplers as libraries so
+that this part of the design does follow the suggestions of the scientific
+Python RNG specification.  However, rather than name the RNG arguments ``rng``
+as suggested, we prefer to name them ``scipy_stats_rng`` so that the code
+explicitly reflects our design decision to use only one package.
 
 External Packages
 ^^^^^^^^^^^^^^^^^
