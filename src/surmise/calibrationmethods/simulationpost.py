@@ -1,10 +1,11 @@
 import numpy as np
 import scipy.stats as sps
-from surmise.utilities import sampler
 import copy
 
+from ..create_sampler import create_sampler
 
-def fit(fitinfo, emu, x, y, **myargs):
+
+def fit(fitinfo, emu, x, y, **sampler_args):
     '''
     The main required function to be called by calibration to fit a
     calibration model.
@@ -61,7 +62,7 @@ def fit(fitinfo, emu, x, y, **myargs):
         An array of x  that represent the inputs.
     y : numpy.ndarray
         A one dimensional array of observed values at x.
-    myargs : dict, optional
+    sampler_args : dict, optional
         A dictionary containing additional options passed. The default is None.
 
     Returns
@@ -141,10 +142,18 @@ def fit(fitinfo, emu, x, y, **myargs):
             theta0 = theta0[np.random.randint(theta0.shape[0], size=n), :]
 
         return theta0
-    sampler_obj = sampler(logpost_func=logpostfull_wgrad,
-                          draw_func=draw_func,
-                          **myargs)
-    theta = sampler_obj.sampler_info['theta']
+
+    if 'sampler' in sampler_args:
+        sampler_name = sampler_args['sampler']
+        del sampler_args['sampler']
+    else:
+        sampler_name = 'metropolis_hastings'
+    sampler = create_sampler(sampler_name, sampler_args)
+    theta = sampler(logpost_func=logpostfull_wgrad,
+                    draw_func=draw_func,
+                    scipy_stats_rng=np.random.default_rng(),
+                    **sampler_args)["theta"]
+
     # obtain log-posterior of theta values
     ladj = logpostfull_wgrad(theta, return_grad=False)
     mladj = np.max(ladj)

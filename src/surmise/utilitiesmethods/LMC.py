@@ -2,51 +2,48 @@ import numpy as np
 import scipy.stats as sps
 import scipy.optimize as spo
 
-r'''
-Metropolis-adjusted Langevin algorithm or Langevin Monte Carlo (LMC).
-
-The LMC sampler is available through calling the `calibrator` object with an
-optional argument `args={'sampler': 'LMC'}`.  LMC is a Markov chain Monte
-Carlo method that seeks to propose the next iterates by leveraging gradient
-information at the current iterate.  The proposal has the form
-
-.. math::
-
-    \theta^{k+1} = \theta^k - \nabla g(\theta^k) \Delta t +
-    \sqrt{2\Delta t} Z,
-
-where :math:`\Delta t` is a time stepsize, and :math:`Z` is an independently
-and identically drawn sample from the standard Gaussian normal of the
-appropriate dimension.  The proposal is then accepted or rejected by the
-typical Metropolis-Hastings step, i.e. accept with probability
-
-.. math::
-
-    \alpha = \min\left\{1, \frac{\pi(\tilde{\theta}^{k+1})q(\theta^k \mid
-    \tilde{\theta}^{k+1})}{\pi(\theta^{k})q(\tilde{\theta}^{k+1} \mid
-    \theta^k)}\right\},
-
-where :math:`\pi(\cdot)` is the posterior distribution, :math:`q(\cdot \mid
-\cdot)` is the proposal distribution, and :math:`\theta^k,
-\tilde{\theta}^{k+1}` are the current and the proposed point respectively.
-
-Langevin Monte Carlo has shown strengths in increasing the acceptance rate,
-compared to the typical Metropolis-Hastings algorithm (Roberts and
-Rosenthal, 1998).  However, its significant drawback lies in its poor
-scaling due to the computation for the gradient at the current iterate.
-
-Refer to G. O. Roberts and J. S. Rosenthal. Optimal scaling of discrete
-approximations to langevin diffusions. *Journal of the Royal Statistical
-Society: Series B (Statistical Methodology)*, 60(1):255-268, 1998.
-'''
-
 
 def sampler(logpost_func,
             draw_func,
+            scipy_stats_rng,
             numsamp=2000,
-            theta0=None,
-            **lmc_options):
-    '''
+            theta0=None):
+    r'''
+    Metropolis-adjusted Langevin algorithm or Langevin Monte Carlo (LMC).
+
+    The LMC sampler is available through calling the `calibrator` object with an
+    optional argument `args={'sampler': 'LMC'}`.  LMC is a Markov chain Monte
+    Carlo method that seeks to propose the next iterates by leveraging gradient
+    information at the current iterate.  The proposal has the form
+
+    .. math::
+
+        \theta^{k+1} = \theta^k - \nabla g(\theta^k) \Delta t +
+        \sqrt{2\Delta t} Z,
+
+    where :math:`\Delta t` is a time stepsize, and :math:`Z` is an independently
+    and identically drawn sample from the standard Gaussian normal of the
+    appropriate dimension.  The proposal is then accepted or rejected by the
+    typical Metropolis-Hastings step, i.e. accept with probability
+
+    .. math::
+
+        \alpha = \min\left\{1, \frac{\pi(\tilde{\theta}^{k+1})q(\theta^k \mid
+        \tilde{\theta}^{k+1})}{\pi(\theta^{k})q(\tilde{\theta}^{k+1} \mid
+        \theta^k)}\right\},
+
+    where :math:`\pi(\cdot)` is the posterior distribution, :math:`q(\cdot \mid
+    \cdot)` is the proposal distribution, and :math:`\theta^k,
+    \tilde{\theta}^{k+1}` are the current and the proposed point respectively.
+
+    Langevin Monte Carlo has shown strengths in increasing the acceptance rate,
+    compared to the typical Metropolis-Hastings algorithm (Roberts and
+    Rosenthal, 1998).  However, its significant drawback lies in its poor
+    scaling due to the computation for the gradient at the current iterate.
+
+    Refer to G. O. Roberts and J. S. Rosenthal. Optimal scaling of discrete
+    approximations to langevin diffusions. *Journal of the Royal Statistical
+    Society: Series B (Statistical Methodology)*, 60(1):255-268, 1998.
 
     Parameters
     ----------
@@ -74,14 +71,7 @@ def sampler(logpost_func,
 
     '''
     # random number generator
-    # TODO: This is an intermediate step.  Eventually calling code should be
-    # forced to provide an RNG.
-    rng = None
-    if "RNG" in lmc_options:
-        rng = lmc_options["RNG"]
-    if rng is None:
-        rng = np.random.default_rng()
-    elif not isinstance(rng, np.random.Generator):
+    if not isinstance(scipy_stats_rng, np.random.Generator):
         raise TypeError("Given RNG is not a valid scipy.stats RNG")
 
     if theta0 is None:
@@ -135,9 +125,11 @@ def sampler(logpost_func,
         logpost -= (mlogpost + np.log(np.sum(np.exp(logpost - mlogpost))))
         post = np.exp(logpost)
         post = post/np.sum(post)
-        thetaposs = theta0[rng.choice(range(0, theta0.shape[0]),
-                                      size=1000,
-                                      p=post.reshape((theta0.shape[0], ))), :]
+        thetaposs = theta0[scipy_stats_rng.choice(
+                            range(0, theta0.shape[0]),
+                            size=1000,
+                            p=post.reshape((theta0.shape[0], ))
+                           ), :]
 
         if np.any(np.std(thetaposs, 0) < 10 ** (-8) *
                   np.min(np.std(theta0, 0))):
@@ -220,8 +212,8 @@ def sampler(logpost_func,
     numsamppc = 200
     covmat0 = np.diag(thetas)
     for iters in range(0, maxiters):
-        startingv = rng.choice(np.arange(0, Lsave.shape[0]),
-                               size=Lsave.shape[0])
+        startingv = scipy_stats_rng.choice(np.arange(0, Lsave.shape[0]),
+                                           size=Lsave.shape[0])
         thetasave = thetasave[startingv, :]
 
         covmat0 = 0.1*covmat0 + 0.9*np.cov(thetasave.T)
@@ -233,8 +225,8 @@ def sampler(logpost_func,
         else:
             hc = np.sqrt(covmat0)
 
-        thetac = thetasave[rng.choice(range(0, thetasave.shape[0]),
-                                      size=numchain), :]
+        thetac = thetasave[scipy_stats_rng.choice(range(0, thetasave.shape[0]),
+                                                  size=numchain), :]
 
         if logpostf_grad is not None:
             fval, dfval = logpostf(thetac)
@@ -246,7 +238,7 @@ def sampler(logpost_func,
         numtimes = 0
 
         for k in range(0, numsamppc):
-            rvalo = sps.norm.rvs(size=thetac.shape, random_state=rng)
+            rvalo = sps.norm.rvs(size=thetac.shape, random_state=scipy_stats_rng)
             rval = np.sqrt(2) * rho * (rvalo @ hc)
 
             if rval.ndim != thetac.ndim:
@@ -264,7 +256,7 @@ def sampler(logpost_func,
                 fvalp = logpostf_nograd(thetap)
                 qadj = np.zeros(fvalp.shape)
 
-            swaprnd = np.log(sps.uniform.rvs(size=fval.shape[0], random_state=rng))
+            swaprnd = np.log(sps.uniform.rvs(size=fval.shape[0], random_state=scipy_stats_rng))
             whereswap = np.where(np.squeeze(swaprnd)
                                  < np.squeeze(fvalp - fval)
                                  + np.squeeze(qadj))[0]
@@ -318,8 +310,8 @@ def sampler(logpost_func,
             trm = np.min((1.5*tarESS/np.mean(ESS), 4))
             numsamppc = np.ceil(numsamppc*trm).astype('int')
 
-    theta = thetasave[rng.choice(range(0, thetasave.shape[0]),
-                                 size=numsamp), :]
+    theta = thetasave[scipy_stats_rng.choice(range(0, thetasave.shape[0]),
+                                             size=numsamp), :]
     sampler_info = {'theta': theta, 'logpost': Lsave}
 
     return sampler_info

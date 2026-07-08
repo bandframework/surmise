@@ -16,7 +16,7 @@ def save_mcmc_results(filename, sampler_name, results, overwrite=False):
         # TODO: Add these
 
         # Method-specific configuration
-        if sampler_name.upper() == "MH":
+        if sampler_name.lower() == "metropolis_hastings":
             fptr[GROUP].attrs["Method"] = "Metropolis"
             fptr[GROUP].attrs["AcceptanceRate"] = results["acc_rate"]
         elif sampler_name.upper() == "LMC":

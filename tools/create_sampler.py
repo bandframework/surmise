@@ -1,46 +1,43 @@
 import numpy as np
 
-from surmise.utilitiesmethods.metropolis_hastings import sampler as MH_sampler
-from surmise.utilitiesmethods.LMC import sampler as LMC_sampler
-from surmise.utilitiesmethods.PTLMC import sampler as PTLMC_sampler
+import surmise
 
 
 def create_sampler(test_setup):
-    """
-    .. todo::
-        * Allow for more than one sampler
-    """
     # -- Outputs
-    sampler = None
     sampler_cfg = None
 
     sampler_name = test_setup["Sampler"]["Name"]
-    if sampler_name.upper() == "MH":
+    if sampler_name.lower() == "metropolis_hastings":
         # -- Metropolis-Hastings Sampler
         # Extract sampler-specific configuration info
-        step_cfg = test_setup["Sampler"]["StepDistribution"]
-        step_type = step_cfg["Name"]
+        sampler_cfg = test_setup["Sampler"]
+        step_cfg = sampler_cfg["StepDistribution"]
         if "Scale" in step_cfg:
             step_scale = np.atleast_1d(np.squeeze(step_cfg["Scale"]))
             assert step_scale.ndim == 1
         else:
             step_scale = None
 
-        sampler = MH_sampler
-        sampler_cfg = {"stepType": step_type, "stepParam": step_scale}
+        sampler_cfg = {"stepType": step_cfg["Name"],
+                       "stepParam": step_scale,
+                       "burnSamples": sampler_cfg["n_burn_samples"],
+                       "verbose": sampler_cfg["verbose"]}
+        sampler = surmise.create_sampler(sampler_name, sampler_cfg)
     elif sampler_name.upper() == "LMC":
         # -- Langevin MC Sampler
-        sampler = LMC_sampler
+        sampler_cfg = {"expertMode": test_setup["Sampler"]["expertMode"]}
+        sampler = surmise.create_sampler(sampler_name, sampler_cfg)
         sampler_cfg = {}
     elif sampler_name.upper() == "PTLMC":
         # -- Parallel-Tempering Langevin MC Sampler
-        sampler = PTLMC_sampler
         sampler_cfg = {
             "numtemps": test_setup["Sampler"]["numtemps"],
             "numchain": test_setup["Sampler"]["numchain"],
             "sampperchain": test_setup["Sampler"]["sampperchain"],
             "maxtemp": test_setup["Sampler"]["maxtemp"]
         }
+        sampler = surmise.create_sampler(sampler_name, sampler_cfg)
     else:
         raise ValueError(f"Unsupported sampler ({sampler_name})")
 

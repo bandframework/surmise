@@ -2,21 +2,18 @@ import numpy as np
 import scipy.stats as sps
 import scipy.optimize as spo
 
-'''
-Parallel-Tempering Ensemble MCMC (uses Langevin Monte Carlo)
-'''
-
 
 def sampler(logpost_func,
             draw_func,
+            scipy_stats_rng,
             theta0=None,
             numsamp=2000,
             numtemps=32,
             numchain=16,
             sampperchain=400,
-            maxtemp=30,
-            **ptlmc_options):
+            maxtemp=30):
     """
+    Parallel-Tempering Ensemble MCMC (uses Langevin Monte Carlo)
 
     Parameters
     ----------
@@ -45,9 +42,6 @@ def sampler(logpost_func,
     maxtemp : double, optional
         A positive number, larger than 1, that gives the maximum temperature used in parallel tempering. The default
         is 30.
-    **ptlmc_options : additional options
-        This is a dictionary containing additional options a user might have passed but are not directly listed above.
-        In general, we should not pass options this way.
 
     Raises
     ------
@@ -63,14 +57,7 @@ def sampler(logpost_func,
     """
 
     # random number generator
-    # TODO: This is an intermediate step.  Eventually calling code should be
-    # forced to provide an RNG.
-    rng = None
-    if "RNG" in ptlmc_options:
-        rng = ptlmc_options["RNG"]
-    if rng is None:
-        rng = np.random.default_rng()
-    elif not isinstance(rng, np.random.Generator):
+    if not isinstance(scipy_stats_rng, np.random.Generator):
         raise TypeError("Given RNG is not a valid scipy.stats RNG")
 
     # If we do not get parameters to start, draw 1000
@@ -129,7 +116,7 @@ def sampler(logpost_func,
     ord1 = np.argsort(-np.squeeze(logpostf_nograd(theta0)) +
                       (theta0.shape[1] *
                        sps.norm.rvs(size=theta0.shape[0],
-                                    random_state=rng)**2))
+                                    random_state=scipy_stats_rng)**2))
     theta0 = theta0[ord1[0:totnumchain], :]
     # begin optimizing at each chain
     thetacen = np.mean(theta0, 0)
@@ -175,7 +162,7 @@ def sampler(logpost_func,
         while notmoved:
             if (W > 0).all():
                 r = (V.T*np.sqrt(W)) @ (V @ sps.norm.rvs(size=thetacen.shape[0],
-                                                         random_state=rng))
+                                                         random_state=scipy_stats_rng))
             else:
                 stepadj /= 2
                 if stepadj < 1/16:
@@ -220,7 +207,7 @@ def sampler(logpost_func,
     adjrho = rho*temps**(1/3)  # this adjusts rho across different temperatures
     numtimes = 0  # number of times we reject, just to star
     for k in range(0, samptunning+sampperchain):  # loop over all chains
-        rvalo = sps.norm.rvs(size=thetac.shape, random_state=rng)
+        rvalo = sps.norm.rvs(size=thetac.shape, random_state=scipy_stats_rng)
         rval = (np.sqrt(2) * adjrho * np.squeeze(rvalo @ hc).T).T
         if thetac.shape[1] > 1:
             thetap = thetac + rval
@@ -241,7 +228,7 @@ def sampler(logpost_func,
             fvalp = np.squeeze(logpostf_nograd(thetap))  # thetap : no chain x dimension
             fvalp /= temps
             qadj = np.zeros(fvalp.shape)
-        swaprnd = np.log(sps.uniform.rvs(size=fval.shape[0], random_state=rng))
+        swaprnd = np.log(sps.uniform.rvs(size=fval.shape[0], random_state=scipy_stats_rng))
         whereswap = np.where(np.squeeze(swaprnd)
                              < np.squeeze(fvalp - fval)
                              + np.squeeze(qadj))[0]  # MH step to find which of the chains to swap
@@ -253,7 +240,8 @@ def sampler(logpost_func,
                 dfval[whereswap] = np.copy(dfvalp[whereswap])
         # do some swaps along the temperatures
         fvaln = fval * temps
-        orderprop = tempexchange(fvaln, temps, iters=5, rng=rng)  # go through 5 times, swapping where needed
+        # go through 5 times, swapping where needed
+        orderprop = tempexchange(fvaln, temps, iters=5, scipy_stats_rng=scipy_stats_rng)
         fval = fvaln[orderprop] / temps
         thetac = thetac[orderprop, :]
         if logpostf_grad is not None:
@@ -272,25 +260,26 @@ def sampler(logpost_func,
     thetasave_flatten = np.reshape(thetasave, (-1, thetac.shape[1]))
     # save random values from the chain of size numsamp
     # TODO: choose the first numsamp as required samples, the flattening should be revisited.
-    theta = thetasave_flatten[:numsamp]  # [rng.choice(range(0, thetasave_flatten.shape[0]), size=numsamp)]
+    theta = thetasave_flatten[:numsamp]  # [scipy_stats_rng.choice(range(0, thetasave_flatten.shape[0]), size=numsamp)]
     # store this in a dictionary
     sampler_info = {'theta': theta, 'theta_from_chain': thetasave, 'logpost': logpostf_nograd(theta)}
     return sampler_info
 
 
-def tempexchange(lpostf, temps, iters=1, rng=None):
+def tempexchange(lpostf, temps, iters=1, scipy_stats_rng=None):
     # This function will swap values along the chain given the log pdf values in an
     # array lpostf with temperature array temps. It will do it iters number of times.
     # It returns the (random) revised order.
-    assert rng is not None
+    assert scipy_stats_rng is not None
 
     order = np.arange(0, lpostf.shape[0])  # initializing
     for k in range(0, iters):
-        rtv = rng.choice(range(1, lpostf.shape[0]), lpostf.shape[0])  # choose random values to check for swapping
+        # choose random values to check for swapping
+        rtv = scipy_stats_rng.choice(range(1, lpostf.shape[0]), lpostf.shape[0])
         for rt in rtv:
             rhoh = (1/temps[rt-1] - 1 / temps[rt])
             if ((lpostf[order[rt]]-lpostf[order[rt - 1]]) * rhoh >
-                    np.log(sps.uniform.rvs(size=1, random_state=rng))):  # swap via the PT rule
+                    np.log(sps.uniform.rvs(size=1, random_state=scipy_stats_rng))):  # swap via the PT rule
                 temporder = order[rt - 1]
                 order[rt-1] = 1*order[rt]
                 order[rt] = 1 * temporder
