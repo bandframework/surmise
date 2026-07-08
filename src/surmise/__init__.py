@@ -20,5 +20,3 @@ __calibrationmethods__ = [f for f in os.listdir(f_dir + '/calibrationmethods')
                           if '.py' in f and '__' not in f]
 __emulationmethods__ = [f for f in os.listdir(f_dir + '/emulationmethods')
                         if '.py' in f and '__' not in f]
-__utilitiesmethods__ = [f for f in os.listdir(f_dir + '/utilitiesmethods')
-                        if '.py' in f and '__' not in f]

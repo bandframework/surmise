@@ -27,6 +27,7 @@ To begin using surmise, we encourage checking out the following pages:
 	
    Quickstart<introduction>
    understanding
+   advanced_api
 
 .. toctree::
    :maxdepth: 2

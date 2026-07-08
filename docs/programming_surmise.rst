@@ -7,4 +7,3 @@ We now give greater detail in programming with surmise.
 
    emulation
    calibration
-   utilities
