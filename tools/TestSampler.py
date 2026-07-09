@@ -105,19 +105,7 @@ class TestSampler(unittest.TestCase):
         mu_true, var_true = target_distribution.moments
 
         # ----- MCMC CONFIGURATION
-        # -- Universal Configuration
-        # General
-        n_samples = test_setup["n_samples"]
-
-        # RNG
         rng_cfg = test_setup["rng"]
-
-        # Initial theta
-        theta_0 = None
-        if "theta_0" in test_setup:
-            theta_0 = np.atleast_2d(np.squeeze(test_setup["theta_0"]))
-            assert theta_0.ndim == 2
-            assert theta_0.shape[0] == 1
 
         # Starting distribution
         start_distribution = None
@@ -127,14 +115,11 @@ class TestSampler(unittest.TestCase):
             print(f"Start distribution\t{start_name}")
             start_distribution = create_distribution(start_cfg)
 
-        universal_cfg = {
-            "numsamp": n_samples,
-            "theta0": theta_0
-        }
-
         # -- Create sampler & load sampler-specific configuration
         sampler_name, run_MCMC, sampler_cfg = create_sampler(test_setup)
         scipy_stats_rng = create_scipy_stats_rng(rng_cfg)
+
+        n_samples = sampler_cfg["numsamp"]
 
         # ------ RUN SAMPLER & CONFIRM REASONABLE RESULTS
         print()
@@ -163,9 +148,7 @@ class TestSampler(unittest.TestCase):
         result_1 = run_MCMC(
             logpost_func=target_distribution.logpdf,
             draw_func=start_dist_sampler,
-            scipy_stats_rng=scipy_stats_rng,
-            **universal_cfg,
-            **sampler_cfg
+            scipy_stats_rng=scipy_stats_rng
         )
         self.assertFalse(FNAME_H5.exists())
         save_mcmc_results(FNAME_H5, sampler_name, result_1)
@@ -323,9 +306,7 @@ class TestSampler(unittest.TestCase):
         result_2 = run_MCMC(
             logpost_func=target_distribution.logpdf,
             draw_func=start_dist_sampler,
-            scipy_stats_rng=scipy_stats_rng,
-            **universal_cfg,
-            **sampler_cfg
+            scipy_stats_rng=scipy_stats_rng
         )
         print("done")
         sys.stdout.flush()
