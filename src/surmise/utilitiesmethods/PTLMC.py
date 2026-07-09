@@ -2,6 +2,10 @@ import numpy as np
 import scipy.stats as sps
 import scipy.optimize as spo
 
+'''
+Parallel-Tempering Ensemble MCMC (uses Langevin Monte Carlo)
+'''
+
 
 def sampler(logpost_func,
             draw_func,
@@ -13,7 +17,6 @@ def sampler(logpost_func,
             sampperchain=400,
             maxtemp=30):
     """
-    Parallel-Tempering Ensemble MCMC (uses Langevin Monte Carlo)
 
     Parameters
     ----------
