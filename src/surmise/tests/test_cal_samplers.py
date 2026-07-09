@@ -6,7 +6,7 @@ from surmise.emulation import emulator
 from surmise.calibration import calibrator
 
 # TODO: LMC will require 'expertMode' in lmc_option to run
-SAMPLERS_IN_TEST = ['metropolis_hastings', 'PTLMC']  #, 'LMC']
+SAMPLERS_IN_TEST = ['metropolis_hastings', 'PTLMC']  # , 'LMC']
 
 ##############################################
 #            Simple scenarios                #
@@ -196,6 +196,7 @@ args_dict = {'metropolis_hastings': [mh_args1, mh_args2, mh_args3, mh_args4, mh_
 @contextmanager
 def does_not_raise():
     yield
+
 
 # Generate all test pairs accordingly upfront
 SAMPLER_ARGS_PAIRS = [
