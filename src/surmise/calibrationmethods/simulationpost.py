@@ -149,10 +149,10 @@ def fit(fitinfo, emu, x, y, **sampler_args):
     else:
         sampler_name = 'metropolis_hastings'
     sampler = create_sampler(sampler_name, sampler_args)
-    theta = sampler(logpost_func=logpostfull_wgrad,
-                    draw_func=draw_func,
-                    scipy_stats_rng=np.random.default_rng(),
-                    **sampler_args)["theta"]
+    results = sampler(logpost_func=logpostfull_wgrad,
+                      draw_func=draw_func,
+                      scipy_stats_rng=np.random.default_rng())
+    theta = results["theta"]
 
     # obtain log-posterior of theta values
     ladj = logpostfull_wgrad(theta, return_grad=False)
