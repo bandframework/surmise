@@ -5,9 +5,8 @@ from contextlib import contextmanager
 from surmise.emulation import emulator
 from surmise.calibration import calibrator
 
-# TODO: Fix test so that we can include at least PTLMC again.
-SAMPLERS_IN_TEST = ['metropolis_hastings']  # 'PTLMC', 'LMC']
-
+# TODO: LMC will require 'expertMode' in lmc_option to run
+SAMPLERS_IN_TEST = ['metropolis_hastings', 'PTLMC']  #, 'LMC']
 
 ##############################################
 #            Simple scenarios                #
@@ -182,7 +181,8 @@ ptlmc_args3 = {'theta0': np.array([[0, 9]])}
 
 #
 lmc_args1 = {'theta0': np.array([[0, 9]]),
-             'numsamp': 50}
+             'numsamp': 50,
+             'expertMode': True}
 
 args_dict = {'metropolis_hastings': [mh_args1, mh_args2, mh_args3, mh_args4, mh_args5],
              'PTLMC': [ptlmc_args1, ptlmc_args2, ptlmc_args3],
@@ -197,24 +197,30 @@ args_dict = {'metropolis_hastings': [mh_args1, mh_args2, mh_args3, mh_args4, mh_
 def does_not_raise():
     yield
 
+# Generate all test pairs accordingly upfront
+SAMPLER_ARGS_PAIRS = [
+    pytest.param(sampler, args, id=f"{sampler}-args{i}")
+    for sampler in SAMPLERS_IN_TEST
+    for i, args in enumerate(args_dict[sampler])
+]
+
+
+@pytest.mark.parametrize("sampler,args", SAMPLER_ARGS_PAIRS)
+def test_cal_MLcal(sampler, args):
+    args_tmp = args.copy()
+    args_tmp['sampler'] = sampler
+    with does_not_raise():
+        assert calibrator(emu=emu_test,
+                          y=y,
+                          x=x,
+                          thetaprior=priorphys_lin,
+                          method='directbayes',
+                          yvar=obsvar,
+                          args=args_tmp) is not None
+
 
 @pytest.mark.parametrize('sampler', SAMPLERS_IN_TEST)
 class TestSampler:
-
-    @pytest.mark.parametrize(
-        "args", [mh_args1, mh_args2, mh_args3, mh_args4, mh_args5],
-    )
-    def test_cal_MLcal(self, sampler, args):
-        args_tmp = args.copy()
-        args_tmp['sampler'] = sampler
-        with does_not_raise():
-            assert calibrator(emu=emu_test,
-                              y=y,
-                              x=x,
-                              thetaprior=priorphys_lin,
-                              method='directbayes',
-                              yvar=obsvar,
-                              args=args_tmp) is not None
 
     @pytest.mark.parametrize(
         "input1,input2,input3,input4,input5,expectation",
@@ -235,13 +241,7 @@ class TestSampler:
         ],
     )
     def test_cal_emu_fails(self, sampler, input1, input2, input3, input4, input5, expectation):
-        if sampler == 'metropolis_hastings':
-            args1 = mh_args1
-        elif sampler == 'PTLMC':
-            args1 = ptlmc_args1
-        elif sampler == 'LMC':
-            args1 = lmc_args1
-        args_tmp = args1.copy()
+        args_tmp = args_dict[sampler][0].copy()
         with expectation:
             args_tmp['sampler'] = sampler
             assert calibrator(emu=input1,
@@ -259,14 +259,7 @@ class TestSampler:
         ]
     )
     def test_cal_emu(self, sampler, input1, input2, input3, input4, input5):
-        # Does not mix failures and non-failures
-        if sampler == 'metropolis_hastings':
-            args1 = mh_args1
-        elif sampler == 'PTLMC':
-            args1 = ptlmc_args1
-        elif sampler == 'LMC':
-            args1 = lmc_args1
-        args_tmp = args1.copy()
+        args_tmp = args_dict[sampler][0].copy()
         with does_not_raise():
             args_tmp['sampler'] = sampler
             assert calibrator(emu=input1,
@@ -294,14 +287,7 @@ class TestSampler:
                               args={'sampler': sampler}) is not None
 
     def test_repr(self, sampler):
-        if sampler == 'metropolis_hastings':
-            args1 = mh_args1
-        elif sampler == 'PTLMC':
-            args1 = ptlmc_args1
-        elif sampler == 'LMC':
-            args1 = lmc_args1
-
-        args_tmp = args1.copy()
+        args_tmp = args_dict[sampler][0].copy()
         args_tmp['sampler'] = sampler
         cal = calibrator(emu=emu_test,
                          y=y,
