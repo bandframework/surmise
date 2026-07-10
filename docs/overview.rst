@@ -29,7 +29,7 @@ surmise’s work is categorized into two main routines:
 
 * :ref:`emulation<emulation>`: Carries out Bayesian emulation of computer model output and generates inputs to ``calibration``
 
-* :ref:`calibration<calibration>`: Generates estimates of the calibration parameters based on field observations of the real process and an output from ``emulation``
+* :ref:`calibration<calibration>`: Uses user-specified MCMC sampling to generate estimates of the calibration parameters based on field observations of the real process and on output from ``emulation``
 
 Examples of how to use ``emulation`` and ``calibration`` modules can be found in
 the ``examples/`` directory.
