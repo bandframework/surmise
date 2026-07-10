@@ -105,20 +105,23 @@ def fit(fitinfo, emu, x, y, **sampler_args):
         return theta0
 
     # Call the sampler
-    if 'sampler' in sampler_args:
-        sampler_name = sampler_args['sampler']
-        # TODO: The sampler name should likely be its own argument
-        # (non-optional?) to the calibrator rather than hiding it in its own set
-        # of arguments.  Why not make sampler_args a single dictionary that
-        # calling code provides to the calibrator?
-        del sampler_args['sampler']
+    specification = copy.deepcopy(sampler_args)
+    if 'sampler' in specification:
+        sampler_name = specification['sampler']
+        del specification['sampler']
     else:
         sampler_name = 'metropolis_hastings'
-    sampler = create_sampler(sampler_name, expert_mode=False)
+
+    expert_mode = False
+    if 'expertMode' in specification:
+        expert_mode = specification['expertMode']
+        del specification['expertMode']
+
+    sampler = create_sampler(sampler_name, expert_mode=expert_mode)
     results = sampler(logpost_func=logpostfull,
                       draw_func=draw_func,
                       scipy_stats_rng=np.random.default_rng(),
-                      specification=sampler_args)
+                      specification=specification)
     theta = results["theta"]
 
     # Update fitinfo dict

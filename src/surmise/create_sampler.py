@@ -17,18 +17,13 @@ def create_sampler(sampler, expert_mode):
             logpost_func=log_posterior,
             draw_func=draw_from_start_distribution,
             scipy_stats_rng=np.random.default_rng(RAND_SEED),
-            **pltlmc_args
+            specification=ptlmc_spec
         )
 
     For typical use cases, samplers are created automatically under-the-hood on
     behalf of users.  Therefore, there is generally no need to explicitly create
     or access samplers.  This function is in the |surmise| public interface only
     as an advanced feature for use by developers and power users.
-
-    .. todo::
-        * The samplers should be updated so that they accept a single dictionary
-          containing all sampler arguments.  The samplers can then error check
-          those hard and print useful error messages.
 
     Parameters
     ----------
