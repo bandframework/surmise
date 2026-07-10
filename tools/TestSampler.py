@@ -116,10 +116,12 @@ class TestSampler(unittest.TestCase):
             start_distribution = create_distribution(start_cfg)
 
         # -- Create sampler & load sampler-specific configuration
-        sampler_name, run_MCMC, sampler_cfg = create_sampler(test_setup)
+        sampler_name, run_MCMC, sampler_cfg = create_sampler(
+            test_setup["Sampler"]
+        )
         scipy_stats_rng = create_scipy_stats_rng(rng_cfg)
 
-        n_samples = sampler_cfg["numsamp"]
+        n_samples = sampler_cfg["nSamples"]
 
         # ------ RUN SAMPLER & CONFIRM REASONABLE RESULTS
         print()
@@ -149,7 +151,7 @@ class TestSampler(unittest.TestCase):
             logpost_func=target_distribution.logpdf,
             draw_func=start_dist_sampler,
             scipy_stats_rng=scipy_stats_rng,
-            **sampler_cfg
+            specification=sampler_cfg
         )
         self.assertFalse(FNAME_H5.exists())
         save_mcmc_results(FNAME_H5, sampler_name, result_1)
@@ -308,7 +310,7 @@ class TestSampler(unittest.TestCase):
             logpost_func=target_distribution.logpdf,
             draw_func=start_dist_sampler,
             scipy_stats_rng=scipy_stats_rng,
-            **sampler_cfg
+            specification=sampler_cfg
         )
         print("done")
         sys.stdout.flush()

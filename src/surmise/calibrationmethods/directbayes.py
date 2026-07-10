@@ -118,7 +118,7 @@ def fit(fitinfo, emu, x, y, **sampler_args):
     results = sampler(logpost_func=logpostfull,
                       draw_func=draw_func,
                       scipy_stats_rng=np.random.default_rng(),
-                      **sampler_args)
+                      specification=sampler_args)
     theta = results["theta"]
 
     # Update fitinfo dict

@@ -7,12 +7,7 @@ import scipy.stats as sps
 def sampler(logpost_func,
             draw_func,
             scipy_stats_rng,
-            numsamp=2000,
-            theta0=None,
-            stepType='normal',
-            stepParam=None,
-            burnSamples=1000,
-            verbose=False):
+            specification):
     '''
 
 
@@ -38,7 +33,27 @@ def sampler(logpost_func,
 
     '''
     # Hardcoded values
+    VALID_SPECS = {
+        "nSamples", "nBurnSamples", "theta0", "stepType", "stepParam", "verbose"
+    }
     LOG_RATE = 25_000
+
+    # Get specification values
+    # TODO: Error check these with useful error messages
+    assert set(specification) == VALID_SPECS
+    numsamp = specification["nSamples"]
+    burnSamples = specification["nBurnSamples"]
+    theta0 = specification["theta0"]
+    stepType = specification["stepType"]
+    stepParam = specification["stepParam"]
+    verbose = specification["verbose"]
+
+    if verbose:
+        print(f"nSamples     = {numsamp}")
+        print(f"nBurnSamples = {burnSamples}")
+        print(f"stepType     = {stepType}")
+        print(f"stepParam    = {stepParam}")
+        print(f"theta0       = {theta0}")
 
     # random number generator
     if not isinstance(scipy_stats_rng, np.random.Generator):

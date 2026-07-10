@@ -44,8 +44,7 @@ Society: Series B (Statistical Methodology)*, 60(1):255-268, 1998.
 def sampler(logpost_func,
             draw_func,
             scipy_stats_rng,
-            numsamp=2000,
-            theta0=None):
+            specification):
     '''
 
     Parameters
@@ -73,6 +72,19 @@ def sampler(logpost_func,
         numsamp by p of sampled parameter values
 
     '''
+    VALID_SPECS = {"nSamples", "theta0", "verbose"}
+
+    # Get specification values
+    # TODO: Error check these with useful error messages
+    assert set(specification) == VALID_SPECS
+    numsamp = specification["nSamples"]
+    theta0 = specification["theta0"]
+    verbose = specification["verbose"]
+
+    if verbose:
+        print(f"nSamples = {numsamp}")
+        print(f"theta0   = {theta0}")
+
     # random number generator
     if not isinstance(scipy_stats_rng, np.random.Generator):
         raise TypeError("Given RNG is not a valid scipy.stats RNG")
