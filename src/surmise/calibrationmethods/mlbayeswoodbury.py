@@ -2,6 +2,7 @@ import numpy as np
 import scipy.stats as sps
 import copy
 
+from .._RandomNumberGenerator import RandomNumberGenerator
 from ..create_sampler import create_sampler
 
 
@@ -76,6 +77,8 @@ def fit(fitinfo,
     None.
 
     '''
+    global_RNG = RandomNumberGenerator().scipy_stats_RNG
+
     if clf_method is not None:
         raise NotImplementedError(
             "CLF method use is not under test nor officially offered yet"
@@ -194,7 +197,7 @@ def fit(fitinfo,
     sampler = create_sampler(sampler_name, sampler_args)
     results = sampler(logpost_func=logpostfull_wgrad,
                       draw_func=draw_func,
-                      scipy_stats_rng=np.random.default_rng())
+                      scipy_stats_rng=global_RNG)
     theta = results["theta"]
 
     # obtain log-posterior of theta values

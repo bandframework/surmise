@@ -1,6 +1,7 @@
 import numpy as np
 import copy
 
+from .._RandomNumberGenerator import RandomNumberGenerator
 from ..create_sampler import create_sampler
 
 
@@ -77,6 +78,8 @@ def fit(fitinfo, emu, x, y, **sampler_args):
         A dictionary containing options passed to the calibrator.
 
     '''
+    global_RNG = RandomNumberGenerator().scipy_stats_RNG
+
     thetaprior = fitinfo['thetaprior']
 
     # Define the posterior function
@@ -117,7 +120,7 @@ def fit(fitinfo, emu, x, y, **sampler_args):
     sampler = create_sampler(sampler_name, sampler_args)
     results = sampler(logpost_func=logpostfull,
                       draw_func=draw_func,
-                      scipy_stats_rng=np.random.default_rng())
+                      scipy_stats_rng=global_RNG)
     theta = results["theta"]
 
     # Update fitinfo dict

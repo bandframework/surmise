@@ -3,6 +3,7 @@ import copy
 import numpy as np
 import scipy.stats as sps
 
+from .._RandomNumberGenerator import RandomNumberGenerator
 from ..create_sampler import create_sampler
 
 
@@ -71,6 +72,7 @@ def fit(fitinfo, emu, x, y, **sampler_args):
     None.
 
     '''
+    global_RNG = RandomNumberGenerator().scipy_stats_RNG
 
     thetaprior = fitinfo['thetaprior']
     try:
@@ -157,7 +159,7 @@ def fit(fitinfo, emu, x, y, **sampler_args):
     sampler = create_sampler(sampler_name, sampler_args)
     results = sampler(logpost_func=logpostfull_wgrad,
                       draw_func=draw_func,
-                      scipy_stats_rng=np.random.default_rng())
+                      scipy_stats_rng=global_RNG)
     theta = results["theta"]
 
     # obtain log-posterior of theta values
