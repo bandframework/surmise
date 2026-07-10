@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 
 from pathlib import Path
 
+from create_scipy_stats_rng import create_scipy_stats_rng
 from create_distribution import create_distribution
 from create_sampler import create_sampler
 from save_mcmc_results import save_mcmc_results
@@ -104,26 +105,7 @@ class TestSampler(unittest.TestCase):
         mu_true, var_true = target_distribution.moments
 
         # ----- MCMC CONFIGURATION
-        # -- Universal Configuration
-        # General
-        n_burn_samples = test_setup["n_burn_samples"]
-        n_samples = test_setup["n_samples"]
-        verbose = test_setup["verbose"]
-
-        # RNG
         rng_cfg = test_setup["rng"]
-        rand_method = rng_cfg["method"]
-        rand_seed = rng_cfg["random_seed"]
-        print(f"RNG method\t\t{rand_method}")
-        print(f"Random seed\t\t{rand_seed}")
-        assert rand_method.lower() == "default"
-
-        # Initial theta
-        theta_0 = None
-        if "theta_0" in test_setup:
-            theta_0 = np.atleast_2d(np.squeeze(test_setup["theta_0"]))
-            assert theta_0.ndim == 2
-            assert theta_0.shape[0] == 1
 
         # Starting distribution
         start_distribution = None
@@ -133,16 +115,11 @@ class TestSampler(unittest.TestCase):
             print(f"Start distribution\t{start_name}")
             start_distribution = create_distribution(start_cfg)
 
-        universal_cfg = {
-            "numsamp": n_samples,
-            "burnSamples": n_burn_samples,
-            "theta0": theta_0,
-            "verbose": verbose
-        }
-
         # -- Create sampler & load sampler-specific configuration
         sampler_name, run_MCMC, sampler_cfg = create_sampler(test_setup)
-        sampler_cfg["RNG"] = np.random.default_rng(rand_seed)
+        scipy_stats_rng = create_scipy_stats_rng(rng_cfg)
+
+        n_samples = sampler_cfg["numsamp"]
 
         # ------ RUN SAMPLER & CONFIRM REASONABLE RESULTS
         print()
@@ -167,12 +144,11 @@ class TestSampler(unittest.TestCase):
         start_dist_sampler = None
         if start_distribution is not None:
             start_dist_sampler = functools.partial(start_distribution.sample,
-                                                   rng=sampler_cfg["RNG"])
+                                                   rng=scipy_stats_rng)
         result_1 = run_MCMC(
             logpost_func=target_distribution.logpdf,
             draw_func=start_dist_sampler,
-            **universal_cfg,
-            **sampler_cfg
+            scipy_stats_rng=scipy_stats_rng
         )
         self.assertFalse(FNAME_H5.exists())
         save_mcmc_results(FNAME_H5, sampler_name, result_1)
@@ -218,7 +194,7 @@ class TestSampler(unittest.TestCase):
             # Randomly shuffle the original MCMC samples so that the integrated
             # quantity convergence plots mimic what we would see if the samples
             # used to approximate the integrals were drawn independently.
-            resampling = sampler_cfg["RNG"].choice(
+            resampling = scipy_stats_rng.choice(
                 np.arange(len(samples)),
                 size=len(samples),
                 replace=False
@@ -319,19 +295,18 @@ class TestSampler(unittest.TestCase):
 
         # ----- CONFIRM DETERMINISTIC
         # Rerun with identical RNG setup & confirm bitwise exact samples
-        sampler_cfg["RNG"] = np.random.default_rng(rand_seed)
+        scipy_stats_rng = create_scipy_stats_rng(rng_cfg)
         print()
         print("Sampling again ...\t", end="")
         sys.stdout.flush()
         start_dist_sampler = None
         if start_distribution is not None:
             start_dist_sampler = functools.partial(start_distribution.sample,
-                                                   rng=sampler_cfg["RNG"])
+                                                   rng=scipy_stats_rng)
         result_2 = run_MCMC(
             logpost_func=target_distribution.logpdf,
             draw_func=start_dist_sampler,
-            **universal_cfg,
-            **sampler_cfg
+            scipy_stats_rng=scipy_stats_rng
         )
         print("done")
         sys.stdout.flush()
@@ -344,7 +319,7 @@ class TestSampler(unittest.TestCase):
         )
 
     def __compare_sampler_specific(self, sampler_name, benchmark, new):
-        if sampler_name.upper() == "MH":
+        if sampler_name.lower() == "metropolis_hastings":
             # TODO: lpostlist should probably be saved in the files so that we
             # can check new results against benchmarks as well.
             # self.assertEqual(set(benchmark), {"theta", "acc_rate", "lpostlist"})

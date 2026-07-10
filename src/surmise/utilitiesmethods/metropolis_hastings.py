@@ -6,13 +6,13 @@ import scipy.stats as sps
 
 def sampler(logpost_func,
             draw_func,
+            scipy_stats_rng,
             numsamp=2000,
             theta0=None,
             stepType='normal',
             stepParam=None,
             burnSamples=1000,
-            verbose=False,
-            **mh_options):
+            verbose=False):
     '''
 
 
@@ -30,8 +30,6 @@ def sampler(logpost_func,
         either 'uniform' or 'normal'. The default is 'normal'.
     stepParam : array, optional
         scaling parameter. The default is None.
-    **mh_options : dict
-        additional options.
 
     Returns
     -------
@@ -43,14 +41,7 @@ def sampler(logpost_func,
     LOG_RATE = 25_000
 
     # random number generator
-    # TODO: This is an intermediate step.  Eventually calling code should be
-    # forced to provide an RNG.
-    rng = None
-    if "RNG" in mh_options:
-        rng = mh_options["RNG"]
-    if rng is None:
-        rng = np.random.default_rng()
-    elif not isinstance(rng, np.random.Generator):
+    if not isinstance(scipy_stats_rng, np.random.Generator):
         raise TypeError("Given RNG is not a valid scipy.stats RNG")
 
     # scaling parameter
@@ -92,7 +83,7 @@ def sampler(logpost_func,
     lposterior_list = []
     for i in range(1, burnSamples + numsamp):
         # Candidate theta
-        step = step_distribution.rvs(size=p, random_state=rng)
+        step = step_distribution.rvs(size=p, random_state=scipy_stats_rng)
         theta_cand = theta[i-1, :] + stepParam * step
         if not all(np.isfinite(theta_cand)):
             raise RuntimeError("Proposed theta contains invalid values")
@@ -125,7 +116,7 @@ def sampler(logpost_func,
                 accept = False
             else:
                 assert 0.0 < p_accept < 1.0
-                accept = (sps.bernoulli.rvs(p=p_accept, size=1, random_state=rng) == 1)
+                accept = (sps.bernoulli.rvs(p=p_accept, size=1, random_state=scipy_stats_rng) == 1)
 
         # Accept candidate?
         if accept:
