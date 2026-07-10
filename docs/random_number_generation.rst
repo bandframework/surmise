@@ -15,6 +15,11 @@ well as correctly created and managed for their application.  Note that where
 possible all |surmise| code should reproduce the same results when the same task
 is run with an identical RNG setup.
 
+Users are expected to create and manage ``scipy.stats``-compatible RNGs that
+they set into |surmise| using the :py:func:`set_RNG` function.
+
+.. autofunction:: surmise.set_RNG
+
 The following demonstrates this and shows that users are free to change the
 single RNG being used by |surmise|.
 
