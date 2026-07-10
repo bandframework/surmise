@@ -15,14 +15,13 @@
                     "Intervals": [-0.5, 0.5]
                 },
                 "Sampler": {
-                   "Name": "LMC"
+                   "Name": "LMC",
+                   "expertMode": true
                 },
                 "SampleSkip":         10,
                 "Plot":             true,
                 "Benchmark":          "LMC_Uniform1D_UniformStart.benchmark",
-                "n_burn_samples":  10000,
-                "n_samples":      100000,
-                "verbose":          true 
+                "n_samples":      100000
             }
         }
     }

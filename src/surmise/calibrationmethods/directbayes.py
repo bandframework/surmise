@@ -1,9 +1,10 @@
 import numpy as np
-from surmise.utilities import sampler
 import copy
 
+from ..create_sampler import create_sampler
 
-def fit(fitinfo, emu, x, y, **bayes_args):
+
+def fit(fitinfo, emu, x, y, **sampler_args):
     '''
     The main required function to be called by calibration to fit a
     calibration model.
@@ -104,17 +105,20 @@ def fit(fitinfo, emu, x, y, **bayes_args):
         return theta0
 
     # Call the sampler
-    if 'sampler' in bayes_args.keys():
-        name = bayes_args['sampler']
+    if 'sampler' in sampler_args:
+        sampler_name = sampler_args['sampler']
+        # TODO: The sampler name should likely be its own argument
+        # (non-optional?) to the calibrator rather than hiding it in its own set
+        # of arguments.  Why not make sampler_args a single dictionary that
+        # calling code provides to the calibrator?
+        del sampler_args['sampler']
     else:
-        name = 'unspecified'
-    _ = name  # to satisfy flake8, can be removed when variable is used
-
-    sampler_obj = sampler(logpost_func=logpostfull,
-                          draw_func=draw_func,
-                          **bayes_args)
-
-    theta = sampler_obj.sampler_info['theta']
+        sampler_name = 'metropolis_hastings'
+    sampler = create_sampler(sampler_name, sampler_args)
+    results = sampler(logpost_func=logpostfull,
+                      draw_func=draw_func,
+                      scipy_stats_rng=np.random.default_rng())
+    theta = results["theta"]
 
     # Update fitinfo dict
     fitinfo['thetarnd'] = theta

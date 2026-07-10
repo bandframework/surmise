@@ -1,10 +1,12 @@
-import numpy as np
-import scipy.stats as sps
-from surmise.utilities import sampler
 import copy
 
+import numpy as np
+import scipy.stats as sps
 
-def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
+from ..create_sampler import create_sampler
+
+
+def fit(fitinfo, emu, x, y, **sampler_args):
     '''
     The main required function to be called by calibration to fit a
     calibration model.
@@ -147,11 +149,16 @@ def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
         return theta0
 
     # obtain theta draws from posterior distribution
-    sampler_obj = sampler(logpost_func=logpostfull_wgrad,
-                          draw_func=draw_func,
-                          **bayeswoodbury_args)
-
-    theta = sampler_obj.sampler_info['theta']
+    if 'sampler' in sampler_args:
+        sampler_name = sampler_args['sampler']
+        del sampler_args['sampler']
+    else:
+        sampler_name = 'metropolis_hastings'
+    sampler = create_sampler(sampler_name, sampler_args)
+    results = sampler(logpost_func=logpostfull_wgrad,
+                      draw_func=draw_func,
+                      scipy_stats_rng=np.random.default_rng())
+    theta = results["theta"]
 
     # obtain log-posterior of theta values
     ladj = logpostfull_wgrad(theta, return_grad=False)
