@@ -36,7 +36,9 @@ PyPI
 Quickstart
 README
 RNG
+RNG's
 RNGs
+RandomNumberGenerator
 SDK
 SURmise
 SciPy
@@ -58,6 +60,7 @@ calibrationmethods
 chan
 colab
 cov
+cryptographically
 currentmodule
 danOSU
 dataset
@@ -112,6 +115,7 @@ quickstart
 reStructuredText
 readthedocs
 runtime
+rvs
 scikit
 scipy
 setuptools
@@ -131,6 +135,7 @@ vah
 venv
 visualstudio
 whl
+wikipedia
 wordpress
 wp
 www

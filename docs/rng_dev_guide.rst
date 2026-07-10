@@ -54,11 +54,11 @@ geared toward libraries.
 High-level
 ^^^^^^^^^^
 To adhere to the |surmise| RNG requirements related to easing implementation and
-maintainance by using only one, large statistics package with RNG capabilities,
+maintenance by using only one, large statistics package with RNG capabilities,
 this design stipulates that all sampling of random numbers in |surmise| occur
 using either the
 
-* ``scipy.stats`` package (preferrably using improved interface introduced at
+* ``scipy.stats`` package (preferably using improved interface introduced at
   v1.15.0) or
 * ``scipy.stats`` RNG currently in use (|eg| using the RNG's ``choice`` method).
 
@@ -93,7 +93,7 @@ an RNG object.
 
     The consistent use of just `scipy.stats` is indeed important since the
     interfaces of both `scipy.stats` and `numpy.random` have been changing
-    signficantly recently.  Presently, it appears that we could allow for
+    significantly recently.  Presently, it appears that we could allow for
     simultaneous use of both packages since both use
     [`numpy.random` RNGs](https://docs.scipy.org/doc/scipy/tutorial/stats/probability_distributions.html#random-number-generation).
     However, restricting use to just `scipy.stats` does indeed reduce the
