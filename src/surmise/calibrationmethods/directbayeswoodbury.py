@@ -150,7 +150,8 @@ def fit(fitinfo, emu, x, y, **sampler_args):
 
     # obtain theta draws from posterior distribution
     if 'sampler' in sampler_args:
-        raise RuntimeError("Test suite never specifies sampler")
+        sampler_name = sampler_args['sampler']
+        del sampler_args['sampler']
     else:
         sampler_name = 'metropolis_hastings'
     sampler = create_sampler(sampler_name, sampler_args)
