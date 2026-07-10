@@ -49,11 +49,14 @@ def sampler(logpost_func,
     verbose = specification["verbose"]
 
     if verbose:
+        # Don't log theta0 as it could potentially be an overwhelming amount of
+        # information.  This could be an arugment for having logging at
+        # different levels of detail.  Maybe a user needs to see the full theta0
+        # in some cases.
         print(f"nSamples     = {numsamp}")
         print(f"nBurnSamples = {burnSamples}")
         print(f"stepType     = {stepType}")
         print(f"stepParam    = {stepParam}")
-        print(f"theta0       = {theta0}")
 
     # random number generator
     if not isinstance(scipy_stats_rng, np.random.Generator):

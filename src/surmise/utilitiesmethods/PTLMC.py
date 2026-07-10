@@ -70,12 +70,13 @@ def sampler(logpost_func,
     verbose = specification["verbose"]
 
     if verbose:
+        # Don't log theta0 as it could potentially be an overwhelming amount of
+        # information.
         print(f"nSamples        = {numsamp}")
         print(f"nTemperatures   = {numtemps}")
         print(f"maxTemperature  = {maxtemp}")
         print(f"nChains         = {numchain}")
         print(f"samplesPerChain = {sampperchain}")
-        print(f"theta0          = {theta0}")
 
     # random number generator
     if not isinstance(scipy_stats_rng, np.random.Generator):
