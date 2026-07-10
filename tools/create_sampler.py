@@ -14,6 +14,7 @@ def create_sampler(test_setup):
         assert theta_0.shape[0] == 1
     sampler_cfg["theta0"] = theta_0
 
+    expert_mode = False
     sampler_name = test_setup["Sampler"]["Name"]
     if sampler_name.lower() == "metropolis_hastings":
         # -- Metropolis-Hastings Sampler
@@ -30,20 +31,18 @@ def create_sampler(test_setup):
         sampler_cfg["stepParam"] = step_scale
         sampler_cfg["burnSamples"] = cfg["n_burn_samples"]
         sampler_cfg["verbose"] = cfg["verbose"]
-        sampler = surmise.create_sampler(sampler_name, sampler_cfg)
     elif sampler_name.upper() == "LMC":
         # -- Langevin MC Sampler
-        sampler_cfg["expertMode"] = test_setup["Sampler"]["expertMode"]
-        sampler = surmise.create_sampler(sampler_name, sampler_cfg)
-        del sampler_cfg["expertMode"]
+        expert_mode = test_setup["Sampler"]["expertMode"]
     elif sampler_name.upper() == "PTLMC":
         # -- Parallel-Tempering Langevin MC Sampler
         sampler_cfg["numtemps"] = test_setup["Sampler"]["numtemps"]
         sampler_cfg["numchain"] = test_setup["Sampler"]["numchain"]
         sampler_cfg["sampperchain"] = test_setup["Sampler"]["sampperchain"]
         sampler_cfg["maxtemp"] = test_setup["Sampler"]["maxtemp"]
-        sampler = surmise.create_sampler(sampler_name, sampler_cfg)
     else:
         raise ValueError(f"Unsupported sampler ({sampler_name})")
+
+    sampler = surmise.create_sampler(sampler_name, expert_mode=expert_mode)
 
     return sampler_name, sampler, sampler_cfg

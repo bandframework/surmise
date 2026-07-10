@@ -148,7 +148,8 @@ class TestSampler(unittest.TestCase):
         result_1 = run_MCMC(
             logpost_func=target_distribution.logpdf,
             draw_func=start_dist_sampler,
-            scipy_stats_rng=scipy_stats_rng
+            scipy_stats_rng=scipy_stats_rng,
+            **sampler_cfg
         )
         self.assertFalse(FNAME_H5.exists())
         save_mcmc_results(FNAME_H5, sampler_name, result_1)
@@ -306,7 +307,8 @@ class TestSampler(unittest.TestCase):
         result_2 = run_MCMC(
             logpost_func=target_distribution.logpdf,
             draw_func=start_dist_sampler,
-            scipy_stats_rng=scipy_stats_rng
+            scipy_stats_rng=scipy_stats_rng,
+            **sampler_cfg
         )
         print("done")
         sys.stdout.flush()

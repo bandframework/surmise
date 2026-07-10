@@ -114,10 +114,11 @@ def fit(fitinfo, emu, x, y, **sampler_args):
         del sampler_args['sampler']
     else:
         sampler_name = 'metropolis_hastings'
-    sampler = create_sampler(sampler_name, sampler_args)
+    sampler = create_sampler(sampler_name, expert_mode=False)
     results = sampler(logpost_func=logpostfull,
                       draw_func=draw_func,
-                      scipy_stats_rng=np.random.default_rng())
+                      scipy_stats_rng=np.random.default_rng(),
+                      **sampler_args)
     theta = results["theta"]
 
     # Update fitinfo dict
