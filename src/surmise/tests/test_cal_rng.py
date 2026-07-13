@@ -13,27 +13,26 @@ from surmise.calibration import calibrator
 #  As a result a .set_RNG routine elsewhere will propagate into other tests even if not intended.
 #  The use of fixture `no_rng` is to enforce the error raised from an unset RNG
 
-from .conftest import no_rng, emu_lin_pcgp
-from .shared_scenario import x_lin as x, theta_lin, f_lin, y_lin as y, \
-                             obsvar_lin as obsvar, priorphys_lin, _rng
+# from .conftest import no_rng, emu_lin_pcgp
+from .shared_scenario import x_lin as x, y_lin as y, \
+                             obsvar_lin as obsvar, priorphys_lin
 
 
 ##############################################
 # Unit tests to initialize an emulator class #
 ##############################################
 args = {'theta0': np.array([[0.4]]),
-         'numsamp': 20,
-         'stepType': 'normal',
-         'stepParam': [0.4]}
+        'numsamp': 20,
+        'stepType': 'normal',
+        'stepParam': [0.4]}
 
 
 def test_cal_rng_notset(no_rng, emu_lin_pcgp):
     with pytest.raises(RuntimeError):
-        cal = calibrator(emu=emu_lin_pcgp,
-                         y=y,
-                         x=x,
-                         thetaprior=priorphys_lin,
-                         method='directbayes',
-                         yvar=obsvar,
-                         args=args)
-
+        _ = calibrator(emu=emu_lin_pcgp,
+                       y=y,
+                       x=x,
+                       thetaprior=priorphys_lin,
+                       method='directbayes',
+                       yvar=obsvar,
+                       args=args)

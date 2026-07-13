@@ -7,7 +7,6 @@ in every test.
 
 from contextlib import contextmanager
 
-import numpy as np
 import pytest
 
 from surmise.emulation import emulator
