@@ -141,7 +141,8 @@ def fit(fitinfo, emu, x, y, **sampler_args):
         if n0 < n:
             theta0 = np.vstack((thetaprior.rnd(n-n0), theta0))
         else:
-            theta0 = theta0[np.random.randint(theta0.shape[0], size=n), :]
+            theta0 = theta0[sps.randint.rvs(low=0, high=theta0.shape[0],
+                                            size=n, random_state=global_RNG), :]
 
         return theta0
 
@@ -238,5 +239,7 @@ def thetarnd(fitinfo, s=100, args=None):
         s draws from the predictive distribution of theta.
 
     '''
-    return fitinfo['thetarnd'][np.random.choice(fitinfo['thetarnd'].shape[0],
-                                                size=s), :]
+    global_RNG = RandomNumberGenerator().scipy_stats_RNG
+
+    return fitinfo['thetarnd'][global_RNG.choice(fitinfo['thetarnd'].shape[0],
+                                                 size=s), :]

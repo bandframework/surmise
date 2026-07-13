@@ -3,6 +3,7 @@ This module contains a class that implements the main calibration method.
 """
 import numpy as np
 from .helper import cast_f64_dtype, save_file, load_file
+from ._RandomNumberGenerator import RandomNumberGenerator
 import importlib
 import copy
 import warnings
@@ -118,6 +119,10 @@ class calibrator(object):
                 # Emit warning to extend a helping hand to the experts.
                 msg = f"Using unofficial research {method} calibrator"
                 warnings.warn(msg)
+
+        # Confirm RNG is set
+        global_RNG = RandomNumberGenerator().scipy_stats_RNG
+        assert isinstance(global_RNG, np.random.Generator)
 
         # cast to numpy.float64, currently only for theta and f.
         if y is not None:
@@ -427,6 +432,7 @@ class prediction(object):
         """
         Returns s random draws at all x in when building the prediction.
         """
+        global_RNG = RandomNumberGenerator().scipy_stats_RNG
 
         pfstr = 'predict'  # prefix string
         opstr = 'rnd'  # operation string
@@ -436,8 +442,9 @@ class prediction(object):
             return copy.deepcopy(self.cal.method.predictrnd(self.info,
                                                             args))
         elif 'rnd' in self.info.keys():
-            return self.info['rnd'][np.random.choice(self.info['rnd'].shape[0],
-                                                     size=s), :]
+
+            return self.info['rnd'][global_RNG.choice(self.info['rnd'].shape[0],
+                                                      size=s), :]
         else:
             raise ValueError(self.__methodnotfoundstr(pfstr, opstr))
 
@@ -567,6 +574,7 @@ class thetadist(object):
         """
         Returns s predictive draws for theta found during calibration.
         """
+        global_RNG = RandomNumberGenerator().scipy_stats_RNG
 
         pfstr = 'theta'  # prefix string
         opstr = 'rnd'  # operation string
@@ -577,8 +585,8 @@ class thetadist(object):
                                                       args))
         elif (pfstr+opstr) in self.cal.info.keys():
             return self.cal.info['thetarnd'][
-                        np.random.choice(self.cal.info['thetarnd'].shape[0],
-                                         size=s), :]
+                global_RNG.choice(self.cal.info['thetarnd'].shape[0],
+                                  size=s), :]
         else:
             raise ValueError(self.__methodnotfoundstr(pfstr, opstr))
 
