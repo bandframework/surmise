@@ -81,3 +81,8 @@ class RandomNumberGenerator(metaclass=_RngSingleton):
             raise RuntimeError("Given RNG does not provide the choice function")
 
         self.__rng = rng
+
+    def _clear_RNG(self):
+        """Testing support only. Returns singleton to its unset state. This is not intended for user manipulation
+        of the RNG."""
+        self.__rng = None
