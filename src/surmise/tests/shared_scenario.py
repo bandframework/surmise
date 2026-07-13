@@ -103,6 +103,8 @@ y_td = np.array([[0.27, 0.22, 0.27, 0.43, 0.41, 0.49, 0.46, 0.6,
                   0.89, 1.1, 1.05, 0.99, 1.05]]).T
 obsvar_td = np.maximum(0.2 * y_td, 0.1)
 
+n = 100
+theta_ball = prior_balldrop.rnd(n).reshape(n, 1)
 theta_range = np.array([1, 30])
 x_range = np.array([min(x_td), max(x_td)])
 x_std = (x_td - min(x_td)) / (max(x_td) - min(x_td))

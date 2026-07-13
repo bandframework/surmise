@@ -14,14 +14,23 @@ from surmise.calibration import calibrator
 
 from . import shared_scenario as sc
 from .._RandomNumberGenerator import RandomNumberGenerator
+import surmise
 
 
 # RNG helpers
-@pytest.fixture
+@pytest.fixture(scope="module")
 def no_rng():
     """For tests asserting the must-set-first error."""
     RandomNumberGenerator()._clear_RNG()
     yield
+
+
+@pytest.fixture(scope="module")
+def seeded_rng():
+    """Set the package RNG once for an entire test module."""
+    surmise.set_RNG(sc._rng)
+    yield sc._rng
+    RandomNumberGenerator()._clear_RNG()
 
 
 @contextmanager
