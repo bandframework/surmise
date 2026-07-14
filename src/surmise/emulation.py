@@ -3,6 +3,7 @@ This module contains a class that implements the main emulation method.
 """
 import numpy as np
 from .helper import cast_f64_dtype, save_file, load_file
+from ._RandomNumberGenerator import RandomNumberGenerator
 import importlib
 import copy
 import warnings
@@ -91,6 +92,10 @@ class emulator(object):
                 # Emit warning to extend a helping hand to the experts.
                 msg = f"Using unofficial research {method} emulator"
                 warnings.warn(msg)
+
+        # ensures that RNG is set
+        global_RNG = RandomNumberGenerator().scipy_stats_RNG
+        assert isinstance(global_RNG, np.random.Generator)
 
         # cast to numpy.float64, currently only for theta and f.
         if theta is not None:
@@ -409,6 +414,8 @@ class emulator(object):
 
         '''
 
+        global_RNG = RandomNumberGenerator().scipy_stats_RNG
+
         if args is not None:
             argstemp = {**self._args, **args}
         else:
@@ -453,9 +460,9 @@ class emulator(object):
                     if thetachoices is None:
                         if theta.shape[0] > 30 * size:
                             thetachoices = \
-                                theta[np.random.choice(theta.shape[0],
-                                                       30 * size,
-                                                       replace=False), :]
+                                theta[global_RNG.choice(theta.shape[0],
+                                                        30 * size,
+                                                        replace=False), :]
                         else:
                             thetachoices = copy.copy(theta)
                     else:
