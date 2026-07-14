@@ -4,7 +4,10 @@ from surmise.emulation import emulator
 from surmise.calibration import calibrator
 from .conftest import does_not_raise
 from .shared_scenario import y_td as y, obsvar_td as obsvar, \
-    x_std, theta_ball as theta, x_range, theta_range, prior_balldrop, timedrop
+    x_std, theta_ball as theta, x_range, theta_range, prior_balldrop, timedrop, RNG_SEED
+# TODO: TEMPORARY FIX
+import surmise
+surmise.set_RNG(np.random.default_rng(RNG_SEED))
 
 # Use set RNG in this entire test module
 pytestmark = pytest.mark.usefixtures('seeded_rng')

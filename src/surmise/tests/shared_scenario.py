@@ -5,8 +5,11 @@ Importable at collection time so arrays can be used inside
 """
 import numpy as np
 import scipy.stats as sps
+from .._RandomNumberGenerator import RandomNumberGenerator
 
-_rng = np.random.default_rng(111848137687551512331846058163015350939)
+RNG_SEED = 111848137687551512331846058163015350393
+# local data generator, surmise RNG does not advance.
+_datagen = np.random.default_rng(111848137687551512331846058163015350939)
 
 
 # ----------------------------------------------------------------------
@@ -44,6 +47,7 @@ class priorphys_lin:
                 ).reshape((len(theta), 1))
 
     def rnd(n):
+        _rng = RandomNumberGenerator().scipy_stats_RNG
         return np.vstack((
             sps.norm.rvs(0, 5, size=n, random_state=_rng),
             sps.gamma.rvs(2, 0, 10, size=n, random_state=_rng))).T
@@ -58,8 +62,8 @@ x_lin = np.array(
      [1.2, 50.], [2.6, 50.], [2.9, 50.], [3.1, 50.], [3.3, 50.],
      [3.5, 50.], [3.7, 50.]]).astype('object')
 xv_lin = x_lin.astype('float')
-
-theta_lin = priorphys_lin.rnd(50)
+theta_lin = np.vstack((sps.norm.rvs(0, 5, size=50, random_state=_datagen),
+                       sps.gamma.rvs(2, 0, 10, size=50, random_state=_datagen))).T
 f_lin = balldropmodel_linear(xv_lin, theta_lin)
 y_lin = balldroptrue(xv_lin)
 obsvar_lin = 4 * np.ones(x_lin.shape[0])
@@ -91,6 +95,7 @@ class prior_balldrop:
                                   ).reshape((len(theta), 1))
 
     def rnd(n):
+        _rng = RandomNumberGenerator().scipy_stats_RNG
         return np.vstack((sps.uniform.rvs(0, 1, size=n,
                                           random_state=_rng)))
 
@@ -104,12 +109,7 @@ y_td = np.array([[0.27, 0.22, 0.27, 0.43, 0.41, 0.49, 0.46, 0.6,
 obsvar_td = np.maximum(0.2 * y_td, 0.1)
 
 n = 100
-theta_ball = prior_balldrop.rnd(n).reshape(n, 1)
+theta_ball = np.vstack((sps.uniform.rvs(0, 1, size=n, random_state=_datagen))).reshape(n, 1)
 theta_range = np.array([1, 30])
 x_range = np.array([min(x_td), max(x_td)])
 x_std = (x_td - min(x_td)) / (max(x_td) - min(x_td))
-
-
-def set_RNG_in_tests(rng):
-    import surmise
-    surmise.set_RNG(rng)

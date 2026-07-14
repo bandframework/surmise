@@ -1,10 +1,13 @@
+import numpy as np
 from surmise.emulation import emulator
 from surmise.calibration import calibrator
 import pytest
 
 from .conftest import does_not_raise
 from .shared_scenario import x_lin as x, theta_lin, f_lin, y_lin as y, \
-                             obsvar_lin as obsvar, priorphys_lin
+                             obsvar_lin as obsvar, priorphys_lin, RNG_SEED
+
+_rng = np.random.default_rng(RNG_SEED)
 pytestmark = pytest.mark.usefixtures('seeded_rng')
 
 METHOD_IN_TEST = 'directbayeswoodbury'
