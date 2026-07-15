@@ -32,23 +32,17 @@ single RNG being used by |surmise|.
     RAND_SEED = secrets.randbits(128)
 
     surmise.set_RNG(np.random.default_rng(RAND_SEED))
-    samples_1 = surmise.calibration().calibration_samples
-    samples_2 = surmise.calibration().calibration_samples
-    assert not all(samples_1 == samples_2)
 
-    surmise.set_RNG(np.random.default_rng(RAND_SEED))
-    samples_3 = surmise.calibration().calibration_samples
-    assert all(samples_1 == samples_3)
+    surmise.set_RNG(np.random.default_rng(RAND_SEED + 1))
 
 ..
-    External code offered officially through |surmise|, such as |bilby|, have
-    their own RNG usage scheme that is independent from the |surmise| scheme.
-    In particular, the RNG provided to |surmise| is never used explicitly by
-    external code.  Instead, users are responsible for understanding the
-    external code's RNG scheme within the context of the application's needs and
-    providing additional RNG configuration information to |surmise| code that
-    uses the external code.
 
-..
-    Please refer to the RNG examples in the Jupyter book for more examples of
-    using RNGs with |surmise| including the RNG configuration of external code.
+External code offered officially through |surmise|, such as |bilby|, have
+their own RNG usage scheme that is independent from the |surmise| scheme.
+In particular, the RNG provided to |surmise| is never used explicitly by
+external code.  Instead, users are responsible for understanding the
+external code's RNG scheme within the context of the application's needs and
+providing additional RNG configuration information to |surmise| code that
+uses the external code.
+
+Please refer to the RNG examples in the Jupyter book for guidance using RNGs with |surmise| including the RNG configuration of external code.
