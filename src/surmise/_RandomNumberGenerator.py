@@ -11,6 +11,15 @@ class _RngSingleton(type):
 
 
 class RandomNumberGenerator(metaclass=_RngSingleton):
+
+    @classmethod
+    def _is_valid(cls, rng):
+        """
+        Check general design assumptions
+        """
+        return isinstance(rng, np.random.Generator) and \
+            hasattr(rng, "choice") and callable(getattr(rng, "choice"))
+
     def __init__(self):
         """
         This class is implemented using the Singleton design pattern and
@@ -39,13 +48,13 @@ class RandomNumberGenerator(metaclass=_RngSingleton):
         # for their version of scipy.stats and the rest of the surmise code will
         # use it correctly so long as the rest of the scipy.stats interface has
         # not changed significantly.
-        self.__rng = None
+        self._clear_RNG()
 
     @property
     def scipy_stats_RNG(self):
         """
         |surmise| internal code should never store the RNG obtained with this for
-        later use (e.g., in a class's constructor).  Rather upon each invocation,
+        later use (|eg| in a class's constructor).  Rather upon each invocation,
         the internal code shall use this member function to access the current RNG
         set into |surmise|.
 
@@ -57,7 +66,7 @@ class RandomNumberGenerator(metaclass=_RngSingleton):
             Current global RNG to be used by all |surmise| code with
             ``scipy.stats`` for all random number generation
         """
-        if self.__rng is None:
+        if not RandomNumberGenerator._is_valid(self.__rng):
             raise RuntimeError("Please use set_RNG before using surmise")
         return self.__rng
 
@@ -73,16 +82,16 @@ class RandomNumberGenerator(metaclass=_RngSingleton):
             ``scipy.stats``-compatible RNG that all |surmise| code should use
             for all random number generation
         """
-        # Check general design assumptions
-        if not isinstance(rng, np.random.Generator):
+        if not RandomNumberGenerator._is_valid(rng):
             raise TypeError("Given RNG cannot be used with scipy.stats")
-        elif (not hasattr(rng, "choice")) or \
-                (not callable(getattr(rng, "choice"))):
-            raise RuntimeError("Given RNG does not provide the choice function")
-
         self.__rng = rng
 
     def _clear_RNG(self):
-        """Testing support only. Returns singleton to its unset state. This is not intended for user manipulation
-        of the RNG."""
+        """
+        **Testing support only**
+
+        Returns singleton to its unset state. This is not intended for user
+        manipulation of the RNG or by general |surmise| code.
+        """
         self.__rng = None
+        assert not RandomNumberGenerator._is_valid(self.__rng)

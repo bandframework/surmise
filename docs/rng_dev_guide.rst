@@ -7,7 +7,7 @@ generators more generically as random number generation and random number
 generators (RNGs).
 
 Please familiarize yourself with the RNG content in :ref:`rng_user_guide` before
-reading this section, especially the reference to the Jupyterbook RNG example.  Similarly, reviewing the historic record of |surmise| RNG
+reading this section, especially the reference to the Jupyter book RNG example.  Similarly, reviewing the historic record of |surmise| RNG
 requirements might be helpful to motivate the design and explain certain design
 decisions detailed here.
 
@@ -62,6 +62,12 @@ using either the
   v1.15.0) or
 * ``scipy.stats`` RNG currently in use (|eg| using the RNG's ``choice`` method).
 
+If ``scipy.stats`` and its RNG both offer similar sampling functionality, prefer
+the use of ``scipy.stats`` functionality over the RNG's functionality so that
+|surmise| code is decoupled as much as possible from the actual RNG object.  In
+other words, users pass in an object and we simply pass it to ``scipy.stats``
+without caring much what it is or what it can do.
+
 In particular, no other packages, such as ``numpy.random``, should be used in
 |surmise| even if the current RNG is compatible with that package.  This
 decision is also motivated by the fact that
@@ -97,7 +103,7 @@ an RNG object.
     simultaneous use of both packages since both use
     [`numpy.random` RNGs](https://docs.scipy.org/doc/scipy/tutorial/stats/probability_distributions.html#random-number-generation).
     However, restricting use to just `scipy.stats` does indeed reduce the
-    complexity of understanding and managing the use of two related by different
+    complexity of understanding and managing the use of two related but different
     packages.  In addition, it protects surmise from any possible decoupling of
     the two packages that might result in the two packages using different RNGs.
 
