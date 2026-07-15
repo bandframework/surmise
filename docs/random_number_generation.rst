@@ -45,4 +45,4 @@ external code's RNG scheme within the context of the application's needs and
 providing additional RNG configuration information to |surmise| code that
 uses the external code.
 
-Please refer to the RNG examples in the Jupyter book for guidance using RNGs with |surmise| including the RNG configuration of external code.
+Please refer to the RNG examples in the [Jupyter book](https://bandframework.github.io/surmise/intro.html) for guidance using RNGs with |surmise| including the RNG configuration of external code.
