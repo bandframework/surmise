@@ -5,37 +5,16 @@ import os
 ##############################################
 import numpy as np
 import pytest
-from surmise.emulation import emulator
 from surmise.calibration import calibrator
 from .conftest import does_not_raise
 from .shared_scenario import y_td as y, obsvar_td as obsvar, \
-    x_std, theta_ball as theta, x_range, theta_range, prior_balldrop, timedrop
+    x_std, prior_balldrop
 
-pytestmark = pytest.mark.usefixtures('seeded_rng')
+pytestmark = pytest.mark.usefixtures('seeded_rng', '_session_rng')
+
 
 ##############################################
 #            Simple scenarios                #
-##############################################
-# Obtain computer model output via filtered data
-f = timedrop(x_std, theta, x_range, theta_range)
-
-# Fit an emulator via non-filtered data
-emulator_nf_1 = emulator(x=x_std, theta=theta, f=f, method='PCGP')
-pred_nf = emulator_nf_1.predict(x=x_std, theta=theta)
-pred_nf_mean = pred_nf.mean()
-
-# Filter out the data
-ys = 1 - np.sum((pred_nf_mean - y)**2, 0)/np.sum((y - np.mean(y))**2, 0)
-theta_f = theta[ys > 0.5]
-
-# Obtain computer model output via filtered data
-f_f = timedrop(x_std, theta_f, x_range, theta_range)
-
-# Fit an emulator via filtered data
-emulator_f_1 = emulator(x=x_std, theta=theta_f, f=f_f, method='PCGP')
-
-##############################################
-# Unit tests to initialize an emulator class #
 ##############################################
 args2 = {'theta0': np.array([[0.4]]),
          'numsamp': 20,
@@ -50,9 +29,9 @@ args2 = {'theta0': np.array([[0.4]]),
      (False, pytest.raises(TypeError))
      ],
     )
-def test_cal_saveload(load_cal_flag, expectation):
+def test_cal_saveload(load_cal_flag, emu_timedrop, expectation):
     with expectation:
-        cal = calibrator(emu=emulator_f_1,
+        cal = calibrator(emu=emu_timedrop,
                          y=y,
                          x=x_std,
                          thetaprior=prior_balldrop,
@@ -82,9 +61,9 @@ def test_cal_saveload(load_cal_flag, expectation):
      (does_not_raise()),
      ],
     )
-def test_calpred_saveload(expectation):
+def test_calpred_saveload(emu_timedrop, expectation):
     with expectation:
-        cal = calibrator(emu=emulator_f_1,
+        cal = calibrator(emu=emu_timedrop,
                          y=y,
                          x=x_std,
                          thetaprior=prior_balldrop,

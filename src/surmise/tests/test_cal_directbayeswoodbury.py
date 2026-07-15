@@ -1,41 +1,31 @@
-import numpy as np
-from surmise.emulation import emulator
 from surmise.calibration import calibrator
 import pytest
 
 from .conftest import does_not_raise
-from .shared_scenario import x_lin as x, theta_lin, f_lin, y_lin as y, \
-                             obsvar_lin as obsvar, priorphys_lin, RNG_SEED
+from .shared_scenario import x_lin as x, theta_lin, y_lin as y, \
+                             obsvar_lin as obsvar, priorphys_lin
 
-_rng = np.random.default_rng(RNG_SEED)
-pytestmark = pytest.mark.usefixtures('seeded_rng')
+pytestmark = pytest.mark.usefixtures('seeded_rng', '_session_rng')
 
 METHOD_IN_TEST = 'directbayeswoodbury'
+
 
 ##############################################
 #            Simple scenarios                #
 ##############################################
-
-emulator_1 = emulator(x=x, theta=theta_lin, f=f_lin, method='PCGPwM')
-emulator_w_grad = emulator(x=x, theta=theta_lin, f=f_lin,
-                           method='PCGPwM',
-                           args={'return_grad': True})
-
-
-##############################################
-# Unit tests to initialize an emulator class #
-##############################################
 # test to check none-type inputs
 @pytest.mark.parametrize(
-    "input1,expectation",
+    "grad_flag,expectation",
     [
-     (emulator_1, does_not_raise()),
-     (emulator_w_grad, does_not_raise()),
+     (False, does_not_raise()),
+     (True, does_not_raise()),
      ],
     )
-def test_cal_directbayes(input1, expectation):
+def test_cal_directbayes(grad_flag, expectation,
+                         emu_lin_pcgpwm, emu_lin_pcgpwm_wgrad):
+    emu = emu_lin_pcgpwm_wgrad if grad_flag else emu_lin_pcgpwm
     with expectation:
-        assert calibrator(emu=input1,
+        assert calibrator(emu=emu,
                           y=y,
                           x=x,
                           thetaprior=priorphys_lin,
@@ -45,14 +35,14 @@ def test_cal_directbayes(input1, expectation):
 
 # test to check none-type inputs
 @pytest.mark.parametrize(
-    "input1,expectation",
+    "expectation",
     [
-     (emulator_1, does_not_raise()),
+     (does_not_raise()),
      # (emulator_2, does_not_raise()),
      ],
     )
-def test_cal_predict(input1, expectation):
-    cal_bayes = calibrator(emu=input1,
+def test_cal_predict(emu_lin_pcgpwm, expectation):
+    cal_bayes = calibrator(emu=emu_lin_pcgpwm,
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
@@ -63,14 +53,14 @@ def test_cal_predict(input1, expectation):
 
 
 @pytest.mark.parametrize(
-    "input1,expectation",
+    "expectation",
     [
-     (emulator_1, does_not_raise()),
+     (does_not_raise()),
      # (emulator_2, does_not_raise()),
      ],
     )
-def test_cal_predict_mean(input1, expectation):
-    cal_bayes = calibrator(emu=input1,
+def test_cal_predict_mean(emu_lin_pcgpwm, expectation):
+    cal_bayes = calibrator(emu=emu_lin_pcgpwm,
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
@@ -82,14 +72,14 @@ def test_cal_predict_mean(input1, expectation):
 
 
 @pytest.mark.parametrize(
-    "input1,expectation",
+    "expectation",
     [
-     (emulator_1, does_not_raise()),
+     (does_not_raise()),
      # (emulator_2, does_not_raise()),
      ],
     )
-def test_cal_predict_var(input1, expectation):
-    cal_bayes = calibrator(emu=input1,
+def test_cal_predict_var(emu_lin_pcgpwm, expectation):
+    cal_bayes = calibrator(emu=emu_lin_pcgpwm,
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
@@ -101,14 +91,14 @@ def test_cal_predict_var(input1, expectation):
 
 
 @pytest.mark.parametrize(
-    "input1,expectation",
+    "expectation",
     [
-     (emulator_1, does_not_raise()),
+     (does_not_raise()),
      # (emulator_2, does_not_raise()),
      ],
     )
-def test_cal_predict_rnd(input1, expectation):
-    cal_bayes = calibrator(emu=input1,
+def test_cal_predict_rnd(emu_lin_pcgpwm, expectation):
+    cal_bayes = calibrator(emu=emu_lin_pcgpwm,
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
@@ -120,14 +110,14 @@ def test_cal_predict_rnd(input1, expectation):
 
 
 @pytest.mark.parametrize(
-    "input1,expectation",
+    "expectation",
     [
-     (emulator_1, pytest.raises(ValueError)),
+     (pytest.raises(ValueError)),
      # (emulator_2, pytest.raises(ValueError)),
      ],
     )
-def test_cal_predict_lpdf(input1, expectation):
-    cal_bayes = calibrator(emu=input1,
+def test_cal_predict_lpdf(emu_lin_pcgpwm, expectation):
+    cal_bayes = calibrator(emu=emu_lin_pcgpwm,
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
@@ -139,14 +129,14 @@ def test_cal_predict_lpdf(input1, expectation):
 
 
 @pytest.mark.parametrize(
-    "input1,expectation",
+    "expectation",
     [
-     (emulator_1, does_not_raise()),
+     (does_not_raise()),
      # (emulator_2, does_not_raise()),
      ],
     )
-def test_cal_thetadist(input1, expectation):
-    cal_bayes = calibrator(emu=input1,
+def test_cal_thetadist(emu_lin_pcgpwm, expectation):
+    cal_bayes = calibrator(emu=emu_lin_pcgpwm,
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
@@ -157,14 +147,14 @@ def test_cal_thetadist(input1, expectation):
 
 
 @pytest.mark.parametrize(
-    "input1,expectation",
+    "expectation",
     [
-     (emulator_1, does_not_raise()),
+     (does_not_raise()),
      # (emulator_2, does_not_raise()),
      ],
     )
-def test_cal_thetadist_repr(input1, expectation):
-    cal_bayes = calibrator(emu=input1,
+def test_cal_thetadist_repr(emu_lin_pcgpwm, expectation):
+    cal_bayes = calibrator(emu=emu_lin_pcgpwm,
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
@@ -182,8 +172,8 @@ def test_cal_thetadist_repr(input1, expectation):
      (10, does_not_raise()),
      ],
     )
-def test_cal_thetadist_call(input1, expectation):
-    cal_bayes = calibrator(emu=emulator_1,
+def test_cal_thetadist_call(input1, expectation, emu_lin_pcgpwm):
+    cal_bayes = calibrator(emu=emu_lin_pcgpwm,
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
@@ -194,14 +184,14 @@ def test_cal_thetadist_call(input1, expectation):
 
 
 @pytest.mark.parametrize(
-    "input1,expectation",
+    "expectation",
     [
-     (emulator_1, does_not_raise()),
+     (does_not_raise()),
      # (emulator_2, does_not_raise()),
      ],
     )
-def test_cal_thetadist_mean(input1, expectation):
-    cal_bayes = calibrator(emu=input1,
+def test_cal_thetadist_mean(emu_lin_pcgpwm, expectation):
+    cal_bayes = calibrator(emu=emu_lin_pcgpwm,
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
@@ -212,14 +202,14 @@ def test_cal_thetadist_mean(input1, expectation):
 
 
 @pytest.mark.parametrize(
-    "input1,expectation",
+    "expectation",
     [
-     (emulator_1, does_not_raise()),
+     (does_not_raise()),
      # (emulator_2, does_not_raise()),
      ],
     )
-def test_cal_thetadist_var(input1, expectation):
-    cal_bayes = calibrator(emu=input1,
+def test_cal_thetadist_var(emu_lin_pcgpwm, expectation):
+    cal_bayes = calibrator(emu=emu_lin_pcgpwm,
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
@@ -230,14 +220,14 @@ def test_cal_thetadist_var(input1, expectation):
 
 
 @pytest.mark.parametrize(
-    "input1,expectation",
+    "expectation",
     [
-     (emulator_1, does_not_raise()),
+     (does_not_raise()),
      # (emulator_2, does_not_raise()),
      ],
     )
-def test_cal_thetadist_rnd(input1, expectation):
-    cal_bayes = calibrator(emu=input1,
+def test_cal_thetadist_rnd(emu_lin_pcgpwm, expectation):
+    cal_bayes = calibrator(emu=emu_lin_pcgpwm,
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,
@@ -248,14 +238,14 @@ def test_cal_thetadist_rnd(input1, expectation):
 
 
 @pytest.mark.parametrize(
-    "input1,expectation",
+    "expectation",
     [
-     (emulator_1, does_not_raise()),
+     (does_not_raise()),
      # (emulator_2, does_not_raise()),
      ],
     )
-def test_cal_thetadist_lpdf(input1, expectation):
-    cal_bayes = calibrator(emu=input1,
+def test_cal_thetadist_lpdf(emu_lin_pcgpwm, expectation):
+    cal_bayes = calibrator(emu=emu_lin_pcgpwm,
                            y=y,
                            x=x,
                            thetaprior=priorphys_lin,

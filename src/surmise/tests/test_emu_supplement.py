@@ -1,11 +1,12 @@
 import numpy as np
+import scipy.stats as sps
 import pytest
 from surmise.emulation import emulator
 from surmise.calibration import calibrator
 
 from .conftest import does_not_raise
 from .shared_scenario import x_lin as x, theta_lin as theta, f_lin as f, y_lin as y, \
-                             obsvar_lin as obsvar, priorphys_lin
+                             obsvar_lin as obsvar, priorphys_lin, RNG_SEED
 
 pytestmark = pytest.mark.usefixtures('seeded_rng')
 
@@ -18,7 +19,12 @@ theta1 = theta[0:25, :]
 x1 = x[0:15, :]
 x1d = x[:, 0].reshape((x.shape[0],))
 theta4d = np.hstack((theta1, theta1))
-thetarnd = priorphys_lin.rnd(20)
+# Do not use surmise RNG outside of the tests
+_rng = np.random.default_rng(RNG_SEED)
+thetarnd = np.vstack((sps.norm.rvs(0, 5, size=20, random_state=_rng),
+                      sps.gamma.rvs(2, 0, 10, size=20, random_state=_rng))).T
+thetarnd2 = np.vstack((sps.norm.rvs(0, 5, size=10, random_state=_rng),
+                       sps.gamma.rvs(2, 0, 10, size=10, random_state=_rng))).T
 thetacomb = np.vstack((theta1, thetarnd))
 
 
@@ -66,9 +72,6 @@ def test_supplement_theta(input1, input2, input3, expectation):
         assert emu.supplement(size=input1,
                               theta=input2,
                               thetachoices=input3) is not None
-
-
-thetarnd2 = priorphys_lin.rnd(10)
 
 
 # test to check supplement_theta pending argument

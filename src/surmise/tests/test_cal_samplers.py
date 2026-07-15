@@ -7,8 +7,9 @@ from .conftest import does_not_raise
 from .shared_scenario import x_lin as x, theta_lin, f_lin, y_lin as y, \
                              obsvar_lin as obsvar, priorphys_lin, RNG_SEED
 
-_rng = np.random.default_rng(RNG_SEED)
 pytestmark = pytest.mark.usefixtures('seeded_rng')
+
+_rng = np.random.default_rng(seed=RNG_SEED)
 
 # TODO: LMC will require 'expertMode' in lmc_option to run
 SAMPLERS_IN_TEST = ['metropolis_hastings', 'PTLMC']  # , 'LMC']
