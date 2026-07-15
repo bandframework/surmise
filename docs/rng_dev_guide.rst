@@ -126,7 +126,7 @@ class using the `Singleton pattern`_.  In accordance with requirements,
 * be designed and implemented where possible so that results are identical when
   rerun with an identical random number generation scenario, and
 * be designed so that all related random number generation (|eg| performing a
-  single calibration and generating a random reordering of ts MCMC samples) are
+  single calibration and generating a random reordering of the MCMC samples) are
   performed such that calling code cannot alter the single RNG during the middle
   of that computational process.
 
