@@ -93,10 +93,6 @@ class emulator(object):
                 msg = f"Using unofficial research {method} emulator"
                 warnings.warn(msg)
 
-        # ensures that RNG is set
-        global_RNG = RandomNumberGenerator().scipy_stats_RNG
-        assert isinstance(global_RNG, np.random.Generator)
-
         # cast to numpy.float64, currently only for theta and f.
         if theta is not None:
             theta = cast_f64_dtype(theta)

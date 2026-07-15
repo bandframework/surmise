@@ -120,10 +120,6 @@ class calibrator(object):
                 msg = f"Using unofficial research {method} calibrator"
                 warnings.warn(msg)
 
-        # Confirm RNG is set
-        global_RNG = RandomNumberGenerator().scipy_stats_RNG
-        assert isinstance(global_RNG, np.random.Generator)
-
         # cast to numpy.float64, currently only for theta and f.
         if y is not None:
             y = cast_f64_dtype(y)
