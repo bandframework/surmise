@@ -7,7 +7,7 @@ generators more generically as random number generation and random number
 generators (RNGs).
 
 Please familiarize yourself with the RNG content in :ref:`rng_user_guide` before
-reading this section.  Similarly, reviewing the historic record of |surmise| RNG
+reading this section, especially the reference to the Jupyterbook RNG example.  Similarly, reviewing the historic record of |surmise| RNG
 requirements might be helpful to motivate the design and explain certain design
 decisions detailed here.
 
