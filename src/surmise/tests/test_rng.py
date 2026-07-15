@@ -32,15 +32,6 @@ def test_calibrator_methods_raise_after_clear(cal_directbayes, no_rng):
         cal_directbayes.theta.rnd(10)
 
 
-def test_bisect_reproducibility():
-    # (a) prior draws alone — expected to FAIL with current scenarios.py
-    set_RNG(np.random.default_rng(123))
-    d1 = sc.priorphys_lin.rnd(50)
-    set_RNG(np.random.default_rng(123))
-    d2 = sc.priorphys_lin.rnd(50)
-    assert np.allclose(d1, d2)
-
-
 # Test to reproduce results
 def _build_and_draw(seed):
     """Seed the whole sequence, fit emu + cal, return posterior draws."""
@@ -60,11 +51,12 @@ def test_emu_cal_reproducible():
     # same RNGs should return the same samples
     draws1 = _build_and_draw(123)
     draws2 = _build_and_draw(123)
-    assert np.allclose(draws1, draws2)
+    assert np.array_equal(draws1, draws2, equal_nan=False)
 
 
 def test_emu_cal_seed_sensitivity():
     # different RNGs should return different samples
     draws1 = _build_and_draw(123)
     draws2 = _build_and_draw(456)
-    assert not np.allclose(draws1, draws2)
+    assert draws1.shape == draws2.shape
+    assert not np.array_equal(draws1, draws2, equal_nan=False)

@@ -150,14 +150,14 @@ class TestSampler:
             (True, y, x, priorphys_lin, obsvar2, pytest.raises(ValueError)),
             (True, y, x, priorphys_lin, obsvar3, pytest.raises(ValueError)),
             (True, y, x, prior_rnd1, obsvar, pytest.raises(ValueError)),
-            (True, y, x, prior_rnd2, obsvar, pytest.raises(ValueError)),
+            (True, y, x, prior_rnd2, obsvar, pytest.raises(AttributeError)),
             (True, y, x, prior_lpdf1, obsvar, pytest.raises(ValueError)),
             (True, y, x, prior_lpdf2, obsvar, pytest.raises(ValueError)),
             (True, y, x, prior_example1, obsvar, pytest.raises(ValueError)),
             (True, y1, x, priorphys_lin, obsvar, pytest.raises(ValueError)),
             (True, None, x, priorphys_lin, obsvar, pytest.raises(ValueError)),
             (False, y, x, priorphys_lin, obsvar, pytest.raises(ValueError)),
-            (True, y, x, None, obsvar, pytest.raises(ValueError)),
+            (True, y, x, None, obsvar, pytest.raises(AttributeError)),
         ],
     )
     def test_cal_emu_fails(self, sampler, emu_lin_pcgp, use_emu, input2, input3, input4, input5, expectation):

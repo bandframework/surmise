@@ -243,6 +243,7 @@ def predict(predinfo, fitinfo, emu, x, args=None):
     None.
 
     '''
+    global_RNG = RandomNumberGenerator().scipy_stats_RNG
 
     theta = fitinfo['thetarnd']
     if theta.ndim == 1 and fitinfo['theta'].shape[1] > 1.5:
@@ -258,7 +259,8 @@ def predict(predinfo, fitinfo, emu, x, args=None):
 
     for k in range(0, theta.shape[0]):
         re = emucovxhalf[:, k, :] @ \
-            sps.norm.rvs(0, 1, size=(emucovxhalf.shape[2]))
+            sps.norm.rvs(0, 1, size=(emucovxhalf.shape[2]),
+                         random_state=global_RNG)
         predinfo['rnd'][k, :] += re
 
     predinfo['mean'] = np.mean(emumean, 1)
