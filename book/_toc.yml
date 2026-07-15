@@ -10,6 +10,7 @@ parts:
     numbered: 2
     chapters:
     - file: notebooks/BallDrop.ipynb
+    - file: notebooks/setRNG.ipynb
   - caption: Reference
     chapters:
     - file: bibliography
