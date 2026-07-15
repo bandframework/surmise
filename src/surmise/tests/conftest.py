@@ -19,8 +19,10 @@ from surmise import set_RNG
 
 @pytest.fixture(scope="session")
 def _session_rng():
-    set_RNG(np.random.default_rng(sc.RNG_SEED))
-    yield
+    def _ensure():
+        set_RNG(np.random.default_rng(sc.RNG_SEED))
+    _ensure()
+    return _ensure
 
 
 @pytest.fixture(autouse=True)
@@ -38,7 +40,7 @@ def _isolate_rng_state():
 
 
 # RNG helpers
-@pytest.fixture(scope="function")
+@pytest.fixture
 def no_rng():
     """For tests asserting the must-set-first error."""
     RandomNumberGenerator()._clear_RNG()
@@ -48,8 +50,9 @@ def no_rng():
 @pytest.fixture(scope="module")
 def seeded_rng():
     """Set the package RNG once for an entire test module."""
-    set_RNG(sc._rng)
-    yield sc._rng
+    _rng = np.random.default_rng(sc.RNG_SEED)
+    set_RNG(_rng)
+    yield _rng
     RandomNumberGenerator()._clear_RNG()
 
 
@@ -69,14 +72,24 @@ def lin_data(_session_rng):
 @pytest.fixture(scope="session")
 def emu_lin_pcgp(_session_rng):
     """PCGP emulator fit to the linear scenario."""
+    _session_rng()
     return emulator(x=sc.x_lin, theta=sc.theta_lin, f=sc.f_lin,
                     method='PCGP')
 
 
 @pytest.fixture(scope="session")
 def emu_lin_pcgpwm(_session_rng):
+    _session_rng()
     return emulator(x=sc.x_lin, theta=sc.theta_lin, f=sc.f_lin,
                     method='PCGPwM')
+
+
+@pytest.fixture(scope="session")
+def emu_lin_pcgpwm_wgrad(_session_rng):
+    _session_rng()
+    return emulator(x=sc.x_lin, theta=sc.theta_lin, f=sc.f_lin,
+                    method='PCGPwM',
+                    args={'return_grad': True})
 
 
 @pytest.fixture(scope="session")
@@ -89,6 +102,7 @@ def timedrop_data(_session_rng):
 
 @pytest.fixture(scope="session")
 def emu_timedrop(_session_rng, timedrop_data):
+    _session_rng()
     x_std, theta, f, _, _ = timedrop_data
     return emulator(x=x_std, theta=theta, f=f, method='PCGP')
 
@@ -96,6 +110,7 @@ def emu_timedrop(_session_rng, timedrop_data):
 @pytest.fixture(scope="session")
 def cal_directbayes(_session_rng, emu_timedrop, timedrop_data):
     """Fitted directbayes calibrator."""
+    _session_rng()
     x_std, _, _, y, obsvar = timedrop_data
     return calibrator(emu=emu_timedrop, y=y, x=x_std,
                       thetaprior=sc.prior_balldrop,
