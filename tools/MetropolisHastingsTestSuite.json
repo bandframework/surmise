@@ -30,7 +30,7 @@
             },
             "UniformStep": {
                 "rng": {
-                    "method":      "default",
+                    "method":      "PCG64DXSM",
                     "random_seed": 273495583654866805492797112903413765323
                 },
                 "StartDistribution": {

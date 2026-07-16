@@ -14,6 +14,7 @@ __author__ = 'Matthew Plumlee, Özge Sürer, Stefan M. Wild, Moses Y-H. Chan'
 __credits__ = 'Northwestern University, Argonne National Laboratory'
 
 # General-use public interface
+from .set_RNG import set_RNG
 from .emulation import emulator
 from .calibration import calibrator
 
