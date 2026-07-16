@@ -9,6 +9,7 @@ parts:
   - caption: Examples
     numbered: 2
     chapters:
+    - file: notebooks/setRNG.ipynb
     - file: notebooks/BallDrop.ipynb
   - caption: Reference
     chapters:

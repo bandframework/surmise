@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.stats as sps
 import scipy.optimize as spo
 
 r'''
@@ -42,9 +43,9 @@ Society: Series B (Statistical Methodology)*, 60(1):255-268, 1998.
 
 def sampler(logpost_func,
             draw_func,
+            scipy_stats_rng,
             numsamp=2000,
-            theta0=None,
-            **lmc_options):
+            theta0=None):
     '''
 
     Parameters
@@ -72,6 +73,9 @@ def sampler(logpost_func,
         numsamp by p of sampled parameter values
 
     '''
+    # random number generator
+    if not isinstance(scipy_stats_rng, np.random.Generator):
+        raise TypeError("Given RNG is not a valid scipy.stats RNG")
 
     if theta0 is None:
         theta0 = draw_func(1000)
@@ -124,13 +128,14 @@ def sampler(logpost_func,
         logpost -= (mlogpost + np.log(np.sum(np.exp(logpost - mlogpost))))
         post = np.exp(logpost)
         post = post/np.sum(post)
-        thetaposs = theta0[np.random.choice(range(0, theta0.shape[0]),
-                                            size=1000,
-                                            p=post.reshape((theta0.shape[0],
-                                                            ))), :]
+        thetaposs = theta0[scipy_stats_rng.choice(
+                            range(0, theta0.shape[0]),
+                            size=1000,
+                            p=post.reshape((theta0.shape[0], ))
+                           ), :]
 
-        if np.any(np.std(thetaposs, 0) < 10 ** (-8) * np.min(np.std(theta0,
-                                                                    0))):
+        if np.any(np.std(thetaposs, 0) < 10 ** (-8) *
+                  np.min(np.std(theta0, 0))):
             thetastar = theta0[np.argmax(logpost), :]
             theta0 = thetastar + (theta0 - thetastar) / 2
             iteratttempt += 1
@@ -210,8 +215,8 @@ def sampler(logpost_func,
     numsamppc = 200
     covmat0 = np.diag(thetas)
     for iters in range(0, maxiters):
-        startingv = np.random.choice(np.arange(0, Lsave.shape[0]),
-                                     size=Lsave.shape[0])
+        startingv = scipy_stats_rng.choice(np.arange(0, Lsave.shape[0]),
+                                           size=Lsave.shape[0])
         thetasave = thetasave[startingv, :]
 
         covmat0 = 0.1*covmat0 + 0.9*np.cov(thetasave.T)
@@ -223,8 +228,8 @@ def sampler(logpost_func,
         else:
             hc = np.sqrt(covmat0)
 
-        thetac = thetasave[np.random.choice(range(0, thetasave.shape[0]),
-                                            size=numchain), :]
+        thetac = thetasave[scipy_stats_rng.choice(range(0, thetasave.shape[0]),
+                                                  size=numchain), :]
 
         if logpostf_grad is not None:
             fval, dfval = logpostf(thetac)
@@ -236,7 +241,7 @@ def sampler(logpost_func,
         numtimes = 0
 
         for k in range(0, numsamppc):
-            rvalo = np.random.normal(0, 1, thetac.shape)
+            rvalo = sps.norm.rvs(size=thetac.shape, random_state=scipy_stats_rng)
             rval = np.sqrt(2) * rho * (rvalo @ hc)
 
             if rval.ndim != thetac.ndim:
@@ -254,7 +259,7 @@ def sampler(logpost_func,
                 fvalp = logpostf_nograd(thetap)
                 qadj = np.zeros(fvalp.shape)
 
-            swaprnd = np.log(np.random.uniform(size=fval.shape[0]))
+            swaprnd = np.log(sps.uniform.rvs(size=fval.shape[0], random_state=scipy_stats_rng))
             whereswap = np.where(np.squeeze(swaprnd)
                                  < np.squeeze(fvalp - fval)
                                  + np.squeeze(qadj))[0]
@@ -308,8 +313,8 @@ def sampler(logpost_func,
             trm = np.min((1.5*tarESS/np.mean(ESS), 4))
             numsamppc = np.ceil(numsamppc*trm).astype('int')
 
-    theta = thetasave[np.random.choice(range(0, thetasave.shape[0]),
-                                       size=numsamp), :]
+    theta = thetasave[scipy_stats_rng.choice(range(0, thetasave.shape[0]),
+                                             size=numsamp), :]
     sampler_info = {'theta': theta, 'logpost': Lsave}
 
     return sampler_info

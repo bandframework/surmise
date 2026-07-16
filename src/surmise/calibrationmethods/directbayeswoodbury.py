@@ -1,10 +1,13 @@
-import numpy as np
-import scipy.stats as sps
-from surmise.utilities import sampler
 import copy
 
+import numpy as np
+import scipy.stats as sps
 
-def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
+from .._RandomNumberGenerator import RandomNumberGenerator
+from ..create_sampler import create_sampler
+
+
+def fit(fitinfo, emu, x, y, **sampler_args):
     '''
     The main required function to be called by calibration to fit a
     calibration model.
@@ -69,6 +72,7 @@ def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
     None.
 
     '''
+    global_RNG = RandomNumberGenerator().scipy_stats_RNG
 
     thetaprior = fitinfo['thetaprior']
     try:
@@ -142,16 +146,22 @@ def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
         if n0 < n:
             theta0 = np.vstack((thetaprior.rnd(n-n0), theta0))
         else:
-            theta0 = theta0[np.random.randint(theta0.shape[0], size=n), :]
+            theta0 = theta0[sps.randint.rvs(low=0, high=theta0.shape[0],
+                                            size=n, random_state=global_RNG), :]
 
         return theta0
 
     # obtain theta draws from posterior distribution
-    sampler_obj = sampler(logpost_func=logpostfull_wgrad,
-                          draw_func=draw_func,
-                          **bayeswoodbury_args)
-
-    theta = sampler_obj.sampler_info['theta']
+    if 'sampler' in sampler_args:
+        sampler_name = sampler_args['sampler']
+        del sampler_args['sampler']
+    else:
+        sampler_name = 'metropolis_hastings'
+    sampler = create_sampler(sampler_name, sampler_args)
+    results = sampler(logpost_func=logpostfull_wgrad,
+                      draw_func=draw_func,
+                      scipy_stats_rng=global_RNG)
+    theta = results["theta"]
 
     # obtain log-posterior of theta values
     ladj = logpostfull_wgrad(theta, return_grad=False)
@@ -194,6 +204,7 @@ def predict(predinfo, fitinfo, emu, x, args=None):
     None.
 
     '''
+    global_RNG = RandomNumberGenerator().scipy_stats_RNG
 
     theta = fitinfo['thetarnd']
     if theta.ndim == 1 and fitinfo['theta'].shape[1] > 1.5:
@@ -209,7 +220,8 @@ def predict(predinfo, fitinfo, emu, x, args=None):
 
     for k in range(0, theta.shape[0]):
         re = emucovxhalf[:, k, :] @ \
-            sps.norm.rvs(0, 1, size=(emucovxhalf.shape[2]))
+            sps.norm.rvs(0, 1, size=(emucovxhalf.shape[2]),
+                         random_state=global_RNG)
         predinfo['rnd'][k, :] += re
 
     predinfo['mean'] = np.mean(emumean, 1)
@@ -235,8 +247,10 @@ def thetarnd(fitinfo, s=100, args=None):
         s draws from the predictive distribution of theta.
 
     '''
-    return fitinfo['thetarnd'][np.random.choice(fitinfo['thetarnd'].shape[0],
-                                                size=s), :]
+    global_RNG = RandomNumberGenerator().scipy_stats_RNG
+
+    return fitinfo['thetarnd'][global_RNG.choice(fitinfo['thetarnd'].shape[0],
+                                                 size=s), :]
 
 
 def thetalpdf(fitinfo, theta, args=None):

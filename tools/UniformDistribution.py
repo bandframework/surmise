@@ -47,7 +47,7 @@ class UniformDistribution(AbstractDistribution):
         assert values.ndim == 1
         return values
 
-    def logpdf(self, theta, return_grad):
+    def logpdf(self, theta, return_grad=False):
         if return_grad:
             raise NotImplementedError("gradient not implemented yet")
         values = self.__U.logpdf(self._as1darray_checked(theta))

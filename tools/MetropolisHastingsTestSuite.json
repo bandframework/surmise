@@ -14,36 +14,42 @@
                     "Name":      "Uniform",
                     "Intervals": [-0.5, 0.5]
                 },
-                "StepDistribution": {
-                    "Name":  "normal",
-                    "Scale":  2.5
+                "Sampler": {
+                    "Name": "metropolis_hastings",
+                    "StepDistribution": {
+                        "Name":  "normal",
+                        "Scale":  2.5
+                    },
+                    "n_burn_samples":  10000,
+                    "verbose":         false
                 },
                 "SampleSkip":         10,
                 "Plot":            false,
                 "Benchmark":          "MH_Uniform1D_NormalStep.benchmark",
-                "n_burn_samples":  10000,
-                "n_samples":      100000,
-                "verbose":         false
+                "n_samples":      100000
             },
             "UniformStep": {
                 "rng": {
-                    "method":      "default",
+                    "method":      "PCG64DXSM",
                     "random_seed": 273495583654866805492797112903413765323
                 },
                 "StartDistribution": {
                     "Name":      "Uniform",
                     "Intervals": [-0.5, 0.5]
                 },
-                "StepDistribution": {
-                    "Name":  "uniform",
-                    "Scale":  6.0
+                "Sampler": {
+                    "Name": "metropolis_hastings",
+                    "StepDistribution": {
+                        "Name":  "uniform",
+                        "Scale":  6.0
+                    },
+                    "n_burn_samples":  10000,
+                    "verbose":          true
                 },
                 "SampleSkip":         10,
-                "Plot":            false,
+                "Plot":             true,
                 "Benchmark":          "MH_Uniform1D_UniformStep.benchmark",
-                "n_burn_samples":  10000,
-                "n_samples":      100000,
-                "verbose":         false
+                "n_samples":      100000
             }
         }
     },
@@ -64,17 +70,20 @@
                     "Intervals": [[-0.5, 0.5],
                                   [ 1.5, 2.1]]
                 },
-                "StepDistribution": {
-                    "Name":       "normal",
-                    "Scale":    [1.0, 2.0]
+                "Sampler": {
+                    "Name": "metropolis_hastings",
+                    "StepDistribution": {
+                        "Name":       "normal",
+                        "Scale":    [1.0, 2.0]
+                    },
+                    "n_burn_samples":    1000,
+                    "verbose":          false
                 },
                 "SampleSkip":         10,
                 "Benchmark":           "MH_Uniform2D_NormalStep.benchmark",
                 "Plot":             false,
                 "CornerPlotBins":      30,
-                "n_burn_samples":    1000,
-                "n_samples":       100000,
-                "verbose":          false
+                "n_samples":       100000
             }
         }
     },
@@ -95,16 +104,19 @@
                     "mu":    0.0,
                     "sigma": 1.0
                 },
-                "StepDistribution": {
-                    "Name":  "normal",
-                    "Scale":  3.5
+                "Sampler": {
+                    "Name": "metropolis_hastings",
+                    "StepDistribution": {
+                        "Name":  "normal",
+                        "Scale":  3.5
+                    },
+                    "n_burn_samples":  10000,
+                    "verbose":         false
                 },
                 "SampleSkip":         10,
                 "Plot":            false,
                 "Benchmark":          "MH_Normal1D_NormalStep.benchmark",
-                "n_burn_samples":  10000,
-                "n_samples":      100000,
-                "verbose":         false
+                "n_samples":      100000
             },
             "UniformStep": {
                 "rng": {
@@ -116,16 +128,19 @@
                     "mu":    0.0,
                     "sigma": 1.0
                 },
-                "StepDistribution": {
-                    "Name":  "uniform",
-                    "Scale":  10.0
+                "Sampler": {
+                    "Name": "metropolis_hastings",
+                    "StepDistribution": {
+                        "Name":  "uniform",
+                        "Scale":  10.0
+                    },
+                    "n_burn_samples":  10000,
+                    "verbose":         false
                 },
                 "SampleSkip":         10,
                 "Plot":            false,
                 "Benchmark":          "MH_Normal1D_UniformStep.benchmark",
-                "n_burn_samples":  10000,
-                "n_samples":      100000,
-                "verbose":         false
+                "n_samples":      100000
             }
         }
     },
@@ -148,17 +163,20 @@
                     "sigma": [[1.0, 0.0],
                               [0.0, 5.0]]
                 },
-                "StepDistribution": {
-                    "Name":         "normal",
-                    "Scale":      [1.0, 5.0]
+                "Sampler": {
+                    "Name": "metropolis_hastings",
+                    "StepDistribution": {
+                        "Name":         "normal",
+                        "Scale":      [1.0, 5.0]
+                    },
+                    "n_burn_samples":  10000,
+                    "verbose":         false
                 },
                 "SampleSkip":         20,
                 "Plot":            false,
                 "Benchmark":          "MH_Normal2D_NormalStep.benchmark",
                 "CornerPlotBins":     50,
-                "n_burn_samples":  10000,
-                "n_samples":      250000,
-                "verbose":         false
+                "n_samples":      250000
             }
         }
     },
@@ -183,17 +201,20 @@
                               [0.0, 5.0, 0.0],
                               [0.0, 0.0, 0.5]]
                 },
-                "StepDistribution": {
-                    "Name":         "normal",
-                    "Scale":      [1.0, 5.0, 0.2]
+                "Sampler": {
+                    "Name": "metropolis_hastings",
+                    "StepDistribution": {
+                        "Name":         "normal",
+                        "Scale":      [1.0, 5.0, 0.2]
+                    },
+                    "n_burn_samples":  10000,
+                    "verbose":         false
                 },
                 "SampleSkip":         20,
                 "Plot":            false,
                 "Benchmark":          "MH_Normal3D_NormalStep.benchmark",
                 "CornerPlotBins":     50,
-                "n_burn_samples":  10000,
-                "n_samples":      250000,
-                "verbose":         false
+                "n_samples":      250000
             }
         }
     },
@@ -218,17 +239,20 @@
                                   [-4.0, -1.0],
                                   [-0.5, -0.4]]
                 },
-                "StepDistribution": {
-                    "Name":  "uniform",
-                    "Scale": [1.0, 1.75, 2.5, 0.2]
+                "Sampler": {
+                    "Name": "metropolis_hastings",
+                    "StepDistribution": {
+                        "Name":  "uniform",
+                        "Scale": [1.0, 1.75, 2.5, 0.2]
+                    },
+                    "n_burn_samples":   10000,
+                    "verbose":          false
                 },
                 "SampleSkip":          20,
                 "Plot":             false,
                 "Benchmark":           "MH_Uniform4D_UniformStep.benchmark",
                 "CornerPlotBins":      25,
-                "n_burn_samples":   10000,
-                "n_samples":       250000,
-                "verbose":          false
+                "n_samples":       250000
             }
         }
     }
