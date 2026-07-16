@@ -25,13 +25,11 @@ are computationally inexpensive to allow MCMC sampling to be possible.
 The purpose of surmise is to provide a modular model calibration software that
 can input model observations and output draws.
 
-surmise’s work is categorized into three routines:
+surmise’s work is categorized into two main routines:
 
 * :ref:`emulation<emulation>`: Carries out Bayesian emulation of computer model output and generates inputs to ``calibration``
 
-* :ref:`calibration<calibration>`: Generates estimates of the calibration parameters based on field observations of the real process and an output from ``emulation``
+* :ref:`calibration<calibration>`: Uses user-specified MCMC sampling to generate estimates of the calibration parameters based on field observations of the real process and on output from ``emulation``
 
-* :ref:`utilities<utilities>`: Performs different utility tasks such as a sampler (e.g., Metropolis-Hastings) to generate posterior draws of calibration parameter
-
-Examples of how to use ``emulation``, ``calibration``, ``utilities`` modules can be found in
+Examples of how to use ``emulation`` and ``calibration`` modules can be found in
 the ``examples/`` directory.

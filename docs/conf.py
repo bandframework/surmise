@@ -48,6 +48,7 @@ needs_sphinx = '3.0'
 extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.autodoc',
+    'sphinx.ext.todo',
     'sphinx.ext.intersphinx',
     'sphinx.ext.autosummary',
     'sphinx.ext.viewcode',
@@ -55,6 +56,8 @@ extensions = [
 ]
 autoclass_content = 'both'
 autosummary_generate = True
+
+todo_include_todos = True
 
 # https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html#substitutions
 rst_prolog = ""

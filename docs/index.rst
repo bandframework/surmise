@@ -18,6 +18,7 @@ To begin using surmise, we encourage checking out the following pages:
 * :doc:`Quickstart <introduction>`
 * :doc:`Basic usage examples <examples>`
 * `Jupyter notebook`_: Full usage with Gaussian process emulation on Google Colab.
+* `Jupyterbook tutorial`_: Jupyter book containing additional usage example (including RNG usage)
 * :doc:`Expected use case examples <use_cases>` and scientific examples.
 * `Github project page`_: surmise is open source and provided under the MIT license.
 
@@ -27,6 +28,7 @@ To begin using surmise, we encourage checking out the following pages:
 	
    Quickstart<introduction>
    understanding
+   advanced_API
 
 .. toctree::
    :maxdepth: 2
@@ -41,6 +43,7 @@ To begin using surmise, we encourage checking out the following pages:
    :maxdepth: 4
 
    contributing
+   rng_dev_guide
 
 .. toctree::
    :caption: Collaborators & Contributors:
@@ -57,3 +60,4 @@ Indices and tables
 
 .. _`Github project page`: https://github.com/bandframework/surmise
 .. _`Jupyter notebook`: https://colab.research.google.com/drive/1f4gKTCLEAGE8r-aMWOoGvY-O6zNqg1qj?usp=drive_link
+.. _`Jupyterbook tutorial`: https://bandframework.github.io/surmise/intro.html

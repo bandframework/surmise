@@ -5,6 +5,7 @@ import numpy as np
 import scipy.optimize as spo
 from surmise.emulationsupport.matern_covmat import covmat as __covmat
 from pprint import pformat
+from .._RandomNumberGenerator import RandomNumberGenerator
 
 
 def fit(fitinfo, x, theta, f, epsilonPC=0.001,
@@ -304,7 +305,7 @@ def predictlpdf(predinfo, f, return_grad=False, addvar=0, **kwargs):
         Gfrf2 = (Gf @ rf2.transpose(1, 0, 2)).transpose(1, 0, 2)
         dlikv = 2 * np.sum(rf2.transpose(2, 1, 0) * rf.transpose(1, 0), 2).T
     for c in range(0, predinfo['predvars'].shape[0]):
-        w, v = np.linalg.eig(np.diag(1 / (predinfo['predvars'][c, :])) + Gf2)
+        w, v = np.linalg.eigh(np.diag(1 / (predinfo['predvars'][c, :])) + Gf2)
         term1 = (v * (1 / w)) @ (v.T @ Gfrf[:, c])
 
         likv[c] -= Gfrf[:, c].T @ term1
@@ -445,6 +446,8 @@ def __fitGPs(fitinfo, theta, numpcs, verbose):
 
 def __fitGP1d(theta, g, gvar=None, hypstarts=None, hypinds=None, sig2ofconst=None):
     """Return a fitted model from the emulator model using smart method."""
+    global_RNG = RandomNumberGenerator().scipy_stats_RNG
+
     hypvarconstmean = 0
     hypvarconstLB = -3
     hypvarconstUB = 3
@@ -462,7 +465,7 @@ def __fitGP1d(theta, g, gvar=None, hypstarts=None, hypinds=None, sig2ofconst=Non
     nhyptrain = np.max(np.min((25 * theta.shape[1], theta.shape[0])))
 
     if theta.shape[0] > nhyptrain:
-        thetac = np.random.choice(theta.shape[0], nhyptrain, replace=False)
+        thetac = global_RNG.choice(theta.shape[0], nhyptrain, replace=False)
     else:
         thetac = range(0, theta.shape[0])
     subinfo['theta'] = theta[thetac, :]

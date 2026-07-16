@@ -58,7 +58,7 @@ class IndependentJointDistribution(AbstractDistribution):
         assert all(values >= 0.0)
         return values
 
-    def logpdf(self, theta, return_grad):
+    def logpdf(self, theta, return_grad=False):
         if return_grad:
             raise NotImplementedError("gradient not implemented")
 

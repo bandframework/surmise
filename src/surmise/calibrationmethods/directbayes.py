@@ -1,9 +1,12 @@
 import numpy as np
-from surmise.utilities import sampler
+import scipy.stats as sps
 import copy
 
+from .._RandomNumberGenerator import RandomNumberGenerator
+from ..create_sampler import create_sampler
 
-def fit(fitinfo, emu, x, y, **bayes_args):
+
+def fit(fitinfo, emu, x, y, **sampler_args):
     '''
     The main required function to be called by calibration to fit a
     calibration model.
@@ -76,6 +79,8 @@ def fit(fitinfo, emu, x, y, **bayes_args):
         A dictionary containing options passed to the calibrator.
 
     '''
+    global_RNG = RandomNumberGenerator().scipy_stats_RNG
+
     thetaprior = fitinfo['thetaprior']
 
     # Define the posterior function
@@ -99,22 +104,26 @@ def fit(fitinfo, emu, x, y, **bayes_args):
         if n0 < n:
             theta0 = np.vstack((thetaprior.rnd(n - n0), theta0))
         else:
-            theta0 = theta0[np.random.randint(theta0.shape[0], size=n), :]
+            theta0 = theta0[sps.randint.rvs(low=0, high=theta0.shape[0],
+                                            size=n, random_state=global_RNG), :]
 
         return theta0
 
     # Call the sampler
-    if 'sampler' in bayes_args.keys():
-        name = bayes_args['sampler']
+    if 'sampler' in sampler_args:
+        sampler_name = sampler_args['sampler']
+        # TODO: The sampler name should likely be its own argument
+        # (non-optional?) to the calibrator rather than hiding it in its own set
+        # of arguments.  Why not make sampler_args a single dictionary that
+        # calling code provides to the calibrator?
+        del sampler_args['sampler']
     else:
-        name = 'unspecified'
-    _ = name  # to satisfy flake8, can be removed when variable is used
-
-    sampler_obj = sampler(logpost_func=logpostfull,
-                          draw_func=draw_func,
-                          **bayes_args)
-
-    theta = sampler_obj.sampler_info['theta']
+        sampler_name = 'metropolis_hastings'
+    sampler = create_sampler(sampler_name, sampler_args)
+    results = sampler(logpost_func=logpostfull,
+                      draw_func=draw_func,
+                      scipy_stats_rng=global_RNG)
+    theta = results["theta"]
 
     # Update fitinfo dict
     fitinfo['thetarnd'] = theta
@@ -142,9 +151,10 @@ def thetarnd(fitinfo, s=100, args=None):
         s draws from the predictive distribution of theta.
 
     '''
+    global_RNG = RandomNumberGenerator().scipy_stats_RNG
 
-    return fitinfo['thetarnd'][np.random.choice(fitinfo['thetarnd'].shape[0],
-                                                size=s), :]
+    return fitinfo['thetarnd'][global_RNG.choice(fitinfo['thetarnd'].shape[0],
+                                                 size=s), :]
 
 
 def loglik(fitinfo, emu, theta, y, x):
