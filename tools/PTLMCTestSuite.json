@@ -22,7 +22,7 @@
                     "maxtemp":        30
                 },
                 "SampleSkip":          1,
-                "Plot":             true,
+                "Plot":             false,
                 "Benchmark":      "PTLMC_Uniform1D_UniformStart.benchmark",
                 "n_samples":       32000
             }
@@ -54,7 +54,7 @@
                     "maxtemp":        30
                 },
                 "SampleSkip":          1,
-                "Plot":             true,
+                "Plot":             false,
                 "CornerPlotBins":     30,
                 "Benchmark":      "PTLMC_Uniform2D_NormalStart.benchmark",
                 "n_samples":       32000
@@ -85,7 +85,7 @@
                     "maxtemp":        30
                 },
                 "SampleSkip":          1,
-                "Plot":             true,
+                "Plot":             false,
                 "Benchmark":      "PTLMC_Normal1D_UniformStart.benchmark",
                 "n_samples":       32000
             }
@@ -118,7 +118,7 @@
                     "maxtemp":        30
                 },
                 "SampleSkip":          1,
-                "Plot":             true,
+                "Plot":             false,
                 "CornerPlotBins":     30,
                 "Benchmark":      "PTLMC_Normal2D_NormalStart.benchmark",
                 "n_samples":       32000

@@ -30,7 +30,7 @@
             },
             "UniformStep": {
                 "rng": {
-                    "method":      "default",
+                    "method":      "PCG64DXSM",
                     "random_seed": 273495583654866805492797112903413765323
                 },
                 "StartDistribution": {
@@ -44,10 +44,10 @@
                         "Scale":  6.0
                     },
                     "n_burn_samples":  10000,
-                    "verbose":         false
+                    "verbose":          true
                 },
                 "SampleSkip":         10,
-                "Plot":            false,
+                "Plot":             true,
                 "Benchmark":          "MH_Uniform1D_UniformStep.benchmark",
                 "n_samples":      100000
             }

@@ -1,6 +1,8 @@
 import numpy as np
+import scipy.stats as sps
 import copy
 
+from .._RandomNumberGenerator import RandomNumberGenerator
 from ..create_sampler import create_sampler
 
 
@@ -77,6 +79,8 @@ def fit(fitinfo, emu, x, y, **sampler_args):
         A dictionary containing options passed to the calibrator.
 
     '''
+    global_RNG = RandomNumberGenerator().scipy_stats_RNG
+
     thetaprior = fitinfo['thetaprior']
 
     # Define the posterior function
@@ -100,7 +104,8 @@ def fit(fitinfo, emu, x, y, **sampler_args):
         if n0 < n:
             theta0 = np.vstack((thetaprior.rnd(n - n0), theta0))
         else:
-            theta0 = theta0[np.random.randint(theta0.shape[0], size=n), :]
+            theta0 = theta0[sps.randint.rvs(low=0, high=theta0.shape[0],
+                                            size=n, random_state=global_RNG), :]
 
         return theta0
 
@@ -117,7 +122,7 @@ def fit(fitinfo, emu, x, y, **sampler_args):
     sampler = create_sampler(sampler_name, sampler_args)
     results = sampler(logpost_func=logpostfull,
                       draw_func=draw_func,
-                      scipy_stats_rng=np.random.default_rng())
+                      scipy_stats_rng=global_RNG)
     theta = results["theta"]
 
     # Update fitinfo dict
@@ -146,9 +151,10 @@ def thetarnd(fitinfo, s=100, args=None):
         s draws from the predictive distribution of theta.
 
     '''
+    global_RNG = RandomNumberGenerator().scipy_stats_RNG
 
-    return fitinfo['thetarnd'][np.random.choice(fitinfo['thetarnd'].shape[0],
-                                                size=s), :]
+    return fitinfo['thetarnd'][global_RNG.choice(fitinfo['thetarnd'].shape[0],
+                                                 size=s), :]
 
 
 def loglik(fitinfo, emu, theta, y, x):
