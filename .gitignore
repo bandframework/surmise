@@ -31,3 +31,5 @@ src/surmise/_version.py
 src/surmise/emulationsupport/matern_covmat.cpython*.so
 /wheelhouse/
 /dist/
+/wheels/
+
