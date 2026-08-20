@@ -10,15 +10,15 @@ import warnings
 
 
 class calibrator(object):
-
     def __init__(self,
+                 x,
+                 y,
+                 yvar,
+                 thetaprior,
+                 args,
                  emu=None,
-                 y=None,
-                 x=None,
-                 thetaprior=None,
-                 yvar=None,
                  method='directbayes',
-                 args={}):
+                 ):
         '''
         A class to represent a calibrator. Fits a calibrator model provided
         in ``calibrationmethods/[method].py`` where [method] is the user
@@ -37,20 +37,19 @@ class calibrator(object):
 
         Parameters
         ----------
-        emu : surmise.emulation.emulator, optional
-            An emulator class instance as defined in surmise.emulation.
-            The default is None.
-
-        y : numpy.ndarray, optional
-            Array of observed values at x. The default is None.
-
-        x : numpy.ndarray, optional
+        x : numpy.ndarray
             An array of x values that match the definition of "emu.x".
             Currently, existing methods supports only the case when x is a
-            subset of "emu.x". The default is None.
+            subset of "emu.x".
 
-        thetaprior : class, optional
-            class instance with two built-in functions. The default is None.
+        y : numpy.ndarray
+            Array of observed values at x.
+
+        yvar : numpy.ndarray
+            The vector of observation variances at y.
+
+        thetaprior : class
+            class instance with two built-in functions.
 
             .. important::
                 If a calibration method requires sampling, then
@@ -76,18 +75,21 @@ class calibrator(object):
                         def rnd(n):
                             return np.vstack((sps.uniform.rvs(0, 1, size=n)))
 
-        yvar : numpy.ndarray, optional
-            The vector of observation variances at y. The default is None.
+        args : dict
+            Dictionary containing options you would like to pass to
+            [method].fit(x, theta, f, args)
+            or
+            [method].predict(x, theta args)
+
+            For example, see :data:`tests.shared_scenario.DEAFULT_MH_SPECS`.
+
+        emu : surmise.emulation.emulator, optional
+            An emulator class instance as defined in surmise.emulation.
+            The default is None.
 
         method : str, optional
             A string that points to the file located in ``calibrationmethods/``
             you would like to use. The default is 'directbayes'.
-
-        args : dict, optional
-            Optional dictionary containing options you would like to pass to
-            [method].fit(x, theta, f, args)
-            or
-            [method].predict(x, theta args) The default is {}.
 
         Raises
         ------
@@ -147,9 +149,10 @@ class calibrator(object):
 
         try:
             thetatestsamp = thetaprior.rnd(100)
+        except AttributeError:
+            raise AttributeError('thetaprior lacks .rnd().')
         except Exception:
-            print('thetaprior.rnd(100) failed.')
-            raise
+            raise RuntimeError('set_RNG has not been previously called. thetaprior.rnd(100) failed.')
 
         if thetatestsamp.shape[0] != 100:
             raise ValueError('thetaprior.rnd(100) failed to give 100 values.')
