@@ -16,7 +16,7 @@ class calibrator(object):
                  yvar,
                  thetaprior,
                  args,
-                 emu=None,
+                 emu,
                  method='directbayes',
                  ):
         '''
@@ -32,8 +32,8 @@ class calibrator(object):
 
             .. code-block:: python
 
-               calibrator(emu=emu, y=y, x=x, thetaprior=thetaprior,
-                          method='directbayes', args=args)
+               calibrator(x=x, y=y, y=yvar, thetaprior=thetaprior, args=args,
+                          emu=emu, method='directbayes')
 
         Parameters
         ----------
@@ -83,9 +83,8 @@ class calibrator(object):
 
             For example, see :data:`tests.shared_scenario.DEAFULT_MH_SPECS`.
 
-        emu : surmise.emulation.emulator, optional
+        emu : surmise.emulation.emulator
             An emulator class instance as defined in surmise.emulation.
-            The default is None.
 
         method : str, optional
             A string that points to the file located in ``calibrationmethods/``
@@ -122,12 +121,6 @@ class calibrator(object):
                 msg = f"Using unofficial research {method} calibrator"
                 warnings.warn(msg)
 
-        # cast to numpy.float64, currently only for theta and f.
-        if y is not None:
-            y = cast_f64_dtype(y)
-        if yvar is not None:
-            yvar = cast_f64_dtype(yvar)
-
         # default to showing all warnings
         if ('warnings' in args.keys()) and ~args['warnings']:
             warnings.simplefilter('ignore')
@@ -135,18 +128,20 @@ class calibrator(object):
             warnings.resetwarnings()
 
         self.args = args
-        if y is None:
-            raise ValueError('You have not provided any y.')
+
+        # cast to numpy.float64, currently only for theta and f.
+        y = cast_f64_dtype(y)
+        yvar = cast_f64_dtype(yvar)
+
         if y.ndim > 1.5:
             y = np.squeeze(y)
         if y.shape[0] < 5:
             raise ValueError('5 is the minimum number of observations at this '
                              'time.')
         self.y = y
-        if emu is None:
-            raise ValueError('You have not provided any emulator.')
         self.emu = emu
 
+        # validate thetaprior functions
         try:
             thetatestsamp = thetaprior.rnd(100)
         except AttributeError:
@@ -165,17 +160,14 @@ class calibrator(object):
         if thetatestlpdf.shape[0] != 100:
             raise ValueError('thetaprior.lpdf(thetaprior.rnd(100)) failed to '
                              'give 100 values.')
-        # if thetatestlpdf.ndim != 1:
-        #    raise ValueError('thetaprior.lpdf(thetaprior.rnd(100)) has '
-        #                     'dimension higher than 1.')
 
         self.info = {}
         self.info['thetaprior'] = copy.deepcopy(thetaprior)
 
-        if x is not None:
-            if x.shape[0] != y.shape[0]:
-                raise ValueError('If x is provided, shape[0] must align with '
-                                 'the length of y.')
+        # validate x and y
+        if x.shape[0] != y.shape[0]:
+            raise ValueError('If x is provided, shape[0] must align with '
+                             'the length of y.')
         self.x = copy.deepcopy(x)
         predtry = emu.predict(copy.copy(self.x), thetatestsamp)
         if y.shape[0] != predtry().shape[0]:
@@ -206,24 +198,25 @@ class calibrator(object):
                     self.y = self.y[whichkeep]
             else:
                 whichkeep = None
-        if yvar is not None:
-            if yvar.shape[0] != y.shape[0] and yvar.shape[0] > 1.5:
-                raise ValueError('yvar must be the same size as y or '
-                                 'of size 1.')
-            if np.min(yvar) < 0:
-                raise ValueError('yvar has at least one negative value.')
-            if np.min(yvar) < 10 ** (-6) or np.max(yvar) > 10 ** (6):
-                raise ValueError('Rescale your problem so that the yvar'
-                                 ' is between 10 ^ -6 and 10 ^ 6.')
-            self.info['yvar'] = copy.deepcopy(yvar)
-            if whichkeep is not None:
-                self.info['yvar'] = self.info['yvar'][whichkeep]
+
+        # validity of yvar
+        if yvar.shape[0] != y.shape[0] and yvar.shape[0] > 1.5:
+            raise ValueError('yvar must be the same size as y or '
+                             'of size 1.')
+        if np.min(yvar) < 0:
+            raise ValueError('yvar has at least one negative value.')
+        if np.min(yvar) < 10 ** (-6) or np.max(yvar) > 10 ** (6):
+            raise ValueError('Rescale your problem so that the yvar'
+                             ' is between 10 ^ -6 and 10 ^ 6.')
+        self.info['yvar'] = copy.deepcopy(yvar)
+        if whichkeep is not None:
+            self.info['yvar'] = self.info['yvar'][whichkeep]
 
         try:
             self.method = importlib.import_module('surmise.calibrationmethods.'
                                                   + method)
         except Exception:
-            raise ValueError('Module not found!')
+            raise ValueError(f'method {method} not found!')
 
         self.fit()
 
