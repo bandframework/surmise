@@ -11,6 +11,7 @@ RNG_SEED = 111848137687551512331846058163015350393
 # local data generator, surmise RNG does not advance.
 _datagen = np.random.default_rng(111848137687551512331846058163015350939)
 
+# TODO: dictionary attributes to be supplied after sampler interface update
 DEFAULT_MH_SPECS = {
     # "nSamples": 2000,
     # "nBurnSamples": 1000,
