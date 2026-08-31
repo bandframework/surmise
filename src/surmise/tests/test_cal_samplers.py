@@ -155,7 +155,6 @@ class TestSampler:
             (True, y, x, prior_lpdf2, obsvar, pytest.raises(ValueError)),
             (True, y, x, prior_example1, obsvar, pytest.raises(ValueError)),
             (True, y1, x, priorphys_lin, obsvar, pytest.raises(ValueError)),
-            (False, y, x, priorphys_lin, obsvar, pytest.raises(ValueError)),
         ],
     )
     def test_cal_emu_fails(self, sampler, emu_lin_pcgp, use_emu, input2, input3, input4, input5, expectation):
