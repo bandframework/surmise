@@ -55,7 +55,7 @@ class calibrator(object):
                         Returns the log of the pdf of a given theta with size
                         ``(len(theta), 1)``
                     - ``rnd(n)``
-                        Generates n random variable from a prior distribution.
+                        Generates n draws of a random variable from the prior distribution.
 
             :Example:
 
@@ -81,10 +81,6 @@ class calibrator(object):
         method : str, optional
             A string that points to the file located in ``calibrationmethods/``
             you would like to use.
-
-        Returns
-        -------
-        None.
 
         '''
         # Calibrators that could be loaded, but that are research-grade only and

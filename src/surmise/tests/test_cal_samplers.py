@@ -143,26 +143,25 @@ def test_cal_MLcal(sampler, args, emu_lin_pcgp):
 class TestSampler:
 
     @pytest.mark.parametrize(
-        "use_emu,input2,input3,input4,input5,expectation",
+        "input2,input3,input4,input5,expectation",
         [
-            (True, y, x1, priorphys_lin, obsvar, pytest.raises(ValueError)),
-            (True, y, x, priorphys_lin, obsvar1, pytest.raises(ValueError)),
-            (True, y, x, priorphys_lin, obsvar2, pytest.raises(ValueError)),
-            (True, y, x, priorphys_lin, obsvar3, pytest.raises(ValueError)),
-            (True, y, x, prior_rnd1, obsvar, pytest.raises(ValueError)),
-            (True, y, x, prior_rnd2, obsvar, pytest.raises(AttributeError)),
-            (True, y, x, prior_lpdf1, obsvar, pytest.raises(ValueError)),
-            (True, y, x, prior_lpdf2, obsvar, pytest.raises(ValueError)),
-            (True, y, x, prior_example1, obsvar, pytest.raises(ValueError)),
-            (True, y1, x, priorphys_lin, obsvar, pytest.raises(ValueError)),
+            (y, x1, priorphys_lin, obsvar, pytest.raises(ValueError)),
+            (y, x, priorphys_lin, obsvar1, pytest.raises(ValueError)),
+            (y, x, priorphys_lin, obsvar2, pytest.raises(ValueError)),
+            (y, x, priorphys_lin, obsvar3, pytest.raises(ValueError)),
+            (y, x, prior_rnd1, obsvar, pytest.raises(ValueError)),
+            (y, x, prior_rnd2, obsvar, pytest.raises(AttributeError)),
+            (y, x, prior_lpdf1, obsvar, pytest.raises(ValueError)),
+            (y, x, prior_lpdf2, obsvar, pytest.raises(ValueError)),
+            (y, x, prior_example1, obsvar, pytest.raises(ValueError)),
+            (y1, x, priorphys_lin, obsvar, pytest.raises(ValueError)),
         ],
     )
-    def test_cal_emu_fails(self, sampler, emu_lin_pcgp, use_emu, input2, input3, input4, input5, expectation):
+    def test_cal_emu_fails(self, sampler, emu_lin_pcgp, input2, input3, input4, input5, expectation):
         args_tmp = args_dict[sampler][0].copy()
-        emu = emu_lin_pcgp if use_emu else None
         with expectation:
             args_tmp['sampler'] = sampler
-            assert calibrator(emu=emu,
+            assert calibrator(emu=emu_lin_pcgp,
                               y=input2,
                               x=input3,
                               thetaprior=input4,
