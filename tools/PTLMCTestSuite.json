@@ -24,14 +24,8 @@
                     "verbose":         false
                 },
                 "SampleSkip":          1,
-<<<<<<< HEAD
                 "Plot":            false,
                 "Benchmark":      "PTLMC_Uniform1D_UniformStart.benchmark"
-=======
-                "Plot":             false,
-                "Benchmark":      "PTLMC_Uniform1D_UniformStart.benchmark",
-                "n_samples":       32000
->>>>>>> main
             }
         }
     },
@@ -63,11 +57,7 @@
                     "verbose":          true
                 },
                 "SampleSkip":          1,
-<<<<<<< HEAD
                 "Plot":            false,
-=======
-                "Plot":             false,
->>>>>>> main
                 "CornerPlotBins":     30,
                 "Benchmark":      "PTLMC_Uniform2D_NormalStart.benchmark"
             }
