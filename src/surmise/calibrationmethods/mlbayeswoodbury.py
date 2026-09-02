@@ -197,10 +197,7 @@ def fit(fitinfo,
     else:
         sampler_name = 'metropolis_hastings'
 
-    expert_mode = False
-    if 'expertMode' in specification:
-        expert_mode = specification['expertMode']
-        del specification['expertMode']
+    expert_mode = specification.get("expertMode", False)
 
     sampler = create_sampler(sampler_name, expert_mode=expert_mode)
     results = sampler(logpost_func=logpostfull_wgrad,

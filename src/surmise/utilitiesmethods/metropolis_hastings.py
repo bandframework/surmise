@@ -39,8 +39,11 @@ def sampler(logpost_func,
     LOG_RATE = 25_000
 
     # Get specification values
-    # TODO: Error check these with useful error messages
-    assert set(specification) == VALID_SPECS
+    if not VALID_SPECS.issubset(set(specification)):
+        raise ValueError(
+            f"Please supply the Metropolis-Hastings specifications {VALID_SPECS}"
+        )
+
     numsamp = specification["nSamples"]
     burnSamples = specification["nBurnSamples"]
     theta0 = specification["theta0"]
