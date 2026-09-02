@@ -138,7 +138,6 @@ class calibrator(object):
         except Exception:
             raise
 
-
         if thetatestsamp.shape[0] != 100:
             raise ValueError('thetaprior.rnd(100) failed to give 100 values.')
 
