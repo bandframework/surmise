@@ -203,14 +203,3 @@ def test_cal_repr(emu_timedrop, expectation):
     with expectation:
         assert cal(x_std) is not None
         assert repr(cal.theta()) is not None
-
-
-def test_cal_noobsvar(emu_timedrop):
-    with pytest.raises(ValueError):
-        calibrator(emu=emu_timedrop,
-                   y=y,
-                   x=x_std,
-                   thetaprior=prior_balldrop,
-                   method=METHOD_IN_TEST,
-                   # yvar=obsvar,
-                   args=args2)

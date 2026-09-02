@@ -3,7 +3,8 @@ from surmise.emulation import emulator
 from surmise.calibration import calibrator
 from .conftest import does_not_raise
 from .shared_scenario import x_td as x, y_td as y, obsvar_td as obsvar, \
-    x_std, theta_ball, x_range, theta_range, prior_balldrop, timedrop
+    x_std, theta_ball, x_range, theta_range, prior_balldrop, timedrop, \
+    DEFAULT_MH_SPECS
 
 pytestmark = pytest.mark.usefixtures('seeded_rng')
 
@@ -30,7 +31,8 @@ def test_prediction_mean(cmdopt2, expectation):
                      x=x,
                      thetaprior=prior_balldrop,
                      method=cmdopt2,
-                     yvar=obsvar)
+                     yvar=obsvar,
+                     args=DEFAULT_MH_SPECS)
     pred = cal.predict(x=x)
     with expectation:
         pred.mean()
@@ -52,7 +54,9 @@ def test_prediction_var(cmdopt2, expectation):
                      x=x,
                      thetaprior=prior_balldrop,
                      method=cmdopt2,
-                     yvar=obsvar)
+                     yvar=obsvar,
+                     args=DEFAULT_MH_SPECS
+                     )
     pred = cal.predict(x=x)
     with expectation:
         pred.var()
@@ -74,7 +78,9 @@ def test_prediction_rnd(cmdopt2, expectation):
                      x=x,
                      thetaprior=prior_balldrop,
                      method=cmdopt2,
-                     yvar=obsvar)
+                     yvar=obsvar,
+                     args=DEFAULT_MH_SPECS
+                     )
     pred = cal.predict(x=x)
     with expectation:
         pred.rnd()
@@ -96,7 +102,9 @@ def test_prediction_lpdf(cmdopt2, expectation):
                      x=x,
                      thetaprior=prior_balldrop,
                      method=cmdopt2,
-                     yvar=obsvar)
+                     yvar=obsvar,
+                     args=DEFAULT_MH_SPECS
+                     )
     pred = cal.predict(x=x)
     with expectation:
         pred.lpdf()
@@ -118,7 +126,9 @@ def test_prediction_thetamean(cmdopt2, expectation):
                      x=x,
                      thetaprior=prior_balldrop,
                      method=cmdopt2,
-                     yvar=obsvar)
+                     yvar=obsvar,
+                     args=DEFAULT_MH_SPECS
+                     )
     with expectation:
         cal.theta.mean()
 
@@ -139,7 +149,9 @@ def test_prediction_thetavar(cmdopt2, expectation):
                      x=x,
                      thetaprior=prior_balldrop,
                      method=cmdopt2,
-                     yvar=obsvar)
+                     yvar=obsvar,
+                     args=DEFAULT_MH_SPECS
+                     )
     with expectation:
         cal.theta.var()
 
@@ -160,7 +172,9 @@ def test_prediction_thetarnd(cmdopt2, expectation):
                      x=x,
                      thetaprior=prior_balldrop,
                      method=cmdopt2,
-                     yvar=obsvar)
+                     yvar=obsvar,
+                     args=DEFAULT_MH_SPECS
+                     )
     with expectation:
         cal.theta.rnd()
 
@@ -181,6 +195,8 @@ def test_prediction_thetalpdf(cmdopt2, expectation):
                      x=x,
                      thetaprior=prior_balldrop,
                      method=cmdopt2,
-                     yvar=obsvar)
+                     yvar=obsvar,
+                     args=DEFAULT_MH_SPECS
+                     )
     with expectation:
         cal.theta.lpdf(theta=theta_ball)

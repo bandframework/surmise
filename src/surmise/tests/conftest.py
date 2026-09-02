@@ -115,4 +115,5 @@ def cal_directbayes(_session_rng, emu_timedrop, timedrop_data):
     return calibrator(emu=emu_timedrop, y=y, x=x_std,
                       thetaprior=sc.prior_balldrop,
                       method='directbayes',
-                      yvar=obsvar)
+                      yvar=obsvar,
+                      args=sc.DEFAULT_MH_SPECS)
