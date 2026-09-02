@@ -75,8 +75,11 @@ def sampler(logpost_func,
     VALID_SPECS = {"nSamples", "theta0", "verbose"}
 
     # Get specification values
-    # TODO: Error check these with useful error messages
-    assert set(specification) == VALID_SPECS
+    if not VALID_SPECS.issubset(set(specification)):
+        raise ValueError(
+            f"Please provide the LMC specifications {VALID_SPECS}"
+        )
+
     numsamp = specification["nSamples"]
     theta0 = specification["theta0"]
     verbose = specification["verbose"]

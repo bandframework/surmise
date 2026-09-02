@@ -41,7 +41,7 @@ def sampler(logpost_func,
     # Get specification values
     if not VALID_SPECS.issubset(set(specification)):
         raise ValueError(
-            f"Please supply the Metropolis-Hastings specifications {VALID_SPECS}"
+            f"Please provide the Metropolis-Hastings specifications {VALID_SPECS}"
         )
 
     numsamp = specification["nSamples"]
