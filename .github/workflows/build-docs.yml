@@ -12,6 +12,7 @@ on:
 jobs:
   build_pypkg_sphinx:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     strategy:
       matrix:
         # We would like to use 3.12, but this presently fails with the error:

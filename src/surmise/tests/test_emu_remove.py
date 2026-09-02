@@ -4,7 +4,7 @@ from surmise.calibration import calibrator
 
 from .conftest import does_not_raise
 from .shared_scenario import x_lin as x, theta_lin as theta, f_lin as f, y_lin as y, \
-                             obsvar_lin as obsvar, priorphys_lin
+                             obsvar_lin as obsvar, priorphys_lin, DEFAULT_MH_SPECS
 
 pytestmark = pytest.mark.usefixtures('seeded_rng')
 
@@ -45,6 +45,7 @@ def test_remove_cal(input1, expectation):
                            x=x,
                            thetaprior=priorphys_lin,
                            method='directbayeswoodbury',
-                           yvar=obsvar)
+                           yvar=obsvar,
+                           args=DEFAULT_MH_SPECS,)
     with expectation:
         assert emu.remove(theta=input1, cal=cal_bayes) is None
