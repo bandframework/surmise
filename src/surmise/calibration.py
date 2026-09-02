@@ -22,18 +22,12 @@ class calibrator(object):
         '''
         A class to represent a calibrator. Fits a calibrator model provided
         in ``calibrationmethods/[method].py`` where [method] is the user
-        option with default listed above.
+        option with default listed above.  Refer to the documentation (usage examples) for more details.
 
         .. tip::
            To use a new calibrator, just drop a new file to the
            ``calibrationmethods/`` directory with the required formatting.
 
-        :Example:
-
-            .. code-block:: python
-
-               calibrator(x=x, y=y, y=yvar, thetaprior=thetaprior, args=args,
-                          emu=emu, method='directbayes')
 
         Parameters
         ----------
@@ -76,10 +70,8 @@ class calibrator(object):
                             return np.vstack((sps.uniform.rvs(0, 1, size=n)))
 
         args : dict
-            Dictionary containing options you would like to pass to
-            [method].fit(x, theta, f, args)
-            or
-            [method].predict(x, theta args)
+            Dictionary containing options you would like to pass to the
+            [method].fit() or [method].predict() calibrator functions.
 
             For example, see :data:`tests.shared_scenario.DEAFULT_MH_SPECS`.
 
@@ -88,12 +80,7 @@ class calibrator(object):
 
         method : str, optional
             A string that points to the file located in ``calibrationmethods/``
-            you would like to use. The default is 'directbayes'.
-
-        Raises
-        ------
-        ValueError
-            If the dimension of the data do not match with the fitted emulator.
+            you would like to use.
 
         Returns
         -------
@@ -146,8 +133,11 @@ class calibrator(object):
             thetatestsamp = thetaprior.rnd(100)
         except AttributeError:
             raise AttributeError('thetaprior lacks .rnd().')
+        except RuntimeError:
+            raise RuntimeError('Ensure that set_RNG has been previously called. thetaprior.rnd(100) failed.')
         except Exception:
-            raise RuntimeError('set_RNG has not been previously called. thetaprior.rnd(100) failed.')
+            raise
+
 
         if thetatestsamp.shape[0] != 100:
             raise ValueError('thetaprior.rnd(100) failed to give 100 values.')
@@ -166,7 +156,7 @@ class calibrator(object):
 
         # validate x and y
         if x.shape[0] != y.shape[0]:
-            raise ValueError('If x is provided, shape[0] must align with '
+            raise ValueError('x.shape[0] must align with '
                              'the length of y.')
         self.x = copy.deepcopy(x)
         predtry = emu.predict(copy.copy(self.x), thetatestsamp)
