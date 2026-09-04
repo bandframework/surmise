@@ -140,8 +140,9 @@ def test_cal_MLcal_wo_grad(sampler, args, method, emu_lin_pcgp):
                           yvar=obsvar,
                           args=args_tmp) is not None
 
+
 @pytest.mark.parametrize("sampler,args,method", SAMPLER_ARGS_PAIRS)
-def test_cal_MLcal_w_grad(sampler, args,method, emu_lin_pcgpwm_wgrad):
+def test_cal_MLcal_w_grad(sampler, args, method, emu_lin_pcgpwm_wgrad):
     args_tmp = args.copy()
     args_tmp['sampler'] = sampler
     with does_not_raise():
