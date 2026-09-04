@@ -103,6 +103,7 @@ def sampler(logpost_func,
                                                np.log(maxtemp)/(numtemps+1),
                                                numtemps)),
                             np.ones(numchain)))  # ratio idea tend from emcee
+    tempsc = temps[:, np.newaxis]  # for broadcasting against (chain, p) arrays
 
     # number of optimization at each chain before starting
     numopt = temps.shape[0]
@@ -113,24 +114,32 @@ def sampler(logpost_func,
             raise ValueError('log density does not return 1 or 2 elements')
         if testout[1].shape[1] != theta0.shape[1]:
             raise ValueError('derivative appears to be the wrong shape')
-        logpostf = logpost_func
+
+        def logpostf(thetain):  # canonical shapes: (m,) and (m, p)
+            f, df = logpost_func(thetain)
+            f = np.asarray(f, dtype=float).ravel()
+            df = np.asarray(df, dtype=float).reshape(f.shape[0], -1)
+            return f, df
 
         def logpostf_grad(thetain):
-            return logpost_func(thetain)[1]
+            return logpostf(thetain)[1]
         try:
             testout = logpost_func(theta0[10, :], return_grad=False)
             if type(testout) is tuple:  # make sure that return_grad functionality works
                 raise ValueError('Cannot stop returning a grad')
 
             def logpostf_nograd(theta):
-                return logpost_func(theta, return_grad=False)
+                return np.asarray(logpost_func(theta, return_grad=False),
+                                  dtype=float).ravel()
         except Exception:
             def logpostf_nograd(theta):  # if not, do not use return_grad key
-                return logpost_func(theta)[0]
+                return np.asarray(logpost_func(theta)[0], dtype=float).ravel()
     else:
         logpostf_grad = None  # sometimes no derivative is given
-        logpostf = logpost_func
-        logpostf_nograd = logpost_func
+
+        def logpostf_nograd(theta):
+            return np.asarray(logpost_func(theta), dtype=float).ravel()
+        logpostf = logpostf_nograd
 
     if logpostf_grad is None:  # these are standard parameters if there is
         taracc = 0.25  # close to theoretical result 0.234
@@ -138,7 +147,7 @@ def sampler(logpost_func,
         taracc = 0.60  # close to theoretical result in LMC paper
     # begin preoptimizer
     # order the existing initial theta's by log pdf
-    ord1 = np.argsort(-np.squeeze(logpostf_nograd(theta0)) +
+    ord1 = np.argsort(-logpostf_nograd(theta0) +
                       (theta0.shape[1] *
                        sps.norm.rvs(size=theta0.shape[0],
                                     random_state=scipy_stats_rng)**2))
@@ -154,7 +163,7 @@ def sampler(logpost_func,
     if logpostf_grad is not None:
         def neglogpostf_grad(thetap):
             theta = thetacen + thetas * thetap
-            return -thetas * logpostf_grad(theta.reshape((1, len(theta))))
+            return -thetas * logpostf_grad(theta.reshape((1, len(theta)))).ravel()
     boundL = np.maximum(-10*np.ones(theta0.shape[1]),
                         np.min((theta0 - thetacen)/thetas, 0))
     boundU = np.minimum(10*np.ones(theta0.shape[1]),
@@ -206,11 +215,10 @@ def sampler(logpost_func,
     thetac = thetaop
     if logpostf_grad is not None:
         fval, dfval = logpostf(thetac)
-        fval /= temps
-        dfval /= temps
+        fval = fval / temps
+        dfval = dfval / tempsc
     else:
-        fval = np.squeeze(logpostf_nograd(thetac))
-        fval /= temps
+        fval = logpostf_nograd(thetac) / temps
 
     # preallocate the saving matrix
     thetasave = np.zeros((numchain,
@@ -230,6 +238,7 @@ def sampler(logpost_func,
     tau = -1
     rho = 2 * (1 + (np.exp(2 * tau) - 1) / (np.exp(2 * tau) + 1))
     adjrho = rho*temps**(1/3)  # this adjusts rho across different temperatures
+    adjrhoc = adjrho[:, np.newaxis]
     numtimes = 0  # number of times we reject, just to star
     for k in range(0, samptunning+sampperchain):  # loop over all chains
         rvalo = sps.norm.rvs(size=thetac.shape, random_state=scipy_stats_rng)
@@ -240,18 +249,17 @@ def sampler(logpost_func,
             thetap = thetac + rval[:, np.newaxis]
         if logpostf_grad is not None:
             # calculate the elements to move if there is a gradiant
-            diffval = (adjrho ** 2) * (dfval @ covmat0)
+            diffval = (adjrhoc ** 2) * (dfval @ covmat0)
             thetap += diffval
             fvalp, dfvalp = logpostf(thetap)  # thetap : no chain x dimension
-            fvalp /= temps  # to flatten the posterior
-            dfvalp /= temps
+            fvalp = fvalp / temps  # to flatten the posterior
+            dfvalp = dfvalp / tempsc
             term1 = rvalo / np.sqrt(2)
-            term2 = (adjrho / 2) * ((dfval + dfvalp) @ hc)
+            term2 = (adjrhoc / 2) * ((dfval + dfvalp) @ hc)
             qadj = -(2 * np.sum(term1 * term2, 1) + np.sum(term2**2, 1))
         else:
             # calculate the elements to move if there is not a gradiant
-            fvalp = np.squeeze(logpostf_nograd(thetap))  # thetap : no chain x dimension
-            fvalp /= temps
+            fvalp = logpostf_nograd(thetap) / temps  # thetap : no chain x dimension
             qadj = np.zeros(fvalp.shape)
         swaprnd = np.log(sps.uniform.rvs(size=fval.shape[0], random_state=scipy_stats_rng))
         whereswap = np.where(np.squeeze(swaprnd)
@@ -270,14 +278,15 @@ def sampler(logpost_func,
         fval = fvaln[orderprop] / temps
         thetac = thetac[orderprop, :]
         if logpostf_grad is not None:
-            dfvaln = temps * dfval
-            dfval = (1 / temps) * dfvaln[orderprop, :]
+            dfvaln = tempsc * dfval
+            dfval = (1 / tempsc) * dfvaln[orderprop, :]
         # if we have to tune, let's move tau up or down which gives bigger or smaller jumps
         if (k < samptunning) and (k % 10 == 0):  # if not done with tuning
             tau = tau + 1 / np.sqrt(1 + k/10) * \
                   ((numtimes / 10) - taracc)
             rho = 2 * (1 + (np.exp(2 * tau) - 1) / (np.exp(2 * tau) + 1))
             adjrho = rho*(temps**(1/3))  # adjusting rho across the chain
+            adjrhoc = adjrho[:, np.newaxis]
             numtimes = 0
         elif k >= samptunning:  # if done with tuning
             thetasave[:, k-samptunning, :] = 1 * thetac[numtemps:, ]
@@ -285,7 +294,7 @@ def sampler(logpost_func,
     thetasave_flatten = np.reshape(thetasave, (-1, thetac.shape[1]))
     # save random values from the chain of size numsamp
     # TODO: choose the first numsamp as required samples, the flattening should be revisited.
-    theta = thetasave_flatten[:numsamp]  # [scipy_stats_rng.choice(range(0, thetasave_flatten.shape[0]), size=numsamp)]
+    theta = thetasave_flatten[:numsamp].copy()  # copy: do not alias 'theta_from_chain'
     # store this in a dictionary
     sampler_info = {'theta': theta, 'theta_from_chain': thetasave, 'logpost': logpostf_nograd(theta)}
     return sampler_info
