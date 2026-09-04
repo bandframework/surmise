@@ -3,23 +3,13 @@ import os
 ##############################################
 #            Simple scenarios                #
 ##############################################
-import numpy as np
 import pytest
 from surmise.calibration import calibrator
 from .conftest import does_not_raise
 from .shared_scenario import y_td as y, obsvar_td as obsvar, \
-    x_std, prior_balldrop
+    x_std, prior_balldrop, DEFAULT_MH_SPECS
 
 pytestmark = pytest.mark.usefixtures('seeded_rng', '_session_rng')
-
-
-##############################################
-#            Simple scenarios                #
-##############################################
-args2 = {'theta0': np.array([[0.4]]),
-         'numsamp': 20,
-         'stepType': 'normal',
-         'stepParam': [0.4]}
 
 
 @pytest.mark.parametrize(
@@ -37,7 +27,7 @@ def test_cal_saveload(load_cal_flag, emu_timedrop, expectation):
                          thetaprior=prior_balldrop,
                          method='directbayes',
                          yvar=obsvar,
-                         args=args2)
+                         args=DEFAULT_MH_SPECS)
 
         fname = 'test_cal_saveload.pkl'
         cal.save_to(fname)
@@ -55,21 +45,15 @@ def test_cal_saveload(load_cal_flag, emu_timedrop, expectation):
         os.remove(fname)
 
 
-@pytest.mark.parametrize(
-    "expectation",
-    [
-     (does_not_raise()),
-     ],
-    )
-def test_calpred_saveload(emu_timedrop, expectation):
-    with expectation:
+def test_calpred_saveload(emu_timedrop):
+    with does_not_raise():
         cal = calibrator(emu=emu_timedrop,
                          y=y,
                          x=x_std,
                          thetaprior=prior_balldrop,
                          method='directbayes',
                          yvar=obsvar,
-                         args=args2)
+                         args=DEFAULT_MH_SPECS)
         calpred = cal.predict(x=x_std)
 
         fname = 'test_calpred_saveload.pkl'

@@ -7,12 +7,7 @@ import scipy.stats as sps
 def sampler(logpost_func,
             draw_func,
             scipy_stats_rng,
-            numsamp=2000,
-            theta0=None,
-            stepType='normal',
-            stepParam=None,
-            burnSamples=1000,
-            verbose=False):
+            specification):
     '''
 
 
@@ -38,7 +33,33 @@ def sampler(logpost_func,
 
     '''
     # Hardcoded values
+    VALID_SPECS = {
+        "nSamples", "nBurnSamples", "theta0", "stepType", "stepParam", "verbose"
+    }
     LOG_RATE = 25_000
+
+    # Get specification values
+    if not VALID_SPECS.issubset(set(specification)):
+        raise ValueError(
+            f"Please provide the Metropolis-Hastings specifications {VALID_SPECS}"
+        )
+
+    numsamp = specification["nSamples"]
+    burnSamples = specification["nBurnSamples"]
+    theta0 = specification["theta0"]
+    stepType = specification["stepType"]
+    stepParam = specification["stepParam"]
+    verbose = specification["verbose"]
+
+    if verbose:
+        # Don't log theta0 as it could potentially be an overwhelming amount of
+        # information.  This could be an arugment for having logging at
+        # different levels of detail.  Maybe a user needs to see the full theta0
+        # in some cases.
+        print(f"nSamples     = {numsamp}")
+        print(f"nBurnSamples = {burnSamples}")
+        print(f"stepType     = {stepType}")
+        print(f"stepParam    = {stepParam}")
 
     # random number generator
     if not isinstance(scipy_stats_rng, np.random.Generator):

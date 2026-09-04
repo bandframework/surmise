@@ -6,7 +6,7 @@ from surmise.calibration import calibrator
 
 from .conftest import does_not_raise
 from .shared_scenario import x_lin as x, theta_lin as theta, f_lin as f, y_lin as y, \
-                             obsvar_lin as obsvar, priorphys_lin, RNG_SEED
+                             obsvar_lin as obsvar, priorphys_lin, RNG_SEED, DEFAULT_MH_SPECS
 
 pytestmark = pytest.mark.usefixtures('seeded_rng')
 
@@ -117,17 +117,13 @@ def test_supplement_x_theta(input1, input2, expectation):
 )
 def test_supplement_cal(expectation):
     emu = emulator(x=x, theta=theta, f=f, method='PCGPwM')
-    args1 = {'theta0': np.array([[0, 9]]),
-             'numsamp': 50,
-             'stepType': 'normal',
-             'stepParam': [0.1, 1]}
     cal = calibrator(emu=emu,
                      y=y,
                      x=x,
                      thetaprior=priorphys_lin,
                      method='directbayes',
                      yvar=obsvar,
-                     args=args1)
+                     args=DEFAULT_MH_SPECS)
     with expectation:
         assert emu.supplement(size=10, cal=cal) is not None
 

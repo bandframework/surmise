@@ -10,12 +10,7 @@ Parallel-Tempering Ensemble MCMC (uses Langevin Monte Carlo)
 def sampler(logpost_func,
             draw_func,
             scipy_stats_rng,
-            theta0=None,
-            numsamp=2000,
-            numtemps=32,
-            numchain=16,
-            sampperchain=400,
-            maxtemp=30):
+            specification):
     """
 
     Parameters
@@ -58,6 +53,33 @@ def sampler(logpost_func,
         key 'logpost'.
 
     """
+    VALID_SPECS = {"nSamples", "theta0",
+                   "nTemperatures", "maxTemperature",
+                   "nChains", "samplesPerChain",
+                   "verbose"}
+
+    # Get specification values
+    if not VALID_SPECS.issubset(set(specification)):
+        raise ValueError(
+            f"Please provide the PTLMC specifications {VALID_SPECS}"
+        )
+
+    numsamp = specification["nSamples"]
+    theta0 = specification["theta0"]
+    numtemps = specification["nTemperatures"]
+    maxtemp = specification["maxTemperature"]
+    numchain = specification["nChains"]
+    sampperchain = specification["samplesPerChain"]
+    verbose = specification["verbose"]
+
+    if verbose:
+        # Don't log theta0 as it could potentially be an overwhelming amount of
+        # information.
+        print(f"nSamples        = {numsamp}")
+        print(f"nTemperatures   = {numtemps}")
+        print(f"maxTemperature  = {maxtemp}")
+        print(f"nChains         = {numchain}")
+        print(f"samplesPerChain = {sampperchain}")
 
     # random number generator
     if not isinstance(scipy_stats_rng, np.random.Generator):

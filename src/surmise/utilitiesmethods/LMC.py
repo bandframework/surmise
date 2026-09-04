@@ -44,8 +44,7 @@ Society: Series B (Statistical Methodology)*, 60(1):255-268, 1998.
 def sampler(logpost_func,
             draw_func,
             scipy_stats_rng,
-            numsamp=2000,
-            theta0=None):
+            specification):
     '''
 
     Parameters
@@ -73,6 +72,23 @@ def sampler(logpost_func,
         numsamp by p of sampled parameter values
 
     '''
+    VALID_SPECS = {"nSamples", "theta0", "verbose"}
+
+    # Get specification values
+    if not VALID_SPECS.issubset(set(specification)):
+        raise ValueError(
+            f"Please provide the LMC specifications {VALID_SPECS}"
+        )
+
+    numsamp = specification["nSamples"]
+    theta0 = specification["theta0"]
+    verbose = specification["verbose"]
+
+    if verbose:
+        # Don't log theta0 as it could potentially be an overwhelming amount of
+        # information.
+        print(f"nSamples = {numsamp}")
+
     # random number generator
     if not isinstance(scipy_stats_rng, np.random.Generator):
         raise TypeError("Given RNG is not a valid scipy.stats RNG")
