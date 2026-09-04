@@ -13,6 +13,7 @@ _rng = np.random.default_rng(seed=RNG_SEED)
 
 # TODO: LMC will require 'expertMode' in lmc_option to run
 SAMPLERS_IN_TEST = ['metropolis_hastings', 'PTLMC']  # , 'LMC']
+METHODS_IN_TEST = ['directbayes', 'directbayeswoodbury']
 
 ##############################################
 #            Simple scenarios                #
@@ -60,7 +61,7 @@ class prior_rnd1:
 
 
 class prior_rnd2:
-    def nothing():
+    def nothing(self):
         return None
 
 
@@ -119,22 +120,36 @@ args_dict = {'metropolis_hastings': [mh_args1, mh_args2, mh_args3, mh_args4, mh_
 
 # Generate all test pairs accordingly upfront
 SAMPLER_ARGS_PAIRS = [
-    pytest.param(sampler, args, id=f"{sampler}-args{i}")
+    pytest.param(sampler, args, method, id=f"{sampler}-args{i}-method{k}")
     for sampler in SAMPLERS_IN_TEST
     for i, args in enumerate(args_dict[sampler])
+    for k, method in enumerate(METHODS_IN_TEST)
 ]
 
 
-@pytest.mark.parametrize("sampler,args", SAMPLER_ARGS_PAIRS)
-def test_cal_MLcal(sampler, args, emu_lin_pcgp):
+@pytest.mark.parametrize("sampler,args,method", SAMPLER_ARGS_PAIRS)
+def test_cal_MLcal_wo_grad(sampler, args, method, emu_lin_pcgp):
     args_tmp = args.copy()
     args_tmp['sampler'] = sampler
-    with does_not_raise():
+    with (does_not_raise()):
         assert calibrator(emu=emu_lin_pcgp,
                           y=y,
                           x=x,
                           thetaprior=priorphys_lin,
-                          method='directbayes',
+                          method=method,
+                          yvar=obsvar,
+                          args=args_tmp) is not None
+
+@pytest.mark.parametrize("sampler,args,method", SAMPLER_ARGS_PAIRS)
+def test_cal_MLcal_w_grad(sampler, args,method, emu_lin_pcgpwm_wgrad):
+    args_tmp = args.copy()
+    args_tmp['sampler'] = sampler
+    with does_not_raise():
+        assert calibrator(emu=emu_lin_pcgpwm_wgrad,
+                          y=y,
+                          x=x,
+                          thetaprior=priorphys_lin,
+                          method=method,
                           yvar=obsvar,
                           args=args_tmp) is not None
 
