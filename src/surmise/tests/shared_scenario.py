@@ -20,6 +20,15 @@ DEFAULT_MH_SPECS = {
     "verbose": False
 }
 
+DEFAULT_PTLMC_SPECS = {
+    'samplesPerChain': 100,
+    'nSamples': 800,
+    'theta0': np.array([[0, 9]]),
+    'verbose': False,
+    'nChains': 8,
+    'maxTemperature': 30,
+    'nTemperatures': 4
+}
 
 # ----------------------------------------------------------------------
 # Scenario A: linear ball-drop (used by 14 emu/cal test files)

@@ -4,8 +4,9 @@ import pytest
 from surmise.calibration import calibrator
 
 from .conftest import does_not_raise
-from .shared_scenario import x_lin as x, theta_lin, f_lin, y_lin as y, \
-                             obsvar_lin as obsvar, priorphys_lin, RNG_SEED
+from .shared_scenario import (x_lin as x, theta_lin, f_lin, y_lin as y, \
+                              obsvar_lin as obsvar, priorphys_lin, RNG_SEED,
+                              DEFAULT_MH_SPECS, DEFAULT_PTLMC_SPECS)
 
 pytestmark = pytest.mark.usefixtures('seeded_rng')
 
@@ -18,27 +19,10 @@ SAMPLERS_IN_TEST = ['metropolis_hastings', 'PTLMC']  # , 'LMC']
 #            Simple scenarios                #
 ##############################################
 
-# Additional examples
-y1 = y[0:3]
-
 # setting obsvar
 obsvar1 = obsvar[0:10]
 obsvar2 = -obsvar
 obsvar3 = 10 ** (10) * obsvar
-
-# 2-d x (30 x 2), 2-d theta (50 x 2), f1 (15 x 50)
-f1 = f_lin[0:15, :]
-# 2-d x (30 x 2), 2-d theta (50 x 2), f2 (30 x 25)
-f2 = f_lin[:, 0:25]
-# 2-d x (30 x 2), 2-d theta1 (25 x 2), f (30 x 50)
-theta1 = theta_lin[0:25, :]
-# 2-d x1 (15 x 2), 2-d theta (50 x 2), f (30 x 50)
-x1 = x[0:15, :]
-
-f0d = np.array(1)
-theta0d = np.array(1)
-x0d = np.array(1)
-
 
 # ### #### #### different prior examples #### #### ### #
 class prior_example1:
@@ -78,39 +62,12 @@ class prior_lpdf2:
         return np.vstack((sps.norm.rvs(0, 5, size=n, random_state=_rng),
                           sps.gamma.rvs(2, 0, 10, size=n, random_state=_rng))).T
 
-
-# Some additional args
-mh_args1 = {'theta0': np.array([[0, 9]]),
-            'numsamp': 50,
-            'stepType': 'normal',
-            'stepParam': [0.1, 1]}
-mh_args2 = {'theta0': np.array([[0, 9]]),
-            'numsamp': 50,
-            'stepType': 'uniform',
-            'stepParam': [0.1, 1]}
-mh_args3 = {'theta0': np.array([[0, 9]]),
-            'stepParam': [0.1, 1]}
-mh_args4 = {'stepParam': [0.1, 1]}
-mh_args5 = {'theta0': np.array([[0, 9]])}
-
-#
-ptlmc_args1 = {'theta0': np.array([[0, 9]]),
-               'numsamp': 50,
-               'numtemps': 8,
-               'sampperchain': 25}
-ptlmc_args2 = {'theta0': np.array([[0, 9]]),
-               'numsamp': 50,
-               'numchain': 8,
-               'maxtemp': 30}
-ptlmc_args3 = {'theta0': np.array([[0, 9]])}
-
-#
 lmc_args1 = {'theta0': np.array([[0, 9]]),
              'numsamp': 50,
              'expertMode': True}
 
-args_dict = {'metropolis_hastings': [mh_args1, mh_args2, mh_args3, mh_args4, mh_args5],
-             'PTLMC': [ptlmc_args1, ptlmc_args2, ptlmc_args3],
+args_dict = {'metropolis_hastings': [DEFAULT_MH_SPECS],
+             'PTLMC': [DEFAULT_PTLMC_SPECS],
              'LMC': [lmc_args1]}
 
 ##############################################
@@ -143,64 +100,51 @@ def test_cal_MLcal(sampler, args, emu_lin_pcgp):
 class TestSampler:
 
     @pytest.mark.parametrize(
-        "input2,input3,input4,input5,expectation",
+        "thetaprior,obsvar,expectation",
         [
-            (y, x1, priorphys_lin, obsvar, pytest.raises(ValueError)),
-            (y, x, priorphys_lin, obsvar1, pytest.raises(ValueError)),
-            (y, x, priorphys_lin, obsvar2, pytest.raises(ValueError)),
-            (y, x, priorphys_lin, obsvar3, pytest.raises(ValueError)),
-            (y, x, prior_rnd1, obsvar, pytest.raises(ValueError)),
-            (y, x, prior_rnd2, obsvar, pytest.raises(AttributeError)),
-            (y, x, prior_lpdf1, obsvar, pytest.raises(ValueError)),
-            (y, x, prior_lpdf2, obsvar, pytest.raises(ValueError)),
-            (y, x, prior_example1, obsvar, pytest.raises(ValueError)),
-            (y1, x, priorphys_lin, obsvar, pytest.raises(ValueError)),
+            (priorphys_lin, obsvar1, pytest.raises(ValueError)),
+            (priorphys_lin, obsvar2, pytest.raises(ValueError)),
+            (priorphys_lin, obsvar3, pytest.raises(ValueError)),
+            (prior_rnd1, obsvar, pytest.raises(ValueError)),
+            (prior_rnd2, obsvar, pytest.raises(AttributeError)),
+            (prior_lpdf1, obsvar, pytest.raises(ValueError)),
+            (prior_lpdf2, obsvar, pytest.raises(ValueError)),
+            (prior_example1, obsvar, pytest.raises(ValueError)),
         ],
     )
-    def test_cal_emu_fails(self, sampler, emu_lin_pcgp, input2, input3, input4, input5, expectation):
+    def test_cal_emu_fails(self, sampler, emu_lin_pcgp, thetaprior, obsvar, expectation):
         args_tmp = args_dict[sampler][0].copy()
         with expectation:
             args_tmp['sampler'] = sampler
             assert calibrator(emu=emu_lin_pcgp,
-                              y=input2,
-                              x=input3,
-                              thetaprior=input4,
+                              y=y,
+                              x=x,
+                              thetaprior=thetaprior,
                               method='directbayes',
-                              yvar=input5,
+                              yvar=obsvar,
                               args=args_tmp) is not None
 
-    @pytest.mark.parametrize(
-        "input2,input3,input4,input5",
-        [
-            (y, x, priorphys_lin, obsvar)
-        ]
-    )
-    def test_cal_emu(self, sampler, emu_lin_pcgp, input2, input3, input4, input5):
+
+    def test_cal_emu(self, sampler, emu_lin_pcgp):
         args_tmp = args_dict[sampler][0].copy()
         with does_not_raise():
             args_tmp['sampler'] = sampler
             assert calibrator(emu=emu_lin_pcgp,
-                              y=input2,
-                              x=input3,
-                              thetaprior=input4,
+                              y=y,
+                              x=x,
+                              thetaprior=priorphys_lin,
                               method='directbayes',
-                              yvar=input5,
+                              yvar=obsvar,
                               args=args_tmp) is not None
 
-    @pytest.mark.parametrize(
-        "input2,input3,input4,input5,input6,expectation",
-        [
-            (y, x, priorphys_lin, 'XXXX', obsvar, pytest.raises(ValueError)),
-        ],
-    )
-    def test_cal_method1(self, sampler, emu_lin_pcgp, input2, input3, input4, input5, input6, expectation):
-        with expectation:
+    def test_cal_invalid_method(self, sampler, emu_lin_pcgp):
+        with pytest.raises(ValueError):
             assert calibrator(emu=emu_lin_pcgp,
-                              y=input2,
-                              x=input3,
-                              thetaprior=input4,
-                              method=input5,
-                              yvar=input6,
+                              y=y,
+                              x=x,
+                              thetaprior=priorphys_lin,
+                              method='XXXX',
+                              yvar=obsvar,
                               args={'sampler': sampler}) is not None
 
     def test_repr(self, sampler, emu_lin_pcgp):

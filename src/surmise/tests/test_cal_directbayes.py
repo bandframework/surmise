@@ -3,7 +3,7 @@ import pytest
 from surmise.calibration import calibrator
 from .conftest import does_not_raise
 from .shared_scenario import y_td as y, obsvar_td as obsvar, \
-    x_std, theta_ball as theta, x_range, theta_range, prior_balldrop, timedrop
+    x_std, theta_ball as theta, x_range, theta_range, prior_balldrop, timedrop, DEFAULT_MH_SPECS
 
 # Use set RNG in this entire test module
 pytestmark = pytest.mark.usefixtures('seeded_rng', '_session_rng')
@@ -16,30 +16,20 @@ METHOD_IN_TEST = 'directbayes'
 # Obtain computer model output via filtered data
 f = timedrop(x_std, theta, x_range, theta_range)
 
-args2 = {'theta0': np.array([[0.4]]),
+args_w_missing_specs = {'theta0': np.array([[0.4]]),
          'numsamp': 20,
          'stepType': 'normal',
          'stepParam': [0.4]}
-args3 = {'theta0': np.array([[0.4]]),
-         'stepParam': [0.4]}
-args4 = {'theta0': np.array([[0.4]])}
-args5 = {'stepParam': [0.4]}
-args6 = {'sampler': 'metropolis_hastings'}
 
 
 @pytest.mark.parametrize(
-    "input2,expectation",
+    "args,expectation",
     [
-        # (emulator_f_1, args1, does_not_raise()),
-        # (emulator_f_2, args1, does_not_raise()),
-        (args2, does_not_raise()),
-        (args3, does_not_raise()),
-        (args4, does_not_raise()),
-        (args5, does_not_raise()),
-        (args6, does_not_raise()),
+        (args_w_missing_specs, pytest.raises(ValueError)),
+        (DEFAULT_MH_SPECS, does_not_raise()),
     ],
 )
-def test_cal_MLcal(emu_timedrop, input2, expectation):
+def test_cal_MLcal(emu_timedrop, args, expectation):
     with expectation:
         assert calibrator(emu=emu_timedrop,
                           y=y,
@@ -47,7 +37,7 @@ def test_cal_MLcal(emu_timedrop, input2, expectation):
                           thetaprior=prior_balldrop,
                           method=METHOD_IN_TEST,
                           yvar=obsvar,
-                          args=input2) is not None
+                          args=args) is not None
 
 
 @pytest.mark.parametrize(
@@ -64,7 +54,7 @@ def test_cal_predict(emu_timedrop, input1, expectation):
                           thetaprior=prior_balldrop,
                           method=METHOD_IN_TEST,
                           yvar=obsvar,
-                          args=args2)
+                          args=DEFAULT_MH_SPECS)
     with expectation:
         assert cal_test.predict(x=input1) is not None
 
@@ -82,7 +72,7 @@ def test_repr(emu_timedrop, expectation):
                      thetaprior=prior_balldrop,
                      method=METHOD_IN_TEST,
                      yvar=obsvar,
-                     args=args2)
+                     args=DEFAULT_MH_SPECS)
     pred_test = cal.predict(x=x_std)
     with expectation:
         assert repr(pred_test) is not None
@@ -101,7 +91,7 @@ def test_call(emu_timedrop, expectation):
                      thetaprior=prior_balldrop,
                      method=METHOD_IN_TEST,
                      yvar=obsvar,
-                     args=args2)
+                     args=DEFAULT_MH_SPECS)
     pred_test = cal.predict(x=x_std)
     with expectation:
         assert pred_test() is not None
@@ -120,7 +110,7 @@ def test_meanvar(emu_timedrop, expectation):
                      thetaprior=prior_balldrop,
                      method=METHOD_IN_TEST,
                      yvar=obsvar,
-                     args=args2)
+                     args=DEFAULT_MH_SPECS)
     pred_test = cal.predict(x=x_std)
     with expectation:
         assert pred_test.mean() is not None
@@ -140,7 +130,7 @@ def test_thetalpdf(emu_timedrop, expectation):
                      thetaprior=prior_balldrop,
                      method=METHOD_IN_TEST,
                      yvar=obsvar,
-                     args=args2)
+                     args=DEFAULT_MH_SPECS)
     logpost = cal.theta.lpdf(theta=theta)
     with expectation:
         assert logpost is not None
@@ -159,7 +149,7 @@ def test_pred(emu_timedrop, expectation):
                      thetaprior=prior_balldrop,
                      method=METHOD_IN_TEST,
                      yvar=obsvar,
-                     args=args2)
+                     args=DEFAULT_MH_SPECS)
     pred_test = cal.predict(x=x_std)
     with expectation:
         assert pred_test.rnd(10) is not None
@@ -179,7 +169,7 @@ def test_theta_meanvar(emu_timedrop, expectation):
                      thetaprior=prior_balldrop,
                      method=METHOD_IN_TEST,
                      yvar=obsvar,
-                     args=args2)
+                     args=DEFAULT_MH_SPECS)
     with expectation:
         assert cal.theta.mean(args=None) is not None
         assert cal.theta.var(args=None) is not None
@@ -199,7 +189,7 @@ def test_cal_repr(emu_timedrop, expectation):
                      thetaprior=prior_balldrop,
                      method=METHOD_IN_TEST,
                      yvar=obsvar,
-                     args=args2)
+                     args=DEFAULT_MH_SPECS)
     with expectation:
         assert cal(x_std) is not None
         assert repr(cal.theta()) is not None
