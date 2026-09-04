@@ -131,7 +131,7 @@ SAMPLER_ARGS_PAIRS = [
 def test_cal_MLcal_wo_grad(sampler, args, method, emu_lin_pcgp):
     args_tmp = args.copy()
     args_tmp['sampler'] = sampler
-    with (does_not_raise()):
+    with does_not_raise():
         assert calibrator(emu=emu_lin_pcgp,
                           y=y,
                           x=x,
