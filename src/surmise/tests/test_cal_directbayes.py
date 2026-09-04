@@ -17,9 +17,9 @@ METHOD_IN_TEST = 'directbayes'
 f = timedrop(x_std, theta, x_range, theta_range)
 
 args_w_missing_specs = {'theta0': np.array([[0.4]]),
-         'numsamp': 20,
-         'stepType': 'normal',
-         'stepParam': [0.4]}
+                        'numsamp': 20,
+                        'stepType': 'normal',
+                        'stepParam': [0.4]}
 
 
 @pytest.mark.parametrize(

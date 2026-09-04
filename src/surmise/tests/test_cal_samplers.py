@@ -4,7 +4,7 @@ import pytest
 from surmise.calibration import calibrator
 
 from .conftest import does_not_raise
-from .shared_scenario import (x_lin as x, theta_lin, f_lin, y_lin as y, \
+from .shared_scenario import (x_lin as x, y_lin as y,
                               obsvar_lin as obsvar, priorphys_lin, RNG_SEED,
                               DEFAULT_MH_SPECS, DEFAULT_PTLMC_SPECS)
 
@@ -23,6 +23,7 @@ SAMPLERS_IN_TEST = ['metropolis_hastings', 'PTLMC']  # , 'LMC']
 obsvar1 = obsvar[0:10]
 obsvar2 = -obsvar
 obsvar3 = 10 ** (10) * obsvar
+
 
 # ### #### #### different prior examples #### #### ### #
 class prior_example1:
@@ -61,6 +62,7 @@ class prior_lpdf2:
     def rnd(n):
         return np.vstack((sps.norm.rvs(0, 5, size=n, random_state=_rng),
                           sps.gamma.rvs(2, 0, 10, size=n, random_state=_rng))).T
+
 
 lmc_args1 = {'theta0': np.array([[0, 9]]),
              'numsamp': 50,
@@ -123,7 +125,6 @@ class TestSampler:
                               method='directbayes',
                               yvar=obsvar,
                               args=args_tmp) is not None
-
 
     def test_cal_emu(self, sampler, emu_lin_pcgp):
         args_tmp = args_dict[sampler][0].copy()

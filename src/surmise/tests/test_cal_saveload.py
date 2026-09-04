@@ -3,7 +3,6 @@ import os
 ##############################################
 #            Simple scenarios                #
 ##############################################
-import numpy as np
 import pytest
 from surmise.calibration import calibrator
 from .conftest import does_not_raise
