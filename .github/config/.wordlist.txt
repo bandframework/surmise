@@ -17,6 +17,7 @@ Jupyter
 Jupyterbook
 Kriging
 LHS
+LMC
 LaTeX
 Loeppky
 MCMC

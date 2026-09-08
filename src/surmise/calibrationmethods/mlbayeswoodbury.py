@@ -192,10 +192,9 @@ def fit(fitinfo,
     # Call the sampler
     specification = copy.deepcopy(sampler_args)
     if 'sampler' in specification:
-        sampler_name = specification['sampler']
-        del specification['sampler']
-    else:
-        sampler_name = 'metropolis_hastings'
+        raise ValueError("Please provide the name of the sampler to use")
+    sampler_name = specification['sampler']
+    del specification['sampler']
 
     expert_mode = specification.get("expertMode", False)
 
