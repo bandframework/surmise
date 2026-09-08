@@ -10,7 +10,7 @@ def sampler(logpost_func,
     r"""
     Parallel-Tempering Ensemble Markov chain Monte Carlo sampling method based
     on Langevin Monte Carlo (See
-    :py:func:`surmise.utilitiesmethod.LMC.sampler`).
+    :py:func:`surmise.utilitiesmethods.LMC.sampler`).
 
     Parameters
     ----------

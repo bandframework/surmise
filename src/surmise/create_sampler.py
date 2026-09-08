@@ -71,6 +71,6 @@ def create_sampler(sampler, expert_mode):
 
         raise NotImplementedError("This functionality is not under test")
     else:
-        raise TypeError(f"Sampler should be a string or dict ({sampler})")
+        raise TypeError(f"sampler should be a string ({sampler})")
 
     raise ValueError(f"Invalid sampler ({sampler})")
