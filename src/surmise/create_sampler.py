@@ -28,9 +28,17 @@ def create_sampler(sampler, expert_mode):
     Parameters
     ----------
     sampler :
-        Name of desired sampler offered by |surmise|
+        Name of desired sampler offered by |surmise|.  Valid values are
+
+        * "metropolis_hastings" to use
+          :py:func:`surmise.utilitiesmethods.metropolis_hastings.sampler`
+        * "LMC" to use **research-grade**
+          :py:func:`surmise.utilitiesmethods.LMC.sampler` 
+        * "PTLMC" to use
+          :py:func:`surmise.utilitiesmethods.PTLMC.sampler` 
+
     expert_mode :
-        Allow the use of research-grade samplers if ``True``
+        Allow the use of a research-grade sampler if ``True``
 
     Returns
     -------

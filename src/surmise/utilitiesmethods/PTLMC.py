@@ -2,56 +2,62 @@ import numpy as np
 import scipy.stats as sps
 import scipy.optimize as spo
 
-'''
-Parallel-Tempering Ensemble MCMC (uses Langevin Monte Carlo)
-'''
-
 
 def sampler(logpost_func,
             draw_func,
             scipy_stats_rng,
             specification):
-    """
+    r"""
+    Parallel-Tempering Ensemble Markov chain Monte Carlo sampling method based
+    on Langevin Monte Carlo (See
+    :py:func:`surmise.utilitiesmethod.LMC.sampler`).
 
     Parameters
     ----------
     logpost_func : function
-        A function call describing the log of the posterior distribution.
-            If no gradient, logpost_func should take a value of an m by p numpy
-            array of parameters and theta and return
-            a length m numpy array of log posterior evaluations.
-            If gradient, logpost_func should return a tuple.  The first element
-            in the tuple should be as listed above.
-            The second element in the tuple should be an m by p matrix of
-            gradients of the log posterior.
-    draw_func : function, required
-        A function that produces approximate draws from the distribution.  Can be used to initialize points.
-    theta0 : n by p numpy array, optional
-         This should contain a long list of original parameters to start from. The default is None.
-    numsamp : integer, optional
-        Number of samples returned from the posterior. The default is 2000.
-    numtemps : integer, optional
-        A positive integer that controls how many chains of varying temperature to run simultaneously. The default is
-         32.
-    numchain : integer, optional
-        A positive integer that controls how many chains of fixed temperature to run simultaneously. The default is 16.
-    sampperchain : integer, optional
-        A positive integer that controls how many samples should be done for each chain. The default is 400.
-    maxtemp : double, optional
-        A positive number, larger than 1, that gives the maximum temperature used in parallel tempering. The default
-        is 30.
+        A function that returns the log of the posterior densities at each of
+        :math:`m` theta points provided in an :math:`m \times p` NumPy array.
+        If gradients are not computed, **logpost_func** should return a length
+        :math:`m` NumPy array of log posterior values computed at the given
+        theta points.  If gradients are computed, **logpost_func** should return
+        a tuple whose first element is the array of log posterior values as
+        described above; the second, an :math:`m \times p` NumPy array of
+        gradients of the log posterior at those same theta points.
+    draw_func : function
+        function that accepts the number of desired random draws needed for
+        initializing the sample process and returns a 2D NumPy array of draws
+        with each row being a different draw.
+    scipy_stats_rng :
+        ``scipy.stats``-compatible pseudorandom number generator that the
+        sampler should use for all random draws performed by the sampler.  The
+        sampling process produces identical results if it is repeated with the
+        same RNG setup.
+    specification : dict
+        The full set of sampler configuration values
 
-    Raises
-    ------
-    ValueError
-        Indicates that something was not entered right, please check documentation.
+        * "theta0" - ``None`` or an :math:`m \times p` array of initial thetas
+          to use to start the sampling process.  If ``None`` or too few initial
+          theta are provided, the process is intialized with 1000 random draws
+          from **draw_func**.
+        * "nSamples" - ???
+        * "nChains" - positive integer that controls how many chains of fixed
+          temperature to run simultaneously.
+        * "samplesPerChain" - positive integer that controls how many samples
+          should be made for each chain.
+        * "nTemperatures" - positive integer that controls how many chains of
+          varying temperature to run simultaneously.
+        * "maxTemperature" - number greater than 1 that gives the maximum
+          temperature used in parallel tempering.
+        * "verbose" - log setup and sampling progress information if ``True``.
 
     Returns
     -------
-    dictionary
-        A dictionary that contains the sampled values in the key 'theta' and the corresponding log pdf values in the
-        key 'logpost'.
+    sampler_info : dict
+        Summary of the sampling process
 
+        * "theta" - ???
+        * "theta_from_chain" - ???
+        * "lpostlist" - ???
     """
     VALID_SPECS = {"nSamples", "theta0",
                    "nTemperatures", "maxTemperature",

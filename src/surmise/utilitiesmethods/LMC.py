@@ -2,75 +2,81 @@ import numpy as np
 import scipy.stats as sps
 import scipy.optimize as spo
 
-r'''
-Metropolis-adjusted Langevin algorithm or Langevin Monte Carlo (LMC).
-
-The LMC sampler is available through calling the `calibrator` object with an
-optional argument `args={'sampler': 'LMC'}`.  LMC is a Markov chain Monte
-Carlo method that seeks to propose the next iterates by leveraging gradient
-information at the current iterate.  The proposal has the form
-
-.. math::
-
-    \theta^{k+1} = \theta^k - \nabla g(\theta^k) \Delta t +
-    \sqrt{2\Delta t} Z,
-
-where :math:`\Delta t` is a time stepsize, and :math:`Z` is an independently
-and identically drawn sample from the standard Gaussian normal of the
-appropriate dimension.  The proposal is then accepted or rejected by the
-typical Metropolis-Hastings step, i.e. accept with probability
-
-.. math::
-
-    \alpha = \min\left\{1, \frac{\pi(\tilde{\theta}^{k+1})q(\theta^k \mid
-    \tilde{\theta}^{k+1})}{\pi(\theta^{k})q(\tilde{\theta}^{k+1} \mid
-    \theta^k)}\right\},
-
-where :math:`\pi(\cdot)` is the posterior distribution, :math:`q(\cdot \mid
-\cdot)` is the proposal distribution, and :math:`\theta^k,
-\tilde{\theta}^{k+1}` are the current and the proposed point respectively.
-
-Langevin Monte Carlo has shown strengths in increasing the acceptance rate,
-compared to the typical Metropolis-Hastings algorithm (Roberts and
-Rosenthal, 1998).  However, its significant drawback lies in its poor
-scaling due to the computation for the gradient at the current iterate.
-
-Refer to G. O. Roberts and J. S. Rosenthal. Optimal scaling of discrete
-approximations to langevin diffusions. *Journal of the Royal Statistical
-Society: Series B (Statistical Methodology)*, 60(1):255-268, 1998.
-'''
-
 
 def sampler(logpost_func,
             draw_func,
             scipy_stats_rng,
             specification):
-    '''
+    r'''
+    Metropolis-adjusted Langevin algorithm or Langevin Monte Carlo (LMC), which
+    seeks to propose the next iterates by leveraging gradient information at the
+    current iterate.  The proposal has the form
+    
+    .. math::
+    
+        \theta^{k+1} = \theta^k - \nabla g(\theta^k) \Delta t +
+        \sqrt{2\Delta t} Z,
+    
+    where :math:`\Delta t` is a time stepsize, and :math:`Z` is an independently
+    and identically drawn sample from the standard Gaussian normal of the
+    appropriate dimension.  The proposal is then accepted or rejected by the
+    typical Metropolis-Hastings step, i.e. accept with probability
+    
+    .. math::
+    
+        \alpha = \min\left\{1, \frac{\pi(\tilde{\theta}^{k+1})q(\theta^k \mid
+        \tilde{\theta}^{k+1})}{\pi(\theta^{k})q(\tilde{\theta}^{k+1} \mid
+        \theta^k)}\right\},
+    
+    where :math:`\pi(\cdot)` is the posterior distribution, :math:`q(\cdot \mid
+    \cdot)` is the proposal distribution, and :math:`\theta^k,
+    \tilde{\theta}^{k+1}` are the current and the proposed point respectively.
+    
+    Langevin Monte Carlo has shown strengths in increasing the acceptance rate,
+    compared to the typical Metropolis-Hastings algorithm (Roberts and
+    Rosenthal, 1998).  However, its significant drawback lies in its poor
+    scaling due to the computation for the gradient at the current iterate.
+
+    Refer to G. O. Roberts and J. S. Rosenthal. Optimal scaling of discrete
+    approximations to langevin diffusions. *Journal of the Royal Statistical
+    Society: Series B (Statistical Methodology)*, 60(1):255-268, 1998.
 
     Parameters
     ----------
     logpostfunc : function
-        A function call describing the log of the posterior distribution.
-            If no gradient, logpostfunc should take a value of an m by p numpy
-            array of parameters and theta and return
-            a length m numpy array of log posterior evaluations.
-            If gradient, logpostfunc should return a tuple.  The first element
-            in the tuple should be as listed above.
-            The second element in the tuple should be an m by p matrix of
-            gradients of the log posterior.
-    options : dict
-        a dictionary contains the output of the sampler.
-        Required -
-            theta0: an m by p matrix of initial parameter values.
-        Optional -
-            numsamp: the number of samplers you want from the posterior.
-            Default is 2000.
+        A function that returns the log of the posterior densities at each of
+        :math:`m` theta points provided in an :math:`m \times p` NumPy array.
+        If gradients are not computed, **logpostfunc** should return a length
+        :math:`m` NumPy array of log posterior values computed at the given
+        theta points.  If gradients are computed, **logpostfunc** should return
+        a tuple whose first element is the array of log posterior values as
+        described above; the second, an :math:`m \times p` NumPy array of
+        gradients of the log posterior at those same theta points.
+    draw_func : function
+        function that accepts the number of desired random draws needed for
+        initializing the sample process and returns a 2D NumPy array of draws
+        with each row being a different draw.
+    scipy_stats_rng :
+        ``scipy.stats``-compatible pseudorandom number generator that the
+        sampler should use for all random draws performed by the sampler.  The
+        sampling process produces identical results if it is repeated with the
+        same RNG setup.
+    specification : dict
+        The full set of sampler configuration values
+
+        * "theta0" - ``None`` or an :math:`m \times p` array of initial thetas
+          to use to start the sampling process.  If ``None``, then the process
+          is intialized with 1000 random draws from **draw_func**.
+        * "nSamples" - total number of samples from the posterior.
+        * "verbose" - log setup and sampling progress information if ``True``.
 
     Returns
     -------
-    TYPE
-        numsamp by p of sampled parameter values
+    sampler_info : dict
+        Summary of the sampling process
 
+        * "theta" - ???
+        * "lpostlist" - ???
     '''
     VALID_SPECS = {"nSamples", "theta0", "verbose"}
 

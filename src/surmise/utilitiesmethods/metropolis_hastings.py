@@ -1,36 +1,75 @@
 import numpy as np
 import scipy.stats as sps
 
-"""Metropolis Hastings"""
-
 
 def sampler(logpost_func,
             draw_func,
             scipy_stats_rng,
             specification):
-    '''
-
+    r'''
+    Metropolis Hastings Markov chain Monte Carlo sampling method.
 
     Parameters
     ----------
     logpost_func : function
-        a function returns the log of the posterior for a given theta.
+        function that returns the log of the posterior for a given theta
+        provided as a :math:`1 \times p` 2D NumPy row vector.
     draw_func : function
-        a function returns random draws of initial design theta
-    numsamp : int, optional
-        number of samples to draw. The default is 2000.
-    theta0 : array, optional
-        initial theta value. The default is None.
-    stepType : str, optional
-        either 'uniform' or 'normal'. The default is 'normal'.
-    stepParam : array, optional
-        scaling parameter. The default is None.
+        function that accepts the number of desired random draws needed for
+        initializing the sample process and returns a 2D NumPy array of draws
+        with each row being a different draw.
+    scipy_stats_rng :
+        ``scipy.stats``-compatible pseudorandom number generator that the
+        sampler should use for all random draws performed by the sampler.  The
+        sampling process produces identical results if it is repeated with the
+        same RNG setup.
+    specification : dict
+        The full set of sampler configuration values
+
+        * "theta0" - ``None`` or the initial theta to use to start the sampling
+          process.  If ``None``, then the initial theta is drawn using
+          **draw_func**.
+        * "nSamples" - total number of samples to acquire after the burn-in
+          period.
+        * "nBurnSamples" - total number of samples to acquire during the burn-in
+          period.
+        * "stepType" - a multivariate uniform step proposal distribution
+          centered on zero is used if "uniform" is provided; a zero-mean
+          multivariate normal step proposal distribution, if "normal" is
+          provided.
+        * "stepParam" - ``None`` or the lengthscales that characterize the step
+          proposal distribution.
+
+          * widths of uniform distribution if **stepType** is "uniform"
+          * standard deviations of multivariate normal distribution if
+            **stepType** is "normal"
+
+          Note that for "normal" the covariances are all set to zero.  If
+          ``None``, then the lengthscale is set to the standard deviations of
+          **nBurnSamples** random draws from **draw_func**.
+
+        * "verbose" - log setup and sampling progress information if ``True``.
 
     Returns
     -------
     sampler_info : dict
-        returns numsamp random draws from posterior.
+        Summary of the sampling process
 
+        * "theta" - 2D NumPy array whose rows are the accepted theta samples
+          provided in the order in which they were determined.  This does
+          **not** include theta determined during the burn-in period.
+        * "lpostlist" - 1D NumPy array of log posterior values obtained at all
+          candidate theta, including those rejected by the sampling process.
+          This includes the values obtained during the burn-in
+          period.
+        * "acc_rate" - final acceptance rate of the sampling process derived
+          from the determination of only the final **nSamples** theta
+
+    TODO
+    ----
+    * Once the sampler arguments have been separated out from all other
+      arguments in higher-level code, the samplers should confirm that they
+      are passed values for all arguments and no more.
     '''
     # Hardcoded values
     VALID_SPECS = {
