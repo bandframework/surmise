@@ -191,7 +191,7 @@ def fit(fitinfo,
 
     # Call the sampler
     specification = copy.deepcopy(sampler_args)
-    if 'sampler' in specification:
+    if 'sampler' not in specification:
         raise ValueError("Please provide the name of the sampler to use")
     sampler_name = specification['sampler']
     del specification['sampler']
