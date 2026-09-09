@@ -10,7 +10,7 @@ def sampler(logpost_func,
     r'''
     .. note::
         This sampler is currently considered as **research-grade** and is
-        **not** officially offered by |surmise|.  
+        **not** officially offered by |surmise|.
 
     Metropolis-adjusted Langevin algorithm or Langevin Monte Carlo (LMC), which
     seeks to propose the next iterates by leveraging gradient information at the
