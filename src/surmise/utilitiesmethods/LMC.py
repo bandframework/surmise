@@ -75,8 +75,10 @@ def sampler(logpost_func,
     sampler_info : dict
         Summary of the sampling process
 
-        * **"theta"** - an **nSamples** :math:`\times p` array of unsorted samples from the posterior
-        * **"logpost"** - an **nSamples**-element array of log posterior values associated with the elements of **theta**
+        * **"theta"** - an **nSamples** :math:`\times p` array of unsorted
+          samples from the posterior
+        * **"logpost"** - an **nSamples**-element array of log posterior values
+          associated with the elements of **theta**
     '''
     VALID_SPECS = {"nSamples", "theta0", "verbose"}
 

@@ -8,6 +8,6 @@ full set of configuration values required by their sampler.  This interface
 information is provided so that users can determine which sampler they would
 like to use and how to configure it for their needs.
 
-.. autofunction:: surmise.utilitiesmethods.metropolis_hastings.sampler
-.. autofunction:: surmise.utilitiesmethods.LMC.sampler
-.. autofunction:: surmise.utilitiesmethods.PTLMC.sampler
+.. autofunction:: surmise.utilitiesmethods.sample_with_metropolis_hastings
+.. autofunction:: surmise.utilitiesmethods.sample_with_LMC
+.. autofunction:: surmise.utilitiesmethods.sample_with_PTLMC
