@@ -56,11 +56,12 @@ def sampler(logpost_func,
     sampler_info : dict
         Summary of the sampling process
 
-        # TODO: revisit when flattening is addressed.
+        .. todo:: revisit when flattening is addressed.
+
         * "theta" - an `nSamples x p` array: the first `nSamples` entries from the flattened samples
           `[(chain 1 ... chain 2 ... chain nChains)]`
         * "theta_from_chain" - an `nChains x samplesPerChains x p` array of unflattened, unsorted samples.
-        * "lpostlist" - a length-`nSamples` array of log posterior values associated with entries of "theta"
+        * "logpost" - a length-`nSamples` array of log posterior values associated with entries of "theta"
     """
     VALID_SPECS = {"nSamples", "theta0",
                    "nTemperatures", "maxTemperature",
