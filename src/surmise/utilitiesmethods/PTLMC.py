@@ -35,21 +35,21 @@ def sampler(logpost_func,
     specification : dict
         The full set of sampler configuration values
 
-        * "theta0" - ``None`` or an :math:`m \times p` array of initial thetas
+        * **"theta0"** - ``None`` or an :math:`m \times p` array of initial thetas
           to use to start the sampling process.  If ``None`` or too few initial
           theta are provided, the process is intialized with 1000 random draws
           from **draw_func**.
-        * "nSamples" - positive integer that controls how many samples are
-          returned in "theta"
-        * "nChains" - positive integer that controls how many chains of fixed
+        * **"nSamples"** - positive integer that controls how many samples are
+          returned in **theta**
+        * **"nChains"** - positive integer that controls how many chains of fixed
           temperature to run simultaneously.
-        * "samplesPerChain" - positive integer that controls how many samples
+        * **"samplesPerChain"** - positive integer that controls how many samples
           should be made for each chain.
-        * "nTemperatures" - positive integer that controls how many chains of
+        * **"nTemperatures"** - positive integer that controls how many chains of
           varying temperature to run simultaneously.
-        * "maxTemperature" - number greater than 1 that gives the maximum
+        * **"maxTemperature"** - number greater than 1 that gives the maximum
           temperature used in parallel tempering.
-        * "verbose" - log setup and sampling progress information if ``True``.
+        * **"verbose"** - log setup and sampling progress information if ``True``.
 
     Returns
     -------
@@ -58,10 +58,10 @@ def sampler(logpost_func,
 
         .. todo:: revisit when flattening is addressed.
 
-        * "theta" - an `nSamples x p` array: the first `nSamples` entries from the flattened samples
+        * **"theta"** - an **nSamples** :math:`\times p` array: the first **nSamples** entries from the flattened samples
           `[(chain 1 ... chain 2 ... chain nChains)]`
-        * "theta_from_chain" - an `nChains x samplesPerChains x p` array of unflattened, unsorted samples.
-        * "logpost" - a length-`nSamples` array of log posterior values associated with entries of "theta"
+        * **"theta_from_chain"** - an **nChains** :math:`\times` **samplesPerChains** :math:`\times p` array of unflattened, unsorted samples.
+        * **"logpost"** - an **nSamples**-element array of log posterior values associated with the elements of **theta**
     """
     VALID_SPECS = {"nSamples", "theta0",
                    "nTemperatures", "maxTemperature",

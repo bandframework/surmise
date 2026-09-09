@@ -26,18 +26,18 @@ def sampler(logpost_func,
     specification : dict
         The full set of sampler configuration values
 
-        * "theta0" - ``None`` or the initial theta to use to start the sampling
+        * **"theta0"** - ``None`` or the initial theta to use to start the sampling
           process.  If ``None``, then the initial theta is drawn using
           **draw_func**.
-        * "nSamples" - total number of samples to acquire after the burn-in
+        * **"nSamples"** - total number of samples to acquire after the burn-in
           period.
-        * "nBurnSamples" - total number of samples to acquire during the burn-in
+        * **"nBurnSamples"** - total number of samples to acquire during the burn-in
           period.
-        * "stepType" - a multivariate uniform step proposal distribution
+        * **"stepType"** - a multivariate uniform step proposal distribution
           centered on zero is used if "uniform" is provided; a zero-mean
           multivariate normal step proposal distribution, if "normal" is
           provided.
-        * "stepParam" - ``None`` or the lengthscales that characterize the step
+        * **"stepParam"** - ``None`` or the lengthscales that characterize the step
           proposal distribution.
 
           * widths of uniform distribution if **stepType** is "uniform"
@@ -48,21 +48,21 @@ def sampler(logpost_func,
           ``None``, then the lengthscale is set to the standard deviations of
           **nBurnSamples** random draws from **draw_func**.
 
-        * "verbose" - log setup and sampling progress information if ``True``.
+        * **"verbose"** - log setup and sampling progress information if ``True``.
 
     Returns
     -------
     sampler_info : dict
         Summary of the sampling process
 
-        * "theta" - 2D NumPy array whose rows are the accepted theta samples
+        * **"theta"** - 2D NumPy array whose rows are the accepted theta samples
           provided in the order in which they were determined.  This does
           **not** include theta determined during the burn-in period.
-        * "lpostlist" - 1D NumPy array of log posterior values obtained at all
-          candidate theta, including those rejected by the sampling process.
-          This includes the values obtained during the burn-in
-          period.
-        * "acc_rate" - final acceptance rate of the sampling process derived
+        * **"lpostlist"** - 1D NumPy array of log posterior values obtained at all
+          candidate theta, including those rejected by the sampling process,
+          provided in the order of evalution.  This includes the values obtained
+          during the burn-in period.
+        * **"acc_rate"** - final acceptance rate of the sampling process derived
           from the determination of only the final **nSamples** theta
 
     TODO

@@ -64,19 +64,19 @@ def sampler(logpost_func,
     specification : dict
         The full set of sampler configuration values
 
-        * "theta0" - ``None`` or an :math:`m \times p` array of initial thetas
+        * **"theta0"** - ``None`` or an :math:`m \times p` array of initial thetas
           to use to start the sampling process.  If ``None``, then the process
           is intialized with 1000 random draws from **draw_func**.
-        * "nSamples" - total number of samples from the posterior.
-        * "verbose" - log setup and sampling progress information if ``True``.
+        * **"nSamples"** - total number of samples from the posterior.
+        * **"verbose"** - log setup and sampling progress information if ``True``.
 
     Returns
     -------
     sampler_info : dict
         Summary of the sampling process
 
-        * "theta" - an `nSamples x p` array of unsorted samples from the posterior
-        * "logpost" - a length-`nSamples` array of log posterior values associated with entries of "theta"
+        * **"theta"** - an **nSamples** :math:`\times p` array of unsorted samples from the posterior
+        * **"logpost"** - an **nSamples**-element array of log posterior values associated with the elements of **theta**
     '''
     VALID_SPECS = {"nSamples", "theta0", "verbose"}
 
