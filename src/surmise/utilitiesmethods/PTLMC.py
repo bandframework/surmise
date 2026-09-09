@@ -39,7 +39,8 @@ def sampler(logpost_func,
           to use to start the sampling process.  If ``None`` or too few initial
           theta are provided, the process is intialized with 1000 random draws
           from **draw_func**.
-        * "nSamples" - ???
+        * "nSamples" - positive integer that controls how many samples are
+          returned in "theta"
         * "nChains" - positive integer that controls how many chains of fixed
           temperature to run simultaneously.
         * "samplesPerChain" - positive integer that controls how many samples
@@ -55,9 +56,11 @@ def sampler(logpost_func,
     sampler_info : dict
         Summary of the sampling process
 
-        * "theta" - ???
-        * "theta_from_chain" - ???
-        * "lpostlist" - ???
+        # TODO: revisit when flattening is addressed.
+        * "theta" - an `nSamples x p` array: the first `nSamples` entries from the flattened samples
+          `[(chain 1 ... chain 2 ... chain nChains)]`
+        * "theta_from_chain" - an `nChains x samplesPerChains x p` array of unflattened, unsorted samples.
+        * "lpostlist" - a length-`nSamples` array of log posterior values associated with entries of "theta"
     """
     VALID_SPECS = {"nSamples", "theta0",
                    "nTemperatures", "maxTemperature",

@@ -75,8 +75,8 @@ def sampler(logpost_func,
     sampler_info : dict
         Summary of the sampling process
 
-        * "theta" - ???
-        * "lpostlist" - ???
+        * "theta" - an `nSamples x p` array of unsorted samples from the posterior
+        * "logpost" - a length-`nSamples` array of log posterior values associated with entries of "theta"
     '''
     VALID_SPECS = {"nSamples", "theta0", "verbose"}
 
@@ -335,8 +335,6 @@ def sampler(logpost_func,
             trm = np.min((1.5*tarESS/np.mean(ESS), 4))
             numsamppc = np.ceil(numsamppc*trm).astype('int')
 
-    theta = thetasave[scipy_stats_rng.choice(range(0, thetasave.shape[0]),
-                                             size=numsamp), :]
-    sampler_info = {'theta': theta, 'logpost': Lsave}
+    sampler_info = {'theta': thetasave, 'logpost': Lsave}
 
     return sampler_info
