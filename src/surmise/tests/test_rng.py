@@ -23,7 +23,9 @@ def test_calibrator_requires_rng(emu_lin_pcgp, no_rng):
                    x=sc.x_lin,
                    thetaprior=sc.priorphys_lin,
                    method='directbayes',
-                   yvar=sc.obsvar_lin)
+                   yvar=sc.obsvar_lin,
+                   args=sc.DEFAULT_MH_SPECS
+                   )
 
 
 def test_calibrator_methods_raise_after_clear(cal_directbayes, no_rng):
@@ -43,7 +45,8 @@ def _build_and_draw(seed):
                      x=sc.x_lin,
                      thetaprior=sc.priorphys_lin,
                      method='directbayes',
-                     yvar=sc.obsvar_lin)
+                     yvar=sc.obsvar_lin,
+                     args=sc.DEFAULT_MH_SPECS)
     return cal.theta.rnd(10)
 
 

@@ -11,6 +11,27 @@ RNG_SEED = 111848137687551512331846058163015350393
 # local data generator, surmise RNG does not advance.
 _datagen = np.random.default_rng(111848137687551512331846058163015350939)
 
+DEFAULT_MH_SPECS = {
+    "sampler": "Metropolis_Hastings",
+    "nSamples": 2000,
+    "nBurnSamples": 1000,
+    "theta0": None,
+    "stepType": "Normal",
+    "stepParam": None,
+    "verbose": False
+}
+
+DEFAULT_PTLMC_SPECS = {
+    "sampler": "PtLMC",
+    'samplesPerChain': 100,
+    'nSamples': 800,
+    'theta0': np.array([[0, 9]]),
+    'verbose': False,
+    'nChains': 8,
+    'maxTemperature': 30,
+    'nTemperatures': 4
+}
+
 
 # ----------------------------------------------------------------------
 # Scenario A: linear ball-drop (used by 14 emu/cal test files)

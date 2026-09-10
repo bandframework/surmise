@@ -15,16 +15,17 @@
                     "Intervals": [-0.5, 0.5]
                 },
                 "Sampler": {
-                    "Name":      "PTLMC",
-                    "numtemps":       32,
-                    "numchain":       16,
-                    "sampperchain":  2000,
-                    "maxtemp":        30
+                    "Name":          "PTLMC",
+                    "nSamples":        32000,
+                    "nTemperatures":      32,
+                    "maxTemperature":     30,
+                    "nChains":            16,
+                    "samplesPerChain":  2000,
+                    "verbose":         false
                 },
                 "SampleSkip":          1,
-                "Plot":             false,
-                "Benchmark":      "PTLMC_Uniform1D_UniformStart.benchmark",
-                "n_samples":       32000
+                "Plot":            false,
+                "Benchmark":      "PTLMC_Uniform1D_UniformStart.benchmark"
             }
         }
     },
@@ -47,17 +48,18 @@
                               [0.0, 5.0]]
                 },
                 "Sampler": {
-                    "Name":      "PTLMC",
-                    "numtemps":       32,
-                    "numchain":       16,
-                    "sampperchain": 2000,
-                    "maxtemp":        30
+                    "Name":          "PTLMC",
+                    "nSamples":        32000,
+                    "nTemperatures":      32,
+                    "maxTemperature":     30,
+                    "nChains":            16,
+                    "samplesPerChain":  2000,
+                    "verbose":          true
                 },
                 "SampleSkip":          1,
-                "Plot":             false,
+                "Plot":            false,
                 "CornerPlotBins":     30,
-                "Benchmark":      "PTLMC_Uniform2D_NormalStart.benchmark",
-                "n_samples":       32000
+                "Benchmark":      "PTLMC_Uniform2D_NormalStart.benchmark"
             }
         }
     },
@@ -78,16 +80,17 @@
                     "Intervals": [-0.5, 0.5]
                 },
                 "Sampler": {
-                    "Name":      "PTLMC",
-                    "numtemps":       32,
-                    "numchain":       16,
-                    "sampperchain":  2000,
-                    "maxtemp":        30
+                    "Name":          "PTLMC",
+                    "nSamples":        32000,
+                    "nTemperatures":      32,
+                    "maxTemperature":     30,
+                    "nChains":            16,
+                    "samplesPerChain":  2000,
+                    "verbose":         false
                 },
                 "SampleSkip":          1,
-                "Plot":             false,
-                "Benchmark":      "PTLMC_Normal1D_UniformStart.benchmark",
-                "n_samples":       32000
+                "Plot":            false,
+                "Benchmark":      "PTLMC_Normal1D_UniformStart.benchmark"
             }
         }
     },
@@ -111,17 +114,18 @@
                               [0.0, 5.0]]
                 },
                 "Sampler": {
-                    "Name":      "PTLMC",
-                    "numtemps":       32,
-                    "numchain":       16,
-                    "sampperchain":  2000,
-                    "maxtemp":        30
+                    "Name":          "PTLMC",
+                    "nSamples":        32000,
+                    "nTemperatures":      32,
+                    "maxTemperature":     30,
+                    "nChains":            16,
+                    "samplesPerChain":  2000,
+                    "verbose":         false
                 },
                 "SampleSkip":          1,
-                "Plot":             false,
+                "Plot":            false,
                 "CornerPlotBins":     30,
-                "Benchmark":      "PTLMC_Normal2D_NormalStart.benchmark",
-                "n_samples":       32000
+                "Benchmark":      "PTLMC_Normal2D_NormalStart.benchmark"
             }
         }
     }

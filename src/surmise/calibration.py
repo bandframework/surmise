@@ -10,47 +10,40 @@ import warnings
 
 
 class calibrator(object):
-
     def __init__(self,
-                 emu=None,
-                 y=None,
-                 x=None,
-                 thetaprior=None,
-                 yvar=None,
+                 x,
+                 y,
+                 yvar,
+                 thetaprior,
+                 args,
+                 emu,
                  method='directbayes',
-                 args={}):
+                 ):
         '''
         A class to represent a calibrator. Fits a calibrator model provided
         in ``calibrationmethods/[method].py`` where [method] is the user
-        option with default listed above.
+        option with default listed above.  Refer to the documentation (usage examples) for more details.
 
         .. tip::
            To use a new calibrator, just drop a new file to the
            ``calibrationmethods/`` directory with the required formatting.
 
-        :Example:
-
-            .. code-block:: python
-
-               calibrator(emu=emu, y=y, x=x, thetaprior=thetaprior,
-                          method='directbayes', args=args)
 
         Parameters
         ----------
-        emu : surmise.emulation.emulator, optional
-            An emulator class instance as defined in surmise.emulation.
-            The default is None.
-
-        y : numpy.ndarray, optional
-            Array of observed values at x. The default is None.
-
-        x : numpy.ndarray, optional
+        x : numpy.ndarray
             An array of x values that match the definition of "emu.x".
             Currently, existing methods supports only the case when x is a
-            subset of "emu.x". The default is None.
+            subset of "emu.x".
 
-        thetaprior : class, optional
-            class instance with two built-in functions. The default is None.
+        y : numpy.ndarray
+            Array of observed values at x.
+
+        yvar : numpy.ndarray
+            The vector of observation variances at y.
+
+        thetaprior : class
+            class instance with two built-in functions.
 
             .. important::
                 If a calibration method requires sampling, then
@@ -62,7 +55,7 @@ class calibrator(object):
                         Returns the log of the pdf of a given theta with size
                         ``(len(theta), 1)``
                     - ``rnd(n)``
-                        Generates n random variable from a prior distribution.
+                        Generates n draws of a random variable from the prior distribution.
 
             :Example:
 
@@ -76,27 +69,18 @@ class calibrator(object):
                         def rnd(n):
                             return np.vstack((sps.uniform.rvs(0, 1, size=n)))
 
-        yvar : numpy.ndarray, optional
-            The vector of observation variances at y. The default is None.
+        args : dict
+            Dictionary containing options you would like to pass to the
+            [method].fit() or [method].predict() calibrator functions.
+
+            For example, see :data:`tests.shared_scenario.DEAFULT_MH_SPECS`.
+
+        emu : surmise.emulation.emulator
+            An emulator class instance as defined in surmise.emulation.
 
         method : str, optional
             A string that points to the file located in ``calibrationmethods/``
-            you would like to use. The default is 'directbayes'.
-
-        args : dict, optional
-            Optional dictionary containing options you would like to pass to
-            [method].fit(x, theta, f, args)
-            or
-            [method].predict(x, theta args) The default is {}.
-
-        Raises
-        ------
-        ValueError
-            If the dimension of the data do not match with the fitted emulator.
-
-        Returns
-        -------
-        None.
+            you would like to use.
 
         '''
         # Calibrators that could be loaded, but that are research-grade only and
@@ -120,12 +104,6 @@ class calibrator(object):
                 msg = f"Using unofficial research {method} calibrator"
                 warnings.warn(msg)
 
-        # cast to numpy.float64, currently only for theta and f.
-        if y is not None:
-            y = cast_f64_dtype(y)
-        if yvar is not None:
-            yvar = cast_f64_dtype(yvar)
-
         # default to showing all warnings
         if ('warnings' in args.keys()) and ~args['warnings']:
             warnings.simplefilter('ignore')
@@ -133,22 +111,27 @@ class calibrator(object):
             warnings.resetwarnings()
 
         self.args = args
-        if y is None:
-            raise ValueError('You have not provided any y.')
+
+        # cast to numpy.float64, currently only for theta and f.
+        y = cast_f64_dtype(y)
+        yvar = cast_f64_dtype(yvar)
+
         if y.ndim > 1.5:
             y = np.squeeze(y)
         if y.shape[0] < 5:
             raise ValueError('5 is the minimum number of observations at this '
                              'time.')
         self.y = y
-        if emu is None:
-            raise ValueError('You have not provided any emulator.')
         self.emu = emu
 
+        # validate thetaprior functions
         try:
             thetatestsamp = thetaprior.rnd(100)
+        except AttributeError:
+            raise AttributeError('thetaprior lacks .rnd().')
+        except RuntimeError:
+            raise RuntimeError('Ensure that set_RNG has been previously called. thetaprior.rnd(100) failed.')
         except Exception:
-            print('thetaprior.rnd(100) failed.')
             raise
 
         if thetatestsamp.shape[0] != 100:
@@ -162,17 +145,14 @@ class calibrator(object):
         if thetatestlpdf.shape[0] != 100:
             raise ValueError('thetaprior.lpdf(thetaprior.rnd(100)) failed to '
                              'give 100 values.')
-        # if thetatestlpdf.ndim != 1:
-        #    raise ValueError('thetaprior.lpdf(thetaprior.rnd(100)) has '
-        #                     'dimension higher than 1.')
 
         self.info = {}
         self.info['thetaprior'] = copy.deepcopy(thetaprior)
 
-        if x is not None:
-            if x.shape[0] != y.shape[0]:
-                raise ValueError('If x is provided, shape[0] must align with '
-                                 'the length of y.')
+        # validate x and y
+        if x.shape[0] != y.shape[0]:
+            raise ValueError('x.shape[0] must align with '
+                             'the length of y.')
         self.x = copy.deepcopy(x)
         predtry = emu.predict(copy.copy(self.x), thetatestsamp)
         if y.shape[0] != predtry().shape[0]:
@@ -203,24 +183,25 @@ class calibrator(object):
                     self.y = self.y[whichkeep]
             else:
                 whichkeep = None
-        if yvar is not None:
-            if yvar.shape[0] != y.shape[0] and yvar.shape[0] > 1.5:
-                raise ValueError('yvar must be the same size as y or '
-                                 'of size 1.')
-            if np.min(yvar) < 0:
-                raise ValueError('yvar has at least one negative value.')
-            if np.min(yvar) < 10 ** (-6) or np.max(yvar) > 10 ** (6):
-                raise ValueError('Rescale your problem so that the yvar'
-                                 ' is between 10 ^ -6 and 10 ^ 6.')
-            self.info['yvar'] = copy.deepcopy(yvar)
-            if whichkeep is not None:
-                self.info['yvar'] = self.info['yvar'][whichkeep]
+
+        # validity of yvar
+        if yvar.shape[0] != y.shape[0] and yvar.shape[0] > 1.5:
+            raise ValueError('yvar must be the same size as y or '
+                             'of size 1.')
+        if np.min(yvar) < 0:
+            raise ValueError('yvar has at least one negative value.')
+        if np.min(yvar) < 10 ** (-6) or np.max(yvar) > 10 ** (6):
+            raise ValueError('Rescale your problem so that the yvar'
+                             ' is between 10 ^ -6 and 10 ^ 6.')
+        self.info['yvar'] = copy.deepcopy(yvar)
+        if whichkeep is not None:
+            self.info['yvar'] = self.info['yvar'][whichkeep]
 
         try:
             self.method = importlib.import_module('surmise.calibrationmethods.'
                                                   + method)
         except Exception:
-            raise ValueError('Module not found!')
+            raise ValueError(f'method {method} not found!')
 
         self.fit()
 
