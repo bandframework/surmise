@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.stats as sps
 import scipy.optimize as spo
+import warnings
 
 
 def sampler(logpost_func,
@@ -341,6 +342,13 @@ def sampler(logpost_func,
             trm = np.min((1.5*tarESS/np.mean(ESS), 4))
             numsamppc = np.ceil(numsamppc*trm).astype('int')
 
-    sampler_info = {'theta': thetasave, 'logpost': Lsave}
+    # TODO: thetasave may have fewer samples than requested.
+    if thetasave.shape[0] < numsamp:
+        warnings.warn('Number of samples returned is fewer than '
+                      'the requested number of samples (nSamples.')
+
+    theta = thetasave[scipy_stats_rng.choice(range(0, thetasave.shape[0]),
+                                             size=numsamp), :]
+    sampler_info = {'theta': theta, 'logpost': Lsave}
 
     return sampler_info
