@@ -18,3 +18,4 @@ exclude =
 	    src/surmise/_version.py
 per-file-ignores =
     src/surmise/__init__.py:F401
+    src/surmise/utilitiesmethods/__init__.py:F401
