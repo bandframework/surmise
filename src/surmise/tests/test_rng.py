@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 
 from surmise import set_RNG
-from surmise.emulation import emulator
-from surmise.calibration import calibrator
+from surmise import emulator
+from surmise import calibrator
 
 from . import shared_scenario as sc
 

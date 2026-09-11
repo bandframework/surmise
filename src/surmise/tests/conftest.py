@@ -9,8 +9,8 @@ from contextlib import contextmanager
 
 import pytest
 
-from surmise.emulation import emulator
-from surmise.calibration import calibrator
+from surmise import emulator
+from surmise import calibrator
 
 from . import shared_scenario as sc
 from .._RandomNumberGenerator import RandomNumberGenerator

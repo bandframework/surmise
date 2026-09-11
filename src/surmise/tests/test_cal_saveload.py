@@ -4,7 +4,7 @@ import os
 #            Simple scenarios                #
 ##############################################
 import pytest
-from surmise.calibration import calibrator
+from surmise import calibrator
 from .conftest import does_not_raise
 from .shared_scenario import y_td as y, obsvar_td as obsvar, \
     x_std, prior_balldrop, DEFAULT_MH_SPECS

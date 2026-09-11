@@ -1,4 +1,4 @@
-from surmise.calibration import calibrator
+from surmise import calibrator
 import pytest
 
 from .conftest import does_not_raise
