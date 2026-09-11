@@ -73,9 +73,6 @@ class emulator(object):
             emulation to have. This does not get passed to the method.
             The default is {}.
 
-        Returns
-        -------
-        None.
 
         '''
         # Emulators that could be loaded but that are research-grade only and
@@ -563,9 +560,6 @@ class emulator(object):
             If the dimensions of inputs do not match with the existing
             emulator.
 
-        Returns
-        -------
-        None.
 
         '''
 
@@ -707,10 +701,6 @@ class emulator(object):
         options : dict, optional
             A dictionary containing options to build the emulator.
             The default is None.
-
-        Returns
-        -------
-        None.
 
         '''
 

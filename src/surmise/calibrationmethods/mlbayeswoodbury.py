@@ -72,9 +72,6 @@ def fit(fitinfo,
     args : dict, optional
         A dictionary containing options passed. The default is None.
 
-    Returns
-    -------
-    None.
 
     '''
     global_RNG = RandomNumberGenerator().scipy_stats_RNG
@@ -242,9 +239,6 @@ def predict(predinfo, fitinfo, emu, x, args=None):
     args : dict, optional
         A dictionary containing options. The default is None.
 
-    Returns
-    -------
-    None.
 
     '''
     global_RNG = RandomNumberGenerator().scipy_stats_RNG
