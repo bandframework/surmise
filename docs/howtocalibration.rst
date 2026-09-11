@@ -5,23 +5,22 @@ In this tutorial, we describe how to include a new calibrator to the surmise's
 framework. We illustrate this with ``directbayeswoodbury``--a calibrator method located
 in the directory ``\calibrationmethods``.
 
-In surmise, all calibrator methods are automatically discovered from `.py` code files under ``\calibrationmethods``.
-A calibrator class calls the user input method via the filename without extension, e.g., `directbayeswoodbury`, and fits the corresponding calibrator.
-:py:meth:`surmise.calibration.calibrator.fit` is the main
-:py:class:`surmise.calibration.calibrator` class methods. It also provides the
+In surmise, all calibrator methods inherit from the base class
+:py:class:`surmise.calibrator`. A calibrator class calls the user
+input method, and fits the corresponding calibrator.
+:py:meth:`surmise.calibrator.fit` is the main
+:py:class:`surmise.calibrator` class methods. It also provides the
 functionality of updating and manipulating the fitted calibrator by
-:py:meth:`surmise.calibration.calibrator.predict` class methods.
+:py:meth:`surmise.calibrator.predict` class methods.
 
-In order to use the functionality of the base class :py:class:`surmise.calibration.calibrator`,
-we categorize the functions to be included in a new emulation method (for example, ``directbayeswoodbury``)
-into two categories.
+In order to use the functionality of the base class :py:class:`surmise.calibrator`, we categorize the functions to be included in a new emulation method (for example, ``directbayeswoodbury``) into two categories.
 
 Mandatory functions
 ++++++++++++++++++++
 
 :py:func:`fit` is the only obligatory function for a calibration
 method. :py:func:`fit` takes the fitted emulator class object
-:py:class:`surmise.emulation.emulator`, inputs :math:`\mathbf{X}`, and
+:py:class:`surmise.emulator`, inputs :math:`\mathbf{X}`, and
 observed values :math:`\mathbf{y}`, where :math:`\mathbf{X}\in\mathbb{R}^{N\times p}`,
 :math:`\mathbf{y}\in\mathbb{R}^{N\times 1}`, and the dictionary ``fitinfo`` to
 place the fitting information once complete. This dictionary is used to keep the
@@ -35,13 +34,13 @@ The :py:func:`surmise.calibrationmethods.directbayeswoodbury.fit` is given below
 .. autofunction:: fit
 
 Once the calibration method is fitted, the base
-:py:class:`surmise.calibration.calibrator` assigns :py:attr:`surmise.calibration.calibrator.theta`
+:py:class:`surmise.calibrator` assigns :py:attr:`surmise.calibrator.theta`
 as an attribute of the class object to communicate with the fitted method through
-general expressions. The attribute :py:attr:`surmise.calibration.calibrator.theta`
-has methods :py:meth:`surmise.calibration.calibrator.theta.mean`,
-:py:meth:`surmise.calibration.calibrator.theta.var`,
-:py:meth:`surmise.calibration.calibrator.theta.rnd`, and
-:py:meth:`surmise.calibration.calibrator.theta.lpdf`, which can be called
+general expressions. The attribute :py:attr:`surmise.calibrator.theta`
+has methods :py:meth:`surmise.calibrator.theta.mean`,
+:py:meth:`surmise.calibrator.theta.var`,
+:py:meth:`surmise.calibrator.theta.rnd`, and
+:py:meth:`surmise.calibrator.theta.lpdf`, which can be called
 once the user obtains the fitted calibrator.
 
 Those expressions are defined within the base class to simplify the usage of the fitted

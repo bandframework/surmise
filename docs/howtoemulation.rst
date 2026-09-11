@@ -10,14 +10,20 @@ placing their emulator's Python source code in that same folder.  This tutorial
 describes how to structure a custom emulator code so that this integration is
 successful.
 
-:py:func:`surmise.emulation.emulator.fit` and :py:func:`surmise.emulation.emulator.predict`
-are the main :py:class:`surmise.emulation.emulator` class methods.
+In this tutorial, we describe how to include a new emulator to the surmise's
+framework. We illustrate this with ``PCGP``--an emulator method located in the
+directory ``\emulationmethods``.
+
+In surmise, all emulator methods inherit from the base class :py:class:`surmise.emulator`.
+An emulator class calls the user input method, and fits the corresponding
+emulator. :py:func:`surmise.emulator.fit` and :py:func:`surmise.emulator.predict`
+are the main :py:class:`surmise.emulator` class methods.
 It also provides the functionality of updating and manipulating the
-fitted emulator by :py:func:`surmise.emulation.emulator.supplement`,
-:py:func:`surmise.emulation.emulator.update`, and :py:func:`surmise.emulation.emulator.remove`
+fitted emulator by :py:func:`surmise.emulator.supplement`,
+:py:func:`surmise.emulator.update`, and :py:func:`surmise.emulator.remove`
 class methods.
 
-In order to use the functionality of the base class :py:class:`surmise.emulation.emulator`,
+In order to use the functionality of the base class :py:class:`surmise.emulator`,
 we categorize the functions to be included into a new emulation method (for example ``PCGP``) into two categories.
 
 Mandatory functions
@@ -39,21 +45,21 @@ The :py:func:`surmise.emulationmethods.PCGP.fit` is given below for an illustrat
 
 .. autofunction:: fit
 
-Once the base class :py:class:`surmise.emulation.emulator` is initialized,
-:py:func:`surmise.emulation.emulator.fit` method calls the developer's emulator's :py:func:`fit`
+Once the base class :py:class:`surmise.emulator` is initialized,
+:py:func:`surmise.emulator.fit` method calls the developer's emulator's :py:func:`fit`
 function, and places all information into the dictionary ``fitinfo``.
 
 .. autofunction:: predict
 
-:py:func:`surmise.emulation.emulator.predict` method returns a prediction class object,
-which has methods :py:meth:`surmise.emulation.prediction.mean`,
-:py:meth:`surmise.emulation.prediction.mean_gradtheta`,
-:py:meth:`surmise.emulation.prediction.var`,
-:py:meth:`surmise.emulation.prediction.covx`,
-:py:meth:`surmise.emulation.prediction.covxhalf`,
-:py:meth:`surmise.emulation.prediction.covxhalf_gradtheta`,
-:py:meth:`surmise.emulation.prediction.rnd`,
-and :py:meth:`surmise.emulation.prediction.lpdf`.
+:py:func:`surmise.emulator.predict` method returns a prediction class object,
+which has methods :py:meth:`surmise.prediction.mean`,
+:py:meth:`surmise.prediction.mean_gradtheta`,
+:py:meth:`surmise.prediction.var`,
+:py:meth:`surmise.prediction.covx`,
+:py:meth:`surmise.prediction.covxhalf`,
+:py:meth:`surmise.prediction.covxhalf_gradtheta`,
+:py:meth:`surmise.prediction.rnd`,
+and :py:meth:`surmise.prediction.lpdf`.
 
 Those expressions are defined within the base class to simplify the usage of the fitted
 models. In order to use those methods, the emulation method developers should either
