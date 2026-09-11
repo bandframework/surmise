@@ -381,7 +381,7 @@ class emulator(object):
         choicescost : numpy.ndarray, optional
             An array of positive cost of each element in choice.
             The default is None.
-        cal : surmise.calibration.calibrator, optional
+        cal : surmise.calibrator, optional
             A calibrator object that contains information about calibration.
             The default is None.
         args : dict, optional
@@ -701,7 +701,7 @@ class emulator(object):
             x to remove from self.__x. The default is None.
         theta : numpy.ndarray, optional
             theta to remove from self.__theta. The default is None.
-        cal : surmise.calibration.calibrator, optional
+        cal : surmise.calibrator, optional
             A calibrator class instance as defined in surmise.calibration.
             The default is None.
         options : dict, optional
