@@ -6,10 +6,11 @@ within its installation [#f1]_.  For example, it assumes that the
 ``emulationmethods/PCGP.py`` file provides the ``PCGP`` emulator, which is the
 emulator name that users should provide when choosing a particular emulator to
 use for a fit.  Therefore, users can integrate their own emulator in surmise by
-placing their emulator's Python source code in that same folder.  This tutorial
+placing their emulator's Python source code in that same folder.
+
+This tutorial
 describes how to structure a custom emulator code so that this integration is
 successful.
-
 In this tutorial, we describe how to include a new emulator to the surmise's
 framework. We illustrate this with ``PCGP``--an emulator method located in the
 directory ``\emulationmethods``.
@@ -51,24 +52,34 @@ function, and places all information into the dictionary ``fitinfo``.
 
 .. autofunction:: predict
 
-:py:func:`surmise.emulator.predict` method returns a prediction class object,
-which has methods :py:meth:`surmise.prediction.mean`,
-:py:meth:`surmise.prediction.mean_gradtheta`,
-:py:meth:`surmise.prediction.var`,
-:py:meth:`surmise.prediction.covx`,
-:py:meth:`surmise.prediction.covxhalf`,
-:py:meth:`surmise.prediction.covxhalf_gradtheta`,
-:py:meth:`surmise.prediction.rnd`,
-and :py:meth:`surmise.prediction.lpdf`.
+:py:func:`surmise.emulation.emulator.predict` method returns a prediction class object,
+which has methods :py:meth:`surmise.emulation.prediction.mean`,
+:py:meth:`surmise.emulation.prediction.mean_gradtheta`,
+:py:meth:`surmise.emulation.prediction.var`,
+:py:meth:`surmise.emulation.prediction.covx`,
+:py:meth:`surmise.emulation.prediction.covxhalf`,
+:py:meth:`surmise.emulation.prediction.covxhalf_gradtheta`,
+:py:meth:`surmise.emulation.prediction.rnd`,
+and :py:meth:`surmise.emulation.prediction.lpdf`.
+
 
 Those expressions are defined within the base class to simplify the usage of the fitted
-models. In order to use those methods, the emulation method developers should either
-include functions :py:func:`predictmean`, :py:func:`predictmean_gradtheta`, :py:func:`predictvar`,
-:py:func:`predictcovx`, :py:func:`predictcovxhalf`, :py:func:`predictcovxhalf_gradtheta`, :py:func:`predictrnd`,
-and :py:func:`predictlpdf` into their methods, or define within the dictionary
-``fitinfo`` using the keys ``mean``, ``mean_gradtheta``, ``var``,
-``covx``, ``covxhalf``, ``covxhalf_gradtheta``, ``rnd``,
-and ``lpdf``.
+models. To use these methods, emulation method developers should either implement the
+functions below in their method or define the matching keys in the ``fitinfo``
+dictionary.
+
+=====================================  ========================
+Function                               ``fitinfo`` key
+=====================================  ========================
+:py:func:`predictmean`                 ``mean``
+:py:func:`predictmean_gradtheta`       ``mean_gradtheta``
+:py:func:`predictvar`                  ``var``
+:py:func:`predictcovx`                 ``covx``
+:py:func:`predictcovxhalf`             ``covxhalf``
+:py:func:`predictcovxhalf_gradtheta`   ``covxhalf_gradtheta``
+:py:func:`predictrnd`                  ``rnd``
+:py:func:`predictlpdf`                 ``lpdf``
+=====================================  ========================
 
 
 
