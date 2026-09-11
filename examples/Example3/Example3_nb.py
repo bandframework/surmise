@@ -25,8 +25,8 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import scipy.stats as sps
-from surmise.emulation import emulator
-from surmise.calibration import calibrator
+from surmise import emulator
+from surmise import calibrator
 from pathlib import Path
 
 # %% [markdown]

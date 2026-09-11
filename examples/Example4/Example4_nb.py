@@ -24,8 +24,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from random import sample
 import scipy.stats as sps
-from surmise.calibration import calibrator
-from surmise.emulation import emulator
+from surmise import calibrator
+from surmise import emulator
 from pathlib import Path
 
 # %%

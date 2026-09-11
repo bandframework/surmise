@@ -174,7 +174,7 @@ plt.close()
 
 #@title **Installation**
 #@title **Build emulator with `surmise` with `emulator` module**
-from surmise.emulation import emulator
+from surmise import emulator
 
 emu_balldrop = emulator(x=xvec, theta=thetavec, f=f,
                         args={'warnings': True})
@@ -497,7 +497,7 @@ plot_theta_marginal(prior_samples)
 plot_theta_relationship(prior_samples, bins=25)
 
 #@title **Calibrate parameters with `calibrator` module**
-from surmise.calibration import calibrator
+from surmise import calibrator
 
 #@title Building a calibrator
 cal_et = calibrator(emu=emu_et,
