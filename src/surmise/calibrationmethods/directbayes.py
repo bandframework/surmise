@@ -48,7 +48,7 @@ def fit(fitinfo, emu, x, y, **sampler_args):
         - fitinfo['thetarand'] : some number draws from the predictive
           distribution on theta
 
-    emu : :class: `surmise.emulation.emulator`
+    emu : :class: `surmise.emulator`
         An emulator class instance as defined in emulation
         Example emu functions
         (Not all of these will work, it depends on the emulation software.)
@@ -183,7 +183,7 @@ def loglik(fitinfo, emu, theta, y, x):
         - fitinfo['thetarand'] : some number draws from the predictive
           distribution on theta
 
-    emu : :class: `surmise.emulation.emulator`
+    emu : :class: `surmise.emulator`
         An emulator class instance as defined in emulation
         Example emu functions
         (Not all of these will work, it depends on the emulation software.)
