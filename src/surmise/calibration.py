@@ -1,6 +1,3 @@
-"""
-This module contains a class that implements the main calibration method.
-"""
 import numpy as np
 from .helper import cast_f64_dtype, save_file, load_file
 from ._RandomNumberGenerator import RandomNumberGenerator

@@ -18,7 +18,7 @@ In surmise, all calibrator methods inherit from the base class
 :py:class:`surmise.calibrator`. A calibrator class calls the user
 input method, and fits the corresponding calibrator.
 :py:meth:`surmise.calibrator.fit` is the main
-:py:class:`surmise.calibrator` class methods. It also provides the
+:py:class:`surmise.calibrator` class method. It also provides the
 functionality of updating and manipulating the fitted calibrator by
 :py:meth:`surmise.calibrator.predict` class methods.
 
@@ -77,4 +77,4 @@ Optional functions
 
 .. rubric:: Footnotes
 
-.. [#f1] The location of a surmise installation that was installed into a virtual environment, for example, might be ``~/local/venv/my_surmise/lib/python3.14/site-packages/surmise`` or, in Windows, ``~/local/surmise_venv/Lib/site-packages/surmise/calibrationmethods``
+.. [#f1] The location of a surmise installation that was installed into a virtual environment, for example, might be ``~/local/venv/my_surmise/lib/python3.14/site-packages/surmise`` or, in Windows, ``~/local/surmise_venv/Lib/site-packages/surmise``
