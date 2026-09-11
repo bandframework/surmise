@@ -1,8 +1,17 @@
 How to include a new calibrator
 ==============================================
+When loaded, the surmise package automatically identifies all available
+calibrators by locating all ``.py`` codes in the ``calibrationmethods`` folder
+within its installation [#f1]_.  For example, it assumes that the
+``calibrationmethods/directbayes.py`` file provides the ``directbayes``
+calibrator, which is the calibrator name that users should provide when
+choosing a particular calibrator to use for a fit.  Therefore, users can
+integrate their own calibrator in surmise by placing their calibrator's Python
+source code in that same folder.
 
-In this tutorial, we describe how to include a new calibrator to the surmise's
-framework. We illustrate this with ``directbayeswoodbury``--a calibrator method located
+This tutorial describes how to structure a
+custom calibrator code so that this integration is successful.
+We illustrate this with ``directbayeswoodbury``--a calibrator method located
 in the directory ``\calibrationmethods``.
 
 In surmise, all calibrator methods inherit from the base class
@@ -13,7 +22,7 @@ input method, and fits the corresponding calibrator.
 functionality of updating and manipulating the fitted calibrator by
 :py:meth:`surmise.calibrator.predict` class methods.
 
-In order to use the functionality of the base class :py:class:`surmise.calibrator`, we categorize the functions to be included in a new emulation method (for example, ``directbayeswoodbury``) into two categories.
+In order to use the functionality of the base class :py:class:`surmise.calibrator`, we categorize the functions to be included in a new calibrator method (for example, ``directbayeswoodbury``) into two categories.
 
 Mandatory functions
 ++++++++++++++++++++
@@ -44,10 +53,18 @@ has methods :py:meth:`surmise.calibrator.theta.mean`,
 once the user obtains the fitted calibrator.
 
 Those expressions are defined within the base class to simplify the usage of the fitted
-models. In order to use those methods, the calibration method developers should either
-include functions :py:func:`thetamean`, :py:func:`thetavar`, :py:func:`thetarnd`,
-and/or, :py:func:`thetalpdf` in their methods, or define within the dictionary
-``fitinfo`` using the keys ``thetamean``, ``thetavar``, ``thetarnd``, and/or, ``thetalpdf``.
+models. To use these methods, calibration method developers should implement any of the
+functions below in their method, or define the matching keys in the ``fitinfo``
+dictionary.
+
+========================  ================
+Function                  ``fitinfo`` key
+========================  ================
+:py:func:`thetamean`      ``thetamean``
+:py:func:`thetavar`       ``thetavar``
+:py:func:`thetarnd`       ``thetarnd``
+:py:func:`thetalpdf`      ``thetalpdf``
+========================  ================
 
 An example is the :py:func:`thetalpdf` function provided from the ``directbayeswoodbury``:
 
@@ -57,3 +74,7 @@ Optional functions
 ++++++++++++++++++++
 
 .. autofunction:: predict
+
+.. rubric:: Footnotes
+
+.. [#f1] The location of a surmise installation that was installed into a virtual environment, for example, might be ``~/local/venv/my_surmise/lib/python3.14/site-packages/surmise`` or, in Windows, ``~/local/surmise_venv/Lib/site-packages/surmise/emulationmethods``
