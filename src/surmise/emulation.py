@@ -1,6 +1,3 @@
-"""
-This module contains a class that implements the main emulation method.
-"""
 import numpy as np
 from .helper import cast_f64_dtype, save_file, load_file
 from ._RandomNumberGenerator import RandomNumberGenerator
@@ -73,9 +70,6 @@ class emulator(object):
             emulation to have. This does not get passed to the method.
             The default is {}.
 
-        Returns
-        -------
-        None.
 
         '''
         # Emulators that could be loaded but that are research-grade only and
@@ -381,7 +375,7 @@ class emulator(object):
         choicescost : numpy.ndarray, optional
             An array of positive cost of each element in choice.
             The default is None.
-        cal : surmise.calibration.calibrator, optional
+        cal : surmise.calibrator, optional
             A calibrator object that contains information about calibration.
             The default is None.
         args : dict, optional
@@ -563,9 +557,6 @@ class emulator(object):
             If the dimensions of inputs do not match with the existing
             emulator.
 
-        Returns
-        -------
-        None.
 
         '''
 
@@ -701,16 +692,12 @@ class emulator(object):
             x to remove from self.__x. The default is None.
         theta : numpy.ndarray, optional
             theta to remove from self.__theta. The default is None.
-        cal : surmise.calibration.calibrator, optional
+        cal : surmise.calibrator, optional
             A calibrator class instance as defined in surmise.calibration.
             The default is None.
         options : dict, optional
             A dictionary containing options to build the emulator.
             The default is None.
-
-        Returns
-        -------
-        None.
 
         '''
 

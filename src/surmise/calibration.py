@@ -1,6 +1,3 @@
-"""
-This module contains a class that implements the main calibration method.
-"""
 import numpy as np
 from .helper import cast_f64_dtype, save_file, load_file
 from ._RandomNumberGenerator import RandomNumberGenerator
@@ -75,8 +72,8 @@ class calibrator(object):
 
             For example, see :data:`tests.shared_scenario.DEAFULT_MH_SPECS`.
 
-        emu : surmise.emulation.emulator
-            An emulator class instance as defined in surmise.emulation.
+        emu : surmise.emulator
+            An emulator class instance as defined in surmise.
 
         method : str, optional
             A string that points to the file located in ``calibrationmethods/``

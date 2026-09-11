@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from surmise.emulation import emulator
+from surmise import emulator
 
 from .conftest import does_not_raise
 from .shared_scenario import x_lin as x, theta_lin as theta, f_lin as f

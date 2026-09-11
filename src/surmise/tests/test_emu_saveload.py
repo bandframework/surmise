@@ -1,5 +1,5 @@
 import numpy as np
-from surmise.emulation import emulator
+from surmise import emulator
 import pytest
 import os
 
