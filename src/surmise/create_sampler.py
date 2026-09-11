@@ -3,9 +3,10 @@ import warnings
 from .utilitiesmethods.metropolis_hastings import sampler as sample_with_metropolis_hastings
 from .utilitiesmethods.LMC import sampler as sample_with_LMC
 from .utilitiesmethods.PTLMC import sampler as sample_with_PTLMC
+from .utilitiesmethods._construct_log_joint_posterior import construct_log_joint_posterior
 
 
-def create_sampler(sampler, expert_mode):
+def create_sampler(description, expert_mode):
     """
     Construct a sampler function for direct use by |surmise| calibrators.  The
     following example demonstrates its use.
@@ -27,7 +28,7 @@ def create_sampler(sampler, expert_mode):
 
     Parameters
     ----------
-    sampler :
+    description :
         Name of desired sampler offered by |surmise|.  Valid values are
 
         * "metropolis_hastings" to use
@@ -45,32 +46,51 @@ def create_sampler(sampler, expert_mode):
     :
         The desired sampler function.
     """
-    if isinstance(sampler, str):
-        if sampler.lower() == "metropolis_hastings":
-            return sample_with_metropolis_hastings
-        elif sampler.upper() == "LMC":
-            if not expert_mode:
-                msg = "{} is included for unofficial research purposes only"
-                raise ValueError(msg.format(sampler))
-
-            # Emit warning to extend a helping hand to the experts.
-            msg = f"Using unofficial research {sampler} sampler"
-            warnings.warn(msg)
-            return sample_with_LMC
-        elif sampler.upper() == "PTLMC":
-            return sample_with_PTLMC
-    elif isinstance(sampler, dict):
-        if len(sampler) != 1:
+    # User-provided samplers must have an interface explicitly linked to
+    # sampling posteriors -- they must accept log joint prior and log
+    # likelihood.
+    if isinstance(description, dict):
+        if len(description) != 1:
             return ValueError('Custom sampler must be {"user": my_sampler_fcn}')
-        source = list(sampler.keys())[0]
+        source = list(description.keys())[0]
         if source.lower() != "user":
             return ValueError('Custom sampler must be {"user": my_sampler_fcn}')
-        sampler_fcn = sampler[source]
+        sampler_fcn = description[source]
         if not callable(sampler_fcn):
             return ValueError("Custom sampler function is not callable")
 
         return sampler_fcn
-    else:
-        raise TypeError(f"sampler should be a string ({sampler})")
+    elif not isinstance(description, str):
+        raise TypeError(f"description should be a string or dict ({description})")
 
-    raise ValueError(f"Invalid sampler ({sampler})")
+    # We wrap internal samplers so that these can remain as general use MCMC
+    # samplers.
+    if description.lower() == "metropolis_hastings":
+        sampler = sample_with_metropolis_hastings
+    elif description.upper() == "LMC":
+        if not expert_mode:
+            msg = "{} is included for unofficial research purposes only"
+            raise ValueError(msg.format(description))
+
+        # Emit warning to extend a helping hand to the experts.
+        msg = f"Using unofficial research {description} sampler"
+        warnings.warn(msg)
+        sampler = sample_with_LMC
+    elif description.upper() == "PTLMC":
+        sampler = sample_with_PTLMC
+    else:
+        raise ValueError(f"Invalid sampler ({description})")
+
+    def _sampler_wrapped(log_joint_prior, log_likelihood,
+                         draw_func, scipy_stats_rng, specification):
+        log_joint_posterior = construct_log_joint_posterior(
+            log_joint_prior, log_likelihood, has_grad=False
+        )
+        return sampler(
+            logpost_func=log_joint_posterior,
+            draw_func=draw_func,
+            scipy_stats_rng=scipy_stats_rng,
+            specification=specification
+        )
+
+    return _sampler_wrapped
