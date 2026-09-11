@@ -83,14 +83,6 @@ def fit(fitinfo, emu, x, y, **sampler_args):
 
     thetaprior = fitinfo['thetaprior']
 
-    # Define the posterior function
-    def logpostfull(theta, return_grad=False):
-        logpost = thetaprior.lpdf(theta)
-        inds = np.where(np.isfinite(logpost))[0]
-        if len(inds) > 0:
-            logpost[inds] += loglik(fitinfo, emu, theta[inds, :], y, x)
-        return logpost
-
     # Define the draw function to sample from initial theta
     def draw_func(n):
         p = thetaprior.rnd(1).shape[1]
@@ -109,6 +101,13 @@ def fit(fitinfo, emu, x, y, **sampler_args):
 
         return theta0
 
+    def log_likelihood(theta):
+        n_theta = theta.shape[0]
+        result = loglik(fitinfo, emu, theta, y, x)
+        if n_theta == 1:
+            return np.squeeze(result)
+        return result.reshape(n_theta, 1)
+
     # Call the sampler
     specification = copy.deepcopy(sampler_args)
     if 'sampler' not in specification:
@@ -119,7 +118,11 @@ def fit(fitinfo, emu, x, y, **sampler_args):
     expert_mode = specification.get("expertMode", False)
 
     sampler = create_sampler(sampler_name, expert_mode=expert_mode)
-    results = sampler(logpost_func=logpostfull,
+    # TODO: Temporarily update to bilby-compatible interface.  This will fail
+    # with all official surmise samplers.  The interface is also likely
+    # incompatible for use with samplers that use gradients when available.
+    results = sampler(log_joint_prior=thetaprior,
+                      log_likelihood=log_likelihood,
                       draw_func=draw_func,
                       scipy_stats_rng=global_RNG,
                       specification=specification)

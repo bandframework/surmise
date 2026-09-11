@@ -62,14 +62,14 @@ def create_sampler(sampler, expert_mode):
     elif isinstance(sampler, dict):
         if len(sampler) != 1:
             return ValueError('Custom sampler must be {"user": my_sampler_fcn}')
-        source = sampler.keys()[0]
+        source = list(sampler.keys())[0]
         if source.lower() != "user":
             return ValueError('Custom sampler must be {"user": my_sampler_fcn}')
         sampler_fcn = sampler[source]
         if not callable(sampler_fcn):
             return ValueError("Custom sampler function is not callable")
 
-        raise NotImplementedError("This functionality is not under test")
+        return sampler_fcn
     else:
         raise TypeError(f"sampler should be a string ({sampler})")
 
