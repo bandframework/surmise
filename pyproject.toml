@@ -33,7 +33,7 @@
 requires = [
     "setuptools>=68.2.2",
     "setuptools_scm[toml]>=6.0",
-    "numpy==2.1.2"
+    "numpy==2.3.2"
 ]
 build-backend = "setuptools.build_meta"
 
@@ -43,7 +43,7 @@ write_to = "src/surmise/_version.py"
 [tool.cibuildwheel]
 # For Python 3.14, numpy built with MINGW-W64 on Windows 64 bits is experimental
 # and only available for testing.
-skip         = ["cp38-*", "cp39-*", "cp314-win*", "cp314t-win*",
+skip         = ["cp38-*", "cp39-*",
                 "*-win32", "*_i686", "*-musllinux*"]
 before-all   = ["uname -a"]
 before-build = ["git status"]
