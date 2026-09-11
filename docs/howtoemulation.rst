@@ -11,9 +11,9 @@ placing their emulator's Python source code in that same folder.
 This tutorial
 describes how to structure a custom emulator code so that this integration is
 successful.
-In this tutorial, we describe how to include a new emulator to the surmise's
+In this tutorial, we describe how to include a new emulator in surmise's
 framework. We illustrate this with ``PCGP``--an emulator method located in the
-directory ``\emulationmethods``.
+directory ``emulationmethods``.
 
 In surmise, all emulator methods inherit from the base class :py:class:`surmise.emulator`.
 An emulator class calls the user input method, and fits the corresponding

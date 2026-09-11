@@ -59,7 +59,7 @@ def fit(fitinfo, emu, x, y, **sampler_args):
         - fitinfo['lpdf'] :log of the posterior of the given theta.
 
     emu : surmise.emulator
-        An emulator class instance as defined in
+        An emulator class instance
     x : numpy.ndarray
         An array of x  that represent the inputs.
     y : numpy.ndarray
@@ -194,11 +194,11 @@ def predict(predinfo, fitinfo, emu, x, args=None):
         A dictionary including the calibration fitting information once
         complete.
     emu : surmise.emulator
-        DESCRIPTION.
+        An emulator class instance
     x : TYPE
         An array of x values where the prediction occurs.
     args : dict, optional
-        A dictionary containing options. The default is None.
+        A dictionary containing options.
 
 
     '''

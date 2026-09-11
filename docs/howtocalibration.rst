@@ -12,7 +12,7 @@ source code in that same folder.
 This tutorial describes how to structure a
 custom calibrator code so that this integration is successful.
 We illustrate this with ``directbayeswoodbury``--a calibrator method located
-in the directory ``\calibrationmethods``.
+in the directory ``calibrationmethods``.
 
 In surmise, all calibrator methods inherit from the base class
 :py:class:`surmise.calibrator`. A calibrator class calls the user
