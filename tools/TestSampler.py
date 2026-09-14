@@ -25,6 +25,15 @@ from MplMcConvergenceCovND import MplMcConvergenceCovND
 from MplCornerPlot import MplCornerPlot
 
 
+# TODO: Need to add in test setups that define a prior and likelihoods with
+# gradients.
+class DoNothingPrior(object):
+    def lpdf(theta):
+        # This allows for constructing the log joint posterior directly from the
+        # log likelihood, which is set to our target distribution.
+        return np.zeros((len(theta), 1))
+
+
 class TestSampler(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         """
@@ -148,7 +157,9 @@ class TestSampler(unittest.TestCase):
             start_dist_sampler = functools.partial(start_distribution.sample,
                                                    rng=scipy_stats_rng)
         result_1 = run_MCMC(
-            logpost_func=target_distribution.logpdf,
+            log_joint_prior=DoNothingPrior,
+            log_likelihood=target_distribution.logpdf,
+            log_likelihood_grad=None,
             draw_func=start_dist_sampler,
             scipy_stats_rng=scipy_stats_rng,
             specification=sampler_cfg
@@ -307,7 +318,9 @@ class TestSampler(unittest.TestCase):
             start_dist_sampler = functools.partial(start_distribution.sample,
                                                    rng=scipy_stats_rng)
         result_2 = run_MCMC(
-            logpost_func=target_distribution.logpdf,
+            log_joint_prior=DoNothingPrior,
+            log_likelihood=target_distribution.logpdf,
+            log_likelihood_grad=None,
             draw_func=start_dist_sampler,
             scipy_stats_rng=scipy_stats_rng,
             specification=sampler_cfg

@@ -3,8 +3,7 @@ import scipy.stats as sps
 import scipy.optimize as spo
 
 
-def sampler(logpost_func,
-            draw_func,
+def sampler(logpost_func, logpost_grad_func, draw_func,
             scipy_stats_rng,
             specification):
     r"""
@@ -121,47 +120,16 @@ def sampler(logpost_func,
 
     # number of optimization at each chain before starting
     numopt = temps.shape[0]
-    # before beginning, let's test out the given logpdf function
-    testout = logpost_func(theta0[0:2, :])
-    if type(testout) is tuple:
-        if len(testout) > 2:
-            raise ValueError('log density does not return 1 or 2 elements')
-        if testout[1].shape[1] != theta0.shape[1]:
-            raise ValueError('derivative appears to be the wrong shape')
 
-        def logpostf(thetain):  # canonical shapes: (m,) and (m, p)
-            f, df = logpost_func(thetain)
-            f = np.asarray(f, dtype=float).ravel()
-            df = np.asarray(df, dtype=float).reshape(f.shape[0], -1)
-            return f, df
-
-        def logpostf_grad(thetain):
-            return logpostf(thetain)[1]
-        try:
-            testout = logpost_func(theta0[10, :], return_grad=False)
-            if type(testout) is tuple:  # make sure that return_grad functionality works
-                raise ValueError('Cannot stop returning a grad')
-
-            def logpostf_nograd(theta):
-                return np.asarray(logpost_func(theta, return_grad=False),
-                                  dtype=float).ravel()
-        except Exception:
-            def logpostf_nograd(theta):  # if not, do not use return_grad key
-                return np.asarray(logpost_func(theta)[0], dtype=float).ravel()
-    else:
-        logpostf_grad = None  # sometimes no derivative is given
-
-        def logpostf_nograd(theta):
-            return np.asarray(logpost_func(theta), dtype=float).ravel()
-        logpostf = logpostf_nograd
-
-    if logpostf_grad is None:  # these are standard parameters if there is
-        taracc = 0.25  # close to theoretical result 0.234
-    else:
+    has_grad = callable(logpost_grad_func)
+    if has_grad:
         taracc = 0.60  # close to theoretical result in LMC paper
+    else:
+        taracc = 0.25  # close to theoretical result 0.234
+
     # begin preoptimizer
     # order the existing initial theta's by log pdf
-    ord1 = np.argsort(-logpostf_nograd(theta0) +
+    ord1 = np.argsort(-logpost_func(theta0) +
                       (theta0.shape[1] *
                        sps.norm.rvs(size=theta0.shape[0],
                                     random_state=scipy_stats_rng)**2))
@@ -171,13 +139,14 @@ def sampler(logpost_func,
     thetas = np.maximum(np.std(theta0, 0), 10 ** (-8) * np.std(theta0))
 
     # rescale the input to make it easier to optimize
-    def neglogpostf_nograd(thetap):
+    def neglogpostf(thetap):
         theta = thetacen + thetas * thetap
-        return -logpostf_nograd(theta.reshape((1, len(theta))))[0]
-    if logpostf_grad is not None:
+        return -logpost_func(theta.reshape((1, len(theta))))
+    if has_grad:
         def neglogpostf_grad(thetap):
             theta = thetacen + thetas * thetap
-            return -thetas * logpostf_grad(theta.reshape((1, len(theta)))).ravel()
+            return -thetas * logpost_grad_func(theta.reshape((1, len(theta)))).ravel()
+
     boundL = np.maximum(-10*np.ones(theta0.shape[1]),
                         np.min((theta0 - thetacen)/thetas, 0))
     boundU = np.minimum(10*np.ones(theta0.shape[1]),
@@ -186,14 +155,14 @@ def sampler(logpost_func,
     thetaop = theta0
     # now we are ready to optimize for each chain
     for k in range(0, numopt):
-        if logpostf_grad is None:
-            opval = spo.minimize(neglogpostf_nograd,
+        if not has_grad:
+            opval = spo.minimize(neglogpostf,
                                  (thetaop[k, :] - thetacen) / thetas,
                                  method='L-BFGS-B',
                                  bounds=bounds)
             thetaop[k, :] = thetacen + thetas * opval.x
         else:
-            opval = spo.minimize(neglogpostf_nograd,
+            opval = spo.minimize(neglogpostf,
                                  (thetaop[k, :] - thetacen) / thetas,
                                  method='L-BFGS-B',
                                  jac=neglogpostf_grad,
@@ -206,7 +175,7 @@ def sampler(logpost_func,
         if k == 0:
             notmoved = False
         stepadj = 4
-        l0 = neglogpostf_nograd(opval.x)
+        l0 = neglogpostf(opval.x)
         while notmoved:
             if (W > 0).all():
                 r = (V.T*np.sqrt(W)) @ (V @ sps.norm.rvs(size=thetacen.shape[0],
@@ -218,7 +187,7 @@ def sampler(logpost_func,
                     notmoved = False
                 continue
 
-            if (neglogpostf_nograd(stepadj * r + opval.x) -
+            if (neglogpostf(stepadj * r + opval.x) -
                     l0) < 3*thetacen.shape[0]:
                 thetaop[k, :] = thetacen + thetas * (stepadj * r + opval.x)
                 notmoved = False
@@ -227,12 +196,12 @@ def sampler(logpost_func,
     # end preoptimizer
     # initialize the starting point
     thetac = thetaop
-    if logpostf_grad is not None:
-        fval, dfval = logpostf(thetac)
+    if has_grad:
+        fval, dfval = logpost_grad_func(thetac)
         fval = fval / temps
         dfval = dfval / tempsc
     else:
-        fval = logpostf_nograd(thetac) / temps
+        fval = logpost_func(thetac) / temps
 
     # preallocate the saving matrix
     thetasave = np.zeros((numchain,
@@ -261,11 +230,11 @@ def sampler(logpost_func,
             thetap = thetac + rval
         elif thetac.shape[1] == 1:
             thetap = thetac + rval[:, np.newaxis]
-        if logpostf_grad is not None:
+        if has_grad:
             # calculate the elements to move if there is a gradiant
             diffval = (adjrhoc ** 2) * (dfval @ covmat0)
             thetap += diffval
-            fvalp, dfvalp = logpostf(thetap)  # thetap : no chain x dimension
+            fvalp, dfvalp = logpost_grad_func(thetap)  # thetap : no chain x dimension
             fvalp = fvalp / temps  # to flatten the posterior
             dfvalp = dfvalp / tempsc
             term1 = rvalo / np.sqrt(2)
@@ -273,7 +242,7 @@ def sampler(logpost_func,
             qadj = -(2 * np.sum(term1 * term2, 1) + np.sum(term2**2, 1))
         else:
             # calculate the elements to move if there is not a gradiant
-            fvalp = logpostf_nograd(thetap) / temps  # thetap : no chain x dimension
+            fvalp = logpost_func(thetap) / temps  # thetap : no chain x dimension
             qadj = np.zeros(fvalp.shape)
         swaprnd = np.log(sps.uniform.rvs(size=fval.shape[0], random_state=scipy_stats_rng))
         whereswap = np.where(np.squeeze(swaprnd)
@@ -283,7 +252,7 @@ def sampler(logpost_func,
             numtimes = numtimes + np.sum(whereswap > -1)/totnumchain
             thetac[whereswap] = np.copy(thetap[whereswap])
             fval[whereswap] = np.copy(fvalp[whereswap])
-            if logpostf_grad is not None:
+            if has_grad:
                 dfval[whereswap] = np.copy(dfvalp[whereswap])
         # do some swaps along the temperatures
         fvaln = fval * temps
@@ -291,7 +260,7 @@ def sampler(logpost_func,
         orderprop = tempexchange(fvaln, temps, iters=5, scipy_stats_rng=scipy_stats_rng)
         fval = fvaln[orderprop] / temps
         thetac = thetac[orderprop, :]
-        if logpostf_grad is not None:
+        if has_grad:
             dfvaln = tempsc * dfval
             dfval = (1 / tempsc) * dfvaln[orderprop, :]
         # if we have to tune, let's move tau up or down which gives bigger or smaller jumps
@@ -310,7 +279,7 @@ def sampler(logpost_func,
     # TODO: choose the first numsamp as required samples, the flattening should be revisited.
     theta = thetasave_flatten[:numsamp].copy()  # copy: do not alias 'theta_from_chain'
     # store this in a dictionary
-    sampler_info = {'theta': theta, 'theta_from_chain': thetasave, 'logpost': logpostf_nograd(theta)}
+    sampler_info = {'theta': theta, 'theta_from_chain': thetasave, 'logpost': logpost_func(theta)}
     return sampler_info
 
 

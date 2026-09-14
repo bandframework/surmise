@@ -1,8 +1,11 @@
+import warnings
+
 import numpy as np
 import scipy.stats as sps
 
 
 def sampler(logpost_func,
+            logpost_grad_func,
             draw_func,
             scipy_stats_rng,
             specification):
@@ -77,6 +80,9 @@ def sampler(logpost_func,
     }
     LOG_RATE = 25_000
 
+    if callable(logpost_grad_func):
+        warnings.warn("Metropolis-Hastings does not use gradients")
+
     # Get specification values
     if not VALID_SPECS.issubset(set(specification)):
         raise ValueError(
@@ -131,7 +137,7 @@ def sampler(logpost_func,
     theta[0] = theta0
 
     lposterior = np.full(burnSamples + numsamp, np.nan, float)
-    lposterior[0] = np.squeeze(logpost_func(theta0, return_grad=False))
+    lposterior[0] = np.squeeze(logpost_func(theta0))
     if not np.isfinite(lposterior[0]):
         assert lposterior[0] == -np.inf
         raise RuntimeError("Initial theta evaluates to zero density")
@@ -150,7 +156,7 @@ def sampler(logpost_func,
         theta_cand = np.reshape(np.array(theta_cand), (1, p))
 
         # Compute loglikelihood
-        logpost = np.squeeze(logpost_func(theta_cand, return_grad=False))
+        logpost = np.squeeze(logpost_func(theta_cand))
 
         if logpost == -np.inf:
             accept = False

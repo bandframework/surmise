@@ -118,11 +118,9 @@ def fit(fitinfo, emu, x, y, **sampler_args):
     expert_mode = specification.get("expertMode", False)
 
     sampler = create_sampler(sampler_name, expert_mode=expert_mode)
-    # TODO: Temporarily update to bilby-compatible interface.  This will fail
-    # with all official surmise samplers.  The interface is also likely
-    # incompatible for use with samplers that use gradients when available.
     results = sampler(log_joint_prior=thetaprior,
                       log_likelihood=log_likelihood,
+                      log_likelihood_grad=None,
                       draw_func=draw_func,
                       scipy_stats_rng=global_RNG,
                       specification=specification)

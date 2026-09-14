@@ -102,37 +102,6 @@ def fit(fitinfo, emu, x, y, **sampler_args):
             return grad
         thetaprior.lpdf_grad = lpdf_grad
 
-    def logpostfull_wgrad(theta, return_grad=True):
-
-        # obtain the log-prior
-        logpost = thetaprior.lpdf(theta)
-        inds = np.where(np.isfinite(logpost))[0]
-
-        if emureturn_grad and return_grad:
-            # obtain the gradient of the log-prior
-            dlogpost = thetaprior.lpdf_grad(theta)
-
-            if len(inds):
-                # obtain the log-likelihood and the gradient of it
-                loglikinds, dloglikinds = loglik_grad(fitinfo,
-                                                      emu,
-                                                      theta[inds, :],
-                                                      y,
-                                                      x)
-                logpost[inds] += loglikinds
-                dlogpost[inds] += dloglikinds
-            return logpost, dlogpost
-        else:
-            if len(inds) > 0:
-                # obtain the log-likelihood
-                logpost[inds] += loglik(fitinfo,
-                                        emu,
-                                        theta[inds, :],
-                                        y,
-                                        x)
-
-            return logpost
-
     # Define the draw function to sample from initial theta
     def draw_func(n):
         p = thetaprior.rnd(1).shape[1]
@@ -151,6 +120,22 @@ def fit(fitinfo, emu, x, y, **sampler_args):
 
         return theta0
 
+    def log_likelihood(theta):
+        n_theta = theta.shape[0]
+        result = loglik(fitinfo, emu, theta, y, x)
+        if n_theta == 1:
+            return np.squeeze(result)
+        return result.reshape(n_theta, 1)
+
+    log_likelihood_grad = None
+    if emureturn_grad:
+        def log_likelihood_grad(theta):
+            n_theta = theta.shape[0]
+            logp, dlogp = loglik_grad(fitinfo, emu, theta, y, x)
+            if n_theta == 1:
+                return np.squeeze(logp), np.squeeze(dlogp)
+            return logp, dlogp
+
     # Call the sampler
     specification = copy.deepcopy(sampler_args)
     if 'sampler' not in specification:
@@ -161,16 +146,20 @@ def fit(fitinfo, emu, x, y, **sampler_args):
     expert_mode = specification.get("expertMode", False)
 
     sampler = create_sampler(sampler_name, expert_mode=expert_mode)
-    results = sampler(logpost_func=logpostfull_wgrad,
+    results = sampler(log_joint_prior=thetaprior,
+                      log_likelihood=log_likelihood,
+                      log_likelihood_grad=log_likelihood_grad,
                       draw_func=draw_func,
                       scipy_stats_rng=global_RNG,
                       specification=specification)
     theta = results["theta"]
 
     # obtain log-posterior of theta values
-    ladj = logpostfull_wgrad(theta, return_grad=False)
-    mladj = np.max(ladj)
-    fitinfo['lpdfapproxnorm'] = np.log(np.mean(np.exp(ladj - mladj))) + mladj
+    # TODO: Are these returned in results by all samplers, including
+    # user-provided samplers?
+    # ladj = logpostfull_wgrad(theta, return_grad=False)
+    # mladj = np.max(ladj)
+    # fitinfo['lpdfapproxnorm'] = np.log(np.mean(np.exp(ladj - mladj))) + mladj
     fitinfo['thetarnd'] = theta
     fitinfo['y'] = y
     fitinfo['x'] = x

@@ -81,13 +81,15 @@ def create_sampler(description, expert_mode):
     else:
         raise ValueError(f"Invalid sampler ({description})")
 
-    def _sampler_wrapped(log_joint_prior, log_likelihood,
+    def _sampler_wrapped(log_joint_prior, log_likelihood, log_likelihood_grad,
                          draw_func, scipy_stats_rng, specification):
-        log_joint_posterior = construct_log_joint_posterior(
-            log_joint_prior, log_likelihood, has_grad=False
-        )
+        log_joint_posterior, log_joint_posterior_grad = \
+            construct_log_joint_posterior(
+                log_joint_prior, log_likelihood, log_likelihood_grad
+            )
         return sampler(
             logpost_func=log_joint_posterior,
+            logpost_grad_func=log_joint_posterior_grad,
             draw_func=draw_func,
             scipy_stats_rng=scipy_stats_rng,
             specification=specification

@@ -4,8 +4,7 @@ import scipy.optimize as spo
 import warnings
 
 
-def sampler(logpost_func,
-            draw_func,
+def sampler(logpost_func, logpost_grad_func, draw_func,
             scipy_stats_rng,
             specification):
     r'''
@@ -112,47 +111,19 @@ def sampler(logpost_func,
     # Minimum effective sample size (ESS) desired in the returned samples
     tarESS = np.max((150, 10 * theta0.shape[1]))
 
-    # Test
-    testout = logpost_func(theta0[0:2, :])
-    if type(testout) is tuple:
-        if len(testout) != 2:
-            raise ValueError('log density does not return 1 or 2 elements')
-        if testout[1].shape[1] is not theta0.shape[1]:
-            raise ValueError('derivative appears to be the wrong shape')
-
-        logpostf = logpost_func
-
-        def logpostf_grad(theta):
-            return logpost_func(theta)[1]
-
-        try:
-            testout = logpost_func(theta0[10, :], return_grad=False)
-            if type(testout) is tuple:
-                raise ValueError('Cannot stop returning a grad')
-
-            def logpostf_nograd(theta):
-                return logpost_func(theta, return_grad=False)
-
-        except Exception:
-            def logpostf_nograd(theta):
-                return logpost_func(theta)[0]
-    else:
-        logpostf_grad = None
-        logpostf = logpost_func
-        logpostf_nograd = logpost_func
-
-    if logpostf_grad is None:
-        rho = 2 / theta0.shape[1] ** (1/2)
-        taracc = 0.25
-    else:
+    has_grad = callable(logpost_grad_func)
+    if has_grad:
         rho = 2 / theta0.shape[1] ** (1/6)
         taracc = 0.60
+    else:
+        rho = 2 / theta0.shape[1] ** (1/2)
+        taracc = 0.25
 
     keepgoing = True
     theta0 = np.unique(theta0, axis=0)
     iteratttempt = 0
     while keepgoing:
-        logpost = logpostf_nograd(theta0)/4
+        logpost = logpost_func(theta0)/4
         mlogpost = np.max(logpost)
         logpost -= (mlogpost + np.log(np.sum(np.exp(logpost - mlogpost))))
         post = np.exp(logpost)
@@ -179,15 +150,15 @@ def sampler(logpost_func,
     thetac = np.mean(theta0, 0)
     thetas = np.maximum(np.std(theta0, 0), 10 ** (-8) * np.std(theta0))
 
-    def neglogpostf_nograd(thetap):
+    def neglogpostf(thetap):
         theta = thetac + thetas * thetap
 
-        return -logpostf_nograd(theta.reshape((1, len(theta))))[0]
+        return -logpost_func(theta.reshape((1, len(theta))))
 
-    if logpostf_grad is not None:
+    if has_grad:
         def neglogpostf_grad(thetap):
             theta = thetac + thetas * thetap
-            return -thetas * logpostf_grad(theta.reshape((1, len(theta))))
+            return -thetas * logpost_grad_func(theta.reshape((1, len(theta))))
 
     boundL = np.maximum(-10*np.ones(theta0.shape[1]),
                         np.min((theta0 - thetac)/thetas, 0))
@@ -201,15 +172,15 @@ def sampler(logpost_func,
     # begin preoptimizer
     for k in range(0, thetaop.shape[0]):
         theta0 = (thetaop[k, :] - thetac) / thetas
-        if logpostf_grad is None:
-            opval = spo.minimize(neglogpostf_nograd,
+        if not has_grad:
+            opval = spo.minimize(neglogpostf,
                                  theta0,
                                  method='L-BFGS-B',
                                  bounds=bounds)
             thetaop[k, :] = thetac + thetas * opval.x
         else:
             if keeptryingwithgrad:
-                opval = spo.minimize(neglogpostf_nograd,
+                opval = spo.minimize(neglogpostf,
                                      theta0,
                                      method='L-BFGS-B',
                                      jac=neglogpostf_grad,
@@ -227,7 +198,7 @@ def sampler(logpost_func,
                     if meantest - 3*stdtest > 0.25:
                         keeptryingwithgrad = False
 
-                opval = spo.minimize(neglogpostf_nograd,
+                opval = spo.minimize(neglogpostf,
                                      theta0,
                                      method='L-BFGS-B',
                                      bounds=bounds,
@@ -236,7 +207,7 @@ def sampler(logpost_func,
     # end Preoptimizer
 
     thetasave = np.vstack((thetastart, thetaop))
-    Lsave = logpostf_nograd(thetasave)
+    Lsave = logpost_func(thetasave)
     tau = -1
     rho = 2 * (1 + (np.exp(2 * tau) - 1) / (np.exp(2 * tau) + 1))
     numchain = 100
@@ -260,10 +231,10 @@ def sampler(logpost_func,
         thetac = thetasave[scipy_stats_rng.choice(range(0, thetasave.shape[0]),
                                                   size=numchain), :]
 
-        if logpostf_grad is not None:
-            fval, dfval = logpostf(thetac)
+        if has_grad:
+            fval, dfval = logpost_grad_func(thetac)
         else:
-            fval = logpostf_nograd(thetac)
+            fval = logpost_func(thetac)
 
         thetasave = np.zeros((numchain, numsamppc, thetac.shape[1]))
         Lsave = np.zeros((numchain, numsamppc))
@@ -277,15 +248,15 @@ def sampler(logpost_func,
                 rval = np.reshape(rval, (thetac.shape))
             thetap = thetac + rval
 
-            if logpostf_grad is not None:
+            if has_grad:
                 diffval = rho ** 2 * (dfval @ covmat0)
                 thetap += diffval
-                fvalp, dfvalp = logpostf(thetap)
+                fvalp, dfvalp = logpost_grad_func(thetap)
                 term1 = rvalo / np.sqrt(2)
                 term2 = (dfval + dfvalp) @ hc * rho / 2
                 qadj = -(2 * np.sum(term1 * term2, 1) + np.sum(term2**2, 1))
             else:
-                fvalp = logpostf_nograd(thetap)
+                fvalp = logpost_func(thetap)
                 qadj = np.zeros(fvalp.shape)
 
             swaprnd = np.log(sps.uniform.rvs(size=fval.shape[0], random_state=scipy_stats_rng))
@@ -297,7 +268,7 @@ def sampler(logpost_func,
                 thetac[whereswap, :] = 1*thetap[whereswap, :]
                 fval[whereswap] = 1*fvalp[whereswap]
 
-                if logpostf_grad is not None:
+                if has_grad:
                     dfval[whereswap, :] = 1*dfvalp[whereswap, :]
 
             # Robbins-Monroe updates
