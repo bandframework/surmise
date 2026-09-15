@@ -135,6 +135,7 @@ def sampler(logpost_func,
     if not np.isfinite(lposterior[0]):
         # TODO: by chance, the assert statement below is false. An if statement is in place for later debugging
         if lposterior[0] != -np.inf:
+            print(f'theta values: {theta0}')
             raise RuntimeError(f"Proposed theta returns invalid log posterior: {lposterior[0]}")
         assert lposterior[0] == -np.inf
         raise RuntimeError("Initial theta evaluates to zero density")
