@@ -7,10 +7,10 @@
 # According to numpy docs, users can use 1.X numpy installations with binaries
 # built with numpy >= 2.0.0.  The API and ABI are also supposed to be forward
 # compatible until the API (and potentially the ABI) are intentionally broken at
-# a minor or major release.  For now, we build with numpy 2.1.2 so that we use a
+# a minor or major release.  For now, we build with numpy 2.3.2 so that we use a
 # sufficiently old version of numpy to get the best possible compatibility while
 # taking advantage of a bug fix (See https://github.com/numpy/numpy/pull/27416)
-# and prebuilt numpy wheels for Windows.  This assume that newer versions of
+# and prebuilt numpy wheels for Windows.  This assumes that newer versions of
 # numpy haven't fixed other bugs that affect surmise or improved surmise
 # performance significantly.
 #
@@ -30,6 +30,7 @@
 
 [build-system]
 # Issue #185 details numpy v2.1.2 decision.
+# Issue #215 and PR #246 updates to numpy v2.3.2.
 requires = [
     "setuptools>=68.2.2",
     "setuptools_scm[toml]>=6.0",
