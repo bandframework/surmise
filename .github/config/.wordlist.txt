@@ -51,6 +51,7 @@ TODO
 VAH
 aMWOoGvY
 attr
+autoclass
 autofunction
 automodule
 bandframework

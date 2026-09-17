@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.stats as sps
 import pytest
-from surmise.calibration import calibrator
+from surmise import calibrator
 
 from .conftest import does_not_raise
 from .shared_scenario import (x_lin as x, y_lin as y,

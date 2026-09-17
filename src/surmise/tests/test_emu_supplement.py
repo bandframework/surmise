@@ -1,8 +1,8 @@
 import numpy as np
 import scipy.stats as sps
 import pytest
-from surmise.emulation import emulator
-from surmise.calibration import calibrator
+from surmise import emulator
+from surmise import calibrator
 
 from .conftest import does_not_raise
 from .shared_scenario import x_lin as x, theta_lin as theta, f_lin as f, y_lin as y, \

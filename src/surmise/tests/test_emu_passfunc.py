@@ -1,5 +1,5 @@
 import pytest
-from surmise.emulation import emulator
+from surmise import emulator
 
 from .conftest import does_not_raise
 from .shared_scenario import borehole_model, x_bh as x, thetatot_bh as thetatot
