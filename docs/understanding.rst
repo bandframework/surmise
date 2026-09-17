@@ -7,5 +7,6 @@ Understanding surmise
 	
    overview
    random_number_generation
-   FAQ about calibration<FAQ>	
+   cov_diagnosis
+   FAQ about calibration<FAQ>
    use_cases
