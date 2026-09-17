@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.stats as sps
+import warnings
 
 
 def sampler(logpost_func,
@@ -130,15 +131,19 @@ def sampler(logpost_func,
     theta = np.full((burnSamples + numsamp, p), np.nan, float)
     theta[0] = theta0
 
+    # theta checking logic:
+    # nan value at the beginning raises error
+    # -inf value is warned, but continues.
+    # any proposed nan values raises error.
+
     lposterior = np.full(burnSamples + numsamp, np.nan, float)
     lposterior[0] = np.squeeze(logpost_func(theta0, return_grad=False))
     if not np.isfinite(lposterior[0]):
-        # TODO: by chance, the assert statement below is false. An if statement is in place for later debugging
         if lposterior[0] != -np.inf:
             print(f'theta values: {theta0}')
             raise RuntimeError(f"Proposed theta returns invalid log posterior: {lposterior[0]}")
-        assert lposterior[0] == -np.inf
-        raise RuntimeError("Initial theta evaluates to zero density")
+        else:
+            warnings.warn("Initial theta has zero density")
 
     # We implicitly treat theta0 as accepted.  If the number of burn-in samples
     # is positive, we also treat it as part of the burn-in.
