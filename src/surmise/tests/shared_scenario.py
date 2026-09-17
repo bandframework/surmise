@@ -22,7 +22,7 @@ DEFAULT_MH_SPECS = {
 }
 
 DEFAULT_PTLMC_SPECS = {
-    "sampler": "PtLMC",
+    "sampler": "PTLMC",
     'samplesPerChain': 100,
     'nSamples': 800,
     'theta0': np.array([[0, 9]]),
