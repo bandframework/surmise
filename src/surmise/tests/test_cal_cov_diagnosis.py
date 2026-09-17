@@ -35,7 +35,7 @@ def _check_record(cov_diagnosis):
     n_rejected = cov_diagnosis['n_nonpd'] + cov_diagnosis['n_nonfinite']
     assert cov_diagnosis['n_nonpd'] > 0
     assert n_rejected <= cov_diagnosis['n_eval']
-    assert cov_diagnosis['min_eig'] < 0
+    assert cov_diagnosis['min_eig'] == -1e-3
     assert len(cov_diagnosis['theta']) == min(n_rejected,
                                               cov_diagnosis['max_store'])
 

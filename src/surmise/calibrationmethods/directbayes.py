@@ -256,8 +256,7 @@ def loglik(fitinfo, emu, theta, y, x):
         CovMatEigS, CovMatEigW = np.linalg.eigh(CovMat)
 
         # CovMat = PSD + diag(obsvar), so exact eigenvalues >= min(obsvar)
-        cov_diagnosis = fitinfo.setdefault('cov_diagnosis',
-                                           new_cov_diagnosis())
+        cov_diagnosis = fitinfo['cov_diagnosis']
         if not check_eigvals(cov_diagnosis, theta[k], CovMatEigS,
                              lower_bound=np.min(obsvar),
                              arrays=(m0, CovMat)):

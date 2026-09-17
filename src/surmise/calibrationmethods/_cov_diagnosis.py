@@ -70,7 +70,7 @@ def warn_cov_diagnosis(cov_diagnosis, method):
             f"{cov_diagnosis['n_nonfinite']} non-finite; min eigenvalue "
             f"{cov_diagnosis['min_eig']:.3g}). "
             "See calibrator.info['cov_diagnosis'].", RuntimeWarning)
-    elif cov_diagnosis['n_below_bound'] > 0:
+    if cov_diagnosis['n_below_bound'] > 0:
         warnings.warn(
             f"{method}: {cov_diagnosis['n_below_bound']} of {n_eval} "
             "likelihood covariances had eigenvalues below their analytic "

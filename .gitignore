@@ -8,7 +8,7 @@ surmise_applications/
 build/
 venv*/
 *.o
-cov_*
+covmat_*
 .cov_*
 .cache
 book/_build

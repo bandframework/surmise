@@ -315,8 +315,7 @@ def loglik(fitinfo, emu, theta, y, x):
         J2 = J.T @ stndresid
         W, V = np.linalg.eigh(np.eye(J.shape[1]) + J.T @ J)
         # I + J^T J has exact eigenvalues >= 1
-        cov_diagnosis = fitinfo.setdefault('cov_diagnosis',
-                                           new_cov_diagnosis())
+        cov_diagnosis = fitinfo['cov_diagnosis']
         if not check_eigvals(cov_diagnosis, theta[k], W, lower_bound=1.0,
                              arrays=(m0, S0)):
             loglik[k, 0] = -np.inf
@@ -383,8 +382,7 @@ def loglik_grad(fitinfo, emu, theta, y, x):
         J2 = J.T @ stndresid
         W, V = np.linalg.eigh(np.eye(J.shape[1]) + J.T @ J)
         # I + J^T J has exact eigenvalues >= 1
-        cov_diagnosis = fitinfo.setdefault('cov_diagnosis',
-                                           new_cov_diagnosis())
+        cov_diagnosis = fitinfo['cov_diagnosis']
         if not check_eigvals(cov_diagnosis, theta[k], W, lower_bound=1.0,
                              arrays=(m0, dm0, S0,
                                      emucovxhalf_grad[:, k, :, :])):
