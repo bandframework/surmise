@@ -137,7 +137,7 @@ def sampler(logpost_func,
 
         if finite_ind.size == 0:
             raise RuntimeError(f'All {N_INIT_DRAWS} initial theta values drawn with '
-                               f'draw_func() have zero density. Check if'
+                               f'draw_func() have zero density. Check if '
                                f'the prior draws are within the support of the '
                                f'posterior, or provide a theta0.')
 
