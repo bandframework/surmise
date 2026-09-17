@@ -70,6 +70,7 @@ directbayes
 directbayeswoodbury
 docstrings
 edu
+eigvals
 emulationmethods
 exascaleproject
 gKTCLEAGE
