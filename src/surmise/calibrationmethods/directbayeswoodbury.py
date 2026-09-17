@@ -5,6 +5,8 @@ import scipy.stats as sps
 
 from .._RandomNumberGenerator import RandomNumberGenerator
 from ..create_sampler import create_sampler
+from ._cov_diagnosis import (new_cov_diagnosis, check_eigvals,
+                             warn_cov_diagnosis)
 
 
 def fit(fitinfo, emu, x, y, **sampler_args):
@@ -158,16 +160,20 @@ def fit(fitinfo, emu, x, y, **sampler_args):
     expert_mode = specification.get("expertMode", False)
 
     sampler = create_sampler(sampler_name, expert_mode=expert_mode)
+    fitinfo['cov_diagnosis'] = new_cov_diagnosis()
     results = sampler(logpost_func=logpostfull_wgrad,
                       draw_func=draw_func,
                       scipy_stats_rng=global_RNG,
                       specification=specification)
     theta = results["theta"]
+    warn_cov_diagnosis(fitinfo['cov_diagnosis'], 'directbayeswoodbury')
 
     # obtain log-posterior of theta values
     ladj = logpostfull_wgrad(theta, return_grad=False)
-    mladj = np.max(ladj)
-    fitinfo['lpdfapproxnorm'] = np.log(np.mean(np.exp(ladj - mladj))) + mladj
+    # rejected re-evaluations (-inf) contribute zero mass; avoid -inf - -inf
+    mladj = np.max(ladj[np.isfinite(ladj)], initial=-np.inf)
+    fitinfo['lpdfapproxnorm'] = (np.log(np.mean(np.exp(ladj - mladj)))
+                                 + mladj) if np.isfinite(mladj) else mladj
     fitinfo['thetarnd'] = theta
     fitinfo['y'] = y
     fitinfo['x'] = x
@@ -308,6 +314,12 @@ def loglik(fitinfo, emu, theta, y, x):
             stndresid = stndresid[:, None]
         J2 = J.T @ stndresid
         W, V = np.linalg.eigh(np.eye(J.shape[1]) + J.T @ J)
+        # I + J^T J has exact eigenvalues >= 1
+        cov_diagnosis = fitinfo['cov_diagnosis']
+        if not check_eigvals(cov_diagnosis, theta[k], W, lower_bound=1.0,
+                             arrays=(m0, S0)):
+            loglik[k, 0] = -np.inf
+            continue
         if W.shape[0] > 1:
             J3 = V @ np.diag(1/W) @ V.T @ J2
         else:
@@ -369,6 +381,14 @@ def loglik_grad(fitinfo, emu, theta, y, x):
 
         J2 = J.T @ stndresid
         W, V = np.linalg.eigh(np.eye(J.shape[1]) + J.T @ J)
+        # I + J^T J has exact eigenvalues >= 1
+        cov_diagnosis = fitinfo['cov_diagnosis']
+        if not check_eigvals(cov_diagnosis, theta[k], W, lower_bound=1.0,
+                             arrays=(m0, dm0, S0,
+                                     emucovxhalf_grad[:, k, :, :])):
+            loglik[k, 0] = -np.inf
+            dloglik[k, :] = 0.0
+            continue
         J3 = V @ np.diag(1/W) @ V.T @ J2
         term2 = np.sum(J3 * J2)
 

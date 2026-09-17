@@ -75,6 +75,46 @@ Optional functions
 
 .. autofunction:: predict
 
+Adding the covariance checks to a new calibration method
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+The helpers for checking covariance are available in ``surmise.calibrationmethods._cov_diagnosis``. A new method
+creates the record before sampling, checks each evaluation inside its
+likelihood, and warns after sampling:
+
+.. code-block:: python
+
+    from ._cov_diagnosis import (new_cov_diagnosis, check_eigvals,
+                                 warn_cov_diagnosis)
+
+    def fit(fitinfo, emu, x, y, **sampler_args):
+        ...
+        fitinfo['cov_diagnosis'] = new_cov_diagnosis()
+        results = sampler(...)
+        warn_cov_diagnosis(fitinfo['cov_diagnosis'], 'mymethod')
+
+    def loglik(fitinfo, emu, theta, y, x):
+        ...
+        for k in range(theta.shape[0]):
+            W, V = np.linalg.eigh(np.eye(J.shape[1]) + J.T @ J)
+            cov_diagnosis = fitinfo['cov_diagnosis']
+            if not check_eigvals(cov_diagnosis, theta[k], W,
+                                 lower_bound=1.0, arrays=(m0, S0)):
+                loglik[k, 0] = -np.inf
+                continue
+            ...
+
+A method that also returns gradients should set the gradient of a rejected
+parameter to zero so that gradient-based samplers do not receive ``nan``.
+
+.. currentmodule:: surmise.calibrationmethods._cov_diagnosis
+
+.. autofunction:: new_cov_diagnosis
+
+.. autofunction:: check_eigvals
+
+.. autofunction:: warn_cov_diagnosis
+
 .. rubric:: Footnotes
 
 .. [#f1] The location of a surmise installation that was installed into a virtual environment, for example, might be ``~/local/venv/my_surmise/lib/python3.14/site-packages/surmise`` or, in Windows, ``~/local/surmise_venv/Lib/site-packages/surmise``

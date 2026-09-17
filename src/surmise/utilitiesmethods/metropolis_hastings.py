@@ -27,8 +27,9 @@ def sampler(logpost_func,
         The full set of sampler configuration values
 
         * **"theta0"** - ``None`` or the initial theta to use to start the sampling
-          process.  If ``None``, then the initial theta is drawn using
-          **draw_func**.
+          process.  If ``None``, then 100 candidates are drawn using
+          **draw_func** and the first with finite log posterior is used.
+          An error is raised if no candidates has a finite log posterior.
         * **"nSamples"** - total number of samples to acquire after the burn-in
           period.
         * **"nBurnSamples"** - total number of samples to acquire during the burn-in
@@ -76,6 +77,8 @@ def sampler(logpost_func,
         "nSamples", "nBurnSamples", "theta0", "stepType", "stepParam", "verbose"
     }
     LOG_RATE = 25_000
+    # Number of candidates drawn when theta0 is not given
+    N_INIT_DRAWS = 100
 
     # Get specification values
     if not VALID_SPECS.issubset(set(specification)):
@@ -122,19 +125,35 @@ def sampler(logpost_func,
     else:
         raise ValueError("Bad step type {stepType}")
 
-    # intial theta to start the chain
+    # initial theta to start the chain
+    # theta checking logic:
+    # nan value at the beginning raises error
+    # -inf value for 100 initial draws raises an error
+    # any proposed nan values raises error.
     if theta0 is None:
-        theta0 = draw_func(1)
+        theta_candidates = draw_func(N_INIT_DRAWS)
+        lpost_candidates = logpost_func(theta_candidates, return_grad=False)
+        finite_ind = np.flatnonzero(np.isfinite(lpost_candidates))
+
+        if finite_ind.size == 0:
+            raise RuntimeError(f'All {N_INIT_DRAWS} initial theta values drawn with '
+                               f'draw_func() have zero density. Check if '
+                               f'the prior draws are within the support of the '
+                               f'posterior, or provide a theta0.')
+
+        theta0 = theta_candidates[finite_ind[0]:(finite_ind[0]+1), :]
+        lpost0 = lpost_candidates[finite_ind[0]][0]
+    else:
+        lpost0 = np.squeeze(logpost_func(theta0, return_grad=False))
+        if not np.isfinite(lpost0):
+            raise RuntimeError(f'Initial theta returns invalid log posterior: {lpost0}')
 
     p = theta0.shape[1]
     theta = np.full((burnSamples + numsamp, p), np.nan, float)
     theta[0] = theta0
 
     lposterior = np.full(burnSamples + numsamp, np.nan, float)
-    lposterior[0] = np.squeeze(logpost_func(theta0, return_grad=False))
-    if not np.isfinite(lposterior[0]):
-        assert lposterior[0] == -np.inf
-        raise RuntimeError("Initial theta evaluates to zero density")
+    lposterior[0] = lpost0
 
     # We implicitly treat theta0 as accepted.  If the number of burn-in samples
     # is positive, we also treat it as part of the burn-in.

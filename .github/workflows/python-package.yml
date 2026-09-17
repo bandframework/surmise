@@ -22,7 +22,7 @@ jobs:
         # Windows fails with Python 3.14 due to lack of prebuilt numpy wheels.
         # See python-installation.yml.
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.13"]
+        python-version: ["3.14"]
     steps:
     - uses: actions/checkout@v6
     - name: Set up Python ${{ matrix.python-version }}

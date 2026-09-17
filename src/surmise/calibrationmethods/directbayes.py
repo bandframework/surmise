@@ -4,6 +4,8 @@ import copy
 
 from .._RandomNumberGenerator import RandomNumberGenerator
 from ..create_sampler import create_sampler
+from ._cov_diagnosis import (new_cov_diagnosis, check_eigvals,
+                             warn_cov_diagnosis)
 
 
 def fit(fitinfo, emu, x, y, **sampler_args):
@@ -119,11 +121,13 @@ def fit(fitinfo, emu, x, y, **sampler_args):
     expert_mode = specification.get("expertMode", False)
 
     sampler = create_sampler(sampler_name, expert_mode=expert_mode)
+    fitinfo['cov_diagnosis'] = new_cov_diagnosis()
     results = sampler(logpost_func=logpostfull,
                       draw_func=draw_func,
                       scipy_stats_rng=global_RNG,
                       specification=specification)
     theta = results["theta"]
+    warn_cov_diagnosis(fitinfo['cov_diagnosis'], 'directbayes')
 
     # Update fitinfo dict
     fitinfo['thetarnd'] = theta
@@ -250,6 +254,14 @@ def loglik(fitinfo, emu, theta, y, x):
 
         # Get the decomposition of covariance matrix
         CovMatEigS, CovMatEigW = np.linalg.eigh(CovMat)
+
+        # CovMat = PSD + diag(obsvar), so exact eigenvalues >= min(obsvar)
+        cov_diagnosis = fitinfo['cov_diagnosis']
+        if not check_eigvals(cov_diagnosis, theta[k], CovMatEigS,
+                             lower_bound=np.min(obsvar),
+                             arrays=(m0, CovMat)):
+            loglikelihood[k] = -np.inf
+            continue
 
         # Calculate residuals
         resid = m0 - y
