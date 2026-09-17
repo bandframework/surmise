@@ -1,6 +1,6 @@
 import pytest
-from surmise.emulation import emulator
-from surmise.calibration import calibrator
+from surmise import emulator
+from surmise import calibrator
 from .conftest import does_not_raise
 from .shared_scenario import x_td as x, y_td as y, obsvar_td as obsvar, \
     x_std, theta_ball, x_range, theta_range, prior_balldrop, timedrop, \

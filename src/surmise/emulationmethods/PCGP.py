@@ -38,9 +38,6 @@ def fit(fitinfo, x, theta, f, epsilon=0.1, **kwargs):
     args : dict, optional
         A dictionary containing options. The default is None.
 
-    Returns
-    -------
-    None.
 
     '''
     f = f.T

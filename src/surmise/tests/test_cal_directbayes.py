@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from surmise.calibration import calibrator
+from surmise import calibrator
 from .conftest import does_not_raise
 from .shared_scenario import y_td as y, obsvar_td as obsvar, \
     x_std, theta_ball as theta, x_range, theta_range, prior_balldrop, timedrop, DEFAULT_MH_SPECS
