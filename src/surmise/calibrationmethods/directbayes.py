@@ -1,9 +1,14 @@
 import numpy as np
-from surmise.utilities import sampler
+import scipy.stats as sps
 import copy
 
+from .._RandomNumberGenerator import RandomNumberGenerator
+from ..create_sampler import create_sampler
+from ._cov_diagnosis import (new_cov_diagnosis, check_eigvals,
+                             warn_cov_diagnosis)
 
-def fit(fitinfo, emu, x, y, **bayes_args):
+
+def fit(fitinfo, emu, x, y, **sampler_args):
     '''
     The main required function to be called by calibration to fit a
     calibration model.
@@ -45,7 +50,7 @@ def fit(fitinfo, emu, x, y, **bayes_args):
         - fitinfo['thetarand'] : some number draws from the predictive
           distribution on theta
 
-    emu : :class: `surmise.emulation.emulator`
+    emu : :class: `surmise.emulator`
         An emulator class instance as defined in emulation
         Example emu functions
         (Not all of these will work, it depends on the emulation software.)
@@ -76,6 +81,8 @@ def fit(fitinfo, emu, x, y, **bayes_args):
         A dictionary containing options passed to the calibrator.
 
     '''
+    global_RNG = RandomNumberGenerator().scipy_stats_RNG
+
     thetaprior = fitinfo['thetaprior']
 
     # Define the posterior function
@@ -99,22 +106,28 @@ def fit(fitinfo, emu, x, y, **bayes_args):
         if n0 < n:
             theta0 = np.vstack((thetaprior.rnd(n - n0), theta0))
         else:
-            theta0 = theta0[np.random.randint(theta0.shape[0], size=n), :]
+            theta0 = theta0[sps.randint.rvs(low=0, high=theta0.shape[0],
+                                            size=n, random_state=global_RNG), :]
 
         return theta0
 
     # Call the sampler
-    if 'sampler' in bayes_args.keys():
-        name = bayes_args['sampler']
-    else:
-        name = 'unspecified'
-    _ = name  # to satisfy flake8, can be removed when variable is used
+    specification = copy.deepcopy(sampler_args)
+    if 'sampler' not in specification:
+        raise ValueError("Please provide the name of the sampler to use")
+    sampler_name = specification['sampler']
+    del specification['sampler']
 
-    sampler_obj = sampler(logpost_func=logpostfull,
-                          draw_func=draw_func,
-                          **bayes_args)
+    expert_mode = specification.get("expertMode", False)
 
-    theta = sampler_obj.sampler_info['theta']
+    sampler = create_sampler(sampler_name, expert_mode=expert_mode)
+    fitinfo['cov_diagnosis'] = new_cov_diagnosis()
+    results = sampler(logpost_func=logpostfull,
+                      draw_func=draw_func,
+                      scipy_stats_rng=global_RNG,
+                      specification=specification)
+    theta = results["theta"]
+    warn_cov_diagnosis(fitinfo['cov_diagnosis'], 'directbayes')
 
     # Update fitinfo dict
     fitinfo['thetarnd'] = theta
@@ -142,9 +155,10 @@ def thetarnd(fitinfo, s=100, args=None):
         s draws from the predictive distribution of theta.
 
     '''
+    global_RNG = RandomNumberGenerator().scipy_stats_RNG
 
-    return fitinfo['thetarnd'][np.random.choice(fitinfo['thetarnd'].shape[0],
-                                                size=s), :]
+    return fitinfo['thetarnd'][global_RNG.choice(fitinfo['thetarnd'].shape[0],
+                                                 size=s), :]
 
 
 def loglik(fitinfo, emu, theta, y, x):
@@ -173,7 +187,7 @@ def loglik(fitinfo, emu, theta, y, x):
         - fitinfo['thetarand'] : some number draws from the predictive
           distribution on theta
 
-    emu : :class: `surmise.emulation.emulator`
+    emu : :class: `surmise.emulator`
         An emulator class instance as defined in emulation
         Example emu functions
         (Not all of these will work, it depends on the emulation software.)
@@ -240,6 +254,14 @@ def loglik(fitinfo, emu, theta, y, x):
 
         # Get the decomposition of covariance matrix
         CovMatEigS, CovMatEigW = np.linalg.eigh(CovMat)
+
+        # CovMat = PSD + diag(obsvar), so exact eigenvalues >= min(obsvar)
+        cov_diagnosis = fitinfo['cov_diagnosis']
+        if not check_eigvals(cov_diagnosis, theta[k], CovMatEigS,
+                             lower_bound=np.min(obsvar),
+                             arrays=(m0, CovMat)):
+            loglikelihood[k] = -np.inf
+            continue
 
         # Calculate residuals
         resid = m0 - y

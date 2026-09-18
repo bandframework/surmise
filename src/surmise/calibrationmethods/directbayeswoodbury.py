@@ -1,10 +1,15 @@
-import numpy as np
-import scipy.stats as sps
-from surmise.utilities import sampler
 import copy
 
+import numpy as np
+import scipy.stats as sps
 
-def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
+from .._RandomNumberGenerator import RandomNumberGenerator
+from ..create_sampler import create_sampler
+from ._cov_diagnosis import (new_cov_diagnosis, check_eigvals,
+                             warn_cov_diagnosis)
+
+
+def fit(fitinfo, emu, x, y, **sampler_args):
     '''
     The main required function to be called by calibration to fit a
     calibration model.
@@ -55,8 +60,8 @@ def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
 
         - fitinfo['lpdf'] :log of the posterior of the given theta.
 
-    emu : surmise.emulation.emulator
-        An emulator class instance as defined in emulation.
+    emu : surmise.emulator
+        An emulator class instance
     x : numpy.ndarray
         An array of x  that represent the inputs.
     y : numpy.ndarray
@@ -64,11 +69,9 @@ def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
     args : dict, optional
         A dictionary containing options passed. The default is None.
 
-    Returns
-    -------
-    None.
 
     '''
+    global_RNG = RandomNumberGenerator().scipy_stats_RNG
 
     thetaprior = fitinfo['thetaprior']
     try:
@@ -142,21 +145,35 @@ def fit(fitinfo, emu, x, y, **bayeswoodbury_args):
         if n0 < n:
             theta0 = np.vstack((thetaprior.rnd(n-n0), theta0))
         else:
-            theta0 = theta0[np.random.randint(theta0.shape[0], size=n), :]
+            theta0 = theta0[sps.randint.rvs(low=0, high=theta0.shape[0],
+                                            size=n, random_state=global_RNG), :]
 
         return theta0
 
-    # obtain theta draws from posterior distribution
-    sampler_obj = sampler(logpost_func=logpostfull_wgrad,
-                          draw_func=draw_func,
-                          **bayeswoodbury_args)
+    # Call the sampler
+    specification = copy.deepcopy(sampler_args)
+    if 'sampler' not in specification:
+        raise ValueError("Please provide the name of the sampler to use")
+    sampler_name = specification['sampler']
+    del specification['sampler']
 
-    theta = sampler_obj.sampler_info['theta']
+    expert_mode = specification.get("expertMode", False)
+
+    sampler = create_sampler(sampler_name, expert_mode=expert_mode)
+    fitinfo['cov_diagnosis'] = new_cov_diagnosis()
+    results = sampler(logpost_func=logpostfull_wgrad,
+                      draw_func=draw_func,
+                      scipy_stats_rng=global_RNG,
+                      specification=specification)
+    theta = results["theta"]
+    warn_cov_diagnosis(fitinfo['cov_diagnosis'], 'directbayeswoodbury')
 
     # obtain log-posterior of theta values
     ladj = logpostfull_wgrad(theta, return_grad=False)
-    mladj = np.max(ladj)
-    fitinfo['lpdfapproxnorm'] = np.log(np.mean(np.exp(ladj - mladj))) + mladj
+    # rejected re-evaluations (-inf) contribute zero mass; avoid -inf - -inf
+    mladj = np.max(ladj[np.isfinite(ladj)], initial=-np.inf)
+    fitinfo['lpdfapproxnorm'] = (np.log(np.mean(np.exp(ladj - mladj)))
+                                 + mladj) if np.isfinite(mladj) else mladj
     fitinfo['thetarnd'] = theta
     fitinfo['y'] = y
     fitinfo['x'] = x
@@ -182,18 +199,16 @@ def predict(predinfo, fitinfo, emu, x, args=None):
     fitinfo : dict
         A dictionary including the calibration fitting information once
         complete.
-    emu : surmise.emulation.emulator
-        DESCRIPTION.
+    emu : surmise.emulator
+        An emulator class instance
     x : TYPE
         An array of x values where the prediction occurs.
     args : dict, optional
-        A dictionary containing options. The default is None.
+        A dictionary containing options.
 
-    Returns
-    -------
-    None.
 
     '''
+    global_RNG = RandomNumberGenerator().scipy_stats_RNG
 
     theta = fitinfo['thetarnd']
     if theta.ndim == 1 and fitinfo['theta'].shape[1] > 1.5:
@@ -209,7 +224,8 @@ def predict(predinfo, fitinfo, emu, x, args=None):
 
     for k in range(0, theta.shape[0]):
         re = emucovxhalf[:, k, :] @ \
-            sps.norm.rvs(0, 1, size=(emucovxhalf.shape[2]))
+            sps.norm.rvs(0, 1, size=(emucovxhalf.shape[2]),
+                         random_state=global_RNG)
         predinfo['rnd'][k, :] += re
 
     predinfo['mean'] = np.mean(emumean, 1)
@@ -235,8 +251,10 @@ def thetarnd(fitinfo, s=100, args=None):
         s draws from the predictive distribution of theta.
 
     '''
-    return fitinfo['thetarnd'][np.random.choice(fitinfo['thetarnd'].shape[0],
-                                                size=s), :]
+    global_RNG = RandomNumberGenerator().scipy_stats_RNG
+
+    return fitinfo['thetarnd'][global_RNG.choice(fitinfo['thetarnd'].shape[0],
+                                                 size=s), :]
 
 
 def thetalpdf(fitinfo, theta, args=None):
@@ -296,6 +314,12 @@ def loglik(fitinfo, emu, theta, y, x):
             stndresid = stndresid[:, None]
         J2 = J.T @ stndresid
         W, V = np.linalg.eigh(np.eye(J.shape[1]) + J.T @ J)
+        # I + J^T J has exact eigenvalues >= 1
+        cov_diagnosis = fitinfo['cov_diagnosis']
+        if not check_eigvals(cov_diagnosis, theta[k], W, lower_bound=1.0,
+                             arrays=(m0, S0)):
+            loglik[k, 0] = -np.inf
+            continue
         if W.shape[0] > 1:
             J3 = V @ np.diag(1/W) @ V.T @ J2
         else:
@@ -357,6 +381,14 @@ def loglik_grad(fitinfo, emu, theta, y, x):
 
         J2 = J.T @ stndresid
         W, V = np.linalg.eigh(np.eye(J.shape[1]) + J.T @ J)
+        # I + J^T J has exact eigenvalues >= 1
+        cov_diagnosis = fitinfo['cov_diagnosis']
+        if not check_eigvals(cov_diagnosis, theta[k], W, lower_bound=1.0,
+                             arrays=(m0, dm0, S0,
+                                     emucovxhalf_grad[:, k, :, :])):
+            loglik[k, 0] = -np.inf
+            dloglik[k, :] = 0.0
+            continue
         J3 = V @ np.diag(1/W) @ V.T @ J2
         term2 = np.sum(J3 * J2)
 

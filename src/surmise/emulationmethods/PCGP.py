@@ -2,6 +2,7 @@
 import numpy as np
 import scipy.optimize as spo
 from pprint import pformat
+from .._RandomNumberGenerator import RandomNumberGenerator
 
 
 def fit(fitinfo, x, theta, f, epsilon=0.1, **kwargs):
@@ -37,9 +38,6 @@ def fit(fitinfo, x, theta, f, epsilon=0.1, **kwargs):
     args : dict, optional
         A dictionary containing options. The default is None.
 
-    Returns
-    -------
-    None.
 
     '''
     f = f.T
@@ -368,6 +366,8 @@ def emulation_fit(theta, pcaval):
     subinfo : dict
         Dictionary of the fitted emulator model.
     '''
+    global_RNG = RandomNumberGenerator().scipy_stats_RNG
+
     subinfo = {}
 
     covhyp0 = np.log(np.std(theta, 0) * 3) + 1
@@ -380,7 +380,7 @@ def emulation_fit(theta, pcaval):
 
     # Get a random sample of thetas to find the optimized hyperparameters
     n_train = np.min((20 * theta.shape[1], theta.shape[0]))
-    idx = np.random.choice(theta.shape[0], n_train, replace=False)
+    idx = global_RNG.choice(theta.shape[0], n_train, replace=False)
 
     # Start constructing the returning dictionary
     if theta.ndim == 1:
@@ -402,7 +402,6 @@ def emulation_fit(theta, pcaval):
                          bounds=bounds,
                          args=(subinfo),
                          method='L-BFGS-B',
-                         options={'disp': False},
                          jac=emulation_negloglikgrad)
 
     # Obtain the optimized hyperparameter values

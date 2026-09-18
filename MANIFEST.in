@@ -7,4 +7,6 @@ exclude surmisebandsdk.md tox.ini
 prune tests
 prune examples
 prune docs
+prune book
+prune tools
 prune .github

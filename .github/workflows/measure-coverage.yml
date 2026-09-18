@@ -5,22 +5,22 @@ env:
   HTML_REPORT:   ${{ github.workspace }}/htmlcov
 on:
   push:
-    branches: [main, develop]
+    branches: main
   pull_request:
-    branches: [main, develop]
+    branches: main
 
 jobs:
   coverage_ubuntu:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.14"]
     steps:
     ##-- General Setup Steps
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -36,7 +36,7 @@ jobs:
 
     ##-- Publish full coverage report as artifact
     - name: Archive code coverage results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: code-coverage-results
         path: |

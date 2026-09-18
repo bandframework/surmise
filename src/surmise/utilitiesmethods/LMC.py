@@ -1,77 +1,110 @@
 import numpy as np
+import scipy.stats as sps
 import scipy.optimize as spo
-
-r'''
-Metropolis-adjusted Langevin algorithm or Langevin Monte Carlo (LMC).
-
-The LMC sampler is available through calling the `calibrator` object with an
-optional argument `args={'sampler': 'LMC'}`.  LMC is a Markov chain Monte
-Carlo method that seeks to propose the next iterates by leveraging gradient
-information at the current iterate.  The proposal has the form
-
-.. math::
-
-    \theta^{k+1} = \theta^k - \nabla g(\theta^k) \Delta t +
-    \sqrt{2\Delta t} Z,
-
-where :math:`\Delta t` is a time stepsize, and :math:`Z` is an independently
-and identically drawn sample from the standard Gaussian normal of the
-appropriate dimension.  The proposal is then accepted or rejected by the
-typical Metropolis-Hastings step, i.e. accept with probability
-
-.. math::
-
-    \alpha = \min\left\{1, \frac{\pi(\tilde{\theta}^{k+1})q(\theta^k \mid
-    \tilde{\theta}^{k+1})}{\pi(\theta^{k})q(\tilde{\theta}^{k+1} \mid
-    \theta^k)}\right\},
-
-where :math:`\pi(\cdot)` is the posterior distribution, :math:`q(\cdot \mid
-\cdot)` is the proposal distribution, and :math:`\theta^k,
-\tilde{\theta}^{k+1}` are the current and the proposed point respectively.
-
-Langevin Monte Carlo has shown strengths in increasing the acceptance rate,
-compared to the typical Metropolis-Hastings algorithm (Roberts and
-Rosenthal, 1998).  However, its significant drawback lies in its poor
-scaling due to the computation for the gradient at the current iterate.
-
-Refer to G. O. Roberts and J. S. Rosenthal. Optimal scaling of discrete
-approximations to langevin diffusions. *Journal of the Royal Statistical
-Society: Series B (Statistical Methodology)*, 60(1):255-268, 1998.
-'''
+import warnings
 
 
 def sampler(logpost_func,
             draw_func,
-            numsamp=2000,
-            theta0=None,
-            **lmc_options):
-    '''
+            scipy_stats_rng,
+            specification):
+    r'''
+    .. note::
+        This sampler is currently considered as **research-grade** and is
+        **not** officially offered by |surmise|.
+
+    Metropolis-adjusted Langevin algorithm or Langevin Monte Carlo (LMC), which
+    seeks to propose the next iterates by leveraging gradient information at the
+    current iterate.  The proposal has the form
+
+    .. math::
+
+        \theta^{k+1} = \theta^k - \nabla g(\theta^k) \Delta t +
+        \sqrt{2\Delta t} Z,
+
+    where :math:`\Delta t` is a time stepsize, and :math:`Z` is an independently
+    and identically drawn sample from the standard Gaussian normal of the
+    appropriate dimension.  The proposal is then accepted or rejected by the
+    typical Metropolis-Hastings step, i.e. accept with probability
+
+    .. math::
+
+        \alpha = \min\left\{1, \frac{\pi(\tilde{\theta}^{k+1})q(\theta^k \mid
+        \tilde{\theta}^{k+1})}{\pi(\theta^{k})q(\tilde{\theta}^{k+1} \mid
+        \theta^k)}\right\},
+
+    where :math:`\pi(\cdot)` is the posterior distribution, :math:`q(\cdot \mid
+    \cdot)` is the proposal distribution, and :math:`\theta^k,
+    \tilde{\theta}^{k+1}` are the current and the proposed point respectively.
+
+    Langevin Monte Carlo has shown strengths in increasing the acceptance rate,
+    compared to the typical Metropolis-Hastings algorithm (Roberts and
+    Rosenthal, 1998).  However, its significant drawback lies in its poor
+    scaling due to the computation for the gradient at the current iterate.
+
+    Refer to G. O. Roberts and J. S. Rosenthal. Optimal scaling of discrete
+    approximations to langevin diffusions. *Journal of the Royal Statistical
+    Society: Series B (Statistical Methodology)*, 60(1):255-268, 1998.
 
     Parameters
     ----------
     logpostfunc : function
-        A function call describing the log of the posterior distribution.
-            If no gradient, logpostfunc should take a value of an m by p numpy
-            array of parameters and theta and return
-            a length m numpy array of log posterior evaluations.
-            If gradient, logpostfunc should return a tuple.  The first element
-            in the tuple should be as listed above.
-            The second element in the tuple should be an m by p matrix of
-            gradients of the log posterior.
-    options : dict
-        a dictionary contains the output of the sampler.
-        Required -
-            theta0: an m by p matrix of initial parameter values.
-        Optional -
-            numsamp: the number of samplers you want from the posterior.
-            Default is 2000.
+        A function that returns the log of the posterior densities at each of
+        :math:`m` theta points provided in an :math:`m \times p` NumPy array.
+        If gradients are not computed, **logpostfunc** should return a length
+        :math:`m` NumPy array of log posterior values computed at the given
+        theta points.  If gradients are computed, **logpostfunc** should return
+        a tuple whose first element is the array of log posterior values as
+        described above; the second, an :math:`m \times p` NumPy array of
+        gradients of the log posterior at those same theta points.
+    draw_func : function
+        function that accepts the number of desired random draws needed for
+        initializing the sample process and returns a 2D NumPy array of draws
+        with each row being a different draw.
+    scipy_stats_rng :
+        ``scipy.stats``-compatible pseudorandom number generator that the
+        sampler should use for all random draws performed by the sampler.  The
+        sampling process produces identical results if it is repeated with the
+        same RNG setup.
+    specification : dict
+        The full set of sampler configuration values
+
+        * **"theta0"** - ``None`` or an :math:`m \times p` array of initial thetas
+          to use to start the sampling process.  If ``None``, then the process
+          is intialized with 1000 random draws from **draw_func**.
+        * **"nSamples"** - total number of samples from the posterior.
+        * **"verbose"** - log setup and sampling progress information if ``True``.
 
     Returns
     -------
-    TYPE
-        numsamp by p of sampled parameter values
+    sampler_info : dict
+        Summary of the sampling process
 
+        * **"theta"** - an **nSamples** :math:`\times p` array of unsorted
+          samples from the posterior
+        * **"logpost"** - an **nSamples**-element array of log posterior values
+          associated with the elements of **theta**
     '''
+    VALID_SPECS = {"nSamples", "theta0", "verbose"}
+
+    # Get specification values
+    if not VALID_SPECS.issubset(set(specification)):
+        raise ValueError(
+            f"Please provide the LMC specifications {VALID_SPECS}"
+        )
+
+    numsamp = specification["nSamples"]
+    theta0 = specification["theta0"]
+    verbose = specification["verbose"]
+
+    if verbose:
+        # Don't log theta0 as it could potentially be an overwhelming amount of
+        # information.
+        print(f"nSamples = {numsamp}")
+
+    # random number generator
+    if not isinstance(scipy_stats_rng, np.random.Generator):
+        raise TypeError("Given RNG is not a valid scipy.stats RNG")
 
     if theta0 is None:
         theta0 = draw_func(1000)
@@ -124,13 +157,14 @@ def sampler(logpost_func,
         logpost -= (mlogpost + np.log(np.sum(np.exp(logpost - mlogpost))))
         post = np.exp(logpost)
         post = post/np.sum(post)
-        thetaposs = theta0[np.random.choice(range(0, theta0.shape[0]),
-                                            size=1000,
-                                            p=post.reshape((theta0.shape[0],
-                                                            ))), :]
+        thetaposs = theta0[scipy_stats_rng.choice(
+                            range(0, theta0.shape[0]),
+                            size=1000,
+                            p=post.reshape((theta0.shape[0], ))
+                           ), :]
 
-        if np.any(np.std(thetaposs, 0) < 10 ** (-8) * np.min(np.std(theta0,
-                                                                    0))):
+        if np.any(np.std(thetaposs, 0) < 10 ** (-8) *
+                  np.min(np.std(theta0, 0))):
             thetastar = theta0[np.argmax(logpost), :]
             theta0 = thetastar + (theta0 - thetastar) / 2
             iteratttempt += 1
@@ -210,8 +244,8 @@ def sampler(logpost_func,
     numsamppc = 200
     covmat0 = np.diag(thetas)
     for iters in range(0, maxiters):
-        startingv = np.random.choice(np.arange(0, Lsave.shape[0]),
-                                     size=Lsave.shape[0])
+        startingv = scipy_stats_rng.choice(np.arange(0, Lsave.shape[0]),
+                                           size=Lsave.shape[0])
         thetasave = thetasave[startingv, :]
 
         covmat0 = 0.1*covmat0 + 0.9*np.cov(thetasave.T)
@@ -223,8 +257,8 @@ def sampler(logpost_func,
         else:
             hc = np.sqrt(covmat0)
 
-        thetac = thetasave[np.random.choice(range(0, thetasave.shape[0]),
-                                            size=numchain), :]
+        thetac = thetasave[scipy_stats_rng.choice(range(0, thetasave.shape[0]),
+                                                  size=numchain), :]
 
         if logpostf_grad is not None:
             fval, dfval = logpostf(thetac)
@@ -236,7 +270,7 @@ def sampler(logpost_func,
         numtimes = 0
 
         for k in range(0, numsamppc):
-            rvalo = np.random.normal(0, 1, thetac.shape)
+            rvalo = sps.norm.rvs(size=thetac.shape, random_state=scipy_stats_rng)
             rval = np.sqrt(2) * rho * (rvalo @ hc)
 
             if rval.ndim != thetac.ndim:
@@ -254,7 +288,7 @@ def sampler(logpost_func,
                 fvalp = logpostf_nograd(thetap)
                 qadj = np.zeros(fvalp.shape)
 
-            swaprnd = np.log(np.random.uniform(size=fval.shape[0]))
+            swaprnd = np.log(sps.uniform.rvs(size=fval.shape[0], random_state=scipy_stats_rng))
             whereswap = np.where(np.squeeze(swaprnd)
                                  < np.squeeze(fvalp - fval)
                                  + np.squeeze(qadj))[0]
@@ -308,8 +342,13 @@ def sampler(logpost_func,
             trm = np.min((1.5*tarESS/np.mean(ESS), 4))
             numsamppc = np.ceil(numsamppc*trm).astype('int')
 
-    theta = thetasave[np.random.choice(range(0, thetasave.shape[0]),
-                                       size=numsamp), :]
+    # TODO: thetasave may have fewer samples than requested.
+    if thetasave.shape[0] < numsamp:
+        warnings.warn('Number of samples returned is fewer than '
+                      'the requested number of samples (nSamples.')
+
+    theta = thetasave[scipy_stats_rng.choice(range(0, thetasave.shape[0]),
+                                             size=numsamp), :]
     sampler_info = {'theta': theta, 'logpost': Lsave}
 
     return sampler_info

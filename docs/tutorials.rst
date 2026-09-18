@@ -5,4 +5,3 @@ Tutorials for Programming in surmise
 
    howtoemulation
    howtocalibration
-   howtoutilities

@@ -17,6 +17,7 @@ Jupyter
 Jupyterbook
 Kriging
 LHS
+LMC
 LaTeX
 Loeppky
 MCMC
@@ -35,6 +36,10 @@ PrAyvH
 PyPI
 Quickstart
 README
+RNG
+RNG's
+RNGs
+RandomNumberGenerator
 SDK
 SURmise
 SciPy
@@ -46,6 +51,7 @@ TODO
 VAH
 aMWOoGvY
 attr
+autoclass
 autofunction
 automodule
 bandframework
@@ -56,6 +62,7 @@ calibrationmethods
 chan
 colab
 cov
+cryptographically
 currentmodule
 danOSU
 dataset
@@ -64,6 +71,7 @@ directbayes
 directbayeswoodbury
 docstrings
 edu
+eigvals
 emulationmethods
 exascaleproject
 gKTCLEAGE
@@ -92,20 +100,25 @@ namespace
 nan
 nb
 nbviewer
+np
 numpy
 ozgesurer
 pdf
 png
+pseudorandom
 py
 pypa
 pypi
 pyproject
 pytest
+randbits
+rng
 qj
 quickstart
 reStructuredText
 readthedocs
 runtime
+rvs
 scikit
 scipy
 setuptools
@@ -125,6 +138,7 @@ vah
 venv
 visualstudio
 whl
+wikipedia
 wordpress
 wp
 www
