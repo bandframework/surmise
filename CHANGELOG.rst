@@ -9,10 +9,10 @@ Release 1.0.0
 
 :Date: September 21, 2026
 
-* Improve usage of random number generator for reproducibility in surmise results. See RNG usage in README.
+* Improve usage of random number generator for reproducibility in surmise results. See [RNG usage](https://surmise.readthedocs.io/en/latest/random_number_generation.html) in User Manual .
 * Simplify emulator and calibrator calls by inclusion in namespace.
 * Update calibrator interface to specify mandatory input arguments and structure.
-* Include helper functions for monitoring covariance matrix conditions. See Understanding surmise in README.
+* Include helper functions for monitoring covariance matrix conditions. See [Diagnosing covariance](https://surmise.readthedocs.io/en/latest/cov_diagnosis.html) in User Manual.
 * Simplify sampler interface through the introduction of `create_sampler`.
 * Include Jupyterbook tutorial for additional usage examples.
 * Remove redundant pure Python scripts (identical to the notebook examples.)
