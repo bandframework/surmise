@@ -19,9 +19,6 @@
 .. image:: https://github.com/bandframework/surmise/actions/workflows/publish_book.yml/badge.svg?branch=main
     :target: https://github.com/bandframework/surmise/actions/workflows/publish_book.yml
 
-.. image:: https://jupyterbook.org/badge.svg
-    :target: https://bandframework.github.io/surmise
-
 |
 
 .. after_badges_rst_tag
@@ -37,14 +34,14 @@ Dependencies
 ~~~~~~~~~~~~
 
 surmise is built with NumPy_, SciPy_, scikit-learn_, dill_, and pytest_.  Please
-refer to the `[_requires]` sections of setup.py for more details.
+refer to the ``*_requires`` variables in ``setup.py`` for more details.
 
 Installation
 ~~~~~~~~~~~~
 
 From the command line, surmise can be installed by executing::
 
- pip install surmise
+ python -m pip install surmise
 
 The list of available .whl files can be found under `PyPI-wheel`_.  If a wheel
 file for your preferred platform is not listed, then surmise has to be built
@@ -57,11 +54,7 @@ appropriate version of::
 
  git clone https://github.com/bandframework/surmise/
  cd surmise
- python -m pip install --upgrade pip
- python -m pip install --upgrade setuptools
- python -m pip install build
- python -m build --wheel
- python -m pip install dist/surmise-<version info>.whl
+ python -m pip install .
 
 .. note::
     Currently surmise on Windows system is built and tested with MinGW, in order to support the GCC compiler.

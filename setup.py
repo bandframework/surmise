@@ -52,7 +52,7 @@ project_urls = {
 
 setup(
     name="surmise",
-    author="Matthew Plumlee, Özge Sürer, Stefan M. Wild, and Moses Y.-H. Chan",
+    author="Matthew Plumlee, Özge Sürer, Stefan M. Wild, Moses Y.-H. Chan, and Jared O'Neal",
     author_email="moses.chan@northwestern.edu",
     maintainer="Moses Y.-H. Chan",
     maintainer_email="moses.chan@northwestern.edu",
