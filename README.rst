@@ -108,7 +108,7 @@ it to generate documentation.
 
 .. code-block:: bibtex
 
-   @techreport{surmise2025,
+   @techreport{surmise2026,
      author      = {Matthew Plumlee and \"Ozge S\"urer and Stefan M. Wild and Moses Y-H. Chan and Jared O'Neal},
      title       = {{surmise 1.0.0} Users Manual},
      institution = {NAISE},
