@@ -22,10 +22,10 @@ def readme_rst():
     with open(fname, encoding="utf8") as fptr:
         return fptr.read()
 
-python_requires = ">=3.10"
+python_requires = ">=3.11"
 code_requires = [
-    'numpy>=1.22.0',
-    'scipy>=1.9.0',
+    'numpy>=1.23.2',
+    'scipy>=1.9.2',
     'scikit-learn>=1.2.0',
     'dill>=0.3.8'
 ]
@@ -52,7 +52,7 @@ project_urls = {
 
 setup(
     name="surmise",
-    author="Matthew Plumlee, Özge Sürer, Stefan M. Wild, and Moses Y.-H. Chan",
+    author="Matthew Plumlee, Özge Sürer, Stefan M. Wild, Moses Y.-H. Chan, and Jared O'Neal",
     author_email="moses.chan@northwestern.edu",
     maintainer="Moses Y.-H. Chan",
     maintainer_email="moses.chan@northwestern.edu",
@@ -74,7 +74,6 @@ setup(
         "Natural Language :: English",
         "Development Status :: 5 - Production/Stable",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",

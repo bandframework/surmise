@@ -24,18 +24,7 @@ jobs:
         os: [ubuntu-22.04, ubuntu-24.04,
              macos-14, macos-15, macos-26, macos-26-intel,
              windows-2022, windows-2025]
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
-        exclude:
-          # Warning: Numpy built with MINGW-W64 on Windows 64 bits is
-          # experimental, and only available for testing.  Happens when building
-          # numpy v2.1.2.
-          - os: windows-2022
-            python-version: "3.14"
-          # Warning: Numpy built with MINGW-W64 on Windows 64 bits is
-          # experimental, and only available for testing.  Happens when building
-          # numpy v2.1.2.
-          - os: windows-2025
-            python-version: "3.14"
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
     steps:
     - uses: actions/checkout@v6
     - name: Set up Python ${{ matrix.python-version }}

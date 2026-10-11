@@ -1,20 +1,30 @@
 How to include a new emulator
 ==============================================
+When loaded, the surmise package automatically identifies all available
+emulators by locating all ``.py`` codes in the ``emulationmethods`` folder
+within its installation [#f1]_.  For example, it assumes that the
+``emulationmethods/PCGP.py`` file provides the ``PCGP`` emulator, which is the
+emulator name that users should provide when choosing a particular emulator to
+use for a fit.  Therefore, users can integrate their own emulator in surmise by
+placing their emulator's Python source code in that same folder.
 
-In this tutorial, we describe how to include a new emulator to the surmise's
+This tutorial
+describes how to structure a custom emulator code so that this integration is
+successful.
+In this tutorial, we describe how to include a new emulator in surmise's
 framework. We illustrate this with ``PCGP``--an emulator method located in the
-directory ``\emulationmethods``.
+directory ``emulationmethods``.
 
-In surmise, all emulator methods inherit from the base class :py:class:`surmise.emulation.emulator`.
+In surmise, all emulator methods inherit from the base class :py:class:`surmise.emulator`.
 An emulator class calls the user input method, and fits the corresponding
-emulator. :py:func:`surmise.emulation.emulator.fit` and :py:func:`surmise.emulation.emulator.predict`
-are the main :py:class:`surmise.emulation.emulator` class methods.
+emulator. :py:func:`surmise.emulator.fit` and :py:func:`surmise.emulator.predict`
+are the main :py:class:`surmise.emulator` class methods.
 It also provides the functionality of updating and manipulating the
-fitted emulator by :py:func:`surmise.emulation.emulator.supplement`,
-:py:func:`surmise.emulation.emulator.update`, and :py:func:`surmise.emulation.emulator.remove`
+fitted emulator by :py:func:`surmise.emulator.supplement`,
+:py:func:`surmise.emulator.update`, and :py:func:`surmise.emulator.remove`
 class methods.
 
-In order to use the functionality of the base class :py:class:`surmise.emulation.emulator`,
+In order to use the functionality of the base class :py:class:`surmise.emulator`,
 we categorize the functions to be included into a new emulation method (for example ``PCGP``) into two categories.
 
 Mandatory functions
@@ -36,8 +46,8 @@ The :py:func:`surmise.emulationmethods.PCGP.fit` is given below for an illustrat
 
 .. autofunction:: fit
 
-Once the base class :py:class:`surmise.emulation.emulator` is initialized,
-:py:func:`surmise.emulation.emulator.fit` method calls the developer's emulator's :py:func:`fit`
+Once the base class :py:class:`surmise.emulator` is initialized,
+:py:func:`surmise.emulator.fit` method calls the developer's emulator's :py:func:`fit`
 function, and places all information into the dictionary ``fitinfo``.
 
 .. autofunction:: predict
@@ -52,14 +62,24 @@ which has methods :py:meth:`surmise.emulation.prediction.mean`,
 :py:meth:`surmise.emulation.prediction.rnd`,
 and :py:meth:`surmise.emulation.prediction.lpdf`.
 
+
 Those expressions are defined within the base class to simplify the usage of the fitted
-models. In order to use those methods, the emulation method developers should either
-include functions :py:func:`predictmean`, :py:func:`predictmean_gradtheta`, :py:func:`predictvar`,
-:py:func:`predictcovx`, :py:func:`predictcovxhalf`, :py:func:`predictcovxhalf_gradtheta`, :py:func:`predictrnd`,
-and :py:func:`predictlpdf` into their methods, or define within the dictionary
-``fitinfo`` using the keys ``mean``, ``mean_gradtheta``, ``var``,
-``covx``, ``covxhalf``, ``covxhalf_gradtheta``, ``rnd``,
-and ``lpdf``.
+models. To use these methods, emulation method developers should either implement the
+functions below in their method or define the matching keys in the ``fitinfo``
+dictionary.
+
+=====================================  ========================
+Function                               ``fitinfo`` key
+=====================================  ========================
+:py:func:`predictmean`                 ``mean``
+:py:func:`predictmean_gradtheta`       ``mean_gradtheta``
+:py:func:`predictvar`                  ``var``
+:py:func:`predictcovx`                 ``covx``
+:py:func:`predictcovxhalf`             ``covxhalf``
+:py:func:`predictcovxhalf_gradtheta`   ``covxhalf_gradtheta``
+:py:func:`predictrnd`                  ``rnd``
+:py:func:`predictlpdf`                 ``lpdf``
+=====================================  ========================
 
 
 
@@ -67,3 +87,7 @@ Optional functions
 ++++++++++++++++++++
 
 ``supplementtheta()`` is an optional function for an emulation method.
+
+.. rubric:: Footnotes
+
+.. [#f1] The location of a surmise installation that was installed into a virtual environment, for example, might be ``~/local/venv/my_surmise/lib/python3.14/site-packages/surmise`` or, in Windows, ``~/local/surmise_venv/Lib/site-packages/surmise``

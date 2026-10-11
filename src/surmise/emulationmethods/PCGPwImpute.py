@@ -51,9 +51,6 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001, lognugmean=-10,
         - \'BayesianRidge\' (Bayesian ridge regression),
         - \'RandomForest\' (random forest method).
 
-    Returns
-    -------
-    None.
 
     """
     f = f.T

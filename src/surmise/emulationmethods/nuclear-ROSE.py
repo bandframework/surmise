@@ -30,10 +30,6 @@ def fit(fitinfo, rose_emu, emu_variance_constant=0.0, angle_atol=1e-2, **kwargs)
         A dictionary containing options. The default is None. Insert ROSE emulator with
         key = 'rose_emu'.
 
-    Returns
-    -------
-    None.
-
     '''
     assert emu_variance_constant >= 0, 'Emulator variance must be nonnegative.'
 

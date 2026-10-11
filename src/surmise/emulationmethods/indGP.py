@@ -35,10 +35,6 @@ def fit(fitinfo, x, theta, f,
     kwargs : dict, optional
         A dictionary containing options. The default is None.
 
-    Returns
-    -------
-    None.
-
     '''
     # Check for missing or failed values
     fitinfo['mof'] = np.logical_not(np.isfinite(f))

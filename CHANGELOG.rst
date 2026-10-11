@@ -4,6 +4,22 @@ Release Notes
 
 Below are the notes from all surmise releases.
 
+Release 1.0.0
+-------------
+
+:Date: September 21, 2026
+
+* Improve usage of random number generator for reproducibility in surmise results. See `RNG usage`_ in User Manual .
+* Simplify emulator and calibrator calls by inclusion in namespace.
+* Update calibrator interface to specify mandatory input arguments and structure.
+* Include helper functions for monitoring covariance matrix conditions. See `Diagnosing covariance`_ in User Manual.
+* Simplify sampler interface through the introduction of `create_sampler`.
+* Include Jupyterbook tutorial for additional usage examples.
+* Remove redundant pure Python scripts (identical to the notebook examples.)
+* Improve test suites to reuse fixtures instead of recreating test data.
+
+**Full Changelog**: https://github.com/bandframework/surmise/compare/v0.4.0...v1.0.0
+
 Release 0.4.0
 -------------
 
@@ -87,3 +103,6 @@ Release 0.1.0
 :Date: February 6, 2021
 
 * Initial release.
+
+.. _RNG usage: https://surmise.readthedocs.io/en/latest/random_number_generation.html
+.. _Diagnosing covariance: https://surmise.readthedocs.io/en/latest/cov_diagnosis.html

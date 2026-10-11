@@ -6,8 +6,7 @@ Understanding surmise
    :maxdepth: 4
 	
    overview
-   FAQ about calibration<FAQ>	
+   random_number_generation
+   cov_diagnosis
+   FAQ about calibration<FAQ>
    use_cases
-
-
-

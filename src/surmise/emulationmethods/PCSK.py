@@ -5,6 +5,7 @@ import numpy as np
 import scipy.optimize as spo
 from surmise.emulationsupport.matern_covmat import covmat as __covmat
 from pprint import pformat
+from .._RandomNumberGenerator import RandomNumberGenerator
 
 
 def fit(fitinfo, x, theta, f, epsilonPC=0.001,
@@ -62,9 +63,6 @@ def fit(fitinfo, x, theta, f, epsilonPC=0.001,
     kwargs : dict, optional
         A dictionary containing options. The default is None.
 
-    Returns
-    -------
-    None.
 
     '''
     f = f.T
@@ -445,6 +443,8 @@ def __fitGPs(fitinfo, theta, numpcs, verbose):
 
 def __fitGP1d(theta, g, gvar=None, hypstarts=None, hypinds=None, sig2ofconst=None):
     """Return a fitted model from the emulator model using smart method."""
+    global_RNG = RandomNumberGenerator().scipy_stats_RNG
+
     hypvarconstmean = 0
     hypvarconstLB = -3
     hypvarconstUB = 3
@@ -462,7 +462,7 @@ def __fitGP1d(theta, g, gvar=None, hypstarts=None, hypinds=None, sig2ofconst=Non
     nhyptrain = np.max(np.min((25 * theta.shape[1], theta.shape[0])))
 
     if theta.shape[0] > nhyptrain:
-        thetac = np.random.choice(theta.shape[0], nhyptrain, replace=False)
+        thetac = global_RNG.choice(theta.shape[0], nhyptrain, replace=False)
     else:
         thetac = range(0, theta.shape[0])
     subinfo['theta'] = theta[thetac, :]

@@ -2,12 +2,13 @@
 *__pycache__
 *.pyc
 *.pyd
+*.benchmark
 .ipynb_checkpoints/
 surmise_applications/
 build/
 venv*/
 *.o
-cov_*
+covmat_*
 .cov_*
 .cache
 book/_build
@@ -30,3 +31,5 @@ src/surmise/_version.py
 src/surmise/emulationsupport/matern_covmat.cpython*.so
 /wheelhouse/
 /dist/
+/wheels/
+
