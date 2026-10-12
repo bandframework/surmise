@@ -1,16 +1,25 @@
-# .github/workflows/draft-pdf.yml
-on:
-  workflow_dispatch:
+name: Draft PDF
+on: [push]
+
 jobs:
   paper:
     runs-on: ubuntu-latest
+    name: Paper Draft
     steps:
-      - uses: actions/checkout@v4
-      - uses: openjournals/openjournals-draft-action@master
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Build draft PDF
+        uses: openjournals/openjournals-draft-action@master
         with:
           journal: joss
-          paper-path: paper/paper.md
-      - uses: actions/upload-artifact@v4
+          # This should be the path to the paper within your repo.
+          paper-path: paper.md
+      - name: Upload
+        uses: actions/upload-artifact@v7
         with:
           name: paper
-          path: paper/paper.pdf
+          # This is the output path where Pandoc will write the compiled
+          # PDF. Note, this should be the same directory as the input
+          # paper.md
+          path: paper.pdf
+          archive: false
